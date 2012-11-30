@@ -12,22 +12,17 @@ public class SlotQuarry extends Slot {
 
 	@Override
 	public boolean isItemValid(ItemStack itemStack) {
-		if (0 <= this.getSlotIndex() && this.getSlotIndex() <= 4) {
-			if (itemStack.itemID == QuarryPlus.itemDrillModule.shiftedIndex) {
-				return true;
-			}
-			return false;
-		} else if (5 == this.getSlotIndex()) {
+		if (0 == this.getSlotIndex()) {
 			if (itemStack.itemID == QuarryPlus.itemSilktouch.shiftedIndex) {
 				return true;
 			}
 			return false;
-		} else if (6 <= this.getSlotIndex() && this.getSlotIndex() <= 8) {
+		} else if (1 <= this.getSlotIndex() && this.getSlotIndex() <= 3) {
 			if (itemStack.itemID == QuarryPlus.itemFortune.shiftedIndex) {
 				return true;
 			}
 			return false;
-		} else if (9 <= this.getSlotIndex() && this.getSlotIndex() <= 12) {
+		} else if (4 <= this.getSlotIndex() && this.getSlotIndex() <= 7) {
 			if (itemStack.itemID == QuarryPlus.itemEfficiency.shiftedIndex) {
 				return true;
 			}

@@ -2,7 +2,6 @@ package org.yogpstop.qp;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.Set;
 
 import com.google.common.collect.Sets;
@@ -10,9 +9,6 @@ import com.google.common.collect.Sets;
 import cpw.mods.fml.common.network.PacketDispatcher;
 import cpw.mods.fml.common.network.Player;
 
-import buildcraft.BuildCraftCore;
-import buildcraft.BuildCraftEnergy;
-import buildcraft.BuildCraftFactory;
 import buildcraft.api.core.BuildCraftAPI;
 import buildcraft.api.core.IAreaProvider;
 import buildcraft.api.core.LaserKind;
@@ -31,8 +27,6 @@ import buildcraft.core.blueprints.BptBuilderBase;
 import buildcraft.core.blueprints.BptBuilderBlueprint;
 import buildcraft.core.network.PacketUpdate;
 import buildcraft.core.network.TileNetworkData;
-import buildcraft.core.proxy.CoreProxy;
-import buildcraft.core.utils.Utils;
 import buildcraft.factory.TileMachine;
 
 import net.minecraft.src.AxisAlignedBB;
@@ -43,6 +37,7 @@ import net.minecraft.src.EntityPlayer;
 import net.minecraft.src.IInventory;
 import net.minecraft.src.ItemStack;
 import net.minecraft.src.NBTTagCompound;
+import net.minecraft.src.NBTTagList;
 import net.minecraft.src.Packet3Chat;
 import net.minecraft.src.World;
 
@@ -81,16 +76,11 @@ public class TileQuarry extends TileMachine implements IMachine,
 	private boolean Silktouch = false;
 	private int Fortune = 0;
 	private int Efficiency = 0;
-	private int DrillModule = 0;
 
 	public TileQuarry() {
 		powerProvider = PowerFramework.currentFramework.createPowerProvider();
 		powerProvider.configure(20, 1, 25, 0, MAX_ENERGY);
 		this.contents = new ItemStack[getSizeInventory()];
-	}
-
-	public void onChangeSlot() {
-
 	}
 
 	public void createUtilsIfNeeded() {
@@ -136,12 +126,11 @@ public class TileQuarry extends TileMachine implements IMachine,
 
 	private void createArm() {
 
-		worldObj.spawnEntityInWorld(new EntityMechanicalArm(worldObj, box.xMin
-				+ Utils.pipeMaxPos, yCoord + bluePrintBuilder.bluePrint.sizeY
-				- 1 + Utils.pipeMinPos, box.zMin + Utils.pipeMaxPos,
-				bluePrintBuilder.bluePrint.sizeX - 2 + Utils.pipeMinPos * 2,
-				bluePrintBuilder.bluePrint.sizeZ - 2 + Utils.pipeMinPos * 2,
-				this));
+		worldObj.spawnEntityInWorld(new EntityMechanicalArm(worldObj,
+				box.xMin + 0.75F, yCoord + bluePrintBuilder.bluePrint.sizeY
+						- 0.75F, box.zMin + 0.75F,
+				bluePrintBuilder.bluePrint.sizeX - 1.5F,
+				bluePrintBuilder.bluePrint.sizeZ - 1.5F, this));
 	}
 
 	// Callback from the arm once it's created
@@ -151,18 +140,18 @@ public class TileQuarry extends TileMachine implements IMachine,
 
 	@Override
 	public void updateEntity() {
-		if (!isAlive && CoreProxy.proxy.isSimulating(worldObj)) {
+		if (!isAlive && !worldObj.isRemote) {
 			super.updateEntity();
 			return;
 		}
-		if (!CoreProxy.proxy.isSimulating(worldObj) && isAlive) {
+		if (worldObj.isRemote && isAlive) {
 			super.updateEntity();
 			return;
 		}
 		super.updateEntity();
 		if (inProcess) {
 			float energyToUse = (2 + powerProvider.getEnergyStored() / 500)
-					/ (1 + this.Efficiency * 10F);
+					/ (1 + this.Efficiency * 10);
 
 			float energy = powerProvider.useEnergy(energyToUse, energyToUse,
 					true);
@@ -172,7 +161,7 @@ public class TileQuarry extends TileMachine implements IMachine,
 			}
 		}
 
-		if (CoreProxy.proxy.isSimulating(worldObj) && inProcess) {
+		if (!worldObj.isRemote && inProcess) {
 			sendNetworkUpdate();
 		}
 		if (inProcess || !isDigging) {
@@ -356,6 +345,18 @@ public class TileQuarry extends TileMachine implements IMachine,
 		headPosX = nbttagcompound.getDouble("headPosX");
 		headPosY = nbttagcompound.getDouble("headPosY");
 		headPosZ = nbttagcompound.getDouble("headPosZ");
+
+		NBTTagList nbttaglist = nbttagcompound.getTagList("Items");
+		contents = new ItemStack[getSizeInventory()];
+		for (int i = 0; i < nbttaglist.tagCount(); i++) {
+			NBTTagCompound nbttagcompound1 = (NBTTagCompound) nbttaglist
+					.tagAt(i);
+			int j = nbttagcompound1.getByte("Slot") & 0xff;
+			if (j >= 0 && j < contents.length) {
+				contents[j] = ItemStack.loadItemStackFromNBT(nbttagcompound1);
+			}
+		}
+		this.onInventoryChanged();
 	}
 
 	@Override
@@ -374,6 +375,18 @@ public class TileQuarry extends TileMachine implements IMachine,
 		NBTTagCompound boxTag = new NBTTagCompound();
 		box.writeToNBT(boxTag);
 		nbttagcompound.setTag("box", boxTag);
+
+		NBTTagList nbttaglist = new NBTTagList();
+		for (int i = 0; i < contents.length; i++) {
+			if (contents[i] != null) {
+				NBTTagCompound nbttagcompound1 = new NBTTagCompound();
+				nbttagcompound1.setByte("Slot", (byte) i);
+				contents[i].writeToNBT(nbttagcompound1);
+				nbttaglist.appendTag(nbttagcompound1);
+			}
+		}
+
+		nbttagcompound.setTag("Items", nbttaglist);
 	}
 
 	public List<ItemStack> getItemStackFromBlock(World world, int i, int j,
@@ -439,7 +452,7 @@ public class TileQuarry extends TileMachine implements IMachine,
 					continue;
 				if (entity.item.stackSize <= 0)
 					continue;
-				CoreProxy.proxy.removeEntity(entity);
+				buildcraft.core.proxy.CoreProxy.proxy.removeEntity(entity);
 				mineStack(entity.item);
 			}
 		}
@@ -447,13 +460,15 @@ public class TileQuarry extends TileMachine implements IMachine,
 
 	private void mineStack(ItemStack stack) {
 		// First, try to add to a nearby chest
-		ItemStack added = Utils.addToRandomInventory(stack, worldObj, xCoord,
-				yCoord, zCoord, ForgeDirection.UNKNOWN);
+		ItemStack added = buildcraft.core.utils.Utils
+				.addToRandomInventory(stack, worldObj, xCoord, yCoord, zCoord,
+						ForgeDirection.UNKNOWN);
 		stack.stackSize -= added.stackSize;
 
 		// Second, try to add to adjacent pipes
 		if (stack.stackSize > 0)
-			Utils.addToRandomPipeEntry(this, ForgeDirection.UNKNOWN, stack);
+			buildcraft.core.utils.Utils.addToRandomPipeEntry(this,
+					ForgeDirection.UNKNOWN, stack);
 
 		// Lastly, throw the object away
 		if (stack.stackSize > 0) {
@@ -464,7 +479,7 @@ public class TileQuarry extends TileMachine implements IMachine,
 			EntityItem entityitem = new EntityItem(worldObj, xCoord + f, yCoord
 					+ f1 + 0.5F, zCoord + f2, stack);
 
-			entityitem.lifespan = BuildCraftCore.itemLifespan;
+			entityitem.lifespan = buildcraft.BuildCraftCore.itemLifespan;
 			entityitem.delayBeforeCanPickup = 10;
 
 			float f3 = 0.05F;
@@ -494,8 +509,8 @@ public class TileQuarry extends TileMachine implements IMachine,
 		destroy();
 	}
 
-	public void destroy(World world) {
-
+	@Override
+	public void destroy() {
 		if (arm != null) {
 			arm.setDead();
 		}
@@ -506,38 +521,6 @@ public class TileQuarry extends TileMachine implements IMachine,
 
 		box.deleteLasers();
 		arm = null;
-
-		Random random = new Random();
-
-		for (int l = 0; l < this.getSizeInventory(); l++) {
-			ItemStack itemstack = this.getStackInSlot(l);
-			if (itemstack == null) {
-				continue;
-			}
-			float f = random.nextFloat() * 0.8F + 0.1F;
-			float f1 = random.nextFloat() * 0.8F + 0.1F;
-			float f2 = random.nextFloat() * 0.8F + 0.1F;
-			while (itemstack.stackSize > 0) {
-				int i1 = random.nextInt(21) + 10;
-				if (i1 > itemstack.stackSize) {
-					i1 = itemstack.stackSize;
-				}
-				itemstack.stackSize -= i1;
-				EntityItem entityitem = new EntityItem(world, (float) xCoord
-						+ f, (float) yCoord + f1, (float) zCoord + f2,
-						new ItemStack(itemstack.itemID, i1,
-								itemstack.getItemDamage()));
-				float f3 = 0.05F;
-				entityitem.motionX = (float) random.nextGaussian() * f3;
-				entityitem.motionY = (float) random.nextGaussian() * f3 + 0.2F;
-				entityitem.motionZ = (float) random.nextGaussian() * f3;
-				if (itemstack.hasTagCompound()) {
-					entityitem.item.setTagCompound((NBTTagCompound) itemstack
-							.getTagCompound().copy());
-				}
-				world.spawnEntityInWorld(entityitem);
-			}
-		}
 	}
 
 	@Override
@@ -552,7 +535,7 @@ public class TileQuarry extends TileMachine implements IMachine,
 		}
 		if (chunkTicket == null) {
 			isAlive = false;
-			if (placedBy != null && CoreProxy.proxy.isSimulating(worldObj)) {
+			if (placedBy != null && !worldObj.isRemote) {
 				PacketDispatcher
 						.sendPacketToPlayer(
 								new Packet3Chat(
@@ -573,7 +556,8 @@ public class TileQuarry extends TileMachine implements IMachine,
 		IAreaProvider a = null;
 
 		if (!useDefault) {
-			a = Utils.getNearbyAreaProvider(worldObj, xCoord, yCoord, zCoord);
+			a = buildcraft.core.utils.Utils.getNearbyAreaProvider(worldObj,
+					xCoord, yCoord, zCoord);
 		}
 
 		if (a == null) {
@@ -665,30 +649,31 @@ public class TileQuarry extends TileMachine implements IMachine,
 		for (int it = 0; it < 2; it++) {
 			for (int i = 0; i < bluePrint.sizeX; ++i) {
 				bluePrint.setBlockId(i, it * (box.sizeY() - 1), 0,
-						BuildCraftFactory.frameBlock.blockID);
+						buildcraft.BuildCraftFactory.frameBlock.blockID);
 				bluePrint.setBlockId(i, it * (box.sizeY() - 1),
 						bluePrint.sizeZ - 1,
-						BuildCraftFactory.frameBlock.blockID);
+						buildcraft.BuildCraftFactory.frameBlock.blockID);
 			}
 
 			for (int k = 0; k < bluePrint.sizeZ; ++k) {
 				bluePrint.setBlockId(0, it * (box.sizeY() - 1), k,
-						BuildCraftFactory.frameBlock.blockID);
+						buildcraft.BuildCraftFactory.frameBlock.blockID);
 				bluePrint.setBlockId(bluePrint.sizeX - 1, it
 						* (box.sizeY() - 1), k,
-						BuildCraftFactory.frameBlock.blockID);
+						buildcraft.BuildCraftFactory.frameBlock.blockID);
 
 			}
 		}
 
 		for (int h = 1; h < box.sizeY(); ++h) {
-			bluePrint.setBlockId(0, h, 0, BuildCraftFactory.frameBlock.blockID);
+			bluePrint.setBlockId(0, h, 0,
+					buildcraft.BuildCraftFactory.frameBlock.blockID);
 			bluePrint.setBlockId(0, h, bluePrint.sizeZ - 1,
-					BuildCraftFactory.frameBlock.blockID);
+					buildcraft.BuildCraftFactory.frameBlock.blockID);
 			bluePrint.setBlockId(bluePrint.sizeX - 1, h, 0,
-					BuildCraftFactory.frameBlock.blockID);
+					buildcraft.BuildCraftFactory.frameBlock.blockID);
 			bluePrint.setBlockId(bluePrint.sizeX - 1, h, bluePrint.sizeZ - 1,
-					BuildCraftFactory.frameBlock.blockID);
+					buildcraft.BuildCraftFactory.frameBlock.blockID);
 		}
 
 		bluePrintBuilder = new BptBuilderBlueprint(bluePrint, worldObj,
@@ -716,7 +701,7 @@ public class TileQuarry extends TileMachine implements IMachine,
 	public void initialize() {
 		super.initialize();
 
-		if (CoreProxy.proxy.isSimulating(this.worldObj) && !box.initialized) {
+		if (!this.worldObj.isRemote && !box.initialized) {
 			setBoundaries(false);
 		}
 
@@ -755,6 +740,102 @@ public class TileQuarry extends TileMachine implements IMachine,
 	@Override
 	public boolean isPipeConnected(ForgeDirection with) {
 		return true;
+	}
+
+	@Override
+	public int getSizeInventory() {
+		return 8;
+	}
+
+	@Override
+	public ItemStack getStackInSlot(int i) {
+		return this.contents[i];
+	}
+
+	@Override
+	public ItemStack decrStackSize(int par1, int par2) {
+		if (this.contents[par1] != null) {
+			ItemStack var3 = this.contents[par1];
+			this.contents[par1] = null;
+			return var3;
+		} else {
+			return null;
+		}
+	}
+
+	@Override
+	public void setInventorySlotContents(int i, ItemStack itemstack) {
+		contents[i] = itemstack;
+		if (itemstack != null && itemstack.stackSize > getInventoryStackLimit()) {
+			itemstack.stackSize = getInventoryStackLimit();
+		}
+		onInventoryChanged();
+	}
+
+	@Override
+	public ItemStack getStackInSlotOnClosing(int par1) {
+		if (this.contents[par1] != null) {
+			ItemStack var2 = this.contents[par1];
+			this.contents[par1] = null;
+			return var2;
+		} else {
+			return null;
+		}
+	}
+
+	@Override
+	public String getInvName() {
+		return "QuarryPlus";
+	}
+
+	@Override
+	public int getInventoryStackLimit() {
+		return 1;
+	}
+
+	@Override
+	public boolean isUseableByPlayer(EntityPlayer par1EntityPlayer) {
+		return true;
+	}
+
+	@Override
+	public void onInventoryChanged() {
+		super.onInventoryChanged();
+		this.Fortune = 0;
+		this.Silktouch = false;
+		this.Efficiency = 0;
+		if (contents[0] != null) {
+			this.Silktouch = true;
+		}
+		if (contents[1] != null) {
+			this.Fortune++;
+		}
+		if (contents[2] != null) {
+			this.Fortune++;
+		}
+		if (contents[3] != null) {
+			this.Fortune++;
+		}
+		if (contents[4] != null) {
+			this.Efficiency++;
+		}
+		if (contents[5] != null) {
+			this.Efficiency++;
+		}
+		if (contents[6] != null) {
+			this.Efficiency++;
+		}
+		if (contents[7] != null) {
+			this.Efficiency++;
+		}
+	}
+
+	@Override
+	public void openChest() {
+	}
+
+	@Override
+	public void closeChest() {
 	}
 
 	@Override
@@ -871,118 +952,6 @@ public class TileQuarry extends TileMachine implements IMachine,
 		sendNetworkUpdate();
 	}
 
-	@Override
-	public int getSizeInventory() {
-		return 13;
-	}
-
-	@Override
-	public ItemStack getStackInSlot(int i) {
-		return this.contents[i];
-	}
-
-	@Override
-	public String getInvName() {
-		return "QuarryPlus";
-	}
-
-	@Override
-	public ItemStack decrStackSize(int par1, int par2) {
-		if (this.contents[par1] != null) {
-			ItemStack var3 = this.contents[par1];
-			this.contents[par1] = null;
-			return var3;
-		} else {
-			return null;
-		}
-	}
-
-	@Override
-	public ItemStack getStackInSlotOnClosing(int par1) {
-		if (this.contents[par1] != null) {
-			ItemStack var2 = this.contents[par1];
-			this.contents[par1] = null;
-			return var2;
-		} else {
-			return null;
-		}
-	}
-
-	@Override
-	public void setInventorySlotContents(int i, ItemStack itemstack) {
-		contents[i] = itemstack;
-		if (itemstack != null && itemstack.stackSize > getInventoryStackLimit()) {
-			itemstack.stackSize = getInventoryStackLimit();
-		}
-		onInventoryChanged();
-	}
-
-	@Override
-	public int getInventoryStackLimit() {
-		return 1;
-	}
-
-	@Override
-	public void onInventoryChanged() {
-		super.onInventoryChanged();
-		this.Fortune = 0;
-		this.Silktouch = false;
-		this.Efficiency = 0;
-		this.DrillModule = 0;
-		if (contents[0] != null) {
-			this.DrillModule++;
-		}
-		if (contents[1] != null) {
-			this.DrillModule++;
-		}
-		if (contents[2] != null) {
-			this.DrillModule++;
-		}
-		if (contents[3] != null) {
-			this.DrillModule++;
-		}
-		if (contents[4] != null) {
-			this.DrillModule++;
-		}
-		if (contents[5] != null) {
-			this.Silktouch = true;
-		}
-		if (contents[6] != null) {
-			this.Fortune++;
-		}
-		if (contents[7] != null) {
-			this.Fortune++;
-		}
-		if (contents[8] != null) {
-			this.Fortune++;
-		}
-		if (contents[9] != null) {
-			this.Efficiency++;
-		}
-		if (contents[10] != null) {
-			this.Efficiency++;
-		}
-		if (contents[11] != null) {
-			this.Efficiency++;
-		}
-		if (contents[12] != null) {
-			this.Efficiency++;
-		}
-	}
-
-	@Override
-	public boolean isUseableByPlayer(EntityPlayer par1EntityPlayer) {
-		return true;
-	}
-
-	@Override
-	public void openChest() {
-	}
-
-	@Override
-	public void closeChest() {
-	}
-
 	public static boolean canChangeBlock(World world, int x, int y, int z) {
 		if (world.isAirBlock(x, y, z)) {
 			return true;
@@ -998,8 +967,8 @@ public class TileQuarry extends TileMachine implements IMachine,
 			return false;
 		}
 
-		if (blockID == BuildCraftEnergy.oilMoving.blockID
-				|| blockID == BuildCraftEnergy.oilStill.blockID) {
+		if (blockID == buildcraft.BuildCraftEnergy.oilMoving.blockID
+				|| blockID == buildcraft.BuildCraftEnergy.oilStill.blockID) {
 			return false;
 		}
 
@@ -1020,5 +989,9 @@ public class TileQuarry extends TileMachine implements IMachine,
 
 		return BuildCraftAPI.softBlocks[blockId]
 				|| Block.blocksList[blockId] == null;
+	}
+
+	public void onChangeSlot() {
+
 	}
 }

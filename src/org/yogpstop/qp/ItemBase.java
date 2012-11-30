@@ -3,12 +3,12 @@ package org.yogpstop.qp;
 import net.minecraft.src.CreativeTabs;
 import net.minecraft.src.Item;
 
-public class ItemDrillModule extends Item {
+public class ItemBase extends Item {
 
-	public ItemDrillModule(int par1) {
+	public ItemBase(int par1) {
 		super(par1);
-		this.iconIndex = 4;
-		this.setItemName("DrillModule");
+		this.iconIndex = 8;
+		this.setItemName("ModuleBase");
 		this.setCreativeTab(CreativeTabs.tabRedstone);
 	}
 	
