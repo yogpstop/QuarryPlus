@@ -15,7 +15,7 @@
 
 	<property name="mcp.version" value="723" />
 	<property name="forge.version" value="1.4.5-6.4.0.395" />
-	<property name="mod.version" value="1.0.0" />
+	<property name="mod.version" value="1.0.1" />
 	<property name="bc.version" value="3.2.0" />
 
 	<target name="patchunzip">

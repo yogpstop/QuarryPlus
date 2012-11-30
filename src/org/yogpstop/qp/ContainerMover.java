@@ -12,14 +12,13 @@ import net.minecraft.src.Enchantment;
 import net.minecraft.src.EntityPlayer;
 import net.minecraft.src.IInventory;
 import net.minecraft.src.InventoryBasic;
-import net.minecraft.src.InventoryCrafting;
 import net.minecraft.src.ItemStack;
 import net.minecraft.src.NBTTagCompound;
 import net.minecraft.src.Slot;
 import net.minecraft.src.World;
 
 public class ContainerMover extends Container {
-	public IInventory craftMatrix = new InventoryCrafting(this, 2, 1);
+	public IInventory craftMatrix = new InventoryBasic("Matrix", 2);
 	public IInventory craftResult = new InventoryBasic("Result", 3);
 	public IInventory craftOutput = new InventoryBasic("Output", 3);
 	private IInventory playerInventory;
@@ -41,7 +40,7 @@ public class ContainerMover extends Container {
 
 		for (var6 = 0; var6 < 2; ++var6) {
 			this.addSlotToContainer(new SlotMoveMatrix(this.craftMatrix, var6,
-					8 + var6 * 36, 35));
+					8 + var6 * 36, 35, this));
 		}
 		for (var6 = 0; var6 < 3; ++var6) {
 			this.addSlotToContainer(new SlotMoveResult(this.craftResult, var6,
@@ -192,9 +191,15 @@ public class ContainerMover extends Container {
 		this.craftResult.setInventorySlotContents(0, null);
 		this.craftResult.setInventorySlotContents(1, null);
 		this.craftResult.setInventorySlotContents(2, null);
-		this.craftMatrix.setInventorySlotContents(1,
-				new ItemStack(this.craftMatrix.getStackInSlot(1).getItem(),
-						this.craftMatrix.getStackInSlot(1).stackSize - count));
+		this.craftMatrix
+				.setInventorySlotContents(
+						1,
+						this.craftMatrix.getStackInSlot(1).stackSize - count == 0 ? null
+								: new ItemStack(
+										this.craftMatrix.getStackInSlot(1)
+												.getItem(),
+										this.craftMatrix.getStackInSlot(1).stackSize
+												- count));
 	}
 
 	private boolean checkInv(ItemStack rs1, ItemStack rs2, ItemStack rs3,
