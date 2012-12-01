@@ -1,81 +1,27 @@
-<project name="Buildcraft" basedir="../" default="main">
+<project name="QuarryPlus" basedir="../" default="main">
 	<!-- Properties -->
 	<property name="mod.name" value="QuarryPlus" />
-	
+
 	<property name="src.dir" value="${mod.name}/src" />
 	<property name="res.dir" value="${mod.name}/res" />
 	<property name="api.dir" value="api" />
 
-	<property name="build.dir" value="build" />
-	<property name="classes.dir" value="${build.dir}/classes" />
+	<property name="mcp.version" value="723" />
+	<property name="forge.version" value="1.4.5-6.4.0.395" />
+	<property name="mod.version" value="1.1.0" />
+
 	<property name="jar.dir" value="${mod.name}/dist" />
-	<property name="mcp.dir" value="${build.dir}/mcp" />
+	<property name="mcp.dir" value="${api.dir}/mcp-${forge.version}" />
 	<property name="forge.dir" value="${mcp.dir}/forge" />
 	<property name="mcpsrc.dir" value="${mcp.dir}/src/common" />
 
-	<property name="mcp.version" value="723" />
-	<property name="forge.version" value="1.4.5-6.4.0.395" />
-	<property name="mod.version" value="1.0.1" />
-	<property name="bc.version" value="3.2.0" />
-
-	<target name="patchunzip">
-		<unzip dest="${mcpsrc.dir}">
-			<fileset dir="${api.dir}">
-				<include name="buildcraft-${bc.version}-C.zip" />
-			</fileset>
-		</unzip>
+	<target name="clean">
+		<delete dir="${mcpsrc.dir}/org/yogpstop" />
 	</target>
 
-	<target name="setup" depends="clean">
-		<antcall target="copydonemcp" />
-		<!--antcall target="patch" /-->
-	</target>
-
-	<target name="newsetup">
-		<unzip dest="${mcp.dir}">
-			<fileset dir="${api.dir}">
-				<include name="mcp${mcp.version}.zip" />
-			</fileset>
-		</unzip>
-		<unzip dest="${mcp.dir}">
-			<fileset dir="${api.dir}">
-				<include name="minecraftforge-src-${forge.version}.zip" />
-			</fileset>
-		</unzip>
-		<chmod file="${mcp.dir}/updatemd5.sh" perm="+x" />
-		<chmod file="${mcp.dir}/recompile.sh" perm="+x" />
-		<chmod file="${mcp.dir}/reobfuscate.sh" perm="+x" />
-		<chmod file="${forge.dir}/install.sh" perm="+x" />
-		<chmod file="${mcp.dir}/runtime/bin/astyle-osx" perm="+x" />
-		<chmod file="${mcp.dir}/runtime/bin/jad-osx" perm="+x" />
-		<exec dir="${forge.dir}" executable="cmd" osfamily="windows">
-			<arg line="/c install.cmd" />
-		</exec>
-		<exec dir="${forge.dir}" executable="sh" osfamily="unix">
-			<arg value="install.sh" />
-		</exec>
-	</target>
-
-	<target name="patch" depends="newsetup">
-		<antcall target="patchunzip" />
-		<exec dir="${mcp.dir}" executable="cmd" osfamily="windows">
-			<arg line="/c updatemd5.bat -f" />
-		</exec>
-		<exec dir="${mcp.dir}" executable="sh" osfamily="unix">
-			<arg value="updatemd5.sh -f" />
-		</exec>
-	</target>
-
-	<target name="copydonemcp">
-		<copy todir="${mcp.dir}">
-			<fileset dir="${api.dir}/mcp-${forge.version}" />
-		</copy>
-	</target>
-
-	<target name="copysource" depends="setup">
+	<target name="copysource" depends="clean">
 		<copy todir="${mcpsrc.dir}">
-			<fileset dir="${src.dir}">
-			</fileset>
+			<fileset dir="${src.dir}" />
 			<filterset>
 				<filter token="VERSION" value="${mod.version}" />
 			</filterset>
@@ -98,22 +44,12 @@
 		</exec>
 	</target>
 
-	<target name="copyclass" depends="compile">
-		<copy todir="${classes.dir}">
+	<target name="package" depends="compile">
+		<jar destfile="${jar.dir}/${mod.name}-${mod.version}.jar">
 			<fileset dir="${mcp.dir}/reobf/minecraft" />
-		</copy>
-		<copy todir="${classes.dir}">
 			<fileset dir="${res.dir}" />
-		</copy>
-	</target>
-
-	<target name="package" depends="copyclass">
-		<jar destfile="${jar.dir}/${mod.name}-${mod.version}.jar" basedir="${classes.dir}" />
-		<delete dir="${build.dir}" />
-	</target>
-
-	<target name="clean">
-		<delete dir="${build.dir}" />
+		</jar>
+		<delete dir="${mcpsrc.dir}/org/yogpstop" />
 	</target>
 
 	<target name="main" depends="package" />

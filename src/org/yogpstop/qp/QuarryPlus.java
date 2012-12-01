@@ -32,7 +32,7 @@ import cpw.mods.fml.common.registry.LanguageRegistry;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.FMLLog;
 
-@Mod(modid = "QuarryPlus", name = "QuarryPlus", version = "1.0.0")
+@Mod(modid = "QuarryPlus", name = "QuarryPlus", version = "@VERSION@")
 @NetworkMod(clientSideRequired = true, serverSideRequired = false, channels = "QuarryPlus", packetHandler = PacketHandler.class)
 public class QuarryPlus {
 	@SidedProxy(clientSide = "org.yogpstop.qp.client.ClientProxy", serverSide = "org.yogpstop.qp.CommonProxy")
