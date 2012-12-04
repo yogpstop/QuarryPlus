@@ -1,5 +1,6 @@
 package org.yogpstop.qp;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -49,6 +50,9 @@ public class QuarryPlus {
 	public static Item itemBase;
 	public static Block blockMover;
 
+	public static ArrayList<String> silktouch;
+	public static ArrayList<String> fortune;
+
 	public static int RecipeDifficulty;
 
 	public static int guiIdContainerQuarry = 1;
@@ -77,11 +81,32 @@ public class QuarryPlus {
 					"RecipeDifficulty", 2);
 			RD.comment = "0:AsCheatRecipe,1:EasyRecipe,2:NormalRecipe(Default),3:HardRecipe,other:NormalRecipe";
 			RecipeDifficulty = RD.getInt(2);
-
+			silktouch = new ArrayList<String>();
+			fortune = new ArrayList<String>();
+			parseCommaIntArrayList(
+					cfg.get(Configuration.CATEGORY_GENERAL, "SilktouchList","").value,
+					silktouch);
+			parseCommaIntArrayList(
+					cfg.get(Configuration.CATEGORY_GENERAL, "FortuneList","").value,
+					fortune);
 		} catch (Exception e) {
 			FMLLog.log(Level.SEVERE, e, "Error Massage");
 		} finally {
 			cfg.save();
+		}
+	}
+
+	public void parseCommaIntArrayList(String source, ArrayList<String> output) {
+		source.trim();
+		if (source != "") {
+			String[] cache = source.split(",");
+			for (int i = 0; i < cache.length; i++) {
+				String[] cache2 = cache[i].split(":");
+				output.add(Integer.valueOf(cache2[0]).toString()
+						+ ":"
+						+ (cache2.length == 1 ? "0" : Integer
+								.valueOf(cache2[1]).toString()));
+			}
 		}
 	}
 

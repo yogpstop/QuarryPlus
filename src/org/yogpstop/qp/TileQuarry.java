@@ -397,11 +397,27 @@ public class TileQuarry extends TileMachine implements IMachine,
 			return null;
 
 		int meta = world.getBlockMetadata(i, j, k);
-		if (block.canSilkHarvest(world, this.placedBy, i, j, k, meta)
-				&& this.Silktouch) {
-			ArrayList<ItemStack> cache = new ArrayList<ItemStack>();
-			cache.add(new ItemStack(block.blockID, 1, meta));
-			return cache;
+		if (!QuarryPlus.silktouch.isEmpty()){
+			if (block.canSilkHarvest(world, this.placedBy, i, j, k, meta)
+					&& this.Silktouch && QuarryPlus.silktouch.contains(Integer.toString(block.blockID)+":"+Integer.toString(meta))) {
+				ArrayList<ItemStack> cache = new ArrayList<ItemStack>();
+				cache.add(new ItemStack(block.blockID, 1, meta));
+				return cache;
+			}
+		}else{
+			if (block.canSilkHarvest(world, this.placedBy, i, j, k, meta)
+					&& this.Silktouch) {
+				ArrayList<ItemStack> cache = new ArrayList<ItemStack>();
+				cache.add(new ItemStack(block.blockID, 1, meta));
+				return cache;
+			}
+		}
+		if(!QuarryPlus.fortune.isEmpty()){
+			if(QuarryPlus.fortune.contains(Integer.toString(block.blockID)+":"+Integer.toString(meta))){
+				return block.getBlockDropped(world, i, j, k, meta, this.Fortune);
+			}else{
+				return block.getBlockDropped(world, i, j, k, meta, 0);
+			}
 		}
 		return block.getBlockDropped(world, i, j, k, meta, this.Fortune);
 	}
@@ -739,7 +755,7 @@ public class TileQuarry extends TileMachine implements IMachine,
 
 	@Override
 	public boolean isPipeConnected(ForgeDirection with) {
-		return true;
+		return false;
 	}
 
 	@Override
