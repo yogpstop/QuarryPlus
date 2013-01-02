@@ -1,7 +1,7 @@
 package org.yogpstop.qp;
 
-import net.minecraft.src.CreativeTabs;
-import net.minecraft.src.Item;
+import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.item.Item;
 
 public class ItemFortune extends Item {
 
@@ -11,9 +11,9 @@ public class ItemFortune extends Item {
 		this.setItemName("FortuneModule");
 		this.setCreativeTab(CreativeTabs.tabRedstone);
 	}
-	
+
 	@Override
-	public String getTextureFile(){
+	public String getTextureFile() {
 		return "/org/yogpstop/qp/blocks.png";
 	}
 

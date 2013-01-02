@@ -29,18 +29,17 @@ import buildcraft.core.network.PacketUpdate;
 import buildcraft.core.network.TileNetworkData;
 import buildcraft.factory.TileMachine;
 
-import net.minecraft.src.AxisAlignedBB;
-import net.minecraft.src.Block;
-import net.minecraft.src.ChunkCoordIntPair;
-import net.minecraft.src.EntityItem;
-import net.minecraft.src.EntityPlayer;
-import net.minecraft.src.IInventory;
-import net.minecraft.src.ItemStack;
-import net.minecraft.src.NBTTagCompound;
-import net.minecraft.src.NBTTagList;
-import net.minecraft.src.Packet3Chat;
-import net.minecraft.src.World;
-
+import net.minecraft.block.Block;
+import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.IInventory;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
+import net.minecraft.network.packet.Packet3Chat;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.world.ChunkCoordIntPair;
+import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.ForgeChunkManager.Ticket;
 import net.minecraftforge.common.ForgeChunkManager.Type;
@@ -397,14 +396,18 @@ public class TileQuarry extends TileMachine implements IMachine,
 			return null;
 
 		int meta = world.getBlockMetadata(i, j, k);
-		if (!QuarryPlus.silktouch.isEmpty()){
+		if (!QuarryPlus.silktouch.isEmpty()) {
 			if (block.canSilkHarvest(world, this.placedBy, i, j, k, meta)
-					&& this.Silktouch && QuarryPlus.silktouch.contains(Integer.toString(block.blockID)+":"+Integer.toString(meta))) {
+					&& this.Silktouch
+					&& QuarryPlus.silktouch.contains(Integer
+							.toString(block.blockID)
+							+ ":"
+							+ Integer.toString(meta))) {
 				ArrayList<ItemStack> cache = new ArrayList<ItemStack>();
 				cache.add(new ItemStack(block.blockID, 1, meta));
 				return cache;
 			}
-		}else{
+		} else {
 			if (block.canSilkHarvest(world, this.placedBy, i, j, k, meta)
 					&& this.Silktouch) {
 				ArrayList<ItemStack> cache = new ArrayList<ItemStack>();
@@ -412,10 +415,12 @@ public class TileQuarry extends TileMachine implements IMachine,
 				return cache;
 			}
 		}
-		if(!QuarryPlus.fortune.isEmpty()){
-			if(QuarryPlus.fortune.contains(Integer.toString(block.blockID)+":"+Integer.toString(meta))){
-				return block.getBlockDropped(world, i, j, k, meta, this.Fortune);
-			}else{
+		if (!QuarryPlus.fortune.isEmpty()) {
+			if (QuarryPlus.fortune.contains(Integer.toString(block.blockID)
+					+ ":" + Integer.toString(meta))) {
+				return block
+						.getBlockDropped(world, i, j, k, meta, this.Fortune);
+			} else {
 				return block.getBlockDropped(world, i, j, k, meta, 0);
 			}
 		}
@@ -464,12 +469,16 @@ public class TileQuarry extends TileMachine implements IMachine,
 		for (int ii = 0; ii < result.size(); ii++) {
 			if (result.get(ii) instanceof EntityItem) {
 				EntityItem entity = (EntityItem) result.get(ii);
-				if (entity.isDead)
+				if (entity.isDead) {
 					continue;
-				if (entity.item.stackSize <= 0)
+				}
+
+				ItemStack mineable = entity.func_92014_d();
+				if (mineable.stackSize <= 0) {
 					continue;
+				}
 				buildcraft.core.proxy.CoreProxy.proxy.removeEntity(entity);
-				mineStack(entity.item);
+				mineStack(mineable);
 			}
 		}
 	}

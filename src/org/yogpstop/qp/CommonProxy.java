@@ -1,7 +1,7 @@
 package org.yogpstop.qp;
 
-import net.minecraft.src.EntityPlayer;
-import net.minecraft.src.World;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.world.World;
 
 import org.yogpstop.qp.client.GuiMover;
 import org.yogpstop.qp.client.GuiQuarry;

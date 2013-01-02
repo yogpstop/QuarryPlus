@@ -1,22 +1,22 @@
-<project name="QuarryPlus" basedir="../" default="main">
-	<!-- Properties -->
-	<property name="mod.name" value="QuarryPlus" />
+<project default="main">
+	<property name="project.name" value="QuarryPlus" />
+	<property name="mod.version" value="1.2.0" />
 
-	<property name="src.dir" value="${mod.name}/src" />
-	<property name="res.dir" value="${mod.name}/res" />
-	<property name="api.dir" value="api" />
+	<property name="mc.version" value="1.4.6" />
+	<property name="forge.version" value="${mc.version}-6.5.0.467" />
 
-	<property name="mcp.version" value="723" />
-	<property name="forge.version" value="1.4.5-6.4.0.395" />
-	<property name="mod.version" value="1.0.2" />
-
-	<property name="jar.dir" value="${mod.name}/dist" />
+	<property name="api.dir" value="../api" />
+	<property name="src.dir" value="src" />
+	<property name="res.dir" value="res" />
+	<property name="jar.dir" value="dist" />
 	<property name="mcp.dir" value="${api.dir}/mcp-${forge.version}" />
-	<property name="forge.dir" value="${mcp.dir}/forge" />
-	<property name="mcpsrc.dir" value="${mcp.dir}/src/common" />
+	<property name="reobf.dir" value="${mcp.dir}/reobf/minecraft" />
+	<property name="mcpsrc.dir" value="${mcp.dir}/src/minecraft" />
+	<property name="mcpsrc.dir.concrete" value="${mcpsrc.dir}/org/yogpstop" />
+	<property name="jar.path" value="${jar.dir}/${mc.version}/${project.name}-${mod.version}.jar" />
 
 	<target name="clean">
-		<delete dir="${mcpsrc.dir}/org/yogpstop" />
+		<delete dir="${mcpsrc.dir.concrete}" />
 	</target>
 
 	<target name="copysource" depends="clean">
@@ -45,13 +45,12 @@
 	</target>
 
 	<target name="package" depends="compile">
-		<jar destfile="${jar.dir}/${mod.name}-${mod.version}.jar">
-			<fileset dir="${mcp.dir}/reobf/minecraft" />
+		<jar destfile="${jar.path}">
+			<fileset dir="${reobf.dir}" />
 			<fileset dir="${res.dir}" />
 		</jar>
-		<delete dir="${mcpsrc.dir}/org/yogpstop" />
+		<antcall target="clean" />
 	</target>
 
 	<target name="main" depends="package" />
-
 </project>

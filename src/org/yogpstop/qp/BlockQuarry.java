@@ -8,16 +8,16 @@ import buildcraft.api.core.Position;
 import buildcraft.core.Box;
 import buildcraft.core.utils.Utils;
 import buildcraft.factory.BlockMachineRoot;
-import net.minecraft.src.CreativeTabs;
-import net.minecraft.src.EntityItem;
-import net.minecraft.src.EntityLiving;
-import net.minecraft.src.EntityPlayer;
-import net.minecraft.src.IInventory;
-import net.minecraft.src.ItemStack;
-import net.minecraft.src.Material;
-import net.minecraft.src.NBTTagCompound;
-import net.minecraft.src.TileEntity;
-import net.minecraft.src.World;
+import net.minecraft.block.material.Material;
+import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.IInventory;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeDirection;
 
 public class BlockQuarry extends BlockMachineRoot {
@@ -187,18 +187,19 @@ public class BlockQuarry extends BlockMachineRoot {
 					i1 = itemstack.stackSize;
 				}
 				itemstack.stackSize -= i1;
+				ItemStack cache = new ItemStack(itemstack.itemID, i1,
+						itemstack.getItemDamage());
+				if (itemstack.hasTagCompound()) {
+					cache.setTagCompound((NBTTagCompound) itemstack
+							.getTagCompound().copy());
+				}
 				EntityItem entityitem = new EntityItem(world, (float) xCoord
 						+ f, (float) yCoord + (newSize > 0 ? 1 : 0) + f1,
-						(float) zCoord + f2, new ItemStack(itemstack.itemID,
-								i1, itemstack.getItemDamage()));
+						(float) zCoord + f2, cache);
 				float f3 = 0.05F;
 				entityitem.motionX = (float) random.nextGaussian() * f3;
 				entityitem.motionY = (float) random.nextGaussian() * f3 + 0.2F;
 				entityitem.motionZ = (float) random.nextGaussian() * f3;
-				if (itemstack.hasTagCompound()) {
-					entityitem.item.setTagCompound((NBTTagCompound) itemstack
-							.getTagCompound().copy());
-				}
 				world.spawnEntityInWorld(entityitem);
 			}
 		}

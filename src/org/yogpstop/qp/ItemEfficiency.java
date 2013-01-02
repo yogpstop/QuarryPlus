@@ -1,7 +1,7 @@
 package org.yogpstop.qp;
 
-import net.minecraft.src.CreativeTabs;
-import net.minecraft.src.Item;
+import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.item.Item;
 
 public class ItemEfficiency extends Item {
 

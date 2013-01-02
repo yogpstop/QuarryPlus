@@ -3,11 +3,11 @@ package org.yogpstop.qp;
 import java.io.DataOutputStream;
 import java.io.ByteArrayOutputStream;
 
-import net.minecraft.src.Container;
-import net.minecraft.src.EntityPlayerMP;
-import net.minecraft.src.INetworkManager;
-import net.minecraft.src.Packet;
-import net.minecraft.src.Packet250CustomPayload;
+import net.minecraft.inventory.Container;
+import net.minecraft.network.INetworkManager;
+import net.minecraft.network.packet.Packet;
+import net.minecraft.network.packet.Packet250CustomPayload;
+import net.minecraft.entity.player.EntityPlayerMP;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
