@@ -93,6 +93,10 @@ public class QuarryPlus {
 		} finally {
 			cfg.save();
 		}
+		LanguageRegistry.instance().loadLocalization(
+				"/org/yogpstop/qp/lang/en_US.lang", "en_US", false);
+		LanguageRegistry.instance().loadLocalization(
+				"/org/yogpstop/qp/lang/ja_JP.lang", "ja_JP", false);
 	}
 
 	public void parseCommaIntArrayList(String source, ArrayList<String> output) {
@@ -112,9 +116,9 @@ public class QuarryPlus {
 	@Mod.Init
 	public void init(FMLInitializationEvent event) {
 
-		GameRegistry.registerBlock(blockQuarry);
-		GameRegistry.registerBlock(blockMarker);
-		GameRegistry.registerBlock(blockMover);
+		GameRegistry.registerBlock(blockQuarry,"QuarryPlus");
+		GameRegistry.registerBlock(blockMarker,"MarkerPlus");
+		GameRegistry.registerBlock(blockMover,"EnchantMover");
 
 		GameRegistry.registerTileEntity(TileQuarry.class, "QuarryPlus");
 		GameRegistry.registerTileEntity(TileMarker.class, "MarkerPlus");

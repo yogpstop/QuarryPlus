@@ -2,6 +2,10 @@ package org.yogpstop.qp;
 
 import java.util.ArrayList;
 
+import buildcraft.BuildCraftCore;
+import buildcraft.builders.BuildersProxy;
+import buildcraft.core.utils.Utils;
+
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
@@ -14,11 +18,6 @@ import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 
-import buildcraft.BuildCraftCore;
-import buildcraft.builders.BuildersProxy;
-import buildcraft.core.utils.Utils;
-
-
 public class BlockMarker extends BlockContainer {
 
 	public BlockMarker(int i) {
@@ -26,13 +25,14 @@ public class BlockMarker extends BlockContainer {
 
 		blockIndexInTexture = 0;
 
-		setLightValue(0.7F);
+		setLightValue(0.5F);
 		setCreativeTab(CreativeTabs.tabRedstone);
 	}
 
 	@SuppressWarnings({ "all" })
 	// @Override (client only)
-	public AxisAlignedBB getSelectedBoundingBoxFromPool(World world, int i, int j, int k) {
+	public AxisAlignedBB getSelectedBoundingBoxFromPool(World world, int i,
+			int j, int k) {
 		int meta = world.getBlockMetadata(i, j, k);
 
 		double w = 0.15;
@@ -40,17 +40,23 @@ public class BlockMarker extends BlockContainer {
 
 		switch (meta) {
 		case 0:
-			return AxisAlignedBB.getBoundingBox(i + 0.5 - w, j + 1 - h, k + 0.5 - w, i + 0.5 + w, j + 1, k + 0.5 + w);
+			return AxisAlignedBB.getBoundingBox(i + 0.5 - w, j + 1 - h, k + 0.5
+					- w, i + 0.5 + w, j + 1, k + 0.5 + w);
 		case 5:
-			return AxisAlignedBB.getBoundingBox(i + 0.5 - w, j, k + 0.5 - w, i + 0.5 + w, j + h, k + 0.5 + w);
+			return AxisAlignedBB.getBoundingBox(i + 0.5 - w, j, k + 0.5 - w, i
+					+ 0.5 + w, j + h, k + 0.5 + w);
 		case 3:
-			return AxisAlignedBB.getBoundingBox(i + 0.5 - w, j + 0.5 - w, k, i + 0.5 + w, j + 0.5 + w, k + h);
+			return AxisAlignedBB.getBoundingBox(i + 0.5 - w, j + 0.5 - w, k, i
+					+ 0.5 + w, j + 0.5 + w, k + h);
 		case 4:
-			return AxisAlignedBB.getBoundingBox(i + 0.5 - w, j + 0.5 - w, k + 1 - h, i + 0.5 + w, j + 0.5 + w, k + 1);
+			return AxisAlignedBB.getBoundingBox(i + 0.5 - w, j + 0.5 - w, k + 1
+					- h, i + 0.5 + w, j + 0.5 + w, k + 1);
 		case 1:
-			return AxisAlignedBB.getBoundingBox(i, j + 0.5 - w, k + 0.5 - w, i + h, j + 0.5 + w, k + 0.5 + w);
+			return AxisAlignedBB.getBoundingBox(i, j + 0.5 - w, k + 0.5 - w, i
+					+ h, j + 0.5 + w, k + 0.5 + w);
 		default:
-			return AxisAlignedBB.getBoundingBox(i + 1 - h, j + 0.5 - w, k + 0.5 - w, i + 1, j + 0.5 + w, k + 0.5 + w);
+			return AxisAlignedBB.getBoundingBox(i + 1 - h, j + 0.5 - w, k + 0.5
+					- w, i + 1, j + 0.5 + w, k + 0.5 + w);
 		}
 	}
 
@@ -69,7 +75,9 @@ public class BlockMarker extends BlockContainer {
 	}
 
 	@Override
-	public boolean onBlockActivated(World world, int i, int j, int k, EntityPlayer entityplayer, int par6, float par7, float par8, float par9) {
+	public boolean onBlockActivated(World world, int i, int j, int k,
+			EntityPlayer entityplayer, int par6, float par7, float par8,
+			float par9) {
 		((TileMarker) world.getBlockTileEntity(i, j, k)).tryConnection();
 		return true;
 	}
@@ -81,7 +89,8 @@ public class BlockMarker extends BlockContainer {
 	}
 
 	@Override
-	public AxisAlignedBB getCollisionBoundingBoxFromPool(World world, int i, int j, int k) {
+	public AxisAlignedBB getCollisionBoundingBoxFromPool(World world, int i,
+			int j, int k) {
 		return null;
 	}
 
@@ -121,61 +130,59 @@ public class BlockMarker extends BlockContainer {
 				flag = true;
 			}
 			if (flag) {
-				dropBlockAsItem(world, i, j, k, QuarryPlus.blockMarker.blockID, 0);
+				dropBlockAsItem(world, i, j, k, blockID, 0);
 				world.setBlockWithNotify(i, j, k, 0);
 			}
 		}
 	}
 
 	@Override
-	public MovingObjectPosition collisionRayTrace(World world, int i, int j, int k, Vec3 vec3d, Vec3 vec3d1) {
+	public MovingObjectPosition collisionRayTrace(World world, int i, int j,
+			int k, Vec3 vec3d, Vec3 vec3d1) {
 		return Block.torchWood.collisionRayTrace(world, i, j, k, vec3d, vec3d1);
 	}
 
 	@Override
 	public boolean canPlaceBlockAt(World world, int i, int j, int k) {
-		if (BuildersProxy.canPlaceTorch(world, i - 1, j, k)) {
+		if (BuildersProxy.canPlaceTorch(world, i - 1, j, k))
 			return true;
-		}
-		if (BuildersProxy.canPlaceTorch(world, i + 1, j, k)) {
+		if (BuildersProxy.canPlaceTorch(world, i + 1, j, k))
 			return true;
-		}
-		if (BuildersProxy.canPlaceTorch(world, i, j, k - 1)) {
+		if (BuildersProxy.canPlaceTorch(world, i, j, k - 1))
 			return true;
-		}
-		if (BuildersProxy.canPlaceTorch(world, i, j, k + 1)) {
+		if (BuildersProxy.canPlaceTorch(world, i, j, k + 1))
 			return true;
-		}
-		if (BuildersProxy.canPlaceTorch(world, i, j - 1, k)) {
+		if (BuildersProxy.canPlaceTorch(world, i, j - 1, k))
 			return true;
-		}
 
 		return BuildersProxy.canPlaceTorch(world, i, j + 1, k);
 	}
 
 	@Override
-	public void func_85105_g(World world, int x, int y, int z, int par5) {
-		super.func_85105_g(world, x, y, z, par5);
-		int i1 = world.getBlockMetadata(x, y, z);
-		if (par5 == 1 && BuildersProxy.canPlaceTorch(world, x, y - 1, z)) {
-			i1 = 5;
+	public int func_85104_a(World world, int x, int y, int z, int side,
+			float par6, float par7, float par8, int meta) {
+		super.func_85104_a(world, x, y, z, side, par6, par7, par8, meta);
+
+		if (side == 1 && BuildersProxy.canPlaceTorch(world, x, y - 1, z)) {
+			meta = 5;
 		}
-		if (par5 == 2 && BuildersProxy.canPlaceTorch(world, x, y, z + 1)) {
-			i1 = 4;
+		if (side == 2 && BuildersProxy.canPlaceTorch(world, x, y, z + 1)) {
+			meta = 4;
 		}
-		if (par5 == 3 && BuildersProxy.canPlaceTorch(world, x, y, z - 1)) {
-			i1 = 3;
+		if (side == 3 && BuildersProxy.canPlaceTorch(world, x, y, z - 1)) {
+			meta = 3;
 		}
-		if (par5 == 4 && BuildersProxy.canPlaceTorch(world, x + 1, y, z)) {
-			i1 = 2;
+		if (side == 4 && BuildersProxy.canPlaceTorch(world, x + 1, y, z)) {
+			meta = 2;
 		}
-		if (par5 == 5 && BuildersProxy.canPlaceTorch(world, x - 1, y, z)) {
-			i1 = 1;
+		if (side == 5 && BuildersProxy.canPlaceTorch(world, x - 1, y, z)) {
+			meta = 1;
 		}
-		if (par5 == 0 && BuildersProxy.canPlaceTorch(world, x, y + 1, z)) {
-			i1 = 0;
+		if (side == 0 && BuildersProxy.canPlaceTorch(world, x, y + 1, z)) {
+			meta = 0;
 		}
-		world.setBlockMetadataWithNotify(x, y, z, i1);
+
+		return meta;
 	}
 
 	@Override
@@ -201,12 +208,11 @@ public class BlockMarker extends BlockContainer {
 
 	private boolean dropTorchIfCantStay(World world, int i, int j, int k) {
 		if (!canPlaceBlockAt(world, i, j, k)) {
-			dropBlockAsItem(world, i, j, k, QuarryPlus.blockMarker.blockID, 0);
+			dropBlockAsItem(world, i, j, k, blockID, 0);
 			world.setBlockWithNotify(i, j, k, 0);
 			return false;
-		} else {
+		} else
 			return true;
-		}
 	}
 
 	@Override

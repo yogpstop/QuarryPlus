@@ -1,15 +1,18 @@
 package org.yogpstop.qp;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import cpw.mods.fml.common.network.PacketDispatcher;
 import cpw.mods.fml.common.network.Player;
 
-import buildcraft.api.core.BuildCraftAPI;
+import buildcraft.BuildCraftCore;
+import buildcraft.BuildCraftFactory;
 import buildcraft.api.core.IAreaProvider;
 import buildcraft.api.core.LaserKind;
 import buildcraft.api.power.IPowerProvider;
@@ -27,15 +30,16 @@ import buildcraft.core.blueprints.BptBuilderBase;
 import buildcraft.core.blueprints.BptBuilderBlueprint;
 import buildcraft.core.network.PacketUpdate;
 import buildcraft.core.network.TileNetworkData;
+import buildcraft.core.proxy.CoreProxy;
+import buildcraft.core.utils.BlockUtil;
+import buildcraft.core.utils.Utils;
 import buildcraft.factory.TileMachine;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
 import net.minecraft.network.packet.Packet3Chat;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.ChunkCoordIntPair;
@@ -46,7 +50,7 @@ import net.minecraftforge.common.ForgeChunkManager.Type;
 import net.minecraftforge.common.ForgeDirection;
 
 public class TileQuarry extends TileMachine implements IMachine,
-		IPowerReceptor, IPipeConnection, IBuilderInventory, IInventory {
+		IPowerReceptor, IPipeConnection, IBuilderInventory {
 	public @TileNetworkData
 	Box box = new Box();
 	public @TileNetworkData
@@ -59,7 +63,6 @@ public class TileQuarry extends TileMachine implements IMachine,
 	double speed = 0.03;
 	public @TileNetworkData
 	boolean builderDone = false;
-	public ItemStack[] contents;
 
 	public EntityRobot builder;
 	BptBuilderBase bluePrintBuilder;
@@ -71,6 +74,9 @@ public class TileQuarry extends TileMachine implements IMachine,
 	boolean isDigging = false;
 
 	public static int MAX_ENERGY = 15000;
+	// EOT
+
+	public ItemStack[] contents;
 
 	private boolean Silktouch = false;
 	private int Fortune = 0;
@@ -96,8 +102,9 @@ public class TileQuarry extends TileMachine implements IMachine,
 
 			box.deleteLasers();
 
-			if (arm == null)
+			if (arm == null) {
 				createArm();
+			}
 
 			if (findTarget(false)) {
 				isDigging = true;
@@ -125,11 +132,12 @@ public class TileQuarry extends TileMachine implements IMachine,
 
 	private void createArm() {
 
-		worldObj.spawnEntityInWorld(new EntityMechanicalArm(worldObj,
-				box.xMin + 0.75F, yCoord + bluePrintBuilder.bluePrint.sizeY
-						- 0.75F, box.zMin + 0.75F,
-				bluePrintBuilder.bluePrint.sizeX - 1.5F,
-				bluePrintBuilder.bluePrint.sizeZ - 1.5F, this));
+		worldObj.spawnEntityInWorld(new EntityMechanicalArm(worldObj, box.xMin
+				+ Utils.pipeMaxPos, yCoord + bluePrintBuilder.bluePrint.sizeY
+				- 1 + Utils.pipeMinPos, box.zMin + Utils.pipeMaxPos,
+				bluePrintBuilder.bluePrint.sizeX - 2 + Utils.pipeMinPos * 2,
+				bluePrintBuilder.bluePrint.sizeZ - 2 + Utils.pipeMinPos * 2,
+				this));
 	}
 
 	// Callback from the arm once it's created
@@ -245,21 +253,92 @@ public class TileQuarry extends TileMachine implements IMachine,
 		headTrajectory = Math.atan2(target[2] - head[2], target[0] - head[0]);
 	}
 
+	public List<ItemStack> getItemStackFromBlock(World world, int i, int j,
+			int k) {
+		Block block = Block.blocksList[world.getBlockId(i, j, k)];
+
+		if (block == null)
+			return null;
+
+		int meta = world.getBlockMetadata(i, j, k);
+		if (!QuarryPlus.silktouch.isEmpty()) {
+			if (block.canSilkHarvest(world, this.placedBy, i, j, k, meta)
+					&& this.Silktouch
+					&& QuarryPlus.silktouch.contains(Integer
+							.toString(block.blockID)
+							+ ":"
+							+ Integer.toString(meta))) {
+				ArrayList<ItemStack> cache = new ArrayList<ItemStack>();
+				cache.add(new ItemStack(block.blockID, 1, meta));
+				return cache;
+			}
+		} else {
+			if (block.canSilkHarvest(world, this.placedBy, i, j, k, meta)
+					&& this.Silktouch) {
+				ArrayList<ItemStack> cache = new ArrayList<ItemStack>();
+				cache.add(new ItemStack(block.blockID, 1, meta));
+				return cache;
+			}
+		}
+		if (!QuarryPlus.fortune.isEmpty()) {
+			if (QuarryPlus.fortune.contains(Integer.toString(block.blockID)
+					+ ":" + Integer.toString(meta))) {
+				return block
+						.getBlockDropped(world, i, j, k, meta, this.Fortune);
+			} else {
+				return block.getBlockDropped(world, i, j, k, meta, 0);
+			}
+		}
+		return block.getBlockDropped(world, i, j, k, meta, this.Fortune);
+	}
+
+	private LinkedList<int[]> visitList = Lists.newLinkedList();
+
 	public boolean findTarget(boolean doSet) {
 
 		if (worldObj.isRemote)
 			return false;
 
-		boolean[][] blockedColumns = new boolean[bluePrintBuilder.bluePrint.sizeX - 2][bluePrintBuilder.bluePrint.sizeZ - 2];
+		if (visitList.isEmpty()) {
+			createColumnVisitList();
+		}
 
-		// for (int searchX = 0; searchX < bluePrintBuilder.bluePrint.sizeX - 2;
-		// ++searchX) {
-		// for (int searchZ = 0; searchZ < bluePrintBuilder.bluePrint.sizeZ - 2;
-		// ++searchZ) {
-		// blockedColumns[searchX][searchZ] = false;
-		// }
-		// }
-		//
+		if (!doSet)
+			return !visitList.isEmpty();
+
+		if (visitList.isEmpty())
+			return false;
+
+		boolean foundTarget = false;
+		int[] target;
+		do {
+			if (visitList.isEmpty()) {
+				createColumnVisitList();
+			}
+			target = visitList.removeFirst();
+			boolean alternativeTarget = false;
+			for (int y = target[1] + 1; y < yCoord + 3; y++) {
+				if (BlockUtil.canChangeBlock(worldObj, target[0], y, target[2])
+						&& !BlockUtil.isSoftBlock(worldObj, target[0], y,
+								target[2])) {
+					createColumnVisitList();
+					alternativeTarget = true;
+					break;
+				}
+			}
+			foundTarget = !alternativeTarget;
+		} while (!foundTarget);
+
+		setTarget(target[0], target[1] + 1, target[2]);
+		return true;
+	}
+
+	/**
+	 * Make the column visit list: called once per layer
+	 */
+	private void createColumnVisitList() {
+		visitList.clear();
+		boolean[][] blockedColumns = new boolean[bluePrintBuilder.bluePrint.sizeX - 2][bluePrintBuilder.bluePrint.sizeZ - 2];
 		for (int searchY = yCoord + 3; searchY >= 0; --searchY) {
 			int startX, endX, incX;
 
@@ -291,21 +370,22 @@ public class TileQuarry extends TileMachine implements IMachine,
 						int bx = box.xMin + searchX + 1, by = searchY, bz = box.zMin
 								+ searchZ + 1;
 
-						if (!canChangeBlock(worldObj, bx, by, bz)) {
+						if (!BlockUtil.canChangeBlock(worldObj, bx, by, bz)) {
 							blockedColumns[searchX][searchZ] = true;
-						} else if (!isSoftBlock(worldObj, bx, by, bz)) {
-							if (doSet) {
-								setTarget(bx, by + 1, bz);
-							}
-
-							return true;
+						} else if (!BlockUtil.isSoftBlock(worldObj, bx, by, bz)) {
+							visitList.add(new int[] { bx, by, bz });
 						}
+						// Stop at two planes - generally any obstructions will
+						// have been found and will force a recompute prior to
+						// this
+						if (visitList.size() > bluePrintBuilder.bluePrint.sizeZ
+								* bluePrintBuilder.bluePrint.sizeX * 2)
+							return;
 					}
 				}
 			}
 		}
 
-		return false;
 	}
 
 	@Override
@@ -344,18 +424,6 @@ public class TileQuarry extends TileMachine implements IMachine,
 		headPosX = nbttagcompound.getDouble("headPosX");
 		headPosY = nbttagcompound.getDouble("headPosY");
 		headPosZ = nbttagcompound.getDouble("headPosZ");
-
-		NBTTagList nbttaglist = nbttagcompound.getTagList("Items");
-		contents = new ItemStack[getSizeInventory()];
-		for (int i = 0; i < nbttaglist.tagCount(); i++) {
-			NBTTagCompound nbttagcompound1 = (NBTTagCompound) nbttaglist
-					.tagAt(i);
-			int j = nbttagcompound1.getByte("Slot") & 0xff;
-			if (j >= 0 && j < contents.length) {
-				contents[j] = ItemStack.loadItemStackFromNBT(nbttagcompound1);
-			}
-		}
-		this.onInventoryChanged();
 	}
 
 	@Override
@@ -374,57 +442,6 @@ public class TileQuarry extends TileMachine implements IMachine,
 		NBTTagCompound boxTag = new NBTTagCompound();
 		box.writeToNBT(boxTag);
 		nbttagcompound.setTag("box", boxTag);
-
-		NBTTagList nbttaglist = new NBTTagList();
-		for (int i = 0; i < contents.length; i++) {
-			if (contents[i] != null) {
-				NBTTagCompound nbttagcompound1 = new NBTTagCompound();
-				nbttagcompound1.setByte("Slot", (byte) i);
-				contents[i].writeToNBT(nbttagcompound1);
-				nbttaglist.appendTag(nbttagcompound1);
-			}
-		}
-
-		nbttagcompound.setTag("Items", nbttaglist);
-	}
-
-	public List<ItemStack> getItemStackFromBlock(World world, int i, int j,
-			int k) {
-		Block block = Block.blocksList[world.getBlockId(i, j, k)];
-
-		if (block == null)
-			return null;
-
-		int meta = world.getBlockMetadata(i, j, k);
-		if (!QuarryPlus.silktouch.isEmpty()) {
-			if (block.canSilkHarvest(world, this.placedBy, i, j, k, meta)
-					&& this.Silktouch
-					&& QuarryPlus.silktouch.contains(Integer
-							.toString(block.blockID)
-							+ ":"
-							+ Integer.toString(meta))) {
-				ArrayList<ItemStack> cache = new ArrayList<ItemStack>();
-				cache.add(new ItemStack(block.blockID, 1, meta));
-				return cache;
-			}
-		} else {
-			if (block.canSilkHarvest(world, this.placedBy, i, j, k, meta)
-					&& this.Silktouch) {
-				ArrayList<ItemStack> cache = new ArrayList<ItemStack>();
-				cache.add(new ItemStack(block.blockID, 1, meta));
-				return cache;
-			}
-		}
-		if (!QuarryPlus.fortune.isEmpty()) {
-			if (QuarryPlus.fortune.contains(Integer.toString(block.blockID)
-					+ ":" + Integer.toString(meta))) {
-				return block
-						.getBlockDropped(world, i, j, k, meta, this.Fortune);
-			} else {
-				return block.getBlockDropped(world, i, j, k, meta, 0);
-			}
-		}
-		return block.getBlockDropped(world, i, j, k, meta, this.Fortune);
 	}
 
 	public void positionReached() {
@@ -485,15 +502,14 @@ public class TileQuarry extends TileMachine implements IMachine,
 
 	private void mineStack(ItemStack stack) {
 		// First, try to add to a nearby chest
-		ItemStack added = buildcraft.core.utils.Utils
-				.addToRandomInventory(stack, worldObj, xCoord, yCoord, zCoord,
-						ForgeDirection.UNKNOWN);
+		ItemStack added = Utils.addToRandomInventory(stack, worldObj, xCoord,
+				yCoord, zCoord, ForgeDirection.UNKNOWN);
 		stack.stackSize -= added.stackSize;
 
 		// Second, try to add to adjacent pipes
-		if (stack.stackSize > 0)
-			buildcraft.core.utils.Utils.addToRandomPipeEntry(this,
-					ForgeDirection.UNKNOWN, stack);
+		if (stack.stackSize > 0) {
+			Utils.addToRandomPipeEntry(this, ForgeDirection.UNKNOWN, stack);
+		}
 
 		// Lastly, throw the object away
 		if (stack.stackSize > 0) {
@@ -504,7 +520,7 @@ public class TileQuarry extends TileMachine implements IMachine,
 			EntityItem entityitem = new EntityItem(worldObj, xCoord + f, yCoord
 					+ f1 + 0.5F, zCoord + f2, stack);
 
-			entityitem.lifespan = buildcraft.BuildCraftCore.itemLifespan;
+			entityitem.lifespan = BuildCraftCore.itemLifespan;
 			entityitem.delayBeforeCanPickup = 10;
 
 			float f3 = 0.05F;
@@ -517,8 +533,8 @@ public class TileQuarry extends TileMachine implements IMachine,
 	}
 
 	private boolean isQuarriableBlock(int bx, int by, int bz) {
-		return canChangeBlock(worldObj, bx, by, bz)
-				&& !isSoftBlock(worldObj, bx, by, bz);
+		return BlockUtil.canChangeBlock(worldObj, bx, by, bz)
+				&& !BlockUtil.isSoftBlock(worldObj, bx, by, bz);
 	}
 
 	@Override
@@ -536,6 +552,7 @@ public class TileQuarry extends TileMachine implements IMachine,
 
 	@Override
 	public void destroy() {
+
 		if (arm != null) {
 			arm.setDead();
 		}
@@ -555,12 +572,12 @@ public class TileQuarry extends TileMachine implements IMachine,
 
 	private void setBoundaries(boolean useDefault) {
 		if (chunkTicket == null) {
-			chunkTicket = ForgeChunkManager.requestTicket(QuarryPlus.instance,
-					worldObj, Type.NORMAL);
+			chunkTicket = ForgeChunkManager.requestTicket(
+					BuildCraftFactory.instance, worldObj, Type.NORMAL);
 		}
 		if (chunkTicket == null) {
 			isAlive = false;
-			if (placedBy != null && !worldObj.isRemote) {
+			if (placedBy != null && CoreProxy.proxy.isSimulating(worldObj)) {
 				PacketDispatcher
 						.sendPacketToPlayer(
 								new Packet3Chat(
@@ -581,8 +598,7 @@ public class TileQuarry extends TileMachine implements IMachine,
 		IAreaProvider a = null;
 
 		if (!useDefault) {
-			a = buildcraft.core.utils.Utils.getNearbyAreaProvider(worldObj,
-					xCoord, yCoord, zCoord);
+			a = Utils.getNearbyAreaProvider(worldObj, xCoord, yCoord, zCoord);
 		}
 
 		if (a == null) {
@@ -674,31 +690,30 @@ public class TileQuarry extends TileMachine implements IMachine,
 		for (int it = 0; it < 2; it++) {
 			for (int i = 0; i < bluePrint.sizeX; ++i) {
 				bluePrint.setBlockId(i, it * (box.sizeY() - 1), 0,
-						buildcraft.BuildCraftFactory.frameBlock.blockID);
+						BuildCraftFactory.frameBlock.blockID);
 				bluePrint.setBlockId(i, it * (box.sizeY() - 1),
 						bluePrint.sizeZ - 1,
-						buildcraft.BuildCraftFactory.frameBlock.blockID);
+						BuildCraftFactory.frameBlock.blockID);
 			}
 
 			for (int k = 0; k < bluePrint.sizeZ; ++k) {
 				bluePrint.setBlockId(0, it * (box.sizeY() - 1), k,
-						buildcraft.BuildCraftFactory.frameBlock.blockID);
+						BuildCraftFactory.frameBlock.blockID);
 				bluePrint.setBlockId(bluePrint.sizeX - 1, it
 						* (box.sizeY() - 1), k,
-						buildcraft.BuildCraftFactory.frameBlock.blockID);
+						BuildCraftFactory.frameBlock.blockID);
 
 			}
 		}
 
 		for (int h = 1; h < box.sizeY(); ++h) {
-			bluePrint.setBlockId(0, h, 0,
-					buildcraft.BuildCraftFactory.frameBlock.blockID);
+			bluePrint.setBlockId(0, h, 0, BuildCraftFactory.frameBlock.blockID);
 			bluePrint.setBlockId(0, h, bluePrint.sizeZ - 1,
-					buildcraft.BuildCraftFactory.frameBlock.blockID);
+					BuildCraftFactory.frameBlock.blockID);
 			bluePrint.setBlockId(bluePrint.sizeX - 1, h, 0,
-					buildcraft.BuildCraftFactory.frameBlock.blockID);
+					BuildCraftFactory.frameBlock.blockID);
 			bluePrint.setBlockId(bluePrint.sizeX - 1, h, bluePrint.sizeZ - 1,
-					buildcraft.BuildCraftFactory.frameBlock.blockID);
+					BuildCraftFactory.frameBlock.blockID);
 		}
 
 		bluePrintBuilder = new BptBuilderBlueprint(bluePrint, worldObj,
@@ -726,7 +741,7 @@ public class TileQuarry extends TileMachine implements IMachine,
 	public void initialize() {
 		super.initialize();
 
-		if (!this.worldObj.isRemote && !box.initialized) {
+		if (CoreProxy.proxy.isSimulating(this.worldObj) && !box.initialized) {
 			setBoundaries(false);
 		}
 
@@ -743,7 +758,7 @@ public class TileQuarry extends TileMachine implements IMachine,
 
 	@Override
 	public void setPowerProvider(IPowerProvider provider) {
-		provider = powerProvider;
+		powerProvider = provider;
 
 	}
 
@@ -975,48 +990,5 @@ public class TileQuarry extends TileMachine implements IMachine,
 											chunks.size())), (Player) placedBy);
 		}
 		sendNetworkUpdate();
-	}
-
-	public static boolean canChangeBlock(World world, int x, int y, int z) {
-		if (world.isAirBlock(x, y, z)) {
-			return true;
-		}
-
-		int blockID = world.getBlockId(x, y, z);
-		if (Block.blocksList[blockID] == null) {
-			return true;
-		}
-		Block block = Block.blocksList[blockID];
-
-		if (block.getBlockHardness(world, x, y, z) < 0) {
-			return false;
-		}
-
-		if (blockID == buildcraft.BuildCraftEnergy.oilMoving.blockID
-				|| blockID == buildcraft.BuildCraftEnergy.oilStill.blockID) {
-			return false;
-		}
-
-		if (blockID == Block.lavaStill.blockID
-				|| blockID == Block.lavaMoving.blockID) {
-			return false;
-		}
-
-		return true;
-	}
-
-	public static boolean isSoftBlock(World world, int x, int y, int z) {
-		if (world.isAirBlock(x, y, z)) {
-			return true;
-		}
-
-		int blockId = world.getBlockId(x, y, z);
-
-		return BuildCraftAPI.softBlocks[blockId]
-				|| Block.blocksList[blockId] == null;
-	}
-
-	public void onChangeSlot() {
-
 	}
 }
