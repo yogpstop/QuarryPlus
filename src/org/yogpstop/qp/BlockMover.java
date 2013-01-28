@@ -1,6 +1,6 @@
 package org.yogpstop.qp;
 
-import buildcraft.core.CreativeTabBuildCraft;
+import static buildcraft.core.CreativeTabBuildCraft.tabBuildCraft;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.player.EntityPlayer;
@@ -16,7 +16,7 @@ public class BlockMover extends Block {
 		textureSide = 9;
 		textureBottom = 11;
 		textureTop = 10;
-		this.setCreativeTab(CreativeTabBuildCraft.tabBuildCraft);
+		this.setCreativeTab(tabBuildCraft);
 	}
 
 	@Override

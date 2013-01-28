@@ -12,6 +12,7 @@ import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.Configuration;
+import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.Property;
 
 import cpw.mods.fml.common.SidedProxy;
@@ -80,6 +81,8 @@ public class QuarryPlus {
 				"/org/yogpstop/qp/lang/en_US.lang", "en_US", false);
 		LanguageRegistry.instance().loadLocalization(
 				"/org/yogpstop/qp/lang/ja_JP.lang", "ja_JP", false);
+		ForgeChunkManager.setForcedChunkLoadingCallback(instance,
+				new ChunkLoadingHandler());
 	}
 
 	public void parseCommaIntArrayList(String source, ArrayList<String> output) {
@@ -207,7 +210,6 @@ public class QuarryPlus {
 					Character.valueOf('B'), Block.blockDiamond });
 		}
 		NetworkRegistry.instance().registerGuiHandler(this, proxy);
-
 		proxy.registerTextures();
 	}
 }

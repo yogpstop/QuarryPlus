@@ -2,7 +2,7 @@ package org.yogpstop.qp;
 
 import java.util.List;
 
-import buildcraft.core.CreativeTabBuildCraft;
+import static buildcraft.core.CreativeTabBuildCraft.tabBuildCraft;
 
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
@@ -15,7 +15,7 @@ public class ItemBase extends Item {
 		this.setItemName("ModuleBase");
 		this.setHasSubtypes(true);
 		this.setMaxDamage(0);
-		this.setCreativeTab(CreativeTabBuildCraft.tabBuildCraft);
+		this.setCreativeTab(tabBuildCraft);
 	}
 
 	@Override

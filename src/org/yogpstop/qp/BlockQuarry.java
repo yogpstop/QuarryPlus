@@ -1,8 +1,7 @@
 package org.yogpstop.qp;
 
-import buildcraft.api.core.Position;
-import buildcraft.core.CreativeTabBuildCraft;
-import buildcraft.core.utils.Utils;
+import static buildcraft.core.CreativeTabBuildCraft.tabBuildCraft;
+
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.EntityLiving;
@@ -24,7 +23,7 @@ public class BlockQuarry extends BlockContainer {
 		textureSide = 3;
 		textureFront = 1;
 		textureTop = 2;
-		setCreativeTab(CreativeTabBuildCraft.tabBuildCraft);
+		setCreativeTab(tabBuildCraft);
 	}
 
 	@Override
@@ -49,19 +48,28 @@ public class BlockQuarry extends BlockContainer {
 	}
 
 	@Override
-	public void breakBlock(World world, int i, int j, int k, int par5, int par6) {
-		((TileQuarry) world.getBlockTileEntity(i, j, k)).destroyQuarry();
-		super.breakBlock(world, i, j, k, par5, par6);
-	}
-
-	@Override
 	public void onBlockPlacedBy(World w, int x, int y, int z, EntityLiving el) {
 		super.onBlockPlacedBy(w, x, y, z, el);
-		ForgeDirection orientation = Utils.get2dOrientation(new Position(
-				el.posX, el.posY, el.posZ), new Position(x, y, z));
+		ForgeDirection orientation = get2dOrientation(el.posX, el.posZ, x, z);
 		w.setBlockMetadataWithNotify(x, y, z, orientation.getOpposite()
 				.ordinal());
-		((TileQuarry) w.getBlockTileEntity(x, y, z)).init();
+		((TileQuarry) w.getBlockTileEntity(x, y, z)).init(el);
+	}
+
+	private static ForgeDirection get2dOrientation(double x1, double z1,
+			double x2, double z2) {
+		double Dx = x1 - x2;
+		double Dz = z1 - z2;
+		double angle = Math.atan2(Dz, Dx) / Math.PI * 180 + 180;
+
+		if (angle < 45 || angle > 315)
+			return ForgeDirection.EAST;
+		else if (angle < 135)
+			return ForgeDirection.SOUTH;
+		else if (angle < 225)
+			return ForgeDirection.WEST;
+		else
+			return ForgeDirection.NORTH;
 	}
 
 	@Override
