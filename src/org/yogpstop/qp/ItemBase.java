@@ -2,6 +2,8 @@ package org.yogpstop.qp;
 
 import java.util.List;
 
+import buildcraft.core.CreativeTabBuildCraft;
+
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -13,7 +15,7 @@ public class ItemBase extends Item {
 		this.setItemName("ModuleBase");
 		this.setHasSubtypes(true);
 		this.setMaxDamage(0);
-		this.setCreativeTab(CreativeTabs.tabBlock);
+		this.setCreativeTab(CreativeTabBuildCraft.tabBuildCraft);
 	}
 
 	@Override
@@ -31,13 +33,8 @@ public class ItemBase extends Item {
 		case 3:
 			return "item.EfficiencyModule";
 		default:
-			return "item.ModuleBase";
+			return "item.BaseModule";
 		}
-	}
-
-	@Override
-	public String getItemName() {
-		return "item.ModuleBase";
 	}
 
 	@Override

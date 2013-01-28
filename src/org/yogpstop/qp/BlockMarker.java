@@ -4,12 +4,12 @@ import java.util.ArrayList;
 
 import buildcraft.BuildCraftCore;
 import buildcraft.builders.BuildersProxy;
+import buildcraft.core.CreativeTabBuildCraft;
 import buildcraft.core.utils.Utils;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
-import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
@@ -26,7 +26,7 @@ public class BlockMarker extends BlockContainer {
 		blockIndexInTexture = 0;
 
 		setLightValue(0.5F);
-		setCreativeTab(CreativeTabs.tabRedstone);
+		setCreativeTab(CreativeTabBuildCraft.tabBuildCraft);
 	}
 
 	@SuppressWarnings({ "all" })

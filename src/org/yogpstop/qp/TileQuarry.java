@@ -211,7 +211,7 @@ public class TileQuarry extends TileEntity implements IInventory,
 	}
 
 	private void makeNextFrame() {
-		float y = -6F * (float) efficiency + 25F;
+		float y = Math.max(-6F * (float) efficiency + 25F, 0F);
 		if (pp.useEnergy(y, y, true) != y)
 			return;
 		int[] coord = cacheFrame.get(0);
@@ -381,8 +381,8 @@ public class TileQuarry extends TileEntity implements IInventory,
 	}
 
 	private boolean breakBlock(int[] coord) {
-		float pw = (-9.75F * (float) efficiency + 40F)
-				* blockHardness(coord[0], coord[1], coord[2]);
+		float pw = Math.max((-9.75F * (float) efficiency + 40F)
+				* blockHardness(coord[0], coord[1], coord[2]), 0F);
 		if (pp.useEnergy(pw, pw, true) != pw)
 			return false;
 		cacheItems.addAll(getDroppedItems(coord[0], coord[1], coord[2]));

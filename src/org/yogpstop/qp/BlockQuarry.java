@@ -1,10 +1,10 @@
 package org.yogpstop.qp;
 
 import buildcraft.api.core.Position;
+import buildcraft.core.CreativeTabBuildCraft;
 import buildcraft.core.utils.Utils;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
-import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.tileentity.TileEntity;
@@ -24,7 +24,7 @@ public class BlockQuarry extends BlockContainer {
 		textureSide = 3;
 		textureFront = 1;
 		textureTop = 2;
-		setCreativeTab(CreativeTabs.tabDecorations);
+		setCreativeTab(CreativeTabBuildCraft.tabBuildCraft);
 	}
 
 	@Override

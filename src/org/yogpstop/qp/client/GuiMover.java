@@ -29,7 +29,7 @@ public class GuiMover extends GuiContainer {
 
 	@Override
 	protected void drawGuiContainerForegroundLayer(int par1, int par2) {
-		fontRenderer.drawString(StatCollector.translateToLocal("tile.EnchantMover"), 8, 6, 0x404040);
+		fontRenderer.drawString(StatCollector.translateToLocal("tile.EnchantMover.name"), 8, 6, 0x404040);
 		fontRenderer.drawString(
 				StatCollector.translateToLocal("container.inventory"), 8,
 				(ySize - 96) + 2, 0x404040);

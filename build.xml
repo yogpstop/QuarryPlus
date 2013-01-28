@@ -2,7 +2,7 @@
 	<property name="mod.version" value="1.2.0" />
 
 	<property name="mc.version" value="1.4.7" />
-	<property name="forge.version" value="6.6.0.499" />
+	<property name="forge.version" value="6.6.0.516" />
 	<property name="api.dir" value="../.api" />
 	<property name="src.dir" value="src" />
 	<property name="res.dir" value="res" />

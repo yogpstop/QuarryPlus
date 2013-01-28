@@ -11,9 +11,18 @@ public class SlotQuarry extends Slot {
 	}
 
 	@Override
-	public boolean isItemValid(ItemStack itemStack) {
-		if (itemStack.itemID == QuarryPlus.itemBase.itemID) {
-			return true;
+	public boolean isItemValid(ItemStack is) {
+		if (is.itemID == QuarryPlus.itemBase.itemID) {
+			switch (slotNumber) {
+			case 0:
+				return is.getItemDamage() == 1;
+			case 1:
+			case 2:
+			case 3:
+				return is.getItemDamage() == 2;
+			default:
+				return is.getItemDamage() == 3;
+			}
 		}
 		return false;
 	}

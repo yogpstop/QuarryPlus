@@ -44,8 +44,8 @@ public class QuarryPlus {
 
 	public static int RecipeDifficulty;
 
-	public static int guiIdContainerQuarry = 1;
-	public static int guiIdContainerMover = 2;
+	public static final int guiIdContainerQuarry = 1;
+	public static final int guiIdContainerMover = 2;
 
 	@Mod.PreInit
 	public void preInit(FMLPreInitializationEvent event) {
@@ -59,7 +59,7 @@ public class QuarryPlus {
 					.getInt())).setBlockName("MarkerPlus");
 			blockMover = (new BlockMover(cfg.getBlock("EnchantMover", 4003)
 					.getInt())).setBlockName("EnchantMover");
-			itemBase = (new ItemBase(cfg.getItem("ModuleBase", 24005).getInt()));
+			itemBase = (new ItemBase(cfg.getItem("Modules", 24005).getInt()));
 			Property RD = cfg.get(Configuration.CATEGORY_GENERAL,
 					"RecipeDifficulty", 2);
 			RD.comment = "0:AsCheatRecipe,1:EasyRecipe,2:NormalRecipe(Default),3:HardRecipe,other:NormalRecipe";
@@ -83,11 +83,11 @@ public class QuarryPlus {
 	}
 
 	public void parseCommaIntArrayList(String source, ArrayList<String> output) {
-		source.trim();
+		source = source.trim();
 		if (source != "") {
 			String[] cache = source.split(",");
 			for (int i = 0; i < cache.length; i++) {
-				String[] cache2 = cache[i].split(":");
+				String[] cache2 = cache[i].trim().split(":");
 				output.add(Integer.valueOf(cache2[0]).toString()
 						+ ":"
 						+ (cache2.length == 1 ? "0" : Integer
