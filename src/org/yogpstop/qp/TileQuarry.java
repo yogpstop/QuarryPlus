@@ -1,785 +1,424 @@
 package org.yogpstop.qp;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
-import cpw.mods.fml.common.network.PacketDispatcher;
-import cpw.mods.fml.common.network.Player;
-
-import buildcraft.BuildCraftCore;
 import buildcraft.BuildCraftFactory;
 import buildcraft.api.core.IAreaProvider;
-import buildcraft.api.core.LaserKind;
 import buildcraft.api.power.IPowerProvider;
 import buildcraft.api.power.IPowerReceptor;
 import buildcraft.api.power.PowerFramework;
-import buildcraft.api.transport.IPipeConnection;
-
 import buildcraft.core.Box;
-import buildcraft.core.DefaultAreaProvider;
-import buildcraft.core.EntityRobot;
-import buildcraft.core.IBuilderInventory;
-import buildcraft.core.IMachine;
-import buildcraft.core.blueprints.BptBlueprint;
-import buildcraft.core.blueprints.BptBuilderBase;
-import buildcraft.core.blueprints.BptBuilderBlueprint;
-import buildcraft.core.network.PacketUpdate;
-import buildcraft.core.network.TileNetworkData;
-import buildcraft.core.proxy.CoreProxy;
-import buildcraft.core.utils.BlockUtil;
 import buildcraft.core.utils.Utils;
-import buildcraft.factory.TileMachine;
 
 import net.minecraft.block.Block;
-import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.network.packet.Packet3Chat;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.world.ChunkCoordIntPair;
-import net.minecraft.world.World;
-import net.minecraftforge.common.ForgeChunkManager;
-import net.minecraftforge.common.ForgeChunkManager.Ticket;
-import net.minecraftforge.common.ForgeChunkManager.Type;
+import net.minecraft.nbt.NBTTagList;
+import net.minecraft.network.packet.Packet;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.ForgeDirection;
 
-public class TileQuarry extends TileMachine implements IMachine,
-		IPowerReceptor, IPipeConnection, IBuilderInventory {
-	public @TileNetworkData
-	Box box = new Box();
-	public @TileNetworkData
-	boolean inProcess = false;
-	public @TileNetworkData
-	int targetX, targetY, targetZ;
-	public @TileNetworkData
-	double headPosX, headPosY, headPosZ;
-	public @TileNetworkData
-	double speed = 0.03;
-	public @TileNetworkData
-	boolean builderDone = false;
+public class TileQuarry extends TileEntity implements IInventory,
+		IPowerReceptor {
+	private final Box box = new Box();
+	private final int[] target = new int[3];
+	private final ItemStack[] inv = new ItemStack[getSizeInventory()];
 
-	public EntityRobot builder;
-	BptBuilderBase bluePrintBuilder;
+	private byte fortune;
+	private boolean silktouch;
+	private byte efficiency;
 
-	public EntityMechanicalArm arm;
+	private ArrayList<ItemStack> cacheItems = new ArrayList<ItemStack>();
+	private ArrayList<int[]> cacheFrame = new ArrayList<int[]>();
+	private ArrayList<int[]> cacheNonNeeded = new ArrayList<int[]>();
 
-	public IPowerProvider powerProvider;
+	private boolean initialized = true;
 
-	boolean isDigging = false;
+	private PROGRESS now = PROGRESS.NONE;
 
-	public static int MAX_ENERGY = 15000;
-	// EOT
+	private IPowerProvider pp;
 
-	public ItemStack[] contents;
-
-	private boolean Silktouch = false;
-	private int Fortune = 0;
-	private int Efficiency = 0;
-
-	public TileQuarry() {
-		powerProvider = PowerFramework.currentFramework.createPowerProvider();
-		powerProvider.configure(20, 1, 25, 0, MAX_ENERGY);
-		this.contents = new ItemStack[getSizeInventory()];
-	}
-
-	public void createUtilsIfNeeded() {
-		if (bluePrintBuilder == null) {
-
-			if (!box.isInitialized()) {
-				setBoundaries(loadDefaultBoundaries);
-			}
-
-			initializeBluePrintBuilder();
+	enum PROGRESS {
+		NONE((byte) 0), NOTNEEDBREAK((byte) 1), MAKEFRAME((byte) 2), MOVEHEAD(
+				(byte) 3), BREAKBLOCK((byte) 4);
+		PROGRESS(final byte arg) {
+			byteValue = arg;
 		}
 
-		if (builderDone) {
+		public byte getByteValue() {
+			return byteValue;
+		}
 
-			box.deleteLasers();
-
-			if (arm == null) {
-				createArm();
-			}
-
-			if (findTarget(false)) {
-				isDigging = true;
-				if (box != null
-						&& ((headPosX < box.xMin || headPosX > box.xMax) || (headPosZ < box.zMin || headPosZ > box.zMax))) {
-					setHead(box.xMin + 1, yCoord + 2, box.zMin + 1);
+		public static PROGRESS valueOf(final byte arg) {
+			for (PROGRESS d : values()) {
+				if (d.getByteValue() == arg) {
+					return d;
 				}
 			}
-
-		} else {
-
-			box.createLasers(worldObj, LaserKind.Stripes);
-			isDigging = true;
+			return null;
 		}
+
+		private final byte byteValue;
 	}
 
-	private boolean loadDefaultBoundaries = false;
-	private boolean movingHorizontally;
-	private boolean movingVertically;
-	private double headTrajectory;
-	private Ticket chunkTicket;
-	public @TileNetworkData
-	boolean isAlive;
-	public EntityPlayer placedBy;
-
-	private void createArm() {
-
-		worldObj.spawnEntityInWorld(new EntityMechanicalArm(worldObj, box.xMin
-				+ Utils.pipeMaxPos, yCoord + bluePrintBuilder.bluePrint.sizeY
-				- 1 + Utils.pipeMinPos, box.zMin + Utils.pipeMaxPos,
-				bluePrintBuilder.bluePrint.sizeX - 2 + Utils.pipeMinPos * 2,
-				bluePrintBuilder.bluePrint.sizeZ - 2 + Utils.pipeMinPos * 2,
-				this));
+	@Override
+	public Packet getDescriptionPacket() {
+		return PacketHandler.getPacket(this);
 	}
 
-	// Callback from the arm once it's created
-	public void setArm(EntityMechanicalArm arm) {
-		this.arm = arm;
+	public void init() {
+		pp = PowerFramework.currentFramework.createPowerProvider();
+		pp.configure(0, 0, 100, 0, 30000);
+		createBox();
+		initFrames();
+		initNonNeededBlocks();
+		now = PROGRESS.NOTNEEDBREAK;
+	}
+
+	public void initFromNBT() {
+		switch (now) {
+		case NOTNEEDBREAK:
+			initNonNeededBlocks();
+		case MAKEFRAME:
+			initFrames();
+			break;
+		default:
+		}
+		initialized = true;
 	}
 
 	@Override
 	public void updateEntity() {
-		if (!isAlive && !worldObj.isRemote) {
-			super.updateEntity();
-			return;
-		}
-		if (worldObj.isRemote && isAlive) {
-			super.updateEntity();
-			return;
-		}
-		super.updateEntity();
-		if (inProcess) {
-			float energyToUse = (2 + powerProvider.getEnergyStored() / 500)
-					/ (1 + this.Efficiency * 10);
-
-			float energy = powerProvider.useEnergy(energyToUse, energyToUse,
-					true);
-
-			if (energy > 0) {
-				moveHead((0.05 + energy / 200F) * (1 + this.Efficiency * 2.25));
-			}
-		}
-
-		if (!worldObj.isRemote && inProcess) {
-			sendNetworkUpdate();
-		}
-		if (inProcess || !isDigging) {
-			return;
-		}
-
-		createUtilsIfNeeded();
-
-		if (bluePrintBuilder != null) {
-
-			builderDone = bluePrintBuilder.done;
-			if (!builderDone) {
-
-				buildFrame();
-				return;
-
-			} else {
-
-				if (builder != null && builder.done()) {
-
-					box.deleteLasers();
-					builder.setDead();
-					builder = null;
-				}
-			}
-		}
-
-		if (builder == null) {
-			dig();
-		}
-
-	}
-
-	@Override
-	public void doWork() {
-	}
-
-	protected void buildFrame() {
-
-		powerProvider.configure(20, 1, 25, 0, MAX_ENERGY);
-		if (powerProvider.useEnergy(25 / (1 + this.Efficiency * 312.25F),
-				25 / (1 + this.Efficiency * 312.25F), true) != 25 / (1 + this.Efficiency * 312.25F)) {
-			return;
-		}
-
-		powerProvider.getTimeTracker().markTime(worldObj);
-
-		if (builder == null) {
-			builder = new EntityRobot(worldObj, box);
-			worldObj.spawnEntityInWorld(builder);
-		}
-
-		if (builder.readyToBuild()) {
-			builder.scheduleContruction(
-					bluePrintBuilder.getNextBlock(worldObj, this),
-					bluePrintBuilder.getContext());
-		}
-	}
-
-	protected void dig() {
-		powerProvider.configure(20, 1, 500, 0, MAX_ENERGY);
-		if (powerProvider.useEnergy(60 / (1 + this.Efficiency * 74.75F),
-				60 / (1 + this.Efficiency * 74.75F), true) != 60 / (1 + this.Efficiency * 74.75F)) {
-			return;
-		}
-
-		if (!findTarget(true)) {
-
-			// I believe the issue is box going null becuase of bad chunkloader
-			// positioning
-			if (arm != null && box != null)
-				setTarget(box.xMin + 1, yCoord + 2, box.zMin + 1);
-
-			isDigging = false;
-		}
-
-		inProcess = true;
-		movingHorizontally = true;
-		movingVertically = true;
-		double[] head = getHead();
-		int[] target = getTarget();
-		headTrajectory = Math.atan2(target[2] - head[2], target[0] - head[0]);
-	}
-
-	public List<ItemStack> getItemStackFromBlock(World world, int i, int j,
-			int k) {
-		Block block = Block.blocksList[world.getBlockId(i, j, k)];
-
-		if (block == null)
-			return null;
-
-		int meta = world.getBlockMetadata(i, j, k);
-		if (!QuarryPlus.silktouch.isEmpty()) {
-			if (block.canSilkHarvest(world, this.placedBy, i, j, k, meta)
-					&& this.Silktouch
-					&& QuarryPlus.silktouch.contains(Integer
-							.toString(block.blockID)
-							+ ":"
-							+ Integer.toString(meta))) {
-				ArrayList<ItemStack> cache = new ArrayList<ItemStack>();
-				cache.add(new ItemStack(block.blockID, 1, meta));
-				return cache;
-			}
-		} else {
-			if (block.canSilkHarvest(world, this.placedBy, i, j, k, meta)
-					&& this.Silktouch) {
-				ArrayList<ItemStack> cache = new ArrayList<ItemStack>();
-				cache.add(new ItemStack(block.blockID, 1, meta));
-				return cache;
-			}
-		}
-		if (!QuarryPlus.fortune.isEmpty()) {
-			if (QuarryPlus.fortune.contains(Integer.toString(block.blockID)
-					+ ":" + Integer.toString(meta))) {
-				return block
-						.getBlockDropped(world, i, j, k, meta, this.Fortune);
-			} else {
-				return block.getBlockDropped(world, i, j, k, meta, 0);
-			}
-		}
-		return block.getBlockDropped(world, i, j, k, meta, this.Fortune);
-	}
-
-	private LinkedList<int[]> visitList = Lists.newLinkedList();
-
-	public boolean findTarget(boolean doSet) {
-
 		if (worldObj.isRemote)
-			return false;
-
-		if (visitList.isEmpty()) {
-			createColumnVisitList();
-		}
-
-		if (!doSet)
-			return !visitList.isEmpty();
-
-		if (visitList.isEmpty())
-			return false;
-
-		boolean foundTarget = false;
-		int[] target;
-		do {
-			if (visitList.isEmpty()) {
-				createColumnVisitList();
-			}
-			target = visitList.removeFirst();
-			boolean alternativeTarget = false;
-			for (int y = target[1] + 1; y < yCoord + 3; y++) {
-				if (BlockUtil.canChangeBlock(worldObj, target[0], y, target[2])
-						&& !BlockUtil.isSoftBlock(worldObj, target[0], y,
-								target[2])) {
-					createColumnVisitList();
-					alternativeTarget = true;
-					break;
-				}
-			}
-			foundTarget = !alternativeTarget;
-		} while (!foundTarget);
-
-		setTarget(target[0], target[1] + 1, target[2]);
-		return true;
-	}
-
-	/**
-	 * Make the column visit list: called once per layer
-	 */
-	private void createColumnVisitList() {
-		visitList.clear();
-		boolean[][] blockedColumns = new boolean[bluePrintBuilder.bluePrint.sizeX - 2][bluePrintBuilder.bluePrint.sizeZ - 2];
-		for (int searchY = yCoord + 3; searchY >= 0; --searchY) {
-			int startX, endX, incX;
-
-			if (searchY % 2 == 0) {
-				startX = 0;
-				endX = bluePrintBuilder.bluePrint.sizeX - 2;
-				incX = 1;
+			return;
+		if (!initialized)
+			initFromNBT();
+		switch (now) {
+		case NOTNEEDBREAK:
+			if (cacheNonNeeded.size() > 0) {
+				if (breakBlock(cacheNonNeeded.get(0)))
+					cacheNonNeeded.remove(0);
 			} else {
-				startX = bluePrintBuilder.bluePrint.sizeX - 3;
-				endX = -1;
-				incX = -1;
+				now = PROGRESS.MAKEFRAME;
+				makeNextFrame();
 			}
-
-			for (int searchX = startX; searchX != endX; searchX += incX) {
-				int startZ, endZ, incZ;
-
-				if (searchX % 2 == searchY % 2) {
-					startZ = 0;
-					endZ = bluePrintBuilder.bluePrint.sizeZ - 2;
-					incZ = 1;
-				} else {
-					startZ = bluePrintBuilder.bluePrint.sizeZ - 3;
-					endZ = -1;
-					incZ = -1;
-				}
-
-				for (int searchZ = startZ; searchZ != endZ; searchZ += incZ) {
-					if (!blockedColumns[searchX][searchZ]) {
-						int bx = box.xMin + searchX + 1, by = searchY, bz = box.zMin
-								+ searchZ + 1;
-
-						if (!BlockUtil.canChangeBlock(worldObj, bx, by, bz)) {
-							blockedColumns[searchX][searchZ] = true;
-						} else if (!BlockUtil.isSoftBlock(worldObj, bx, by, bz)) {
-							visitList.add(new int[] { bx, by, bz });
-						}
-						// Stop at two planes - generally any obstructions will
-						// have been found and will force a recompute prior to
-						// this
-						if (visitList.size() > bluePrintBuilder.bluePrint.sizeZ
-								* bluePrintBuilder.bluePrint.sizeX * 2)
-							return;
-					}
-				}
+			break;
+		case MAKEFRAME:
+			if (cacheFrame.size() > 0) {
+				makeNextFrame();
+			} else {
+				now = PROGRESS.BREAKBLOCK;
+				if (breakBlock(target))
+					setNextTarget();
 			}
+			break;
+		case MOVEHEAD:
+			break;
+		case BREAKBLOCK:
+			if (breakBlock(target))
+				setNextTarget();
+			break;
+		default:
+			break;
 		}
-
+		ArrayList<ItemStack> cache = new ArrayList<ItemStack>();
+		for (ItemStack is : cacheItems) {
+			ItemStack added = Utils.addToRandomInventory(is, worldObj, xCoord,
+					yCoord, zCoord, ForgeDirection.UNKNOWN);
+			is.stackSize -= added.stackSize;
+			if (is.stackSize > 0)
+				if (!Utils.addToRandomPipeEntry(this, ForgeDirection.UNKNOWN,
+						is))
+					cache.add(is);
+		}
+		cacheItems = cache;
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbttagcompound) {
-		super.readFromNBT(nbttagcompound);
-
-		PowerFramework.currentFramework.loadPowerProvider(this, nbttagcompound);
-
-		if (nbttagcompound.hasKey("box")) {
-			box.initialize(nbttagcompound.getCompoundTag("box"));
-
-			loadDefaultBoundaries = false;
-		} else if (nbttagcompound.hasKey("xSize")) {
-			// This is a legacy save, get old data
-
-			int xMin = nbttagcompound.getInteger("xMin");
-			int zMin = nbttagcompound.getInteger("zMin");
-
-			int xSize = nbttagcompound.getInteger("xSize");
-			int ySize = nbttagcompound.getInteger("ySize");
-			int zSize = nbttagcompound.getInteger("zSize");
-
-			box.initialize(xMin, yCoord, zMin, xMin + xSize - 1, yCoord + ySize
-					- 1, zMin + zSize - 1);
-
-			loadDefaultBoundaries = false;
-		} else {
-			// This is a legacy save, compute boundaries
-
-			loadDefaultBoundaries = true;
+	public void onInventoryChanged() {
+		silktouch = false;
+		efficiency = 0;
+		fortune = 0;
+		for (ItemStack is : inv) {
+			if (is == null)
+				continue;
+			if (is.getItem() instanceof ItemBase) {
+				switch (is.getItemDamage()) {
+				case 1:
+					silktouch = true;
+					break;
+				case 2:
+					fortune += is.stackSize;
+					break;
+				case 3:
+					efficiency += is.stackSize;
+					break;
+				default:
+				}
+			}
 		}
+	}
 
-		targetX = nbttagcompound.getInteger("targetX");
-		targetY = nbttagcompound.getInteger("targetY");
-		targetZ = nbttagcompound.getInteger("targetZ");
-		headPosX = nbttagcompound.getDouble("headPosX");
-		headPosY = nbttagcompound.getDouble("headPosY");
-		headPosZ = nbttagcompound.getDouble("headPosZ");
+	public void destroyQuarry() {
+		destoryFrames();
 	}
 
 	@Override
-	public void writeToNBT(NBTTagCompound nbttagcompound) {
-		super.writeToNBT(nbttagcompound);
-
-		PowerFramework.currentFramework.savePowerProvider(this, nbttagcompound);
-
-		nbttagcompound.setInteger("targetX", targetX);
-		nbttagcompound.setInteger("targetY", targetY);
-		nbttagcompound.setInteger("targetZ", targetZ);
-		nbttagcompound.setDouble("headPosX", headPosX);
-		nbttagcompound.setDouble("headPosY", headPosY);
-		nbttagcompound.setDouble("headPosZ", headPosZ);
-
-		NBTTagCompound boxTag = new NBTTagCompound();
-		box.writeToNBT(boxTag);
-		nbttagcompound.setTag("box", boxTag);
+	public void readFromNBT(NBTTagCompound nbttc) {
+		super.readFromNBT(nbttc);
+		box.initialize(nbttc);
+		silktouch = nbttc.getBoolean("silktouch");
+		fortune = nbttc.getByte("fortune");
+		efficiency = nbttc.getByte("efficiency");
+		target[0] = nbttc.getInteger("targetX");
+		target[1] = nbttc.getInteger("targetY");
+		target[2] = nbttc.getInteger("targetZ");
+		PowerFramework.currentFramework.loadPowerProvider(this, nbttc);
+		NBTTagList items = nbttc.getTagList("Items");
+		for (byte i = 0; i < items.tagCount(); i++) {
+			NBTTagCompound item = (NBTTagCompound) items.tagAt(i);
+			inv[item.getByte("Slot")] = ItemStack.loadItemStackFromNBT(item);
+		}
+		now = PROGRESS.valueOf(nbttc.getByte("now"));
+		initialized = false;
 	}
 
-	public void positionReached() {
-		inProcess = false;
+	@Override
+	public void writeToNBT(NBTTagCompound nbttc) {
+		super.writeToNBT(nbttc);
+		box.writeToNBT(nbttc);
+		nbttc.setBoolean("silktouch", silktouch);
+		nbttc.setByte("fortune", fortune);
+		nbttc.setByte("efficiency", efficiency);
+		nbttc.setInteger("targetX", target[0]);
+		nbttc.setInteger("targetY", target[1]);
+		nbttc.setInteger("targetZ", target[2]);
+		PowerFramework.currentFramework.savePowerProvider(this, nbttc);
+		NBTTagList items = new NBTTagList();
+		for (byte i = 0; i < getSizeInventory(); i++) {
+			ItemStack is = inv[i];
+			if (is != null) {
+				NBTTagCompound item = new NBTTagCompound();
+				is.writeToNBT(item);
+				item.setByte("Slot", i);
+				items.appendTag(item);
+			}
+		}
+		nbttc.setTag("Items", items);
+		nbttc.setByte("now", now.getByteValue());
+	}
 
-		if (worldObj.isRemote) {
+	private void makeNextFrame() {
+		float y = -6F * (float) efficiency + 25F;
+		if (pp.useEnergy(y, y, true) != y)
+			return;
+		int[] coord = cacheFrame.get(0);
+		cacheFrame.remove(0);
+		worldObj.setBlockWithNotify(coord[0], coord[1], coord[2],
+				BuildCraftFactory.frameBlock.blockID);
+	}
+
+	private void setNextTarget() {
+		target[0]++;
+		if (target[0] == box.xMax) {
+			target[0] = box.xMin + 1;
+			target[2]++;
+			if (target[2] == box.zMax) {
+				target[2] = box.zMin + 1;
+				target[1]--;
+			}
+		}
+		if (target[1] < 1) {
+			now = PROGRESS.NONE;
+			destoryFrames();
 			return;
 		}
+		int bid = worldObj.getBlockId(target[0], target[1], target[2]);
+		if (bid == 0 || bid == Block.bedrock.blockID)
+			setNextTarget();
+	}
 
-		int i = targetX;
-		int j = targetY - 1;
-		int k = targetZ;
+	private void createBox() {
+		if (!checkIAreaProvider(xCoord - 1, yCoord, zCoord))
+			if (!checkIAreaProvider(xCoord + 1, yCoord, zCoord))
+				if (!checkIAreaProvider(xCoord, yCoord, zCoord - 1))
+					if (!checkIAreaProvider(xCoord, yCoord, zCoord + 1))
+						if (!checkIAreaProvider(xCoord, yCoord - 1, zCoord))
+							if (!checkIAreaProvider(xCoord, yCoord + 1, zCoord)) {
+								int xMin = 0, zMin = 0;
+								ForgeDirection o = ForgeDirection.values()[worldObj
+										.getBlockMetadata(xCoord, yCoord,
+												zCoord)].getOpposite();
+								switch (o) {
+								case EAST:
+									xMin = xCoord + 1;
+									zMin = zCoord - 5;
+									break;
+								case WEST:
+									xMin = xCoord - 11;
+									zMin = zCoord - 5;
+									break;
+								case SOUTH:
+									xMin = xCoord - 5;
+									zMin = zCoord + 1;
+									break;
+								case NORTH:
+								default:
+									xMin = xCoord - 5;
+									zMin = zCoord - 11;
+									break;
+								}
+								box.initialize(xMin, yCoord, zMin, xMin + 10,
+										yCoord + 4, zMin + 10);
+							}
+		target[0] = box.xMin + 1;
+		target[2] = box.zMin + 1;
+		target[1] = box.yMin;
+	}
 
-		int blockId = worldObj.getBlockId(i, j, k);
-
-		if (isQuarriableBlock(i, j, k)) {
-			powerProvider.getTimeTracker().markTime(worldObj);
-
-			// Share this with mining well!
-
-			List<ItemStack> stacks = getItemStackFromBlock(worldObj, i, j, k);
-
-			if (stacks != null) {
-				for (ItemStack s : stacks) {
-					if (s != null) {
-						mineStack(s);
-					}
-				}
+	private boolean checkIAreaProvider(int x, int y, int z) {
+		if (worldObj.getBlockTileEntity(x, y, z) instanceof IAreaProvider) {
+			box.initialize(((IAreaProvider) worldObj
+					.getBlockTileEntity(x, y, z)));
+			box.reorder();
+			if (box.contains(xCoord, yCoord, zCoord)) {
+				box.reset();
+				return false;
 			}
-
-			worldObj.playAuxSFXAtEntity(null, 2001, i, j, k, blockId
-					+ (worldObj.getBlockMetadata(i, j, k) << 12));
-			worldObj.setBlockWithNotify(i, j, k, 0);
-		}
-
-		// Collect any lost items laying around
-		double[] head = getHead();
-		AxisAlignedBB axis = AxisAlignedBB
-				.getBoundingBox(head[0] - 2, head[1] - 2, head[2] - 2,
-						head[0] + 3, head[1] + 3, head[2] + 3);
-		List result = worldObj.getEntitiesWithinAABB(EntityItem.class, axis);
-		for (int ii = 0; ii < result.size(); ii++) {
-			if (result.get(ii) instanceof EntityItem) {
-				EntityItem entity = (EntityItem) result.get(ii);
-				if (entity.isDead) {
-					continue;
-				}
-
-				ItemStack mineable = entity.func_92014_d();
-				if (mineable.stackSize <= 0) {
-					continue;
-				}
-				buildcraft.core.proxy.CoreProxy.proxy.removeEntity(entity);
-				mineStack(mineable);
+			if (box.sizeX() < 3 || box.sizeZ() < 3) {
+				box.reset();
+				return false;
 			}
+			if (box.sizeY() <= 1)
+				box.yMax += 3 - box.sizeY();
+			((IAreaProvider) worldObj.getBlockTileEntity(x, y, z))
+					.removeFromWorld();
+			return true;
 		}
-	}
-
-	private void mineStack(ItemStack stack) {
-		// First, try to add to a nearby chest
-		ItemStack added = Utils.addToRandomInventory(stack, worldObj, xCoord,
-				yCoord, zCoord, ForgeDirection.UNKNOWN);
-		stack.stackSize -= added.stackSize;
-
-		// Second, try to add to adjacent pipes
-		if (stack.stackSize > 0) {
-			Utils.addToRandomPipeEntry(this, ForgeDirection.UNKNOWN, stack);
-		}
-
-		// Lastly, throw the object away
-		if (stack.stackSize > 0) {
-			float f = worldObj.rand.nextFloat() * 0.8F + 0.1F;
-			float f1 = worldObj.rand.nextFloat() * 0.8F + 0.1F;
-			float f2 = worldObj.rand.nextFloat() * 0.8F + 0.1F;
-
-			EntityItem entityitem = new EntityItem(worldObj, xCoord + f, yCoord
-					+ f1 + 0.5F, zCoord + f2, stack);
-
-			entityitem.lifespan = BuildCraftCore.itemLifespan;
-			entityitem.delayBeforeCanPickup = 10;
-
-			float f3 = 0.05F;
-			entityitem.motionX = (float) worldObj.rand.nextGaussian() * f3;
-			entityitem.motionY = (float) worldObj.rand.nextGaussian() * f3
-					+ 1.0F;
-			entityitem.motionZ = (float) worldObj.rand.nextGaussian() * f3;
-			worldObj.spawnEntityInWorld(entityitem);
-		}
-	}
-
-	private boolean isQuarriableBlock(int bx, int by, int bz) {
-		return BlockUtil.canChangeBlock(worldObj, bx, by, bz)
-				&& !BlockUtil.isSoftBlock(worldObj, bx, by, bz);
-	}
-
-	@Override
-	public void invalidate() {
-		ForgeChunkManager.releaseTicket(chunkTicket);
-
-		super.invalidate();
-		destroy();
-	}
-
-	@Override
-	public void onChunkUnload() {
-		destroy();
-	}
-
-	@Override
-	public void destroy() {
-
-		if (arm != null) {
-			arm.setDead();
-		}
-
-		if (builder != null) {
-			builder.setDead();
-		}
-
-		box.deleteLasers();
-		arm = null;
-	}
-
-	@Override
-	public boolean isActive() {
-		return isDigging;
-	}
-
-	private void setBoundaries(boolean useDefault) {
-		if (chunkTicket == null) {
-			chunkTicket = ForgeChunkManager.requestTicket(
-					BuildCraftFactory.instance, worldObj, Type.NORMAL);
-		}
-		if (chunkTicket == null) {
-			isAlive = false;
-			if (placedBy != null && CoreProxy.proxy.isSimulating(worldObj)) {
-				PacketDispatcher
-						.sendPacketToPlayer(
-								new Packet3Chat(
-										String.format(
-												"[BUILDCRAFT] The quarry at %d, %d, %d will not work because there are no more chunkloaders available",
-												xCoord, yCoord, zCoord)),
-								(Player) placedBy);
-			}
-			sendNetworkUpdate();
-			return;
-		}
-		chunkTicket.getModData().setInteger("quarryX", xCoord);
-		chunkTicket.getModData().setInteger("quarryY", yCoord);
-		chunkTicket.getModData().setInteger("quarryZ", zCoord);
-		ForgeChunkManager.forceChunk(chunkTicket, new ChunkCoordIntPair(
-				xCoord >> 4, zCoord >> 4));
-
-		IAreaProvider a = null;
-
-		if (!useDefault) {
-			a = Utils.getNearbyAreaProvider(worldObj, xCoord, yCoord, zCoord);
-		}
-
-		if (a == null) {
-			a = new DefaultAreaProvider(xCoord, yCoord, zCoord, xCoord + 10,
-					yCoord + 4, zCoord + 10);
-
-			useDefault = true;
-		}
-
-		int xSize = a.xMax() - a.xMin() + 1;
-		int ySize = a.yMax() - a.yMin() + 1;
-		int zSize = a.zMax() - a.zMin() + 1;
-
-		if (xSize < 3 || zSize < 3
-				|| ((xSize * zSize) >> 8) >= chunkTicket.getMaxChunkListDepth()) {
-			if (placedBy != null) {
-				PacketDispatcher
-						.sendPacketToPlayer(
-								new Packet3Chat(
-										String.format(
-												"Quarry size is outside of chunkloading bounds or too small %d %d (%d)",
-												xSize, zSize, chunkTicket
-														.getMaxChunkListDepth())),
-								(Player) placedBy);
-			}
-			a = new DefaultAreaProvider(xCoord, yCoord, zCoord, xCoord + 10,
-					yCoord + 4, zCoord + 10);
-
-			useDefault = true;
-		}
-
-		xSize = a.xMax() - a.xMin() + 1;
-		ySize = a.yMax() - a.yMin() + 1;
-		zSize = a.zMax() - a.zMin() + 1;
-
-		box.initialize(a);
-
-		if (ySize < 5) {
-			ySize = 5;
-			box.yMax = box.yMin + ySize - 1;
-		}
-
-		if (useDefault) {
-			int xMin = 0, zMin = 0;
-
-			ForgeDirection o = ForgeDirection.values()[worldObj
-					.getBlockMetadata(xCoord, yCoord, zCoord)].getOpposite();
-
-			switch (o) {
-			case EAST:
-				xMin = xCoord + 1;
-				zMin = zCoord - 4 - 1;
-				break;
-			case WEST:
-				xMin = xCoord - 9 - 2;
-				zMin = zCoord - 4 - 1;
-				break;
-			case SOUTH:
-				xMin = xCoord - 4 - 1;
-				zMin = zCoord + 1;
-				break;
-			case NORTH:
-			default:
-				xMin = xCoord - 4 - 1;
-				zMin = zCoord - 9 - 2;
-				break;
-			}
-
-			box.initialize(xMin, yCoord, zMin, xMin + xSize - 1, yCoord + ySize
-					- 1, zMin + zSize - 1);
-		}
-
-		a.removeFromWorld();
-		forceChunkLoading(chunkTicket);
-	}
-
-	private void initializeBluePrintBuilder() {
-		BptBlueprint bluePrint = new BptBlueprint(box.sizeX(), box.sizeY(),
-				box.sizeZ());
-
-		for (int i = 0; i < bluePrint.sizeX; ++i) {
-			for (int j = 0; j < bluePrint.sizeY; ++j) {
-				for (int k = 0; k < bluePrint.sizeZ; ++k) {
-					bluePrint.setBlockId(i, j, k, 0);
-				}
-			}
-		}
-
-		for (int it = 0; it < 2; it++) {
-			for (int i = 0; i < bluePrint.sizeX; ++i) {
-				bluePrint.setBlockId(i, it * (box.sizeY() - 1), 0,
-						BuildCraftFactory.frameBlock.blockID);
-				bluePrint.setBlockId(i, it * (box.sizeY() - 1),
-						bluePrint.sizeZ - 1,
-						BuildCraftFactory.frameBlock.blockID);
-			}
-
-			for (int k = 0; k < bluePrint.sizeZ; ++k) {
-				bluePrint.setBlockId(0, it * (box.sizeY() - 1), k,
-						BuildCraftFactory.frameBlock.blockID);
-				bluePrint.setBlockId(bluePrint.sizeX - 1, it
-						* (box.sizeY() - 1), k,
-						BuildCraftFactory.frameBlock.blockID);
-
-			}
-		}
-
-		for (int h = 1; h < box.sizeY(); ++h) {
-			bluePrint.setBlockId(0, h, 0, BuildCraftFactory.frameBlock.blockID);
-			bluePrint.setBlockId(0, h, bluePrint.sizeZ - 1,
-					BuildCraftFactory.frameBlock.blockID);
-			bluePrint.setBlockId(bluePrint.sizeX - 1, h, 0,
-					BuildCraftFactory.frameBlock.blockID);
-			bluePrint.setBlockId(bluePrint.sizeX - 1, h, bluePrint.sizeZ - 1,
-					BuildCraftFactory.frameBlock.blockID);
-		}
-
-		bluePrintBuilder = new BptBuilderBlueprint(bluePrint, worldObj,
-				box.xMin, yCoord, box.zMin);
-	}
-
-	@Override
-	public void postPacketHandling(PacketUpdate packet) {
-		super.postPacketHandling(packet);
-
-		if (isAlive) {
-			createUtilsIfNeeded();
-		} else {
-			box.deleteLasers();
-			box.reset();
-			return;
-		}
-		if (arm != null) {
-			arm.setHead(headPosX, headPosY, headPosZ);
-			arm.updatePosition();
-		}
-	}
-
-	@Override
-	public void initialize() {
-		super.initialize();
-
-		if (CoreProxy.proxy.isSimulating(this.worldObj) && !box.initialized) {
-			setBoundaries(false);
-		}
-
-		createUtilsIfNeeded();
-
-		sendNetworkUpdate();
-	}
-
-	public void reinitalize() {
-		builderDone = false;
-		initializeBluePrintBuilder();
-		isDigging = true;
-	}
-
-	@Override
-	public void setPowerProvider(IPowerProvider provider) {
-		powerProvider = provider;
-
-	}
-
-	@Override
-	public IPowerProvider getPowerProvider() {
-		return powerProvider;
-	}
-
-	@Override
-	public boolean manageLiquids() {
 		return false;
 	}
 
-	@Override
-	public boolean manageSolids() {
+	private void initFrames() {
+		cacheFrame = new ArrayList<int[]>();
+		int xn = box.xMin;
+		int xx = box.xMax;
+		int yn = box.yMin;
+		int yx = box.yMax;
+		int zn = box.zMin;
+		int zx = box.zMax;
+		for (int x = xn; x <= xx; x++) {
+			checkAndAddFrame(new int[] { x, yn, zn });
+			checkAndAddFrame(new int[] { x, yn, zx });
+			checkAndAddFrame(new int[] { x, yx, zn });
+			checkAndAddFrame(new int[] { x, yx, zx });
+		}
+		for (int y = yn; y <= yx; y++) {
+			checkAndAddFrame(new int[] { xn, y, zn });
+			checkAndAddFrame(new int[] { xn, y, zx });
+			checkAndAddFrame(new int[] { xx, y, zn });
+			checkAndAddFrame(new int[] { xx, y, zx });
+		}
+		for (int z = zn; z <= zx; z++) {
+			checkAndAddFrame(new int[] { xn, yn, z });
+			checkAndAddFrame(new int[] { xn, yx, z });
+			checkAndAddFrame(new int[] { xx, yn, z });
+			checkAndAddFrame(new int[] { xx, yx, z });
+		}
+	}
+
+	private void checkAndAddFrame(int[] coord) {
+		if (!(worldObj.getBlockId(coord[0], coord[1], coord[2]) == BuildCraftFactory.frameBlock.blockID && worldObj
+				.getBlockMetadata(coord[0], coord[1], coord[2]) == 0))
+			cacheFrame.add(coord);
+	}
+
+	private void destoryFrames() {
+		int xn = box.xMin;
+		int xx = box.xMax;
+		int yn = box.yMin;
+		int yx = box.yMax;
+		int zn = box.zMin;
+		int zx = box.zMax;
+		for (int x = xn; x <= xx; x++) {
+			setBreakableFrame(x, yn, zn);
+			setBreakableFrame(x, yn, zx);
+			setBreakableFrame(x, yx, zn);
+			setBreakableFrame(x, yx, zx);
+		}
+		for (int y = yn; y <= yx; y++) {
+			setBreakableFrame(xn, y, zn);
+			setBreakableFrame(xn, y, zx);
+			setBreakableFrame(xx, y, zn);
+			setBreakableFrame(xx, y, zx);
+		}
+		for (int z = zn; z <= zx; z++) {
+			setBreakableFrame(xn, yn, z);
+			setBreakableFrame(xn, yx, z);
+			setBreakableFrame(xx, yn, z);
+			setBreakableFrame(xx, yx, z);
+		}
+	}
+
+	private void initNonNeededBlocks() {
+		cacheNonNeeded = new ArrayList<int[]>();
+		for (int x = box.xMin; x <= box.xMax; x++) {
+			for (int y = box.yMin; y <= box.yMax; y++) {
+				for (int z = box.zMin; z <= box.zMax; z++) {
+					int bid = worldObj.getBlockId(x, y, z);
+					if (bid != 0 && bid != Block.bedrock.blockID)
+						cacheNonNeeded.add(new int[] { x, y, z });
+				}
+			}
+		}
+	}
+
+	private void setBreakableFrame(int x, int y, int z) {
+		if (worldObj.getBlockId(x, y, z) == BuildCraftFactory.frameBlock.blockID) {
+			worldObj.setBlockMetadata(x, y, z, 1);
+		}
+	}
+
+	private boolean breakBlock(int[] coord) {
+		float pw = (-9.75F * (float) efficiency + 40F)
+				* blockHardness(coord[0], coord[1], coord[2]);
+		if (pp.useEnergy(pw, pw, true) != pw)
+			return false;
+		cacheItems.addAll(getDroppedItems(coord[0], coord[1], coord[2]));
+		worldObj.playAuxSFXAtEntity(
+				null,
+				2001,
+				coord[0],
+				coord[1],
+				coord[2],
+				worldObj.getBlockId(coord[0], coord[1], coord[2])
+						+ (worldObj.getBlockMetadata(coord[0], coord[1],
+								coord[2]) << 12));
+		worldObj.setBlockWithNotify(coord[0], coord[1], coord[2], 0);
 		return true;
 	}
 
-	@Override
-	public boolean isPipeConnected(ForgeDirection with) {
-		return false;
+	private float blockHardness(int x, int y, int z) {
+		Block b = Block.blocksList[worldObj.getBlockId(x, y, z)];
+		if (b != null)
+			return b.getBlockHardness(worldObj, x, y, z);
+		return (float) 0;
+	}
+
+	private ArrayList<ItemStack> getDroppedItems(int x, int y, int z) {
+		Block b = Block.blocksList[worldObj.getBlockId(x, y, z)];
+		if (b == null)
+			return new ArrayList<ItemStack>();
+		if (b.canSilkHarvest(worldObj, null, x, y, z,
+				worldObj.getBlockMetadata(x, y, z))
+				&& silktouch) {
+			ArrayList<ItemStack> al = new ArrayList<ItemStack>();
+			al.add(new ItemStack(b, 1, worldObj.getBlockMetadata(x, y, z)));
+			return al;
+		}
+		return b.getBlockDropped(worldObj, x, y, z,
+				worldObj.getBlockMetadata(x, y, z), fortune);
 	}
 
 	@Override
@@ -788,39 +427,25 @@ public class TileQuarry extends TileMachine implements IMachine,
 	}
 
 	@Override
-	public ItemStack getStackInSlot(int i) {
-		return this.contents[i];
+	public ItemStack getStackInSlot(int var1) {
+		return inv[var1];
 	}
 
 	@Override
-	public ItemStack decrStackSize(int par1, int par2) {
-		if (this.contents[par1] != null) {
-			ItemStack var3 = this.contents[par1];
-			this.contents[par1] = null;
-			return var3;
-		} else {
-			return null;
-		}
+	public ItemStack decrStackSize(int var1, int var2) {
+		ItemStack c = inv[var1];
+		inv[var1] = null;
+		return c;
 	}
 
 	@Override
-	public void setInventorySlotContents(int i, ItemStack itemstack) {
-		contents[i] = itemstack;
-		if (itemstack != null && itemstack.stackSize > getInventoryStackLimit()) {
-			itemstack.stackSize = getInventoryStackLimit();
-		}
-		onInventoryChanged();
+	public ItemStack getStackInSlotOnClosing(int var1) {
+		return inv[var1];
 	}
 
 	@Override
-	public ItemStack getStackInSlotOnClosing(int par1) {
-		if (this.contents[par1] != null) {
-			ItemStack var2 = this.contents[par1];
-			this.contents[par1] = null;
-			return var2;
-		} else {
-			return null;
-		}
+	public void setInventorySlotContents(int var1, ItemStack var2) {
+		inv[var1] = var2;
 	}
 
 	@Override
@@ -834,40 +459,15 @@ public class TileQuarry extends TileMachine implements IMachine,
 	}
 
 	@Override
-	public boolean isUseableByPlayer(EntityPlayer par1EntityPlayer) {
-		return true;
-	}
-
-	@Override
-	public void onInventoryChanged() {
-		super.onInventoryChanged();
-		this.Fortune = 0;
-		this.Silktouch = false;
-		this.Efficiency = 0;
-		if (contents[0] != null) {
-			this.Silktouch = true;
+	public boolean isUseableByPlayer(EntityPlayer var1) {
+		if (worldObj == null) {
+			return true;
 		}
-		if (contents[1] != null) {
-			this.Fortune++;
+		if (worldObj.getBlockTileEntity(xCoord, yCoord, zCoord) != this) {
+			return false;
 		}
-		if (contents[2] != null) {
-			this.Fortune++;
-		}
-		if (contents[3] != null) {
-			this.Fortune++;
-		}
-		if (contents[4] != null) {
-			this.Efficiency++;
-		}
-		if (contents[5] != null) {
-			this.Efficiency++;
-		}
-		if (contents[6] != null) {
-			this.Efficiency++;
-		}
-		if (contents[7] != null) {
-			this.Efficiency++;
-		}
+		return var1.getDistanceSq((double) xCoord + 0.5D,
+				(double) yCoord + 0.5D, (double) zCoord + 0.5D) <= 64D;
 	}
 
 	@Override
@@ -879,116 +479,24 @@ public class TileQuarry extends TileMachine implements IMachine,
 	}
 
 	@Override
-	public boolean isBuildingMaterial(int i) {
-		return true;
+	public void setPowerProvider(IPowerProvider provider) {
+		pp = provider;
+
 	}
 
 	@Override
-	public boolean allowActions() {
-		return false;
+	public IPowerProvider getPowerProvider() {
+		return pp;
 	}
 
-	public void moveHead(double instantSpeed) {
-		int[] target = getTarget();
-		double[] head = getHead();
-
-		if (movingHorizontally) {
-			if (Math.abs(target[0] - head[0]) < instantSpeed * 2
-					&& Math.abs(target[2] - head[2]) < instantSpeed * 2) {
-				head[0] = target[0];
-				head[2] = target[2];
-
-				movingHorizontally = false;
-
-				if (!movingVertically) {
-					positionReached();
-					head[1] = target[1];
-				}
-			} else {
-				head[0] += Math.cos(headTrajectory) * instantSpeed;
-				head[2] += Math.sin(headTrajectory) * instantSpeed;
-			}
-			setHead(head[0], head[1], head[2]);
-		}
-
-		if (movingVertically) {
-			if (Math.abs(target[1] - head[1]) < instantSpeed * 2) {
-				head[1] = target[1];
-
-				movingVertically = false;
-				if (!movingHorizontally) {
-					positionReached();
-					head[0] = target[0];
-					head[2] = target[2];
-				}
-			} else {
-				if (target[1] > head[1]) {
-					head[1] += instantSpeed;
-				} else {
-					head[1] -= instantSpeed;
-				}
-			}
-			setHead(head[0], head[1], head[2]);
-		}
-
-		updatePosition();
+	@Override
+	public void doWork() {
 	}
 
-	private void updatePosition() {
-		if (arm != null && worldObj.isRemote) {
-			arm.setHead(headPosX, headPosY, headPosZ);
-			arm.updatePosition();
-		}
-	}
-
-	private void setHead(double x, double y, double z) {
-		this.headPosX = x;
-		this.headPosY = y;
-		this.headPosZ = z;
-	}
-
-	private double[] getHead() {
-		return new double[] { headPosX, headPosY, headPosZ };
-	}
-
-	private int[] getTarget() {
-		return new int[] { targetX, targetY, targetZ };
-	}
-
-	private void setTarget(int x, int y, int z) {
-		this.targetX = x;
-		this.targetY = y;
-		this.targetZ = z;
-	}
-
-	public void forceChunkLoading(Ticket ticket) {
-		if (chunkTicket == null) {
-			chunkTicket = ticket;
-		}
-
-		Set<ChunkCoordIntPair> chunks = Sets.newHashSet();
-		isAlive = true;
-		ChunkCoordIntPair quarryChunk = new ChunkCoordIntPair(xCoord >> 4,
-				zCoord >> 4);
-		chunks.add(quarryChunk);
-		ForgeChunkManager.forceChunk(ticket, quarryChunk);
-
-		for (int chunkX = box.xMin >> 4; chunkX <= box.xMax >> 4; chunkX++) {
-			for (int chunkZ = box.zMin >> 4; chunkZ <= box.zMax >> 4; chunkZ++) {
-				ChunkCoordIntPair chunk = new ChunkCoordIntPair(chunkX, chunkZ);
-				ForgeChunkManager.forceChunk(ticket, chunk);
-				chunks.add(chunk);
-			}
-		}
-		if (placedBy != null) {
-			PacketDispatcher
-					.sendPacketToPlayer(
-							new Packet3Chat(
-									String.format(
-											"[BUILDCRAFT] The quarry at %d %d %d will keep %d chunks loaded",
-											xCoord, yCoord, zCoord,
-											chunks.size())), (Player) placedBy);
-		}
-		sendNetworkUpdate();
+	@Override
+	public int powerRequest() {
+		return (int) Math.ceil(Math.min(getPowerProvider()
+				.getMaxEnergyReceived(), getPowerProvider()
+				.getMaxEnergyStored() - getPowerProvider().getEnergyStored()));
 	}
 }

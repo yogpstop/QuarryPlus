@@ -14,8 +14,6 @@ import com.google.common.io.ByteArrayDataInput;
 import cpw.mods.fml.common.network.PacketDispatcher;
 
 public class ContainerQuarry extends Container {
-	private IInventory inventoryQuarry;
-	private EntityPlayer player;
 	private IInventory playerInventory;
 	private TileQuarry tileQuarry;
 	private World world;
@@ -25,10 +23,8 @@ public class ContainerQuarry extends Container {
 	private int buttonId = -1;
 
 	public ContainerQuarry(EntityPlayer player, World world, int x, int y, int z) {
-		this.player = player;
-		this.playerInventory = player.inventory;
-		this.inventoryQuarry = (TileQuarry) world.getBlockTileEntity(x, y, z);
 		this.tileQuarry = (TileQuarry) world.getBlockTileEntity(x, y, z);
+		this.playerInventory = player.inventory;
 		this.world = world;
 		this.xCoord = x;
 		this.yCoord = y;
@@ -37,8 +33,8 @@ public class ContainerQuarry extends Container {
 		for (int rows = 0; rows < 2; ++rows) {
 			for (int columns = 0; columns < 4; ++columns) {
 
-				addSlotToContainer(new SlotQuarry(inventoryQuarry, columns
-						+ rows * 4, 8 + rows * 144, 8 + columns * 18));
+				addSlotToContainer(new SlotQuarry(tileQuarry, columns + rows
+						* 4, 8 + rows * 144, 8 + columns * 18));
 			}
 		}
 
@@ -64,12 +60,11 @@ public class ContainerQuarry extends Container {
 	}
 
 	@Override
-	public void updateCraftingResults() {
-		super.updateCraftingResults();
+	public void detectAndSendChanges() {
+		super.detectAndSendChanges();
 
 		if (buttonId > -1) {
 			if (buttonId == 0) {
-				tileQuarry.reinitalize();
 				this.buttonId = -1;
 			}
 		}

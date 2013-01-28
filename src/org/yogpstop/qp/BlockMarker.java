@@ -159,9 +159,9 @@ public class BlockMarker extends BlockContainer {
 	}
 
 	@Override
-	public int func_85104_a(World world, int x, int y, int z, int side,
+	public int onBlockPlaced(World world, int x, int y, int z, int side,
 			float par6, float par7, float par8, int meta) {
-		super.func_85104_a(world, x, y, z, side, par6, par7, par8, meta);
+		super.onBlockPlaced(world, x, y, z, side, par6, par7, par8, meta);
 
 		if (side == 1 && BuildersProxy.canPlaceTorch(world, x, y - 1, z)) {
 			meta = 5;

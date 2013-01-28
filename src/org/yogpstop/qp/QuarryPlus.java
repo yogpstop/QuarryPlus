@@ -1,7 +1,6 @@
 package org.yogpstop.qp;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Level;
 
 import buildcraft.BuildCraftBuilders;
@@ -9,23 +8,16 @@ import buildcraft.BuildCraftCore;
 import buildcraft.BuildCraftFactory;
 import buildcraft.BuildCraftSilicon;
 
-import com.google.common.collect.Lists;
-
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.world.World;
 import net.minecraftforge.common.Configuration;
-import net.minecraftforge.common.ForgeChunkManager;
-import net.minecraftforge.common.ForgeChunkManager.OrderedLoadingCallback;
-import net.minecraftforge.common.ForgeChunkManager.Ticket;
 import net.minecraftforge.common.Property;
 
 import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.network.NetworkMod;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
-import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.common.registry.LanguageRegistry;
@@ -33,7 +25,8 @@ import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.FMLLog;
 
 @Mod(modid = "QuarryPlus", name = "QuarryPlus", version = "@VERSION@")
-@NetworkMod(clientSideRequired = true, serverSideRequired = false, channels = "QuarryPlus", packetHandler = PacketHandler.class)
+@NetworkMod(clientSideRequired = true, serverSideRequired = false, channels = {
+		"QuarryPlusGUI", "QuarryPlusBQP" }, packetHandler = PacketHandler.class)
 public class QuarryPlus {
 	@SidedProxy(clientSide = "org.yogpstop.qp.client.ClientProxy", serverSide = "org.yogpstop.qp.CommonProxy")
 	public static CommonProxy proxy;
@@ -43,9 +36,6 @@ public class QuarryPlus {
 
 	public static Block blockQuarry;
 	public static Block blockMarker;
-	public static Item itemSilktouch;
-	public static Item itemFortune;
-	public static Item itemEfficiency;
 	public static Item itemBase;
 	public static Block blockMover;
 
@@ -69,12 +59,6 @@ public class QuarryPlus {
 					.getInt())).setBlockName("MarkerPlus");
 			blockMover = (new BlockMover(cfg.getBlock("EnchantMover", 4003)
 					.getInt())).setBlockName("EnchantMover");
-			itemSilktouch = (new ItemSilktouch(cfg.getItem("Silktouch", 24001)
-					.getInt()));
-			itemFortune = (new ItemFortune(cfg.getItem("Fortune", 24002)
-					.getInt()));
-			itemEfficiency = (new ItemEfficiency(cfg.getItem("Efficiency",
-					24003).getInt()));
 			itemBase = (new ItemBase(cfg.getItem("ModuleBase", 24005).getInt()));
 			Property RD = cfg.get(Configuration.CATEGORY_GENERAL,
 					"RecipeDifficulty", 2);
@@ -82,11 +66,10 @@ public class QuarryPlus {
 			RecipeDifficulty = RD.getInt(2);
 			silktouch = new ArrayList<String>();
 			fortune = new ArrayList<String>();
+			parseCommaIntArrayList(cfg.get(Configuration.CATEGORY_GENERAL,
+					"SilktouchList", "").value, silktouch);
 			parseCommaIntArrayList(
-					cfg.get(Configuration.CATEGORY_GENERAL, "SilktouchList","").value,
-					silktouch);
-			parseCommaIntArrayList(
-					cfg.get(Configuration.CATEGORY_GENERAL, "FortuneList","").value,
+					cfg.get(Configuration.CATEGORY_GENERAL, "FortuneList", "").value,
 					fortune);
 		} catch (Exception e) {
 			FMLLog.log(Level.SEVERE, e, "Error Massage");
@@ -116,9 +99,9 @@ public class QuarryPlus {
 	@Mod.Init
 	public void init(FMLInitializationEvent event) {
 
-		GameRegistry.registerBlock(blockQuarry,"QuarryPlus");
-		GameRegistry.registerBlock(blockMarker,"MarkerPlus");
-		GameRegistry.registerBlock(blockMover,"EnchantMover");
+		GameRegistry.registerBlock(blockQuarry, "QuarryPlus");
+		GameRegistry.registerBlock(blockMarker, "MarkerPlus");
+		GameRegistry.registerBlock(blockMover, "EnchantMover");
 
 		GameRegistry.registerTileEntity(TileQuarry.class, "QuarryPlus");
 		GameRegistry.registerTileEntity(TileMarker.class, "MarkerPlus");
@@ -139,17 +122,16 @@ public class QuarryPlus {
 							BuildCraftFactory.autoWorkbenchBlock,
 							Character.valueOf('X'), Item.redstone });
 			GameRegistry
-					.addRecipe(new ItemStack(itemBase, 1),
-							new Object[] { "X", "Y", Character.valueOf('Y'),
-									Block.stone, Character.valueOf('X'),
-									Item.redstone });
-			GameRegistry.addRecipe(new ItemStack(itemSilktouch, 1),
+					.addRecipe(new ItemStack(itemBase, 1, 0), new Object[] {
+							"X", "Y", Character.valueOf('Y'), Block.stone,
+							Character.valueOf('X'), Item.redstone });
+			GameRegistry.addRecipe(new ItemStack(itemBase, 1, 1),
 					new Object[] { "X", "Y", Character.valueOf('Y'), itemBase,
 							Character.valueOf('X'), Block.stone });
-			GameRegistry.addRecipe(new ItemStack(itemFortune, 1),
+			GameRegistry.addRecipe(new ItemStack(itemBase, 1, 2),
 					new Object[] { "X", "Y", Character.valueOf('Y'), itemBase,
 							Character.valueOf('X'), Item.redstone });
-			GameRegistry.addRecipe(new ItemStack(itemEfficiency, 1),
+			GameRegistry.addRecipe(new ItemStack(itemBase, 1, 3),
 					new Object[] { "X", "Y", Character.valueOf('Y'), itemBase,
 							Character.valueOf('X'), Item.ingotIron });
 			break;
@@ -224,56 +206,8 @@ public class QuarryPlus {
 					Character.valueOf('G'), BuildCraftCore.diamondGearItem,
 					Character.valueOf('B'), Block.blockDiamond });
 		}
-		LanguageRegistry.addName(blockQuarry, "Quarry Plus");
-		LanguageRegistry.addName(blockMarker, "Land Mark Plus");
-		LanguageRegistry.addName(blockMover, "Enchant Mover");
-		LanguageRegistry.addName(itemSilktouch, "Silktouch Module");
-		LanguageRegistry.addName(itemEfficiency, "Efficiency Module");
-		LanguageRegistry.addName(itemFortune, "Fortune Module");
-		LanguageRegistry.addName(itemBase, "Module Base");
-
 		NetworkRegistry.instance().registerGuiHandler(this, proxy);
 
 		proxy.registerTextures();
-		proxy.initializeEntityRenders();
-	}
-
-	@Mod.PostInit
-	public void postinit(FMLPostInitializationEvent evt) {
-		ForgeChunkManager.setForcedChunkLoadingCallback(instance,
-				new QuarryChunkloadCallback());
-	}
-
-	public class QuarryChunkloadCallback implements OrderedLoadingCallback {
-		@Override
-		public void ticketsLoaded(List<Ticket> tickets, World world) {
-			for (Ticket ticket : tickets) {
-				int quarryX = ticket.getModData().getInteger("quarryX");
-				int quarryY = ticket.getModData().getInteger("quarryY");
-				int quarryZ = ticket.getModData().getInteger("quarryZ");
-				TileQuarry tq = (TileQuarry) world.getBlockTileEntity(quarryX,
-						quarryY, quarryZ);
-				tq.forceChunkLoading(ticket);
-
-			}
-		}
-
-		@Override
-		public List<Ticket> ticketsLoaded(List<Ticket> tickets, World world,
-				int maxTicketCount) {
-			List<Ticket> validTickets = Lists.newArrayList();
-			for (Ticket ticket : tickets) {
-				int quarryX = ticket.getModData().getInteger("quarryX");
-				int quarryY = ticket.getModData().getInteger("quarryY");
-				int quarryZ = ticket.getModData().getInteger("quarryZ");
-
-				int blId = world.getBlockId(quarryX, quarryY, quarryZ);
-				if (blId == blockQuarry.blockID) {
-					validTickets.add(ticket);
-				}
-			}
-			return validTickets;
-		}
-
 	}
 }

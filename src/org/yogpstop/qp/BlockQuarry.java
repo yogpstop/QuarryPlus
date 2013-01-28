@@ -1,58 +1,34 @@
 package org.yogpstop.qp;
 
-import java.util.ArrayList;
-
-import buildcraft.BuildCraftFactory;
 import buildcraft.api.core.Position;
-import buildcraft.core.Box;
-import buildcraft.core.proxy.CoreProxy;
 import buildcraft.core.utils.Utils;
-import buildcraft.factory.BlockMachineRoot;
-
+import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
+import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeDirection;
 
-public class BlockQuarry extends BlockMachineRoot {
+public class BlockQuarry extends BlockContainer {
 	int textureTop;
 	int textureFront;
 	int textureSide;
 
 	public BlockQuarry(int i) {
 		super(i, Material.iron);
-
 		setHardness(1.5F);
 		setResistance(10F);
 		setStepSound(soundStoneFootstep);
 		textureSide = 3;
 		textureFront = 1;
 		textureTop = 2;
-	}
-
-	@Override
-	public void onBlockPlacedBy(World world, int i, int j, int k,
-			EntityLiving entityliving) {
-		super.onBlockPlacedBy(world, i, j, k, entityliving);
-
-		ForgeDirection orientation = Utils.get2dOrientation(new Position(
-				entityliving.posX, entityliving.posY, entityliving.posZ),
-				new Position(i, j, k));
-
-		world.setBlockMetadataWithNotify(i, j, k, orientation.getOpposite()
-				.ordinal());
-		if (entityliving instanceof EntityPlayer) {
-			TileQuarry tq = (TileQuarry) world.getBlockTileEntity(i, j, k);
-			tq.placedBy = (EntityPlayer) entityliving;
-		}
+		setCreativeTab(CreativeTabs.tabDecorations);
 	}
 
 	@Override
 	public int getBlockTextureFromSideAndMetadata(int i, int j) {
-		// If no metadata is set, then this is an icon.
 		if (j == 0 && i == 3)
 			return textureFront;
 
@@ -68,125 +44,24 @@ public class BlockQuarry extends BlockMachineRoot {
 	}
 
 	@Override
-	public TileEntity createNewTileEntity(World var1) {
+	public TileEntity createNewTileEntity(World w) {
 		return new TileQuarry();
-	}
-
-	public void searchFrames(World world, int i, int j, int k) {
-		int width2 = 1;
-		if (!world.checkChunksExist(i - width2, j - width2, k - width2, i
-				+ width2, j + width2, k + width2))
-			return;
-
-		int blockID = world.getBlockId(i, j, k);
-
-		if (blockID != BuildCraftFactory.frameBlock.blockID)
-			return;
-
-		int meta = world.getBlockMetadata(i, j, k);
-
-		if ((meta & 8) == 0) {
-			world.setBlockMetadata(i, j, k, meta | 8);
-
-			ForgeDirection[] dirs = ForgeDirection.VALID_DIRECTIONS;
-
-			for (ForgeDirection dir : dirs) {
-				switch (dir) {
-				case UP:
-					searchFrames(world, i, j + 1, k);
-				case DOWN:
-					searchFrames(world, i, j - 1, k);
-				case SOUTH:
-					searchFrames(world, i, j, k + 1);
-				case NORTH:
-					searchFrames(world, i, j, k - 1);
-				case EAST:
-					searchFrames(world, i + 1, j, k);
-				case WEST:
-				default:
-					searchFrames(world, i - 1, j, k);
-				}
-			}
-		}
-	}
-
-	private void markFrameForDecay(World world, int x, int y, int z) {
-		if (world.getBlockId(x, y, z) == BuildCraftFactory.frameBlock.blockID) {
-			world.setBlockMetadata(x, y, z, 1);
-		}
 	}
 
 	@Override
 	public void breakBlock(World world, int i, int j, int k, int par5, int par6) {
-
-		if (!CoreProxy.proxy.isSimulating(world))
-			return;
-
-		TileEntity tile = world.getBlockTileEntity(i, j, k);
-		if (tile instanceof TileQuarry) {
-			TileQuarry quarry = (TileQuarry) tile;
-			Box box = quarry.box;
-			if (box.isInitialized() && Integer.MAX_VALUE != box.xMax) {
-				// X - Axis
-				for (int x = box.xMin; x <= box.xMax; x++) {
-					markFrameForDecay(world, x, box.yMin, box.zMin);
-					markFrameForDecay(world, x, box.yMax, box.zMin);
-					markFrameForDecay(world, x, box.yMin, box.zMax);
-					markFrameForDecay(world, x, box.yMax, box.zMax);
-				}
-
-				// Z - Axis
-				for (int z = box.zMin + 1; z <= box.zMax - 1; z++) {
-					markFrameForDecay(world, box.xMin, box.yMin, z);
-					markFrameForDecay(world, box.xMax, box.yMin, z);
-					markFrameForDecay(world, box.xMin, box.yMax, z);
-					markFrameForDecay(world, box.xMax, box.yMax, z);
-				}
-
-				// Y - Axis
-				for (int y = box.yMin + 1; y <= box.yMax - 1; y++) {
-
-					markFrameForDecay(world, box.xMin, y, box.zMin);
-					markFrameForDecay(world, box.xMax, y, box.zMin);
-					markFrameForDecay(world, box.xMin, y, box.zMax);
-					markFrameForDecay(world, box.xMax, y, box.zMax);
-				}
-			}
-			quarry.destroy();
-		}
-
-		Utils.preDestroyBlock(world, i, j, k);
-
-		// byte width = 1;
-		// int width2 = width + 1;
-		//
-		// if (world.checkChunksExist(i - width2, j - width2, k - width2, i +
-		// width2, j + width2, k + width2)) {
-		//
-		// boolean frameFound = false;
-		// for (int z = -width; z <= width; ++z) {
-		//
-		// for (int y = -width; y <= width; ++y) {
-		//
-		// for (int x = -width; x <= width; ++x) {
-		//
-		// int blockID = world.getBlockId(i + z, j + y, k + x);
-		//
-		// if (blockID == BuildCraftFactory.frameBlock.blockID) {
-		// searchFrames(world, i + z, j + y, k + x);
-		// frameFound = true;
-		// break;
-		// }
-		// }
-		// if (frameFound)
-		// break;
-		// }
-		// if (frameFound)
-		// break;
-		// }
-		// }
-
+		((TileQuarry) world.getBlockTileEntity(i, j, k)).destroyQuarry();
 		super.breakBlock(world, i, j, k, par5, par6);
+	}
+
+	@Override
+	public void onBlockPlacedBy(World w, int x, int y, int z, EntityLiving el) {
+		super.onBlockPlacedBy(w, x, y, z, el);
+		ForgeDirection orientation = Utils.get2dOrientation(new Position(
+				el.posX, el.posY, el.posZ), new Position(x, y, z));
+		w.setBlockMetadataWithNotify(x, y, z, orientation.getOpposite()
+				.ordinal());
+		((TileQuarry) w.getBlockTileEntity(x, y, z)).init();
 	}
 
 	@Override
@@ -195,22 +70,13 @@ public class BlockQuarry extends BlockMachineRoot {
 			float par9) {
 		if (entityplayer.isSneaking())
 			return false;
-		if (world.isRemote)
-			return false;
 		entityplayer.openGui(QuarryPlus.instance,
 				QuarryPlus.guiIdContainerQuarry, world, x, y, z);
-
 		return true;
 	}
 
 	@Override
 	public String getTextureFile() {
 		return "/org/yogpstop/qp/blocks.png";
-	}
-
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@Override
-	public void addCreativeItems(ArrayList itemList) {
-		itemList.add(new ItemStack(this));
 	}
 }

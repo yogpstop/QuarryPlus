@@ -20,12 +20,12 @@ public class SlotMoveMatrix extends Slot {
 	public boolean isItemValid(ItemStack par1ItemStack) {
 		switch (this.slotNumber) {
 		case 0:
-			if (par1ItemStack.itemID == Item.pickaxeDiamond.shiftedIndex) {
+			if (par1ItemStack.itemID == Item.pickaxeDiamond.itemID) {
 				return true;
 			}
 			return false;
 		case 1:
-			if (par1ItemStack.itemID == QuarryPlus.itemBase.shiftedIndex) {
+			if (par1ItemStack.itemID == QuarryPlus.itemBase.itemID) {
 				return true;
 			}
 		}

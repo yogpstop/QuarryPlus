@@ -17,7 +17,6 @@ import com.google.common.io.ByteArrayDataInput;
 
 import cpw.mods.fml.common.network.PacketDispatcher;
 
-
 public class ContainerMover extends Container {
 	public IInventory craftMatrix = new InventoryBasic("Matrix", 2);
 	public IInventory craftResult = new InventoryBasic("Result", 3);
@@ -72,19 +71,19 @@ public class ContainerMover extends Container {
 				.getStackInSlot(1).stackSize) >= cache[0] + cache[1] + cache[2]) {
 			if (cache[1] > 0) {
 				this.craftResult.setInventorySlotContents(0, new ItemStack(
-						QuarryPlus.itemSilktouch, cache[1]));
+						QuarryPlus.itemBase, cache[1], 1));
 			} else {
 				this.craftResult.setInventorySlotContents(0, null);
 			}
 			if (cache[2] > 0) {
 				this.craftResult.setInventorySlotContents(1, new ItemStack(
-						QuarryPlus.itemFortune, cache[2]));
+						QuarryPlus.itemBase, cache[2], 2));
 			} else {
 				this.craftResult.setInventorySlotContents(1, null);
 			}
 			if (cache[0] > 0) {
 				this.craftResult.setInventorySlotContents(2, new ItemStack(
-						QuarryPlus.itemEfficiency, cache[0]));
+						QuarryPlus.itemBase, cache[0], 3));
 			} else {
 				this.craftResult.setInventorySlotContents(2, null);
 			}
@@ -173,21 +172,18 @@ public class ContainerMover extends Container {
 		this.craftOutput.setInventorySlotContents(0,
 				((rs1 == null ? 0 : rs1.stackSize) + (os1 == null ? 0
 						: os1.stackSize)) == 0 ? null : new ItemStack(
-						QuarryPlus.itemSilktouch, (rs1 == null ? 0
-								: rs1.stackSize)
-								+ (os1 == null ? 0 : os1.stackSize)));
+						QuarryPlus.itemBase, (rs1 == null ? 0 : rs1.stackSize)
+								+ (os1 == null ? 0 : os1.stackSize), 1));
 		this.craftOutput.setInventorySlotContents(1,
 				((rs2 == null ? 0 : rs2.stackSize) + (os2 == null ? 0
 						: os2.stackSize)) == 0 ? null : new ItemStack(
-						QuarryPlus.itemFortune, (rs2 == null ? 0
-								: rs2.stackSize)
-								+ (os2 == null ? 0 : os2.stackSize)));
+						QuarryPlus.itemBase, (rs2 == null ? 0 : rs2.stackSize)
+								+ (os2 == null ? 0 : os2.stackSize), 2));
 		this.craftOutput.setInventorySlotContents(2,
 				((rs3 == null ? 0 : rs3.stackSize) + (os3 == null ? 0
 						: os3.stackSize)) == 0 ? null : new ItemStack(
-						QuarryPlus.itemEfficiency, (rs3 == null ? 0
-								: rs3.stackSize)
-								+ (os3 == null ? 0 : os3.stackSize)));
+						QuarryPlus.itemBase, (rs3 == null ? 0 : rs3.stackSize)
+								+ (os3 == null ? 0 : os3.stackSize), 3));
 		this.craftMatrix.setInventorySlotContents(0, null);
 		this.craftResult.setInventorySlotContents(0, null);
 		this.craftResult.setInventorySlotContents(1, null);
@@ -224,8 +220,8 @@ public class ContainerMover extends Container {
 	}
 
 	@Override
-	public void updateCraftingResults() {
-		super.updateCraftingResults();
+	public void detectAndSendChanges() {
+		super.detectAndSendChanges();
 
 		if (buttonId > -1) {
 			if (buttonId == 0) {

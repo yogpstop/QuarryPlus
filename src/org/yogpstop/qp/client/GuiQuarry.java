@@ -14,6 +14,7 @@ import cpw.mods.fml.relauncher.Side;
 
 @SideOnly(Side.CLIENT)
 public class GuiQuarry extends GuiContainer {
+	@SuppressWarnings("unused")
 	private World world;
 	private ContainerQuarry containerQuarry;
 
@@ -41,6 +42,7 @@ public class GuiQuarry extends GuiContainer {
 		drawTexturedModalRect(l, i1, 0, 0, xSize, ySize);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void initGui() {
 		super.initGui();

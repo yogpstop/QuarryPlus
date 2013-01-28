@@ -17,6 +17,7 @@ import cpw.mods.fml.relauncher.Side;
 
 @SideOnly(Side.CLIENT)
 public class GuiMover extends GuiContainer {
+	@SuppressWarnings("unused")
 	private World world;
 	private ContainerMover containerMover;
 
@@ -44,6 +45,7 @@ public class GuiMover extends GuiContainer {
 		drawTexturedModalRect(l, i1, 0, 0, xSize, ySize);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void initGui() {
 		super.initGui();
