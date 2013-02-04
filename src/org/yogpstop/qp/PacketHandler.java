@@ -10,13 +10,15 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.INetworkManager;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.Packet250CustomPayload;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.EntityPlayer;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
 
 import cpw.mods.fml.common.network.Player;
 import cpw.mods.fml.common.network.IPacketHandler;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 public class PacketHandler implements IPacketHandler {
 
@@ -37,18 +39,19 @@ public class PacketHandler implements IPacketHandler {
 			}
 		} else if (packet.channel.equals("QuarryPlusGUI")) {
 			ByteArrayDataInput data = ByteStreams.newDataInput(packet.data);
-			Container container = ((EntityPlayerMP) player).openContainer;
+			Container container = ((EntityPlayer) player).openContainer;
 			if (container != null) {
 				if (container instanceof ContainerMover) {
 					((ContainerMover) container).readPacketData(data);
 				}
 				if (container instanceof ContainerQuarry) {
-					((ContainerQuarry) container).readPacketData(data);
+					((ContainerQuarry) container).readPacketData(data,player);
 				}
 			}
 		}
 	}
 
+	@SideOnly(Side.CLIENT)
 	public static Packet getPacket(ContainerMover containerMover) {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		DataOutputStream dos = new DataOutputStream(bos);
@@ -64,6 +67,7 @@ public class PacketHandler implements IPacketHandler {
 		return packet;
 	}
 
+	@SideOnly(Side.CLIENT)
 	public static Packet getPacket(ContainerQuarry containerQuarry) {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		DataOutputStream dos = new DataOutputStream(bos);

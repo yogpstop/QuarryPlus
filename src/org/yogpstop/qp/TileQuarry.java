@@ -6,9 +6,6 @@ import java.util.Set;
 
 import com.google.common.collect.Sets;
 
-import cpw.mods.fml.common.network.PacketDispatcher;
-import cpw.mods.fml.common.network.Player;
-
 import static cpw.mods.fml.common.network.PacketDispatcher.sendPacketToAllPlayers;
 
 import static buildcraft.BuildCraftFactory.frameBlock;
@@ -17,21 +14,19 @@ import buildcraft.api.core.LaserKind;
 import buildcraft.api.power.IPowerProvider;
 import buildcraft.api.power.IPowerReceptor;
 import buildcraft.api.power.PowerFramework;
+import buildcraft.api.transport.IPipeConnection;
 import buildcraft.core.Box;
 import buildcraft.core.proxy.CoreProxy;
 import static buildcraft.core.utils.Utils.addToRandomInventory;
 import static buildcraft.core.utils.Utils.addToRandomPipeEntry;
 
 import net.minecraft.block.Block;
-import net.minecraft.entity.EntityLiving;
+import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.item.EntityItem;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.Packet3Chat;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.ChunkCoordIntPair;
@@ -40,12 +35,11 @@ import net.minecraftforge.common.ForgeChunkManager.Type;
 import net.minecraftforge.common.ForgeDirection;
 import net.minecraftforge.common.ForgeChunkManager.Ticket;
 
-public class TileQuarry extends TileEntity implements IInventory,
-		IPowerReceptor {
+public class TileQuarry extends TileEntity implements IPowerReceptor,
+		IPipeConnection {
 	private final Box box = new Box();
 	private final int[] target = new int[3];
 	private final double[] headPos = new double[3];
-	private final ItemStack[] inv = new ItemStack[getSizeInventory()];
 
 	private EntityMechanicalArm heads;
 
@@ -53,20 +47,25 @@ public class TileQuarry extends TileEntity implements IInventory,
 	private boolean silktouch;
 	private byte efficiency;
 
+	public boolean removeLava, removeWater, removeLiquid, buildAdvFrame;
+
 	private ArrayList<ItemStack> cacheItems = new ArrayList<ItemStack>();
 	private ArrayList<int[]> cacheFrame = new ArrayList<int[]>();
 	private ArrayList<int[]> cacheNonNeeded = new ArrayList<int[]>();
+	private ArrayList<int[]> cacheFills = new ArrayList<int[]>();
+
+	public ArrayList<Integer> fortuneList = new ArrayList<Integer>();
+	public ArrayList<Integer> silktouchList = new ArrayList<Integer>();
 
 	private boolean initialized = true;
 
 	private PROGRESS now = PROGRESS.NONE;
 
 	private IPowerProvider pp;
-	private EntityPlayer placedBy;
 
 	private enum PROGRESS {
-		NONE((byte) 0), NOTNEEDBREAK((byte) 1), MAKEFRAME((byte) 2), MOVEHEAD(
-				(byte) 3), BREAKBLOCK((byte) 4);
+		NONE((byte) 0), NOTNEEDBREAK((byte) 1), MAKEFRAME((byte) 2), FILL(
+				(byte) 3), MOVEHEAD((byte) 4), BREAKBLOCK((byte) 5);
 		PROGRESS(final byte arg) {
 			byteValue = arg;
 		}
@@ -93,47 +92,94 @@ public class TileQuarry extends TileEntity implements IInventory,
 	}
 
 	private void initFromNBT() {
-		box.deleteLasers();
+		initEntities();
+		if (worldObj != null)
+			if (!worldObj.isRemote)
+				initBlocks();
+		initialized = true;
+	}
 
+	private void initBlocks() {
 		switch (now) {
 		case NOTNEEDBREAK:
 			initNonNeededBlocks();
 		case MAKEFRAME:
 			initFrames();
+		case FILL:
+			initFills();
+		default:
+		}
+	}
+
+	private void initEntities() {
+		box.deleteLasers();
+		switch (now) {
+		case NOTNEEDBREAK:
+		case MAKEFRAME:
 			box.createLasers(worldObj, LaserKind.Stripes);
 			break;
 		case MOVEHEAD:
 		case BREAKBLOCK:
 			if (heads == null)
 				worldObj.spawnEntityInWorld(new EntityMechanicalArm(worldObj,
-						box.xMin + 1, box.yMax, box.zMin + 1, box.sizeX() - 2,
-						box.sizeZ() - 2, this));
+						box.xMin + 0.75D, box.yMax, box.zMin + 0.75D, box
+								.sizeX() - 1.5D, box.sizeZ() - 1.5D, this));
 			break;
 		default:
 		}
-		if (now != PROGRESS.BREAKBLOCK && now != PROGRESS.MOVEHEAD
-				&& heads != null) {
-			heads.setDead();
-			heads = null;
-		}
+
 		if (heads != null) {
-			heads.setHead(headPos[0], headPos[1], headPos[2]);
-			heads.updatePosition();
+			if (now != PROGRESS.BREAKBLOCK && now != PROGRESS.MOVEHEAD) {
+				heads.setDead();
+				heads = null;
+			} else {
+				heads.setHead(headPos[0], headPos[1], headPos[2]);
+				heads.updatePosition();
+			}
 		}
-		initialized = true;
 	}
 
-	public void init(EntityLiving el) {
-		if (el instanceof EntityPlayer)
-			placedBy = (EntityPlayer) el;
+	public ArrayList<String> getEnchantments() {
+		ArrayList<String> als = new ArrayList<String>();
+		if (silktouch)
+			als.add(Enchantment.enchantmentsList[33].getTranslatedName(1));
+		if (fortune > 0)
+			als.add(Enchantment.enchantmentsList[35].getTranslatedName(fortune));
+		if (efficiency > 0)
+			als.add(Enchantment.enchantmentsList[32]
+					.getTranslatedName(efficiency));
+		return als;
+	}
+
+	protected void init(NBTTagList nbttl) {
+		if (nbttl != null)
+			for (int i = 0; i < nbttl.tagCount(); i++) {
+				short id = ((NBTTagCompound) nbttl.tagAt(i)).getShort("id");
+				short lvl = ((NBTTagCompound) nbttl.tagAt(i)).getShort("lvl");
+				if (id == 33)
+					silktouch = true;
+				if (id == 35)
+					fortune = (byte) lvl;
+				if (id == 32)
+					efficiency = (byte) lvl;
+			}
+		createBox();
+		requestTicket();
+		initPowerProvider();
+		reinit();
+	}
+
+	protected void reinit() {
+		setFirstPos();
+		now = PROGRESS.NOTNEEDBREAK;
+		if (!worldObj.isRemote)
+			initBlocks();
+		initEntities();
+	}
+
+	private void initPowerProvider() {
 		pp = PowerFramework.currentFramework.createPowerProvider();
 		pp.configure(0, 0, 100, 0, 30000);
-		createBox();
-		initFrames();
-		initNonNeededBlocks();
-		now = PROGRESS.NOTNEEDBREAK;
-		box.createLasers(worldObj, LaserKind.Stripes);
-		requestTicket();
 	}
 
 	@Override
@@ -148,23 +194,47 @@ public class TileQuarry extends TileEntity implements IInventory,
 				if (breakBlock(cacheNonNeeded.get(0)))
 					cacheNonNeeded.remove(0);
 				break;
-			} else
-				now = PROGRESS.MAKEFRAME;
+			}
+			now = PROGRESS.MAKEFRAME;
 		case MAKEFRAME:
 			if (cacheFrame.size() > 0) {
-				makeNextFrame();
+				if (makeFrame(cacheFrame.get(0)))
+					cacheFrame.remove(0);
 				break;
-			} else {
+			}
+			if (buildAdvFrame)
+				now = PROGRESS.FILL;
+			else {
 				now = PROGRESS.MOVEHEAD;
-				box.deleteLasers();
 				worldObj.spawnEntityInWorld(new EntityMechanicalArm(worldObj,
-						box.xMin, box.yMax, box.zMin, box.sizeX(), box.sizeZ(),
-						this));
-				sendPacketToAllPlayers(PacketHandler.getPacket(this));
+						box.xMin + 0.75D, box.yMax, box.zMin + 0.75D, box
+								.sizeX() - 1.5D, box.sizeZ() - 1.5D, this));
 				heads.setHead(headPos[0], headPos[1], headPos[2]);
 				heads.updatePosition();
+				sendPacketToAllPlayers(PacketHandler.getPacket(this));
+				for (; !checkTarget();) {
+					setNextTarget();
+				}
 			}
-
+			box.deleteLasers();
+			sendPacketToAllPlayers(PacketHandler.getPacket(this));
+		case FILL:
+			if (cacheFills.size() > 0) {
+				if (makeFrame(cacheFills.get(0)))
+					cacheFills.remove(0);
+				break;
+			}
+			now = PROGRESS.MOVEHEAD;
+			worldObj.spawnEntityInWorld(new EntityMechanicalArm(worldObj,
+					box.xMin + 0.75D, box.yMax, box.zMin + 0.75D,
+					box.sizeX() - 1.5D, box.sizeZ() - 1.5D, this));
+			heads.setHead(headPos[0], headPos[1], headPos[2]);
+			heads.updatePosition();
+			sendPacketToAllPlayers(PacketHandler.getPacket(this));
+			for (; !checkTarget();) {
+				setNextTarget();
+			}
+			break;
 		case MOVEHEAD:
 			boolean done = moveHead();
 			heads.setHead(headPos[0], headPos[1], headPos[2]);
@@ -176,10 +246,8 @@ public class TileQuarry extends TileEntity implements IInventory,
 		case BREAKBLOCK:
 			if (breakBlock(target)) {
 				now = PROGRESS.MOVEHEAD;
-				int bid = worldObj.getBlockId(target[0], target[1], target[2]);
-				while (bid == 0 || bid == Block.bedrock.blockID) {
+				for (; !checkTarget();) {
 					setNextTarget();
-					bid = worldObj.getBlockId(target[0], target[1], target[2]);
 				}
 			}
 			break;
@@ -198,7 +266,26 @@ public class TileQuarry extends TileEntity implements IInventory,
 		cacheItems = cache;
 	}
 
-	public void destroy() {
+	private boolean checkTarget() {
+		if (now != PROGRESS.MOVEHEAD)
+			return false;
+		int bid = worldObj.getBlockId(target[0], target[1], target[2]);
+		if (bid == 0 || bid == Block.bedrock.blockID)
+			return false;
+		if (!removeLava
+				&& (bid == Block.lavaMoving.blockID || bid == Block.lavaStill.blockID))
+			return false;
+		if (!removeWater
+				&& (bid == Block.waterMoving.blockID || bid == Block.waterStill.blockID))
+			return false;
+		if (!removeLiquid
+				&& worldObj.getBlockMaterial(target[0], target[1], target[2])
+						.isLiquid())
+			return false;
+		return true;
+	}
+
+	private void destroy() {
 		box.deleteLasers();
 		now = PROGRESS.NONE;
 		if (heads != null) {
@@ -206,22 +293,7 @@ public class TileQuarry extends TileEntity implements IInventory,
 			heads = null;
 		}
 		if (!worldObj.isRemote) {
-			destoryFrames();
-			for (ItemStack is : inv) {
-				if (is != null) {
-					float f1 = 0.7F;
-					double dx = (worldObj.rand.nextFloat() * f1) + (1.0F - f1)
-							* 0.5D;
-					double dy = (worldObj.rand.nextFloat() * f1) + (1.0F - f1)
-							* 0.5D;
-					double dz = (worldObj.rand.nextFloat() * f1) + (1.0F - f1)
-							* 0.5D;
-					EntityItem ei = new EntityItem(worldObj, dx, dy, dz, is);
-					ei.delayBeforeCanPickup = 10;
-					worldObj.spawnEntityInWorld(ei);
-					is = null;
-				}
-			}
+			destroyFrames();
 		}
 	}
 
@@ -238,31 +310,6 @@ public class TileQuarry extends TileEntity implements IInventory,
 	}
 
 	@Override
-	public void onInventoryChanged() {
-		silktouch = false;
-		efficiency = 0;
-		fortune = 0;
-		for (ItemStack is : inv) {
-			if (is == null)
-				continue;
-			if (is.getItem() instanceof ItemBase) {
-				switch (is.getItemDamage()) {
-				case 1:
-					silktouch = true;
-					break;
-				case 2:
-					fortune += is.stackSize;
-					break;
-				case 3:
-					efficiency += is.stackSize;
-					break;
-				default:
-				}
-			}
-		}
-	}
-
-	@Override
 	public void readFromNBT(NBTTagCompound nbttc) {
 		super.readFromNBT(nbttc);
 		box.initialize(nbttc);
@@ -275,14 +322,13 @@ public class TileQuarry extends TileEntity implements IInventory,
 		headPos[0] = nbttc.getDouble("headPosX");
 		headPos[1] = nbttc.getDouble("headPosY");
 		headPos[2] = nbttc.getDouble("headPosZ");
+		removeWater = nbttc.getBoolean("removeWater");
+		removeLava = nbttc.getBoolean("removeLava");
+		removeLiquid = nbttc.getBoolean("removeLiquid");
+		buildAdvFrame = nbttc.getBoolean("buildAdvFrame");
 		addZ = nbttc.getBoolean("addZ");
 		addX = nbttc.getBoolean("addX");
 		PowerFramework.currentFramework.loadPowerProvider(this, nbttc);
-		NBTTagList items = nbttc.getTagList("Items");
-		for (byte i = 0; i < items.tagCount(); i++) {
-			NBTTagCompound item = (NBTTagCompound) items.tagAt(i);
-			inv[item.getByte("Slot")] = ItemStack.loadItemStackFromNBT(item);
-		}
 		now = PROGRESS.valueOf(nbttc.getByte("now"));
 		initialized = false;
 	}
@@ -300,31 +346,32 @@ public class TileQuarry extends TileEntity implements IInventory,
 		nbttc.setDouble("headPosX", headPos[0]);
 		nbttc.setDouble("headPosY", headPos[1]);
 		nbttc.setDouble("headPosZ", headPos[2]);
+		nbttc.setBoolean("removeWater", removeWater);
+		nbttc.setBoolean("removeLava", removeLava);
+		nbttc.setBoolean("removeLiquid", removeLiquid);
+		nbttc.setBoolean("buildAdvFrame", buildAdvFrame);
 		nbttc.setBoolean("addZ", addZ);
 		nbttc.setBoolean("addX", addX);
 		PowerFramework.currentFramework.savePowerProvider(this, nbttc);
-		NBTTagList items = new NBTTagList();
-		for (byte i = 0; i < getSizeInventory(); i++) {
-			ItemStack is = inv[i];
-			if (is != null) {
-				NBTTagCompound item = new NBTTagCompound();
-				is.writeToNBT(item);
-				item.setByte("Slot", i);
-				items.appendTag(item);
-			}
-		}
-		nbttc.setTag("Items", items);
 		nbttc.setByte("now", now.getByteValue());
 	}
 
-	private void makeNextFrame() {
-		float y = Math.max(-6F * (float) efficiency + 25F, 0F);
+	protected void setEnchantment(ItemStack is) {
+		if (silktouch)
+			is.addEnchantment(Enchantment.enchantmentsList[33], 1);
+		if (fortune > 0)
+			is.addEnchantment(Enchantment.enchantmentsList[35], fortune);
+		if (efficiency > 0)
+			is.addEnchantment(Enchantment.enchantmentsList[32], efficiency);
+	}
+
+	private boolean makeFrame(int[] coord) {
+		float y = Math.max(-4.8F * (float) efficiency + 25F, 0F);
 		if (pp.useEnergy(y, y, true) != y)
-			return;
-		int[] coord = cacheFrame.get(0);
-		cacheFrame.remove(0);
+			return false;
 		worldObj.setBlockWithNotify(coord[0], coord[1], coord[2],
 				frameBlock.blockID);
+		return true;
 	}
 
 	private boolean addX = true;
@@ -356,10 +403,7 @@ public class TileQuarry extends TileEntity implements IInventory,
 			}
 		}
 		if (target[1] < 1) {
-			now = PROGRESS.NONE;
-			destoryFrames();
-			heads.setDead();
-			heads = null;
+			destroy();
 			sendPacketToAllPlayers(PacketHandler.getPacket(this));
 			return;
 		}
@@ -398,6 +442,9 @@ public class TileQuarry extends TileEntity implements IInventory,
 								box.initialize(xMin, yCoord, zMin, xMin + 10,
 										yCoord + 4, zMin + 10);
 							}
+	}
+
+	private void setFirstPos() {
 		target[0] = box.xMin + 1;
 		target[2] = box.zMin + 1;
 		target[1] = box.yMin;
@@ -436,24 +483,32 @@ public class TileQuarry extends TileEntity implements IInventory,
 		int yx = box.yMax;
 		int zn = box.zMin;
 		int zx = box.zMax;
-		for (int x = xn; x <= xx; x++) {
+		for (int x = xn + 1; x <= xx - 1; x++) {
 			checkAndAddFrame(new int[] { x, yn, zn });
 			checkAndAddFrame(new int[] { x, yn, zx });
 			checkAndAddFrame(new int[] { x, yx, zn });
 			checkAndAddFrame(new int[] { x, yx, zx });
 		}
-		for (int y = yn; y <= yx; y++) {
+		for (int y = yn + 1; y <= yx - 1; y++) {
 			checkAndAddFrame(new int[] { xn, y, zn });
 			checkAndAddFrame(new int[] { xn, y, zx });
 			checkAndAddFrame(new int[] { xx, y, zn });
 			checkAndAddFrame(new int[] { xx, y, zx });
 		}
-		for (int z = zn; z <= zx; z++) {
+		for (int z = zn + 1; z <= zx - 1; z++) {
 			checkAndAddFrame(new int[] { xn, yn, z });
 			checkAndAddFrame(new int[] { xn, yx, z });
 			checkAndAddFrame(new int[] { xx, yn, z });
 			checkAndAddFrame(new int[] { xx, yx, z });
 		}
+		checkAndAddFrame(new int[] { xn, yn, zn });
+		checkAndAddFrame(new int[] { xn, yn, zx });
+		checkAndAddFrame(new int[] { xn, yx, zn });
+		checkAndAddFrame(new int[] { xn, yx, zx });
+		checkAndAddFrame(new int[] { xx, yn, zn });
+		checkAndAddFrame(new int[] { xx, yn, zx });
+		checkAndAddFrame(new int[] { xx, yx, zn });
+		checkAndAddFrame(new int[] { xx, yx, zx });
 	}
 
 	private void checkAndAddFrame(int[] coord) {
@@ -462,7 +517,31 @@ public class TileQuarry extends TileEntity implements IInventory,
 			cacheFrame.add(coord);
 	}
 
-	private void destoryFrames() {
+	private void initFills() {
+		int xn = box.xMin;
+		int xx = box.xMax;
+		int yn = box.yMin;
+		int zn = box.zMin;
+		int zx = box.zMax;
+		for (int y = yn; y > 0; y--) {
+			for (int x = xn; x <= xx; x++) {
+				checkAndAddFill(x, y, zn);
+				checkAndAddFill(x, y, zx);
+			}
+			for (int z = zn + 1; z < zx; z++) {
+				checkAndAddFill(xn, y, z);
+				checkAndAddFill(xx, y, z);
+			}
+		}
+	}
+
+	private void checkAndAddFill(int x, int y, int z) {
+		if (!worldObj.getBlockMaterial(x, y, z).isSolid()) {
+			cacheFills.add(new int[] { x, y, z });
+		}
+	}
+
+	private void destroyFrames() {
 		int xn = box.xMin;
 		int xx = box.xMax;
 		int yn = box.yMin;
@@ -491,12 +570,24 @@ public class TileQuarry extends TileEntity implements IInventory,
 
 	private void initNonNeededBlocks() {
 		cacheNonNeeded = new ArrayList<int[]>();
-		for (int x = box.xMin; x <= box.xMax; x++) {
-			for (int y = box.yMin; y <= box.yMax; y++) {
+		for (int y = box.yMax; y >= box.yMin; y--) {
+			for (int x = box.xMin; x <= box.xMax; x++) {
 				for (int z = box.zMin; z <= box.zMax; z++) {
 					int bid = worldObj.getBlockId(x, y, z);
 					if (bid != 0 && bid != Block.bedrock.blockID)
-						cacheNonNeeded.add(new int[] { x, y, z });
+						if (bid == frameBlock.blockID
+								&& worldObj.getBlockMetadata(x, y, z) == 0) {
+							byte flag = 0;
+							if (x == box.xMin || x == box.xMax)
+								flag++;
+							if (y == box.yMin || y == box.yMax)
+								flag++;
+							if (z == box.zMin || z == box.zMax)
+								flag++;
+							if (flag < 2)
+								cacheNonNeeded.add(new int[] { x, y, z });
+						} else
+							cacheNonNeeded.add(new int[] { x, y, z });
 				}
 			}
 		}
@@ -547,8 +638,9 @@ public class TileQuarry extends TileEntity implements IInventory,
 	}
 
 	private boolean breakBlock(int[] coord) {
-		float pw = Math.max((-9.75F * (float) efficiency + 40F)
-				* blockHardness(coord[0], coord[1], coord[2]), 0F);
+		float pw = Math.max(
+				(-7.8F * (float) efficiency + 40F)
+						* blockHardness(coord[0], coord[1], coord[2]), 0F);
 		if (pp.useEnergy(pw, pw, true) != pw)
 			return false;
 		cacheItems.addAll(getDroppedItems(coord[0], coord[1], coord[2]));
@@ -588,81 +680,28 @@ public class TileQuarry extends TileEntity implements IInventory,
 
 	private float blockHardness(int x, int y, int z) {
 		Block b = Block.blocksList[worldObj.getBlockId(x, y, z)];
-		if (b != null)
+		if (b != null) {
+			if (worldObj.getBlockMaterial(x, y, z).isLiquid())
+				return 0;
 			return b.getBlockHardness(worldObj, x, y, z);
+		}
 		return (float) 0;
 	}
 
 	private ArrayList<ItemStack> getDroppedItems(int x, int y, int z) {
 		Block b = Block.blocksList[worldObj.getBlockId(x, y, z)];
+		int meta = worldObj.getBlockMetadata(x, y, z);
 		if (b == null)
 			return new ArrayList<ItemStack>();
-		if (b.canSilkHarvest(worldObj, null, x, y, z,
-				worldObj.getBlockMetadata(x, y, z))
-				&& silktouch) {
+		if (b.canSilkHarvest(worldObj, null, x, y, z, meta)
+				&& silktouch
+				&& (silktouchList.contains(b.blockID) || silktouchList.size() == 0)) {
 			ArrayList<ItemStack> al = new ArrayList<ItemStack>();
-			al.add(new ItemStack(b, 1, worldObj.getBlockMetadata(x, y, z)));
+			al.add(new ItemStack(b, 1, meta));
 			return al;
 		}
-		return b.getBlockDropped(worldObj, x, y, z,
-				worldObj.getBlockMetadata(x, y, z), fortune);
-	}
-
-	@Override
-	public int getSizeInventory() {
-		return 8;
-	}
-
-	@Override
-	public ItemStack getStackInSlot(int var1) {
-		return inv[var1];
-	}
-
-	@Override
-	public ItemStack decrStackSize(int var1, int var2) {
-		ItemStack c = inv[var1];
-		inv[var1] = null;
-		return c;
-	}
-
-	@Override
-	public ItemStack getStackInSlotOnClosing(int var1) {
-		return inv[var1];
-	}
-
-	@Override
-	public void setInventorySlotContents(int var1, ItemStack var2) {
-		inv[var1] = var2;
-	}
-
-	@Override
-	public String getInvName() {
-		return "QuarryPlus";
-	}
-
-	@Override
-	public int getInventoryStackLimit() {
-		return 1;
-	}
-
-	@Override
-	public boolean isUseableByPlayer(EntityPlayer var1) {
-		if (worldObj == null) {
-			return true;
-		}
-		if (worldObj.getBlockTileEntity(xCoord, yCoord, zCoord) != this) {
-			return false;
-		}
-		return var1.getDistanceSq((double) xCoord + 0.5D,
-				(double) yCoord + 0.5D, (double) zCoord + 0.5D) <= 64D;
-	}
-
-	@Override
-	public void openChest() {
-	}
-
-	@Override
-	public void closeChest() {
+		return b.getBlockDropped(worldObj, x, y, z, meta, ((fortuneList
+				.contains(b.blockID) || fortuneList.size() == 0) ? fortune : 0));
 	}
 
 	@Override
@@ -691,7 +730,7 @@ public class TileQuarry extends TileEntity implements IInventory,
 		heads = ema;
 	}
 
-	public void forceChunkLoading(Ticket ticket) {
+	protected void forceChunkLoading(Ticket ticket) {
 		if (chunkTicket == null) {
 			chunkTicket = ticket;
 		}
@@ -709,15 +748,6 @@ public class TileQuarry extends TileEntity implements IInventory,
 				chunks.add(chunk);
 			}
 		}
-		if (placedBy != null) {
-			PacketDispatcher
-					.sendPacketToPlayer(
-							new Packet3Chat(
-									String.format(
-											"[BUILDCRAFT] The quarry at %d %d %d will keep %d chunks loaded",
-											xCoord, yCoord, zCoord,
-											chunks.size())), (Player) placedBy);
-		}
 		sendPacketToAllPlayers(PacketHandler.getPacket(this));
 	}
 
@@ -732,5 +762,10 @@ public class TileQuarry extends TileEntity implements IInventory,
 		chunkTicket.getModData().setInteger("quarryY", yCoord);
 		chunkTicket.getModData().setInteger("quarryZ", zCoord);
 		forceChunkLoading(chunkTicket);
+	}
+
+	@Override
+	public boolean isPipeConnected(ForgeDirection with) {
+		return true;
 	}
 }

@@ -1,5 +1,5 @@
 <project name="QuarryPlus" default="main">
-	<property name="mod.version" value="1.2.0" />
+	<property name="mod.version" value="1.3.2" />
 
 	<property name="mc.version" value="1.4.7" />
 	<property name="forge.version" value="6.6.0.516" />
@@ -46,6 +46,7 @@
 		<jar destfile="${jar.path}">
 			<fileset dir="${reobf.dir}" />
 			<fileset dir="${res.dir}" />
+			
 		</jar>
 		<antcall target="clean" />
 	</target>

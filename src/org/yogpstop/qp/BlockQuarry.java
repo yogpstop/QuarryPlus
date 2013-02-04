@@ -1,11 +1,13 @@
 package org.yogpstop.qp;
 
-import static buildcraft.core.CreativeTabBuildCraft.tabBuildCraft;
+import java.util.ArrayList;
+import java.util.Random;
 
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeDirection;
@@ -23,7 +25,36 @@ public class BlockQuarry extends BlockContainer {
 		textureSide = 3;
 		textureFront = 1;
 		textureTop = 2;
-		setCreativeTab(tabBuildCraft);
+		setCreativeTab(null);
+
+	}
+
+	@Override
+	public ArrayList<ItemStack> getBlockDropped(World world, int x, int y,
+			int z, int metadata, int fortune) {
+		ArrayList<ItemStack> ret = new ArrayList<ItemStack>();
+
+		int count = quantityDropped(metadata, fortune, world.rand);
+		for (int i = 0; i < count; i++) {
+			int id = idDropped(metadata, world.rand, 0);
+			if (id > 0) {
+				ItemStack drop = new ItemStack(id, 1, damageDropped(metadata));
+				((TileQuarry) world.getBlockTileEntity(x, y, z))
+						.setEnchantment(drop);
+				ret.add(drop);
+			}
+		}
+		return ret;
+	}
+
+	@Override
+	public int idDropped(int meta, Random r, int par3) {
+		return QuarryPlus.itemQuarry.itemID;
+	}
+
+	@Override
+	public int idPicked(World w, int x, int y, int z) {
+		return QuarryPlus.itemQuarry.itemID;
 	}
 
 	@Override
@@ -53,7 +84,6 @@ public class BlockQuarry extends BlockContainer {
 		ForgeDirection orientation = get2dOrientation(el.posX, el.posZ, x, z);
 		w.setBlockMetadataWithNotify(x, y, z, orientation.getOpposite()
 				.ordinal());
-		((TileQuarry) w.getBlockTileEntity(x, y, z)).init(el);
 	}
 
 	private static ForgeDirection get2dOrientation(double x1, double z1,
@@ -74,12 +104,11 @@ public class BlockQuarry extends BlockContainer {
 
 	@Override
 	public boolean onBlockActivated(World world, int x, int y, int z,
-			EntityPlayer entityplayer, int par6, float par7, float par8,
-			float par9) {
-		if (entityplayer.isSneaking())
+			EntityPlayer ep, int par6, float par7, float par8, float par9) {
+		if (ep.isSneaking())
 			return false;
-		entityplayer.openGui(QuarryPlus.instance,
-				QuarryPlus.guiIdContainerQuarry, world, x, y, z);
+		ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdContainerQuarry, world,
+				x, y, z);
 		return true;
 	}
 
@@ -87,4 +116,5 @@ public class BlockQuarry extends BlockContainer {
 	public String getTextureFile() {
 		return "/org/yogpstop/qp/blocks.png";
 	}
+
 }

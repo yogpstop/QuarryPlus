@@ -6,11 +6,11 @@ import net.minecraft.inventory.Slot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 
-public class SlotMoveMatrix extends Slot {
+public class SlotMover extends Slot {
 	Container parentsC;
 
-	public SlotMoveMatrix(IInventory par1iInventory, int par2, int par3,
-			int par4, Container c) {
+	public SlotMover(IInventory par1iInventory, int par2, int par3, int par4,
+			Container c) {
 		super(par1iInventory, par2, par3, par4);
 		parentsC = c;
 
@@ -25,7 +25,7 @@ public class SlotMoveMatrix extends Slot {
 			}
 			return false;
 		case 1:
-			if (par1ItemStack.itemID == QuarryPlus.itemBase.itemID) {
+			if (par1ItemStack.itemID == QuarryPlus.itemQuarry.itemID) {
 				return true;
 			}
 		}

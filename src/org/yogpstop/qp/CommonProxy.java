@@ -28,9 +28,9 @@ public class CommonProxy implements IGuiHandler {
 	public Object getServerGuiElement(int ID, EntityPlayer player, World world,
 			int x, int y, int z) {
 		if (ID == QuarryPlus.guiIdContainerQuarry) {
-			return new ContainerQuarry(player, world, x, y, z);
+			return new ContainerQuarry(player, world, x, y, z, null);
 		} else if (ID == QuarryPlus.guiIdContainerMover) {
-			return new ContainerMover(player, world, x, y, z);
+			return new ContainerMover(player, world, x, y, z, null);
 		}
 
 		return null;

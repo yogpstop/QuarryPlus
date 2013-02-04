@@ -1,7 +1,8 @@
 package org.yogpstop.qp;
 
-import java.util.ArrayList;
 import java.util.logging.Level;
+
+import org.yogpstop.qp.client.QuarryItemRenderer;
 
 import buildcraft.BuildCraftBuilders;
 import buildcraft.BuildCraftCore;
@@ -11,6 +12,7 @@ import buildcraft.BuildCraftSilicon;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.common.Configuration;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.Property;
@@ -37,11 +39,9 @@ public class QuarryPlus {
 
 	public static Block blockQuarry;
 	public static Block blockMarker;
-	public static Item itemBase;
 	public static Block blockMover;
 
-	public static ArrayList<String> silktouch;
-	public static ArrayList<String> fortune;
+	public static Item itemQuarry;
 
 	public static int RecipeDifficulty;
 
@@ -60,18 +60,12 @@ public class QuarryPlus {
 					.getInt())).setBlockName("MarkerPlus");
 			blockMover = (new BlockMover(cfg.getBlock("EnchantMover", 4003)
 					.getInt())).setBlockName("EnchantMover");
-			itemBase = (new ItemBase(cfg.getItem("Modules", 24005).getInt()));
+			itemQuarry = (new ItemQuarry(cfg.getItem("ItemQuarry", 25001)
+					.getInt())).setItemName("QuarryPlus");
 			Property RD = cfg.get(Configuration.CATEGORY_GENERAL,
 					"RecipeDifficulty", 2);
 			RD.comment = "0:AsCheatRecipe,1:EasyRecipe,2:NormalRecipe(Default),3:HardRecipe,other:NormalRecipe";
 			RecipeDifficulty = RD.getInt(2);
-			silktouch = new ArrayList<String>();
-			fortune = new ArrayList<String>();
-			parseCommaIntArrayList(cfg.get(Configuration.CATEGORY_GENERAL,
-					"SilktouchList", "").value, silktouch);
-			parseCommaIntArrayList(
-					cfg.get(Configuration.CATEGORY_GENERAL, "FortuneList", "").value,
-					fortune);
 		} catch (Exception e) {
 			FMLLog.log(Level.SEVERE, e, "Error Massage");
 		} finally {
@@ -83,20 +77,6 @@ public class QuarryPlus {
 				"/org/yogpstop/qp/lang/ja_JP.lang", "ja_JP", false);
 		ForgeChunkManager.setForcedChunkLoadingCallback(instance,
 				new ChunkLoadingHandler());
-	}
-
-	public void parseCommaIntArrayList(String source, ArrayList<String> output) {
-		source = source.trim();
-		if (source != "") {
-			String[] cache = source.split(",");
-			for (int i = 0; i < cache.length; i++) {
-				String[] cache2 = cache[i].trim().split(":");
-				output.add(Integer.valueOf(cache2[0]).toString()
-						+ ":"
-						+ (cache2.length == 1 ? "0" : Integer
-								.valueOf(cache2[1]).toString()));
-			}
-		}
 	}
 
 	@Mod.Init
@@ -124,19 +104,6 @@ public class QuarryPlus {
 					new Object[] { "X", "Y", Character.valueOf('Y'),
 							BuildCraftFactory.autoWorkbenchBlock,
 							Character.valueOf('X'), Item.redstone });
-			GameRegistry
-					.addRecipe(new ItemStack(itemBase, 1, 0), new Object[] {
-							"X", "Y", Character.valueOf('Y'), Block.stone,
-							Character.valueOf('X'), Item.redstone });
-			GameRegistry.addRecipe(new ItemStack(itemBase, 1, 1),
-					new Object[] { "X", "Y", Character.valueOf('Y'), itemBase,
-							Character.valueOf('X'), Block.stone });
-			GameRegistry.addRecipe(new ItemStack(itemBase, 1, 2),
-					new Object[] { "X", "Y", Character.valueOf('Y'), itemBase,
-							Character.valueOf('X'), Item.redstone });
-			GameRegistry.addRecipe(new ItemStack(itemBase, 1, 3),
-					new Object[] { "X", "Y", Character.valueOf('Y'), itemBase,
-							Character.valueOf('X'), Item.ingotIron });
 			break;
 		case 1:
 			GameRegistry.addRecipe(new ItemStack(blockMarker, 1), new Object[] {
@@ -154,10 +121,6 @@ public class QuarryPlus {
 							BuildCraftFactory.autoWorkbenchBlock,
 							Character.valueOf('Y'), Block.anvil,
 							Character.valueOf('X'), Block.enchantmentTable });
-			GameRegistry.addRecipe(new ItemStack(itemBase, 1),
-					new Object[] { "XDX", "YYY", Character.valueOf('Y'),
-							Block.stone, Character.valueOf('X'), Item.redstone,
-							Character.valueOf('D'), Item.diamond });
 			break;
 		case 3:
 			GameRegistry.addRecipe(new ItemStack(blockMarker, 1), new Object[] {
@@ -180,10 +143,6 @@ public class QuarryPlus {
 					Block.enchantmentTable, Character.valueOf('O'),
 					Block.obsidian, Character.valueOf('A'), Block.anvil,
 					Character.valueOf('G'), BuildCraftCore.diamondGearItem });
-			GameRegistry.addRecipe(new ItemStack(itemBase, 1), new Object[] {
-					"SBS", "GBG", "SBS", Character.valueOf('S'), Block.stone,
-					Character.valueOf('G'), BuildCraftCore.diamondGearItem,
-					Character.valueOf('B'), Block.blockDiamond });
 			break;
 		default:
 			GameRegistry.addRecipe(new ItemStack(blockMarker, 1), new Object[] {
@@ -204,12 +163,10 @@ public class QuarryPlus {
 					BuildCraftCore.diamondGearItem, Character.valueOf('E'),
 					Block.enchantmentTable, Character.valueOf('O'),
 					Block.obsidian, Character.valueOf('A'), Block.anvil });
-			GameRegistry.addRecipe(new ItemStack(itemBase, 1), new Object[] {
-					"SGS", "SBS", "SGS", Character.valueOf('S'), Block.stone,
-					Character.valueOf('G'), BuildCraftCore.diamondGearItem,
-					Character.valueOf('B'), Block.blockDiamond });
 		}
 		NetworkRegistry.instance().registerGuiHandler(this, proxy);
+		MinecraftForgeClient.registerItemRenderer(itemQuarry.itemID,
+				new QuarryItemRenderer());
 		proxy.registerTextures();
 	}
 }

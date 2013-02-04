@@ -2,9 +2,13 @@ package org.yogpstop.qp;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
+
+import static org.yogpstop.qp.QuarryPlus.blockMarker;
+
 import buildcraft.api.core.IAreaProvider;
 import buildcraft.api.core.LaserKind;
 import buildcraft.api.core.Position;
+
 import buildcraft.core.EntityBlock;
 import buildcraft.core.TileBuildCraft;
 import buildcraft.core.network.PacketUpdate;
@@ -66,7 +70,8 @@ public class TileMarker extends TileBuildCraft implements IAreaProvider {
 		public @TileNetworkData
 		TileWrapper vectO = new TileWrapper();
 		public @TileNetworkData(staticSize = 3)
-		TileWrapper[] vect = { new TileWrapper(), new TileWrapper(), new TileWrapper() };
+		TileWrapper[] vect = { new TileWrapper(), new TileWrapper(),
+				new TileWrapper() };
 		public @TileNetworkData
 		int xMin, yMin, zMin, xMax, yMax, zMax;
 	}
@@ -81,12 +86,13 @@ public class TileMarker extends TileBuildCraft implements IAreaProvider {
 
 	public void updateSignals() {
 		if (CoreProxy.proxy.isSimulating(worldObj)) {
-			showSignals = worldObj.isBlockIndirectlyGettingPowered(xCoord, yCoord, zCoord);
+			showSignals = worldObj.isBlockIndirectlyGettingPowered(xCoord,
+					yCoord, zCoord);
 			sendNetworkUpdate();
 		}
 	}
-	
-	private void switchSignals(){
+
+	private void switchSignals() {
 		if (signals != null) {
 			for (EntityBlock b : signals) {
 				if (b != null) {
@@ -95,26 +101,32 @@ public class TileMarker extends TileBuildCraft implements IAreaProvider {
 			}
 			signals = null;
 		}
-		if(showSignals){
+		if (showSignals) {
 			signals = new EntityBlock[6];
 			if (!origin.isSet() || !origin.vect[0].isSet()) {
-				signals[0] = Utils.createLaser(worldObj, new Position(xCoord, yCoord, zCoord), new Position(xCoord + maxSize - 1,
+				signals[0] = Utils.createLaser(worldObj, new Position(xCoord,
+						yCoord, zCoord), new Position(xCoord + maxSize - 1,
 						yCoord, zCoord), LaserKind.Blue);
-				signals[1] = Utils.createLaser(worldObj, new Position(xCoord - maxSize + 1, yCoord, zCoord), new Position(xCoord,
+				signals[1] = Utils.createLaser(worldObj, new Position(xCoord
+						- maxSize + 1, yCoord, zCoord), new Position(xCoord,
 						yCoord, zCoord), LaserKind.Blue);
 			}
 
 			if (!origin.isSet() || !origin.vect[1].isSet()) {
-				signals[2] = Utils.createLaser(worldObj, new Position(xCoord, yCoord, zCoord), new Position(xCoord, yCoord
-						+ maxSize - 1, zCoord), LaserKind.Blue);
-				signals[3] = Utils.createLaser(worldObj, new Position(xCoord, yCoord - maxSize + 1, zCoord), new Position(xCoord,
+				signals[2] = Utils.createLaser(worldObj, new Position(xCoord,
+						yCoord, zCoord), new Position(xCoord, yCoord + maxSize
+						- 1, zCoord), LaserKind.Blue);
+				signals[3] = Utils.createLaser(worldObj, new Position(xCoord,
+						yCoord - maxSize + 1, zCoord), new Position(xCoord,
 						yCoord, zCoord), LaserKind.Blue);
 			}
 
 			if (!origin.isSet() || !origin.vect[2].isSet()) {
-				signals[4] = Utils.createLaser(worldObj, new Position(xCoord, yCoord, zCoord), new Position(xCoord, yCoord,
-						zCoord + maxSize - 1), LaserKind.Blue);
-				signals[5] = Utils.createLaser(worldObj, new Position(xCoord, yCoord, zCoord - maxSize + 1), new Position(xCoord,
+				signals[4] = Utils.createLaser(worldObj, new Position(xCoord,
+						yCoord, zCoord), new Position(xCoord, yCoord, zCoord
+						+ maxSize - 1), LaserKind.Blue);
+				signals[5] = Utils.createLaser(worldObj, new Position(xCoord,
+						yCoord, zCoord - maxSize + 1), new Position(xCoord,
 						yCoord, zCoord), LaserKind.Blue);
 			}
 		}
@@ -131,13 +143,14 @@ public class TileMarker extends TileBuildCraft implements IAreaProvider {
 		if (initVectO != null) {
 			origin = new Origin();
 
-			origin.vectO = new TileWrapper((int) initVectO.x, (int) initVectO.y, (int) initVectO.z);
+			origin.vectO = new TileWrapper((int) initVectO.x,
+					(int) initVectO.y, (int) initVectO.z);
 
 			for (int i = 0; i < 3; ++i) {
 				if (initVect[i] != null) {
-					linkTo((TileMarker) worldObj
-							.getBlockTileEntity((int) initVect[i].x, (int) initVect[i].y, (int) initVect[i].z),
-							i);
+					linkTo((TileMarker) worldObj.getBlockTileEntity(
+							(int) initVect[i].x, (int) initVect[i].y,
+							(int) initVect[i].z), i);
 				}
 			}
 		}
@@ -157,7 +170,7 @@ public class TileMarker extends TileBuildCraft implements IAreaProvider {
 	}
 
 	void setVect(int n) {
-		int markerId = QuarryPlus.blockMarker.blockID;
+		int markerId = blockMarker.blockID;
 
 		int[] coords = new int[3];
 
@@ -169,10 +182,12 @@ public class TileMarker extends TileBuildCraft implements IAreaProvider {
 			for (int j = 1; j < maxSize; ++j) {
 				coords[n] += j;
 
-				int blockId = worldObj.getBlockId(coords[0], coords[1], coords[2]);
+				int blockId = worldObj.getBlockId(coords[0], coords[1],
+						coords[2]);
 
 				if (blockId == markerId) {
-					TileMarker marker = (TileMarker) worldObj.getBlockTileEntity(coords[0], coords[1], coords[2]);
+					TileMarker marker = (TileMarker) worldObj
+							.getBlockTileEntity(coords[0], coords[1], coords[2]);
 
 					if (linkTo(marker, n)) {
 						break;
@@ -185,7 +200,8 @@ public class TileMarker extends TileBuildCraft implements IAreaProvider {
 				blockId = worldObj.getBlockId(coords[0], coords[1], coords[2]);
 
 				if (blockId == markerId) {
-					TileMarker marker = (TileMarker) worldObj.getBlockTileEntity(coords[0], coords[1], coords[2]);
+					TileMarker marker = (TileMarker) worldObj
+							.getBlockTileEntity(coords[0], coords[1], coords[2]);
 
 					if (linkTo(marker, n)) {
 						break;
@@ -208,13 +224,15 @@ public class TileMarker extends TileBuildCraft implements IAreaProvider {
 			origin = new Origin();
 			marker.origin = origin;
 			origin.vectO = new TileWrapper(xCoord, yCoord, zCoord);
-			origin.vect[n] = new TileWrapper(marker.xCoord, marker.yCoord, marker.zCoord);
+			origin.vect[n] = new TileWrapper(marker.xCoord, marker.yCoord,
+					marker.zCoord);
 		} else if (!origin.isSet()) {
 			origin = marker.origin;
 			origin.vect[n] = new TileWrapper(xCoord, yCoord, zCoord);
 		} else {
 			marker.origin = origin;
-			origin.vect[n] = new TileWrapper(marker.xCoord, marker.yCoord, marker.zCoord);
+			origin.vect[n] = new TileWrapper(marker.xCoord, marker.yCoord,
+					marker.zCoord);
 		}
 
 		origin.vectO.getMarker(worldObj).createLasers();
@@ -269,7 +287,8 @@ public class TileMarker extends TileBuildCraft implements IAreaProvider {
 			o.zMax = origin.vect[2].z;
 		}
 
-		lasers = Utils.createLaserBox(worldObj, o.xMin, o.yMin, o.zMin, o.xMax, o.yMax, o.zMax, LaserKind.Red);
+		lasers = Utils.createLaserBox(worldObj, o.xMin, o.yMin, o.zMin, o.xMax,
+				o.yMax, o.zMax, LaserKind.Red);
 	}
 
 	@Override
@@ -342,7 +361,7 @@ public class TileMarker extends TileBuildCraft implements IAreaProvider {
 				TileMarker mark = m.getMarker(worldObj);
 
 				if (mark != null) {
-					if(mark.lasers != null) {
+					if (mark.lasers != null) {
 						for (EntityBlock entity : mark.lasers) {
 							if (entity != null) {
 								entity.setDead();
@@ -382,7 +401,8 @@ public class TileMarker extends TileBuildCraft implements IAreaProvider {
 
 		signals = null;
 
-		if (CoreProxy.proxy.isSimulating(worldObj) && markerOrigin != null && markerOrigin != this) {
+		if (CoreProxy.proxy.isSimulating(worldObj) && markerOrigin != null
+				&& markerOrigin != this) {
 			markerOrigin.sendNetworkUpdate();
 		}
 	}
@@ -398,15 +418,15 @@ public class TileMarker extends TileBuildCraft implements IAreaProvider {
 			if (m.isSet()) {
 				worldObj.setBlockWithNotify(m.x, m.y, m.z, 0);
 
-				QuarryPlus.blockMarker
-						.dropBlockAsItem(worldObj, m.x, m.y, m.z, QuarryPlus.blockMarker.blockID, 0);
+				blockMarker.dropBlockAsItem(worldObj, m.x, m.y, m.z,
+						blockMarker.blockID, 0);
 			}
 		}
 
 		worldObj.setBlockWithNotify(o.vectO.x, o.vectO.y, o.vectO.z, 0);
 
-		QuarryPlus.blockMarker.dropBlockAsItem(worldObj, o.vectO.x, o.vectO.y, o.vectO.z,
-				QuarryPlus.blockMarker.blockID, 0);
+		blockMarker.dropBlockAsItem(worldObj, o.vectO.x, o.vectO.y, o.vectO.z,
+				blockMarker.blockID, 0);
 	}
 
 	@Override
@@ -419,7 +439,8 @@ public class TileMarker extends TileBuildCraft implements IAreaProvider {
 
 			for (int i = 0; i < 3; ++i) {
 				if (nbttagcompound.hasKey("vect" + i)) {
-					initVect[i] = new Position(nbttagcompound.getCompoundTag("vect" + i));
+					initVect[i] = new Position(
+							nbttagcompound.getCompoundTag("vect" + i));
 				}
 			}
 		}
@@ -438,7 +459,8 @@ public class TileMarker extends TileBuildCraft implements IAreaProvider {
 			for (int i = 0; i < 3; ++i) {
 				if (origin.vect[i].isSet()) {
 					NBTTagCompound vect = new NBTTagCompound();
-					new Position(origin.vect[i].x, origin.vect[i].y, origin.vect[i].z).writeToNBT(vect);
+					new Position(origin.vect[i].x, origin.vect[i].y,
+							origin.vect[i].z).writeToNBT(vect);
 					nbttagcompound.setTag("vect" + i, vect);
 				}
 			}
@@ -449,7 +471,7 @@ public class TileMarker extends TileBuildCraft implements IAreaProvider {
 	@Override
 	public void postPacketHandling(PacketUpdate packet) {
 		super.postPacketHandling(packet);
-		
+
 		switchSignals();
 
 		if (origin.vectO.isSet()) {
