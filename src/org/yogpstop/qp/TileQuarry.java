@@ -16,6 +16,7 @@ import buildcraft.api.power.IPowerReceptor;
 import buildcraft.api.power.PowerFramework;
 import buildcraft.api.transport.IPipeConnection;
 import buildcraft.core.Box;
+import buildcraft.core.IMachine;
 import buildcraft.core.proxy.CoreProxy;
 import static buildcraft.core.utils.Utils.addToRandomInventory;
 import static buildcraft.core.utils.Utils.addToRandomPipeEntry;
@@ -36,7 +37,7 @@ import net.minecraftforge.common.ForgeDirection;
 import net.minecraftforge.common.ForgeChunkManager.Ticket;
 
 public class TileQuarry extends TileEntity implements IPowerReceptor,
-		IPipeConnection {
+		IPipeConnection, IMachine {
 	private final Box box = new Box();
 	private final int[] target = new int[3];
 	private final double[] headPos = new double[3];
@@ -779,5 +780,25 @@ public class TileQuarry extends TileEntity implements IPowerReceptor,
 	@Override
 	public boolean isPipeConnected(ForgeDirection with) {
 		return true;
+	}
+
+	@Override
+	public boolean isActive() {
+		return now != PROGRESS.NONE;
+	}
+
+	@Override
+	public boolean manageLiquids() {
+		return false;
+	}
+
+	@Override
+	public boolean manageSolids() {
+		return true;
+	}
+
+	@Override
+	public boolean allowActions() {
+		return false;
 	}
 }
