@@ -17,8 +17,6 @@ import com.google.common.io.ByteStreams;
 
 import cpw.mods.fml.common.network.Player;
 import cpw.mods.fml.common.network.IPacketHandler;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 public class PacketHandler implements IPacketHandler {
 
@@ -51,7 +49,6 @@ public class PacketHandler implements IPacketHandler {
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
 	public static Packet getPacket(ContainerMover containerMover) {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		DataOutputStream dos = new DataOutputStream(bos);
@@ -67,7 +64,6 @@ public class PacketHandler implements IPacketHandler {
 		return packet;
 	}
 
-	@SideOnly(Side.CLIENT)
 	public static Packet getPacket(ContainerQuarry containerQuarry) {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		DataOutputStream dos = new DataOutputStream(bos);

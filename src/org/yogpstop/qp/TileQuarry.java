@@ -268,8 +268,11 @@ public class TileQuarry extends TileEntity implements IPowerReceptor,
 	}
 
 	private boolean checkTarget() {
-		if (now != PROGRESS.MOVEHEAD)
-			return false;
+		if (target[1] < 1) {
+			destroy();
+			sendPacketToAllPlayers(PacketHandler.getPacket(this));
+			return true;
+		}
 		int bid = worldObj.getBlockId(target[0], target[1], target[2]);
 		if (bid == 0 || bid == Block.bedrock.blockID)
 			return false;
@@ -414,11 +417,6 @@ public class TileQuarry extends TileEntity implements IPowerReceptor,
 					target[2]--;
 				target[1]--;
 			}
-		}
-		if (target[1] < 1) {
-			destroy();
-			sendPacketToAllPlayers(PacketHandler.getPacket(this));
-			return;
 		}
 	}
 
@@ -613,17 +611,19 @@ public class TileQuarry extends TileEntity implements IPowerReceptor,
 	}
 
 	private boolean moveHead() {
-		if (efficiency >= 4) {
+		if (efficiency == 5) {
 			headPos[0] = target[0];
 			headPos[1] = target[1] + 1;
 			headPos[2] = target[2];
 			return true;
 		}
-		double distance = getRestDistance();
-		float pw = (float) Math.min(2 + pp.getEnergyStored() / 500,
-				(distance - 0.1F) * 200F / (efficiency * 3 + 1));
+		float distance = (float) getRestDistance();
+		float x = 31.8F;
+		float pw = Math
+				.min(2F + pp.getEnergyStored() / 500F,
+						((distance / 2F - 0.1F) * 200F / (efficiency * x + 1F)) + 0.01F);
 		float used = pp.useEnergy(pw, pw, true);
-		double blocks = used * (float) (efficiency * 3 + 1) / 200F + 0.1F;
+		float blocks = used * ((float) efficiency * x + 1F) / 200F + 0.1F;
 
 		if (blocks * 2 > distance) {
 			headPos[0] = target[0];
@@ -651,9 +651,8 @@ public class TileQuarry extends TileEntity implements IPowerReceptor,
 	}
 
 	private boolean breakBlock(int[] coord) {
-		float pw = Math.max(
-				(-7.8F * (float) efficiency + 40F)
-						* blockHardness(coord[0], coord[1], coord[2]), 0F);
+		float pw = (-7.93F * (float) efficiency + 40F)
+				* blockHardness(coord[0], coord[1], coord[2]);
 		if (pp.useEnergy(pw, pw, true) != pw)
 			return false;
 		cacheItems.addAll(getDroppedItems(coord[0], coord[1], coord[2]));
