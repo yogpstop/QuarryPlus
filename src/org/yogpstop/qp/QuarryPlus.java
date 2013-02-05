@@ -27,7 +27,7 @@ import cpw.mods.fml.common.registry.LanguageRegistry;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.FMLLog;
 
-@Mod(modid = "QuarryPlus", name = "QuarryPlus", version = "@VERSION@")
+@Mod(modid = "QuarryPlus", name = "QuarryPlus", version = "@VERSION@", dependencies = "required-after:BuildCraft|Factory@[3.4.2,)")
 @NetworkMod(clientSideRequired = true, serverSideRequired = false, channels = {
 		"QuarryPlusGUI", "QuarryPlusBQP" }, packetHandler = PacketHandler.class)
 public class QuarryPlus {
@@ -95,7 +95,7 @@ public class QuarryPlus {
 					"X", "Y", Character.valueOf('Y'),
 					BuildCraftBuilders.markerBlock, Character.valueOf('X'),
 					Item.redstone });
-			GameRegistry.addRecipe(new ItemStack(blockQuarry, 1), new Object[] {
+			GameRegistry.addRecipe(new ItemStack(itemQuarry, 1), new Object[] {
 					"X", "Y", Character.valueOf('Y'),
 					BuildCraftFactory.quarryBlock, Character.valueOf('X'),
 					Item.redstone });
@@ -110,7 +110,7 @@ public class QuarryPlus {
 					"X", "Y", Character.valueOf('Y'),
 					BuildCraftBuilders.markerBlock, Character.valueOf('X'),
 					Item.ingotGold });
-			GameRegistry.addRecipe(new ItemStack(blockQuarry, 1), new Object[] {
+			GameRegistry.addRecipe(new ItemStack(itemQuarry, 1), new Object[] {
 					" X ", "DYD", Character.valueOf('Y'),
 					BuildCraftFactory.quarryBlock, Character.valueOf('X'),
 					Block.anvil, Character.valueOf('D'),
@@ -128,7 +128,7 @@ public class QuarryPlus {
 					new ItemStack(BuildCraftSilicon.redstoneChipset, 1, 2),
 					Character.valueOf('Y'), BuildCraftBuilders.markerBlock,
 					Character.valueOf('Z'), BuildCraftCore.diamondGearItem });
-			GameRegistry.addRecipe(new ItemStack(blockQuarry, 1), new Object[] {
+			GameRegistry.addRecipe(new ItemStack(itemQuarry, 1), new Object[] {
 					"GBG", "CQC", "WAW", Character.valueOf('G'),
 					BuildCraftCore.diamondGearItem, Character.valueOf('B'),
 					Block.blockDiamond, Character.valueOf('C'),
@@ -149,7 +149,7 @@ public class QuarryPlus {
 					"X", "Y", Character.valueOf('X'),
 					new ItemStack(BuildCraftSilicon.redstoneChipset, 1, 2),
 					Character.valueOf('Y'), BuildCraftBuilders.markerBlock });
-			GameRegistry.addRecipe(new ItemStack(blockQuarry, 1), new Object[] {
+			GameRegistry.addRecipe(new ItemStack(itemQuarry, 1), new Object[] {
 					"GDG", "IQI", "WAW", Character.valueOf('G'),
 					BuildCraftCore.goldGearItem, Character.valueOf('D'),
 					new ItemStack(BuildCraftSilicon.redstoneChipset, 1, 3),

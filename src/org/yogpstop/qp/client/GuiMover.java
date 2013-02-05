@@ -40,7 +40,7 @@ public class GuiMover extends GuiContainer {
 	protected void drawGuiContainerForegroundLayer(int par1, int par2) {
 		drawString(StatCollector.translateToLocal("tile.EnchantMover.name"), 0);
 		drawString(StatCollector.translateToLocal("enchantment.untouching"), 1);
-		drawString(StatCollector.translateToLocal("enchantment.lootBonus"), 2);
+		drawString(StatCollector.translateToLocal("enchantment.lootBonusDigger"), 2);
 		drawString(StatCollector.translateToLocal("enchantment.digging"), 3);
 		drawString(StatCollector.translateToLocal("container.inventory"), 4);
 	}

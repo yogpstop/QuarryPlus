@@ -1,7 +1,6 @@
 package org.yogpstop.qp;
 
 import java.util.ArrayList;
-import java.util.Random;
 
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
@@ -26,30 +25,12 @@ public class BlockQuarry extends BlockContainer {
 		textureFront = 1;
 		textureTop = 2;
 		setCreativeTab(null);
-
 	}
 
 	@Override
 	public ArrayList<ItemStack> getBlockDropped(World world, int x, int y,
 			int z, int metadata, int fortune) {
-		ArrayList<ItemStack> ret = new ArrayList<ItemStack>();
-
-		int count = quantityDropped(metadata, fortune, world.rand);
-		for (int i = 0; i < count; i++) {
-			int id = idDropped(metadata, world.rand, 0);
-			if (id > 0) {
-				ItemStack drop = new ItemStack(id, 1, damageDropped(metadata));
-				((TileQuarry) world.getBlockTileEntity(x, y, z))
-						.setEnchantment(drop);
-				ret.add(drop);
-			}
-		}
-		return ret;
-	}
-
-	@Override
-	public int idDropped(int meta, Random r, int par3) {
-		return QuarryPlus.itemQuarry.itemID;
+		return new ArrayList<ItemStack>();
 	}
 
 	@Override

@@ -301,12 +301,24 @@ public class TileQuarry extends TileEntity implements IPowerReceptor,
 	public void invalidate() {
 		ForgeChunkManager.releaseTicket(chunkTicket);
 		destroy();
+		if (!worldObj.isRemote
+				&& worldObj.getGameRules().getGameRuleBooleanValue(
+						"doTileDrops")) {
+			ItemStack is = new ItemStack(QuarryPlus.itemQuarry);
+			setEnchantment(is);
+			float var6 = 0.7F;
+			double var7 = (double) (worldObj.rand.nextFloat() * var6)
+					+ (double) (1.0F - var6) * 0.5D;
+			double var9 = (double) (worldObj.rand.nextFloat() * var6)
+					+ (double) (1.0F - var6) * 0.5D;
+			double var11 = (double) (worldObj.rand.nextFloat() * var6)
+					+ (double) (1.0F - var6) * 0.5D;
+			EntityItem var13 = new EntityItem(worldObj, (double) xCoord + var7,
+					(double) yCoord + var9, (double) zCoord + var11, is);
+			var13.delayBeforeCanPickup = 10;
+			worldObj.spawnEntityInWorld(var13);
+		}
 		super.invalidate();
-	}
-
-	@Override
-	public void onChunkUnload() {
-		destroy();
 	}
 
 	@Override
@@ -356,7 +368,7 @@ public class TileQuarry extends TileEntity implements IPowerReceptor,
 		nbttc.setByte("now", now.getByteValue());
 	}
 
-	protected void setEnchantment(ItemStack is) {
+	private void setEnchantment(ItemStack is) {
 		if (silktouch)
 			is.addEnchantment(Enchantment.enchantmentsList[33], 1);
 		if (fortune > 0)

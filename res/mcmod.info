@@ -4,18 +4,10 @@
     "modid": "QuarryPlus",
     "name": "QuarryPlus",
     "description": "This mod add advanced quarry and more.",
-    "version": "1.2.1",
+    "version": "1.3.2",
     "mcversion": "1.4.7",
     "url": "https://github.com/yogpstop/QuarryPlus",
-    "updateUrl": "",
     "authors": [ "yogpstop" ],
-    "credits": "",
-    "logoFile": "",
-    "screenshots": [],
-    "parent": "",
-    "requiredMods": [ "Forge", "BuildCraft|Core", "BuildCraft|Factory"],
-    "dependencies": [ "BuildCraft|Core", "BuildCraft|Factory"],
-    "dependants": [],
-    "useDependencyInformation": "true"
+    "dependencies": [ "BuildCraft|Core", "BuildCraft|Factory"]
   }]
 }
