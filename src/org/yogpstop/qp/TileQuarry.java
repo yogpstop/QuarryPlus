@@ -611,12 +611,6 @@ public class TileQuarry extends TileEntity implements IPowerReceptor,
 	}
 
 	private boolean moveHead() {
-		if (efficiency == 5) {
-			headPos[0] = target[0];
-			headPos[1] = target[1] + 1;
-			headPos[2] = target[2];
-			return true;
-		}
 		float distance = (float) getRestDistance();
 		float x = 31.8F;
 		float pw = Math
