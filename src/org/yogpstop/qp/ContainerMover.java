@@ -102,8 +102,8 @@ public class ContainerMover extends Container {
 		}
 	}
 
-	private void moveEnchant(short j) {
-		if (!checkTo(j))
+	private void moveEnchant(short eid) {
+		if (!checkTo(eid))
 			return;
 		ItemStack is = craftMatrix.getStackInSlot(0);
 		NBTTagList list = is.getEnchantmentTagList();
@@ -114,8 +114,16 @@ public class ContainerMover extends Container {
 			short lvl = ((NBTTagCompound) list.tagAt(i)).getShort("lvl");
 			if (lvl < 1)
 				continue;
-			if (id == j) {
-				list.removeTag(i);
+			if (id == eid) {
+				NBTTagList nbttl = new NBTTagList();
+				for (int j = 0; j < list.tagCount(); j++) {
+					if (i == j)
+						continue;
+					nbttl.appendTag(list.tagAt(j));
+				}
+				is.getTagCompound().removeTag("ench");
+				is.getTagCompound().setTag("ench", nbttl);
+				list = nbttl;
 				if (lvl > 1) {
 					NBTTagCompound ench = new NBTTagCompound();
 					ench.setShort("id", id);
@@ -145,8 +153,16 @@ public class ContainerMover extends Container {
 			short lvl = ((NBTTagCompound) list.tagAt(i)).getShort("lvl");
 			if (lvl < 1)
 				continue;
-			if (id == j) {
-				list.removeTag(i);
+			if (id == eid) {
+				NBTTagList nbttl = new NBTTagList();
+				for (int j = 0; j < list.tagCount(); j++) {
+					if (i == j)
+						continue;
+					nbttl.appendTag(list.tagAt(j));
+				}
+				is.getTagCompound().removeTag("ench");
+				is.getTagCompound().setTag("ench", nbttl);
+				list = nbttl;
 				NBTTagCompound ench = new NBTTagCompound();
 				ench.setShort("id", id);
 				ench.setShort("lvl", ++lvl);
@@ -157,7 +173,7 @@ public class ContainerMover extends Container {
 		}
 		if (!done) {
 			NBTTagCompound ench = new NBTTagCompound();
-			ench.setShort("id", (short) j);
+			ench.setShort("id", (short) eid);
 			ench.setShort("lvl", (short) 1);
 			list.appendTag(ench);
 		}
