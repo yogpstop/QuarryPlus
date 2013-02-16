@@ -1,8 +1,9 @@
 package org.yogpstop.qp;
 
-import java.io.DataOutputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import net.minecraft.inventory.Container;
 import net.minecraft.nbt.CompressedStreamTools;
@@ -10,11 +11,13 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.INetworkManager;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.Packet250CustomPayload;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.entity.player.EntityPlayer;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
 
+import cpw.mods.fml.common.network.PacketDispatcher;
 import cpw.mods.fml.common.network.Player;
 import cpw.mods.fml.common.network.IPacketHandler;
 
@@ -23,19 +26,11 @@ public class PacketHandler implements IPacketHandler {
 	@Override
 	public void onPacketData(INetworkManager network,
 			Packet250CustomPayload packet, Player player) {
-		if (packet.channel.equals("QuarryPlusBQP")) {
-			try {
-				NBTTagCompound cache;
-				cache = CompressedStreamTools.decompress(packet.data);
-				TileQuarry tq = (TileQuarry) QuarryPlus.proxy.getClientWorld()
-						.getBlockTileEntity(cache.getInteger("x"),
-								cache.getInteger("y"), cache.getInteger("z"));
-				if (tq != null)
-					tq.readFromNBT(cache);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		} else if (packet.channel.equals("QuarryPlusGUI")) {
+		System.out.print("Recieve  ");
+		System.out.println(packet.channel);
+		if (packet.channel.equals("QPTENBT")) {
+			setNBTFromPacket(packet, (EntityPlayer) player);
+		} else if (packet.channel.equals("QuarryPlusGUIBtn")) {
 			ByteArrayDataInput data = ByteStreams.newDataInput(packet.data);
 			Container container = ((EntityPlayer) player).openContainer;
 			if (container != null) {
@@ -43,57 +38,122 @@ public class PacketHandler implements IPacketHandler {
 					((ContainerMover) container).readPacketData(data);
 				}
 				if (container instanceof ContainerQuarry) {
-					((ContainerQuarry) container).readPacketData(data,player);
+					((ContainerQuarry) container).readPacketData(data, player);
 				}
 			}
+		} else if (packet.channel.equals("QuarryPlusTQL")) {
+			readQuarryListFromPacket(ByteStreams.newDataInput(packet.data),
+					(EntityPlayer) player);
+		} else if (packet.channel.equals("QPOpenGUI")) {
+			openGuiFromPacket(ByteStreams.newDataInput(packet.data),
+					(EntityPlayer) player);
 		}
 	}
 
-	public static Packet getPacket(ContainerMover containerMover) {
+	public static void sendTileQuarryListPacket(byte listid, byte queid,
+			long value, int x, int y, int z) {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		DataOutputStream dos = new DataOutputStream(bos);
-
-		containerMover.writePacketData(dos);
-
-		Packet250CustomPayload packet = new Packet250CustomPayload();
-		packet.channel = "QuarryPlusGUI";
-		packet.data = bos.toByteArray();
-		packet.length = bos.size();
-		packet.isChunkDataPacket = true;
-
-		return packet;
-	}
-
-	public static Packet getPacket(ContainerQuarry containerQuarry) {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		DataOutputStream dos = new DataOutputStream(bos);
-
-		containerQuarry.writePacketData(dos);
-
-		Packet250CustomPayload packet = new Packet250CustomPayload();
-		packet.channel = "QuarryPlusGUI";
-		packet.data = bos.toByteArray();
-		packet.length = bos.size();
-		packet.isChunkDataPacket = true;
-
-		return packet;
-	}
-
-	public static Packet getPacket(TileQuarry tq) {
 		try {
-			NBTTagCompound tag = new NBTTagCompound();
-			tq.writeToNBT(tag);
-			byte[] bytes = CompressedStreamTools.compress(tag);
-			Packet250CustomPayload pkt = new Packet250CustomPayload();
-			pkt.channel = "QuarryPlusBQP";
+			dos.writeInt(x);
+			dos.writeInt(y);
+			dos.writeInt(z);
+			dos.writeByte(listid);
+			dos.writeByte(queid);
+			dos.writeLong(value);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		Packet250CustomPayload packet = new Packet250CustomPayload();
+		packet.data = bos.toByteArray();
+		packet.length = bos.size();
+		packet.channel = "QuarryPlusTQL";
+		packet.isChunkDataPacket = true;
+		PacketDispatcher.sendPacketToServer(packet);
+	}
+
+	private static void readQuarryListFromPacket(ByteArrayDataInput badi,
+			EntityPlayer ep) {
+		TileQuarry tq = (TileQuarry) ep.worldObj.getBlockTileEntity(
+				badi.readInt(), badi.readInt(), badi.readInt());
+		ArrayList<Long> target = null;
+		byte targetid = badi.readByte();
+		switch (targetid) {
+		case 1:
+			target = tq.fortuneList;
+			break;
+		case 2:
+			target = tq.silktouchList;
+			break;
+		}
+		switch (badi.readByte()) {
+		case 1:
+			target.add(badi.readLong());
+			break;
+		case 2:
+			target.remove(badi.readLong());
+			break;
+		}
+		ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdGuiQuarryFortuneList
+				+ targetid - 1, ep.worldObj, tq.xCoord, tq.yCoord, tq.zCoord);
+	}
+
+	public static void sendOpenGUIPacket(int guiId, int x, int y, int z) {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		DataOutputStream dos = new DataOutputStream(bos);
+		try {
+			dos.writeByte(guiId);
+			dos.writeInt(x);
+			dos.writeInt(y);
+			dos.writeInt(z);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		Packet250CustomPayload packet = new Packet250CustomPayload();
+		packet.channel = "QPOpenGUI";
+		packet.data = bos.toByteArray();
+		packet.length = bos.size();
+		packet.isChunkDataPacket = true;
+		PacketDispatcher.sendPacketToServer(packet);
+		System.out.print("Sent  ");
+		System.out.println(packet.channel);
+	}
+
+	private static void openGuiFromPacket(ByteArrayDataInput badi,
+			EntityPlayer ep) {
+		ep.openGui(QuarryPlus.instance, badi.readByte(), ep.worldObj,
+				badi.readInt(), badi.readInt(), badi.readInt());
+	}
+
+	public static Packet getPacketFromNBT(TileEntity te) {
+		Packet250CustomPayload pkt = new Packet250CustomPayload();
+		pkt.channel = "QPTENBT";
+		pkt.isChunkDataPacket = true;
+		try {
+			NBTTagCompound nbttc = new NBTTagCompound();
+			te.writeToNBT(nbttc);
+			byte[] bytes = CompressedStreamTools.compress(nbttc);
 			pkt.data = bytes;
 			pkt.length = bytes.length;
-			pkt.isChunkDataPacket = true;
-			return pkt;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		return null;
+		return pkt;
+	}
+
+	private static void setNBTFromPacket(Packet250CustomPayload p,
+			EntityPlayer ep) {
+		try {
+			NBTTagCompound cache;
+			cache = CompressedStreamTools.decompress(p.data);
+			TileEntity te = (ep).worldObj.getBlockTileEntity(
+					cache.getInteger("x"), cache.getInteger("y"),
+					cache.getInteger("z"));
+			if (te != null)
+				te.readFromNBT(cache);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 }

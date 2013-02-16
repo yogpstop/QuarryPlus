@@ -1,7 +1,5 @@
 package org.yogpstop.qp;
 
-import java.io.DataOutputStream;
-
 import org.yogpstop.qp.client.GuiMover;
 
 import net.minecraft.enchantment.Enchantment;
@@ -17,23 +15,18 @@ import net.minecraft.world.World;
 
 import com.google.common.io.ByteArrayDataInput;
 
-import cpw.mods.fml.common.network.PacketDispatcher;
-
 public class ContainerMover extends Container {
 	public IInventory craftMatrix = new InventoryBasic("Matrix", 2);
-	private IInventory playerInventory;
 	private World worldObj;
 	private GuiMover gui;
 	private int posX;
 	private int posY;
 	private int posZ;
-	private int buttonId = -1;
 
 	public ContainerMover(EntityPlayer player, World par2World, int par3,
 			int par4, int par5, GuiMover gm) {
 		this.gui = gm;
 		this.worldObj = par2World;
-		this.playerInventory = player.inventory;
 		this.posX = par3;
 		this.posY = par4;
 		this.posZ = par5;
@@ -47,13 +40,13 @@ public class ContainerMover extends Container {
 
 		for (var6 = 0; var6 < 3; ++var6) {
 			for (var7 = 0; var7 < 9; ++var7) {
-				this.addSlotToContainer(new Slot(this.playerInventory, var7
-						+ var6 * 9 + 9, 8 + var7 * 18, 84 + var6 * 18));
+				this.addSlotToContainer(new Slot(player.inventory, var7 + var6
+						* 9 + 9, 8 + var7 * 18, 84 + var6 * 18));
 			}
 		}
 
 		for (var6 = 0; var6 < 9; ++var6) {
-			this.addSlotToContainer(new Slot(this.playerInventory, var6,
+			this.addSlotToContainer(new Slot(player.inventory, var6,
 					8 + var6 * 18, 142));
 		}
 	}
@@ -82,21 +75,6 @@ public class ContainerMover extends Container {
 	@Override
 	public void detectAndSendChanges() {
 		super.detectAndSendChanges();
-		if (buttonId > -1) {
-			if (!worldObj.isRemote)
-				switch (buttonId) {
-				case 1:
-					moveEnchant((short) 33);
-					break;
-				case 3:
-					moveEnchant((short) 35);
-					break;
-				case 5:
-					moveEnchant((short) 32);
-					break;
-				}
-			buttonId = -1;
-		}
 		if (gui != null) {
 			checkInventory();
 		}
@@ -238,24 +216,17 @@ public class ContainerMover extends Container {
 		return null;
 	}
 
-	public void onButtonPushed(int buttonId) {
-		this.buttonId = (byte) buttonId;
-		PacketDispatcher.sendPacketToServer(PacketHandler.getPacket(this));
-	}
-
 	public void readPacketData(ByteArrayDataInput data) {
-		try {
-			this.buttonId = data.readByte();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	public void writePacketData(DataOutputStream dos) {
-		try {
-			dos.writeByte(this.buttonId);
-		} catch (Exception e) {
-			e.printStackTrace();
+		switch (data.readByte()) {
+		case 1:
+			moveEnchant((short) 33);
+			break;
+		case 3:
+			moveEnchant((short) 35);
+			break;
+		case 5:
+			moveEnchant((short) 32);
+			break;
 		}
 	}
 }

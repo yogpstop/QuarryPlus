@@ -12,6 +12,7 @@ import buildcraft.BuildCraftSilicon;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.StatCollector;
 import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.common.Configuration;
 import net.minecraftforge.common.ForgeChunkManager;
@@ -29,7 +30,7 @@ import cpw.mods.fml.common.FMLLog;
 
 @Mod(modid = "QuarryPlus", name = "QuarryPlus", version = "@VERSION@", dependencies = "required-after:BuildCraft|Factory@[3.4.2,)")
 @NetworkMod(clientSideRequired = true, serverSideRequired = false, channels = {
-		"QuarryPlusGUI", "QuarryPlusBQP" }, packetHandler = PacketHandler.class)
+		"QPOpenGUI", "QuarryPlusGUIBtn", "QPTENBT", "QuarryPlusTQL" }, packetHandler = PacketHandler.class)
 public class QuarryPlus {
 	@SidedProxy(clientSide = "org.yogpstop.qp.client.ClientProxy", serverSide = "org.yogpstop.qp.CommonProxy")
 	public static CommonProxy proxy;
@@ -47,6 +48,8 @@ public class QuarryPlus {
 
 	public static final int guiIdContainerQuarry = 1;
 	public static final int guiIdContainerMover = 2;
+	public static final int guiIdGuiQuarryFortuneList = 3;
+	public static final int guiIdGuiQuarrySilktouchList = 4;
 
 	@Mod.PreInit
 	public void preInit(FMLPreInitializationEvent event) {
@@ -164,9 +167,36 @@ public class QuarryPlus {
 					Block.enchantmentTable, Character.valueOf('O'),
 					Block.obsidian, Character.valueOf('A'), Block.anvil });
 		}
-		NetworkRegistry.instance().registerGuiHandler(this, proxy);
+		NetworkRegistry.instance().registerGuiHandler(this, new GuiHandler());
 		MinecraftForgeClient.registerItemRenderer(itemQuarry.itemID,
 				new QuarryItemRenderer());
 		proxy.registerTextures();
+	}
+
+	public static String getname(short blockid, int meta) {
+		StringBuffer sb = new StringBuffer();
+		sb.append(blockid);
+		if (meta != 0) {
+			sb.append(":");
+			sb.append(meta);
+		}
+		sb.append("  ");
+		ItemStack cache = new ItemStack(blockid, 1, meta);
+		if (cache.getItem() == null) {
+			sb.append(StatCollector.translateToLocal("tof.nullblock"));
+		} else if (cache.getDisplayName() == null) {
+			sb.append(StatCollector.translateToLocal("tof.nullname"));
+		} else {
+			sb.append(cache.getDisplayName());
+		}
+		return sb.toString();
+	}
+
+	public static String getname(long data) {
+		return getname((short) (data % 0x1000), (int) (data >> 12));
+	}
+
+	public static long data(short id, int meta) {
+		return id + (meta << 12);
 	}
 }

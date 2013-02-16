@@ -1,8 +1,12 @@
 package org.yogpstop.qp.client;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.network.packet.Packet250CustomPayload;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
 
@@ -10,6 +14,7 @@ import org.lwjgl.opengl.GL11;
 
 import org.yogpstop.qp.ContainerMover;
 
+import cpw.mods.fml.common.network.PacketDispatcher;
 import cpw.mods.fml.relauncher.SideOnly;
 import cpw.mods.fml.relauncher.Side;
 
@@ -40,7 +45,9 @@ public class GuiMover extends GuiContainer {
 	protected void drawGuiContainerForegroundLayer(int par1, int par2) {
 		drawString(StatCollector.translateToLocal("tile.EnchantMover.name"), 0);
 		drawString(StatCollector.translateToLocal("enchantment.untouching"), 1);
-		drawString(StatCollector.translateToLocal("enchantment.lootBonusDigger"), 2);
+		drawString(
+				StatCollector.translateToLocal("enchantment.lootBonusDigger"),
+				2);
 		drawString(StatCollector.translateToLocal("enchantment.digging"), 3);
 		drawString(StatCollector.translateToLocal("container.inventory"), 4);
 	}
@@ -63,8 +70,23 @@ public class GuiMover extends GuiContainer {
 
 	@Override
 	protected void actionPerformed(GuiButton par1GuiButton) {
-		if (!par1GuiButton.enabled)
+		if (!par1GuiButton.enabled) {
 			return;
-		((ContainerMover) inventorySlots).onButtonPushed(par1GuiButton.id);
+		}
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		DataOutputStream dos = new DataOutputStream(bos);
+
+		try {
+			dos.writeByte(par1GuiButton.id);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		Packet250CustomPayload packet = new Packet250CustomPayload();
+		packet.channel = "QuarryPlusGUIBtn";
+		packet.data = bos.toByteArray();
+		packet.length = bos.size();
+		packet.isChunkDataPacket = true;
+
+		PacketDispatcher.sendPacketToServer(packet);
 	}
 }

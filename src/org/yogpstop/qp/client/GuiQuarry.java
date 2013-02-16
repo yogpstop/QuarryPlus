@@ -1,10 +1,13 @@
 package org.yogpstop.qp.client;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.util.ArrayList;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.network.packet.Packet250CustomPayload;
 import static net.minecraft.util.StatCollector.translateToLocal;
 import net.minecraft.world.World;
 
@@ -12,6 +15,7 @@ import org.lwjgl.opengl.GL11;
 import org.yogpstop.qp.ContainerQuarry;
 import org.yogpstop.qp.TileQuarry;
 
+import cpw.mods.fml.common.network.PacketDispatcher;
 import cpw.mods.fml.relauncher.SideOnly;
 import cpw.mods.fml.relauncher.Side;
 
@@ -19,13 +23,10 @@ import cpw.mods.fml.relauncher.Side;
 public class GuiQuarry extends GuiContainer {
 	@SuppressWarnings("unused")
 	private World world;
-	private ContainerQuarry containerQuarry;
 	private TileQuarry tileQuarry;
 
 	public GuiQuarry(EntityPlayer player, World world, int x, int y, int z) {
-		super(null);
-		this.inventorySlots = new ContainerQuarry(player, world, x, y, z, this);
-		this.containerQuarry = (ContainerQuarry) inventorySlots;
+		super(new ContainerQuarry(player, world, x, y, z));
 		this.tileQuarry = (TileQuarry) world.getBlockTileEntity(x, y, z);
 		this.world = world;
 		this.ySize = 238;
@@ -109,6 +110,20 @@ public class GuiQuarry extends GuiContainer {
 		if (!par1GuiButton.enabled) {
 			return;
 		}
-		containerQuarry.onButtonPushed(par1GuiButton.id);
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		DataOutputStream dos = new DataOutputStream(bos);
+
+		try {
+			dos.writeByte(par1GuiButton.id);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		Packet250CustomPayload packet = new Packet250CustomPayload();
+		packet.channel = "QuarryPlusGUIBtn";
+		packet.data = bos.toByteArray();
+		packet.length = bos.size();
+		packet.isChunkDataPacket = true;
+
+		PacketDispatcher.sendPacketToServer(packet);
 	}
 }

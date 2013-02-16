@@ -1,12 +1,7 @@
 package org.yogpstop.qp;
 
-import java.io.DataOutputStream;
-
-import org.yogpstop.qp.client.GuiQuarry;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
-import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
@@ -17,34 +12,28 @@ import cpw.mods.fml.common.network.PacketDispatcher;
 import cpw.mods.fml.common.network.Player;
 
 public class ContainerQuarry extends Container {
-	private IInventory playerInventory;
 	private TileQuarry tileQuarry;
-	private GuiQuarry gui;
 	private World world;
 	private int xCoord;
 	private int yCoord;
 	private int zCoord;
-	private int buttonId = -1;
 
-	public ContainerQuarry(EntityPlayer player, World world, int x, int y,
-			int z, GuiQuarry gq) {
+	public ContainerQuarry(EntityPlayer player, World world, int x, int y, int z) {
 		this.tileQuarry = (TileQuarry) world.getBlockTileEntity(x, y, z);
-		this.playerInventory = player.inventory;
 		this.world = world;
 		this.xCoord = x;
 		this.yCoord = y;
 		this.zCoord = z;
-		this.gui = gq;
 
 		for (int rows = 0; rows < 3; ++rows) {
 			for (int slotIndex = 0; slotIndex < 9; ++slotIndex) {
-				addSlotToContainer(new Slot(playerInventory, slotIndex + rows
+				addSlotToContainer(new Slot(player.inventory, slotIndex + rows
 						* 9 + 9, 48 + slotIndex * 18, 157 + rows * 18));
 			}
 		}
 
 		for (int slotIndex = 0; slotIndex < 9; ++slotIndex) {
-			addSlotToContainer(new Slot(playerInventory, slotIndex,
+			addSlotToContainer(new Slot(player.inventory, slotIndex,
 					48 + slotIndex * 18, 215));
 		}
 	}
@@ -62,59 +51,37 @@ public class ContainerQuarry extends Container {
 		return null;
 	}
 
-	public void onButtonPushed(int buttonId) {
-		this.buttonId = (byte) buttonId;
-		PacketDispatcher.sendPacketToServer(PacketHandler.getPacket(this));
-	}
-
-	@Override
-	public void detectAndSendChanges() {
-		super.detectAndSendChanges();
-
-		if (gui != null) {
-			gui.setNames();
-		}
-	}
-
 	public void readPacketData(ByteArrayDataInput data, Player p) {
-		if (!world.isRemote) {
-			try {
-				this.buttonId = data.readByte();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			switch (buttonId) {
-			case 0:
-				tileQuarry.reinit();
-				break;
-			case 3:
-				tileQuarry.buildAdvFrame = !tileQuarry.buildAdvFrame;
-				break;
-			case 4:
-				tileQuarry.removeWater = !tileQuarry.removeWater;
-				break;
-			case 5:
-				tileQuarry.removeLava = !tileQuarry.removeLava;
-				break;
-			case 6:
-				tileQuarry.removeLiquid = !tileQuarry.removeLiquid;
-				break;
-			}
-			PacketDispatcher.sendPacketToAllPlayers(PacketHandler
-					.getPacket(tileQuarry));
-			PacketDispatcher.sendPacketToPlayer(PacketHandler.getPacket(this),
-					p);
-		} else {
-			gui.setNames();
+		switch (data.readByte()) {
+		case 0:
+			tileQuarry.reinit();
+			break;
+		case 1:
+			((EntityPlayer) p).openGui(QuarryPlus.instance,
+					QuarryPlus.guiIdGuiQuarryFortuneList, world, xCoord,
+					yCoord, zCoord);
+			return;
+		case 2:
+			((EntityPlayer) p).openGui(QuarryPlus.instance,
+					QuarryPlus.guiIdGuiQuarrySilktouchList, world, xCoord,
+					yCoord, zCoord);
+			return;
+		case 3:
+			tileQuarry.buildAdvFrame = !tileQuarry.buildAdvFrame;
+			break;
+		case 4:
+			tileQuarry.removeWater = !tileQuarry.removeWater;
+			break;
+		case 5:
+			tileQuarry.removeLava = !tileQuarry.removeLava;
+			break;
+		case 6:
+			tileQuarry.removeLiquid = !tileQuarry.removeLiquid;
+			break;
 		}
+		PacketDispatcher.sendPacketToAllPlayers(tileQuarry
+				.getDescriptionPacket());
+		((EntityPlayer) p).openGui(QuarryPlus.instance,
+				QuarryPlus.guiIdContainerQuarry, world, xCoord, yCoord, zCoord);
 	}
-
-	public void writePacketData(DataOutputStream dos) {
-		try {
-			dos.writeByte(this.buttonId);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
 }

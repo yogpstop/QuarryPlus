@@ -6,6 +6,8 @@ import java.util.Set;
 
 import com.google.common.collect.Sets;
 
+import static org.yogpstop.qp.QuarryPlus.data;
+
 import static cpw.mods.fml.common.network.PacketDispatcher.sendPacketToAllPlayers;
 
 import static buildcraft.BuildCraftFactory.frameBlock;
@@ -27,6 +29,7 @@ import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.NBTTagLong;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
@@ -55,8 +58,9 @@ public class TileQuarry extends TileEntity implements IPowerReceptor,
 	private ArrayList<int[]> cacheNonNeeded = new ArrayList<int[]>();
 	private ArrayList<int[]> cacheFills = new ArrayList<int[]>();
 
-	public ArrayList<Integer> fortuneList = new ArrayList<Integer>();
-	public ArrayList<Integer> silktouchList = new ArrayList<Integer>();
+	public final ArrayList<Long> fortuneList = new ArrayList<Long>();
+	public boolean fortuneInclude, silktouchInclude;
+	public final ArrayList<Long> silktouchList = new ArrayList<Long>();
 
 	private boolean initialized = true;
 
@@ -89,7 +93,7 @@ public class TileQuarry extends TileEntity implements IPowerReceptor,
 
 	@Override
 	public Packet getDescriptionPacket() {
-		return PacketHandler.getPacket(this);
+		return PacketHandler.getPacketFromNBT(this);
 	}
 
 	private void initFromNBT() {
@@ -212,13 +216,13 @@ public class TileQuarry extends TileEntity implements IPowerReceptor,
 								.sizeX() - 1.5D, box.sizeZ() - 1.5D, this));
 				heads.setHead(headPos[0], headPos[1], headPos[2]);
 				heads.updatePosition();
-				sendPacketToAllPlayers(PacketHandler.getPacket(this));
+				sendPacketToAllPlayers(getDescriptionPacket());
 				for (; !checkTarget();) {
 					setNextTarget();
 				}
 			}
 			box.deleteLasers();
-			sendPacketToAllPlayers(PacketHandler.getPacket(this));
+			sendPacketToAllPlayers(getDescriptionPacket());
 		case FILL:
 			if (cacheFills.size() > 0) {
 				if (makeFrame(cacheFills.get(0)))
@@ -231,7 +235,7 @@ public class TileQuarry extends TileEntity implements IPowerReceptor,
 					box.sizeX() - 1.5D, box.sizeZ() - 1.5D, this));
 			heads.setHead(headPos[0], headPos[1], headPos[2]);
 			heads.updatePosition();
-			sendPacketToAllPlayers(PacketHandler.getPacket(this));
+			sendPacketToAllPlayers(getDescriptionPacket());
 			for (; !checkTarget();) {
 				setNextTarget();
 			}
@@ -240,7 +244,7 @@ public class TileQuarry extends TileEntity implements IPowerReceptor,
 			boolean done = moveHead();
 			heads.setHead(headPos[0], headPos[1], headPos[2]);
 			heads.updatePosition();
-			sendPacketToAllPlayers(PacketHandler.getPacket(this));
+			sendPacketToAllPlayers(getDescriptionPacket());
 			if (!done)
 				break;
 			now = PROGRESS.BREAKBLOCK;
@@ -270,7 +274,7 @@ public class TileQuarry extends TileEntity implements IPowerReceptor,
 	private boolean checkTarget() {
 		if (target[1] < 1) {
 			destroy();
-			sendPacketToAllPlayers(PacketHandler.getPacket(this));
+			sendPacketToAllPlayers(getDescriptionPacket());
 			return true;
 		}
 		int bid = worldObj.getBlockId(target[0], target[1], target[2]);
@@ -342,11 +346,21 @@ public class TileQuarry extends TileEntity implements IPowerReceptor,
 		removeLava = nbttc.getBoolean("removeLava");
 		removeLiquid = nbttc.getBoolean("removeLiquid");
 		buildAdvFrame = nbttc.getBoolean("buildAdvFrame");
+		fortuneInclude = nbttc.getBoolean("fortuneInclude");
+		silktouchInclude = nbttc.getBoolean("silktouchInclude");
+		readArrayList(nbttc.getTagList("fortuneList"), fortuneList);
+		readArrayList(nbttc.getTagList("silktouchList"), silktouchList);
 		addZ = nbttc.getBoolean("addZ");
 		addX = nbttc.getBoolean("addX");
 		PowerFramework.currentFramework.loadPowerProvider(this, nbttc);
 		now = PROGRESS.valueOf(nbttc.getByte("now"));
 		initialized = false;
+	}
+
+	private void readArrayList(NBTTagList nbttl, ArrayList<Long> target) {
+		target.clear();
+		for (int i = 0; i < nbttl.tagCount(); i++)
+			target.add(((NBTTagLong) nbttl.tagAt(i)).data);
 	}
 
 	@Override
@@ -368,8 +382,19 @@ public class TileQuarry extends TileEntity implements IPowerReceptor,
 		nbttc.setBoolean("buildAdvFrame", buildAdvFrame);
 		nbttc.setBoolean("addZ", addZ);
 		nbttc.setBoolean("addX", addX);
+		nbttc.setBoolean("fortuneInclude", fortuneInclude);
+		nbttc.setBoolean("silktouchInclude", silktouchInclude);
+		nbttc.setTag("fortuneList", writeArrayList(fortuneList));
+		nbttc.setTag("silktouchList", writeArrayList(silktouchList));
 		PowerFramework.currentFramework.savePowerProvider(this, nbttc);
 		nbttc.setByte("now", now.getByteValue());
+	}
+
+	private NBTTagList writeArrayList(ArrayList<Long> target) {
+		NBTTagList nbttl = new NBTTagList();
+		for (Long l : target)
+			nbttl.appendTag(new NBTTagLong("", l));
+		return nbttl;
 	}
 
 	private void setEnchantment(ItemStack is) {
@@ -701,13 +726,19 @@ public class TileQuarry extends TileEntity implements IPowerReceptor,
 			return new ArrayList<ItemStack>();
 		if (b.canSilkHarvest(worldObj, null, x, y, z, meta)
 				&& silktouch
-				&& (silktouchList.contains(b.blockID) || silktouchList.size() == 0)) {
+				&& (silktouchList.contains(data((short) b.blockID, meta)) == silktouchInclude)) {
 			ArrayList<ItemStack> al = new ArrayList<ItemStack>();
 			al.add(new ItemStack(b, 1, meta));
 			return al;
 		}
-		return b.getBlockDropped(worldObj, x, y, z, meta, ((fortuneList
-				.contains(b.blockID) || fortuneList.size() == 0) ? fortune : 0));
+		return b.getBlockDropped(
+				worldObj,
+				x,
+				y,
+				z,
+				meta,
+				((fortuneList.contains(data((short) b.blockID, meta)) == fortuneInclude) ? fortune
+						: 0));
 	}
 
 	@Override
@@ -754,7 +785,7 @@ public class TileQuarry extends TileEntity implements IPowerReceptor,
 				chunks.add(chunk);
 			}
 		}
-		sendPacketToAllPlayers(PacketHandler.getPacket(this));
+		sendPacketToAllPlayers(getDescriptionPacket());
 	}
 
 	private void requestTicket() {
