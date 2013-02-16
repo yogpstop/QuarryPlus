@@ -3,11 +3,10 @@
 
 	<property name="mc.version" value="1.4.7" />
 	<property name="forge.version" value="6.6.0.516" />
-	<property name="api.dir" value="../.api" />
 	<property name="src.dir" value="src" />
 	<property name="res.dir" value="res" />
 	<property name="jar.dir" value="dist" />
-	<property name="mcp.dir" value="${api.dir}/mcp-${mc.version}-${forge.version}" />
+	<property name="mcp.dir" value="../.api/mcp-${mc.version}-${forge.version}" />
 	<property name="reobf.dir" value="${mcp.dir}/reobf/minecraft" />
 	<property name="mcpsrc.dir" value="${mcp.dir}/src/minecraft" />
 	<property name="mcpsrc.dir.concrete" value="${mcpsrc.dir}/org/yogpstop" />
