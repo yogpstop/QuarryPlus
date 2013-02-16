@@ -3,7 +3,6 @@ package org.yogpstop.qp;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 
 import net.minecraft.inventory.Container;
 import net.minecraft.nbt.CompressedStreamTools;
@@ -37,65 +36,16 @@ public class PacketHandler implements IPacketHandler {
 				if (container instanceof ContainerMover) {
 					((ContainerMover) container).readPacketData(data);
 				}
-				if (container instanceof ContainerQuarry) {
-					((ContainerQuarry) container).readPacketData(data, player);
-				}
 			}
-		} else if (packet.channel.equals("QuarryPlusTQL")) {
-			readQuarryListFromPacket(ByteStreams.newDataInput(packet.data),
-					(EntityPlayer) player);
+		} else if (packet.channel.equals("QuarryPlusTQ")) {
+			ByteArrayDataInput data = ByteStreams.newDataInput(packet.data);
+			((TileQuarry) ((EntityPlayer) player).worldObj.getBlockTileEntity(
+					data.readInt(), data.readInt(), data.readInt()))
+					.recievePacket(data, (EntityPlayer) player);
 		} else if (packet.channel.equals("QPOpenGUI")) {
 			openGuiFromPacket(ByteStreams.newDataInput(packet.data),
 					(EntityPlayer) player);
 		}
-	}
-
-	public static void sendTileQuarryListPacket(byte listid, byte queid,
-			long value, int x, int y, int z) {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		DataOutputStream dos = new DataOutputStream(bos);
-		try {
-			dos.writeInt(x);
-			dos.writeInt(y);
-			dos.writeInt(z);
-			dos.writeByte(listid);
-			dos.writeByte(queid);
-			dos.writeLong(value);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		Packet250CustomPayload packet = new Packet250CustomPayload();
-		packet.data = bos.toByteArray();
-		packet.length = bos.size();
-		packet.channel = "QuarryPlusTQL";
-		packet.isChunkDataPacket = true;
-		PacketDispatcher.sendPacketToServer(packet);
-	}
-
-	private static void readQuarryListFromPacket(ByteArrayDataInput badi,
-			EntityPlayer ep) {
-		TileQuarry tq = (TileQuarry) ep.worldObj.getBlockTileEntity(
-				badi.readInt(), badi.readInt(), badi.readInt());
-		ArrayList<Long> target = null;
-		byte targetid = badi.readByte();
-		switch (targetid) {
-		case 1:
-			target = tq.fortuneList;
-			break;
-		case 2:
-			target = tq.silktouchList;
-			break;
-		}
-		switch (badi.readByte()) {
-		case 1:
-			target.add(badi.readLong());
-			break;
-		case 2:
-			target.remove(badi.readLong());
-			break;
-		}
-		ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdGuiQuarryFortuneList
-				+ targetid - 1, ep.worldObj, tq.xCoord, tq.yCoord, tq.zCoord);
 	}
 
 	public static void sendOpenGUIPacket(int guiId, int x, int y, int z) {

@@ -21,12 +21,10 @@ public class GuiHandler implements IGuiHandler {
 		case guiIdContainerMover:
 			return new GuiMover(player, world, x, y, z);
 		case guiIdGuiQuarryFortuneList:
-			return new GuiQuarryList(((TileQuarry) world.getBlockTileEntity(x,
-					y, z)).fortuneList, (TileQuarry) world.getBlockTileEntity(
-					x, y, z));
+			return new GuiQuarryList((byte) 1,
+					(TileQuarry) world.getBlockTileEntity(x, y, z));
 		case guiIdGuiQuarrySilktouchList:
-			return new GuiQuarryList(((TileQuarry) world.getBlockTileEntity(x,
-					y, z)).silktouchList,
+			return new GuiQuarryList((byte) 2,
 					(TileQuarry) world.getBlockTileEntity(x, y, z));
 		}
 

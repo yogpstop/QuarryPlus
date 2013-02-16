@@ -6,20 +6,13 @@ import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 
-import com.google.common.io.ByteArrayDataInput;
-
-import cpw.mods.fml.common.network.PacketDispatcher;
-import cpw.mods.fml.common.network.Player;
-
 public class ContainerQuarry extends Container {
-	private TileQuarry tileQuarry;
 	private World world;
 	private int xCoord;
 	private int yCoord;
 	private int zCoord;
 
 	public ContainerQuarry(EntityPlayer player, World world, int x, int y, int z) {
-		this.tileQuarry = (TileQuarry) world.getBlockTileEntity(x, y, z);
 		this.world = world;
 		this.xCoord = x;
 		this.yCoord = y;
@@ -49,39 +42,5 @@ public class ContainerQuarry extends Container {
 	@Override
 	public ItemStack transferStackInSlot(EntityPlayer player, int slotIndex) {
 		return null;
-	}
-
-	public void readPacketData(ByteArrayDataInput data, Player p) {
-		switch (data.readByte()) {
-		case 0:
-			tileQuarry.reinit();
-			break;
-		case 1:
-			((EntityPlayer) p).openGui(QuarryPlus.instance,
-					QuarryPlus.guiIdGuiQuarryFortuneList, world, xCoord,
-					yCoord, zCoord);
-			return;
-		case 2:
-			((EntityPlayer) p).openGui(QuarryPlus.instance,
-					QuarryPlus.guiIdGuiQuarrySilktouchList, world, xCoord,
-					yCoord, zCoord);
-			return;
-		case 3:
-			tileQuarry.buildAdvFrame = !tileQuarry.buildAdvFrame;
-			break;
-		case 4:
-			tileQuarry.removeWater = !tileQuarry.removeWater;
-			break;
-		case 5:
-			tileQuarry.removeLava = !tileQuarry.removeLava;
-			break;
-		case 6:
-			tileQuarry.removeLiquid = !tileQuarry.removeLiquid;
-			break;
-		}
-		PacketDispatcher.sendPacketToAllPlayers(tileQuarry
-				.getDescriptionPacket());
-		((EntityPlayer) p).openGui(QuarryPlus.instance,
-				QuarryPlus.guiIdContainerQuarry, world, xCoord, yCoord, zCoord);
 	}
 }

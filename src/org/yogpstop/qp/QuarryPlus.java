@@ -30,7 +30,7 @@ import cpw.mods.fml.common.FMLLog;
 
 @Mod(modid = "QuarryPlus", name = "QuarryPlus", version = "@VERSION@", dependencies = "required-after:BuildCraft|Factory@[3.4.2,)")
 @NetworkMod(clientSideRequired = true, serverSideRequired = false, channels = {
-		"QPOpenGUI", "QuarryPlusGUIBtn", "QPTENBT", "QuarryPlusTQL" }, packetHandler = PacketHandler.class)
+		"QPOpenGUI", "QuarryPlusGUIBtn", "QPTENBT", "QuarryPlusTQ" }, packetHandler = PacketHandler.class)
 public class QuarryPlus {
 	@SidedProxy(clientSide = "org.yogpstop.qp.client.ClientProxy", serverSide = "org.yogpstop.qp.CommonProxy")
 	public static CommonProxy proxy;
@@ -198,5 +198,9 @@ public class QuarryPlus {
 
 	public static long data(short id, int meta) {
 		return id + (meta << 12);
+	}
+
+	public static final boolean getBit(short value, byte pos) {
+		return (value << (16 - pos) >>> (15)) == 0 ? false : true;
 	}
 }

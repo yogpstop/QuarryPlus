@@ -1,16 +1,23 @@
 package org.yogpstop.qp;
 
+import static buildcraft.BuildCraftFactory.frameBlock;
+import static buildcraft.core.utils.Utils.addToRandomInventory;
+import static buildcraft.core.utils.Utils.addToRandomPipeEntry;
+import static cpw.mods.fml.common.network.PacketDispatcher.sendPacketToAllPlayers;
+import static org.yogpstop.qp.QuarryPlus.data;
+
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 import com.google.common.collect.Sets;
+import com.google.common.io.ByteArrayDataInput;
 
-import static org.yogpstop.qp.QuarryPlus.data;
+import cpw.mods.fml.common.network.PacketDispatcher;
+import cpw.mods.fml.common.network.Player;
 
-import static cpw.mods.fml.common.network.PacketDispatcher.sendPacketToAllPlayers;
-
-import static buildcraft.BuildCraftFactory.frameBlock;
 import buildcraft.api.core.IAreaProvider;
 import buildcraft.api.core.LaserKind;
 import buildcraft.api.power.IPowerProvider;
@@ -20,47 +27,40 @@ import buildcraft.api.transport.IPipeConnection;
 import buildcraft.core.Box;
 import buildcraft.core.IMachine;
 import buildcraft.core.proxy.CoreProxy;
-import static buildcraft.core.utils.Utils.addToRandomInventory;
-import static buildcraft.core.utils.Utils.addToRandomPipeEntry;
 
 import net.minecraft.block.Block;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagLong;
 import net.minecraft.network.packet.Packet;
+import net.minecraft.network.packet.Packet250CustomPayload;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraftforge.common.ForgeChunkManager;
-import net.minecraftforge.common.ForgeChunkManager.Type;
 import net.minecraftforge.common.ForgeDirection;
 import net.minecraftforge.common.ForgeChunkManager.Ticket;
+import net.minecraftforge.common.ForgeChunkManager.Type;
 
 public class TileQuarry extends TileEntity implements IPowerReceptor,
 		IPipeConnection, IMachine {
-	private final Box box = new Box();
-	private final int[] target = new int[3];
+	public boolean removeLava, removeWater, removeLiquid, buildAdvFrame;
+
+	public final ArrayList<Long> fortuneList = new ArrayList<Long>();
+	public boolean fortuneInclude, silktouchInclude;
+	public final ArrayList<Long> silktouchList = new ArrayList<Long>();
 	private final double[] headPos = new double[3];
+	private final Box box = new Box();
 
 	private EntityMechanicalArm heads;
 
 	private byte fortune;
 	private boolean silktouch;
 	private byte efficiency;
-
-	public boolean removeLava, removeWater, removeLiquid, buildAdvFrame;
-
-	private ArrayList<ItemStack> cacheItems = new ArrayList<ItemStack>();
-	private ArrayList<int[]> cacheFrame = new ArrayList<int[]>();
-	private ArrayList<int[]> cacheNonNeeded = new ArrayList<int[]>();
-	private ArrayList<int[]> cacheFills = new ArrayList<int[]>();
-
-	public final ArrayList<Long> fortuneList = new ArrayList<Long>();
-	public boolean fortuneInclude, silktouchInclude;
-	public final ArrayList<Long> silktouchList = new ArrayList<Long>();
 
 	private boolean initialized = true;
 
@@ -91,108 +91,310 @@ public class TileQuarry extends TileEntity implements IPowerReceptor,
 		private final byte byteValue;
 	}
 
-	@Override
-	public Packet getDescriptionPacket() {
-		return PacketHandler.getPacketFromNBT(this);
-	}
+	private final int[] target = new int[3];
 
-	private void initFromNBT() {
-		initEntities();
-		if (worldObj != null)
-			if (!worldObj.isRemote)
-				initBlocks();
-		initialized = true;
-	}
+	private ArrayList<ItemStack> cacheItems = new ArrayList<ItemStack>();
+	private ArrayList<int[]> cacheFrame = new ArrayList<int[]>();
+	private ArrayList<int[]> cacheNonNeeded = new ArrayList<int[]>();
+	private ArrayList<int[]> cacheFills = new ArrayList<int[]>();
 
-	private void initBlocks() {
-		switch (now) {
-		case NOTNEEDBREAK:
-			initNonNeededBlocks();
-		case MAKEFRAME:
-			initFrames();
-		case FILL:
-			initFills();
-		default:
-		}
-	}
-
-	private void initEntities() {
-		box.deleteLasers();
-		switch (now) {
-		case NOTNEEDBREAK:
-		case MAKEFRAME:
-			box.createLasers(worldObj, LaserKind.Stripes);
-			break;
-		case MOVEHEAD:
-		case BREAKBLOCK:
-			if (heads == null)
-				worldObj.spawnEntityInWorld(new EntityMechanicalArm(worldObj,
-						box.xMin + 0.75D, box.yMax, box.zMin + 0.75D, box
-								.sizeX() - 1.5D, box.sizeZ() - 1.5D, this));
-			break;
-		default:
-		}
-
-		if (heads != null) {
-			if (now != PROGRESS.BREAKBLOCK && now != PROGRESS.MOVEHEAD) {
-				heads.setDead();
-				heads = null;
-			} else {
-				heads.setHead(headPos[0], headPos[1], headPos[2]);
-				heads.updatePosition();
-			}
-		}
-	}
-
-	public ArrayList<String> getEnchantments() {
-		ArrayList<String> als = new ArrayList<String>();
-		if (silktouch)
-			als.add(Enchantment.enchantmentsList[33].getTranslatedName(1));
-		if (fortune > 0)
-			als.add(Enchantment.enchantmentsList[35].getTranslatedName(fortune));
-		if (efficiency > 0)
-			als.add(Enchantment.enchantmentsList[32]
-					.getTranslatedName(efficiency));
-		return als;
-	}
-
-	protected void init(NBTTagList nbttl) {
-		if (nbttl != null)
-			for (int i = 0; i < nbttl.tagCount(); i++) {
-				short id = ((NBTTagCompound) nbttl.tagAt(i)).getShort("id");
-				short lvl = ((NBTTagCompound) nbttl.tagAt(i)).getShort("lvl");
-				if (id == 33)
-					silktouch = true;
-				if (id == 35)
-					fortune = (byte) lvl;
-				if (id == 32)
-					efficiency = (byte) lvl;
-			}
-		createBox();
-		requestTicket();
-		initPowerProvider();
-		reinit();
-	}
-
-	protected void reinit() {
-		setFirstPos();
-		now = PROGRESS.NOTNEEDBREAK;
-		if (!worldObj.isRemote)
-			initBlocks();
-		initEntities();
-	}
+	public static final byte fortuneAdd = 1;
+	public static final byte silktouchAdd = 2;
+	public static final byte fortuneRemove = 3;
+	public static final byte silktouchRemove = 4;
+	public static final byte packetNow = 5;
+	public static final byte packetHeadPos = 6;
+	public static final byte fortuneTInc = 7;
+	public static final byte silktouchTInc = 8;
+	public static final byte reinit = 9;
+	public static final byte tRemoveWater = 10;
+	public static final byte tRemoveLava = 11;
+	public static final byte tRemoveLiquid = 12;
+	public static final byte tBuildAdvFrame = 13;
+	public static final byte openFortuneGui = 14;
+	public static final byte openSilktouchGui = 15;
+	public static final byte openQuarryGui = 16;
+	public static final byte packetFortuneList = 17;
+	public static final byte packetSilktouchList = 18;
 
 	private void initPowerProvider() {
 		pp = PowerFramework.currentFramework.createPowerProvider();
 		pp.configure(0, 0, 100, 0, 30000);
 	}
 
-	@Override
-	public void updateEntity() {
-		if (!initialized)
-			initFromNBT();
+	public void sendPacketToServer(byte id) {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		DataOutputStream dos = new DataOutputStream(bos);
+		try {
+			dos.writeInt(xCoord);
+			dos.writeInt(yCoord);
+			dos.writeInt(zCoord);
+			dos.writeByte(id);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		Packet250CustomPayload packet = new Packet250CustomPayload();
+		packet.channel = "QuarryPlusTQ";
+		packet.data = bos.toByteArray();
+		packet.length = bos.size();
+		packet.isChunkDataPacket = true;
+
+		PacketDispatcher.sendPacketToServer(packet);
+	}
+
+	public void sendPacketToServer(byte id, long value) {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		DataOutputStream dos = new DataOutputStream(bos);
+		try {
+			dos.writeInt(xCoord);
+			dos.writeInt(yCoord);
+			dos.writeInt(zCoord);
+			dos.writeByte(id);
+			dos.writeLong(value);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		Packet250CustomPayload packet = new Packet250CustomPayload();
+		packet.channel = "QuarryPlusTQ";
+		packet.data = bos.toByteArray();
+		packet.length = bos.size();
+		packet.isChunkDataPacket = true;
+
+		PacketDispatcher.sendPacketToServer(packet);
+	}
+
+	private void sendNowPacket() {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		DataOutputStream dos = new DataOutputStream(bos);
+		try {
+			dos.writeInt(xCoord);
+			dos.writeInt(yCoord);
+			dos.writeInt(zCoord);
+			dos.writeByte(packetNow);
+			dos.writeByte(now.getByteValue());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		Packet250CustomPayload packet = new Packet250CustomPayload();
+		packet.channel = "QuarryPlusTQ";
+		packet.data = bos.toByteArray();
+		packet.length = bos.size();
+		packet.isChunkDataPacket = true;
+
+		PacketDispatcher.sendPacketToAllPlayers(packet);
+	}
+
+	private void sendHeadPosPacket() {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		DataOutputStream dos = new DataOutputStream(bos);
+		try {
+			dos.writeInt(xCoord);
+			dos.writeInt(yCoord);
+			dos.writeInt(zCoord);
+			dos.writeByte(packetHeadPos);
+			dos.writeDouble(headPos[0]);
+			dos.writeDouble(headPos[1]);
+			dos.writeDouble(headPos[2]);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		Packet250CustomPayload packet = new Packet250CustomPayload();
+		packet.channel = "QuarryPlusTQ";
+		packet.data = bos.toByteArray();
+		packet.length = bos.size();
+		packet.isChunkDataPacket = true;
+
+		PacketDispatcher.sendPacketToAllPlayers(packet);
+	}
+
+	private void sendPacketToPlayer(EntityPlayer ep, byte id, boolean value) {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		DataOutputStream dos = new DataOutputStream(bos);
+		try {
+			dos.writeInt(xCoord);
+			dos.writeInt(yCoord);
+			dos.writeInt(zCoord);
+			dos.writeByte(id);
+			dos.writeBoolean(value);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		Packet250CustomPayload packet = new Packet250CustomPayload();
+		packet.channel = "QuarryPlusTQ";
+		packet.data = bos.toByteArray();
+		packet.length = bos.size();
+		packet.isChunkDataPacket = true;
+
+		PacketDispatcher.sendPacketToPlayer(packet, (Player) ep);
+	}
+
+	private void sendPacketToPlayer(EntityPlayer ep, byte id,
+			ArrayList<Long> value) {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		DataOutputStream dos = new DataOutputStream(bos);
+		try {
+			dos.writeInt(xCoord);
+			dos.writeInt(yCoord);
+			dos.writeInt(zCoord);
+			dos.writeByte(id);
+			dos.writeInt(value.size());
+			for (Long l : value)
+				dos.writeLong(l);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		Packet250CustomPayload packet = new Packet250CustomPayload();
+		packet.channel = "QuarryPlusTQ";
+		packet.data = bos.toByteArray();
+		packet.length = bos.size();
+		packet.isChunkDataPacket = true;
+
+		PacketDispatcher.sendPacketToPlayer(packet, (Player) ep);
+	}
+
+	void recievePacket(ByteArrayDataInput data, EntityPlayer ep) {
 		if (worldObj.isRemote)
-			return;
+			recievePacketOnClient(data);
+		else
+			recievePacketOnServer(data, ep);
+	}
+
+	private void recievePacketOnServer(ByteArrayDataInput data, EntityPlayer ep) {
+		switch (data.readByte()) {
+		case fortuneAdd:
+			fortuneList.add(data.readLong());
+			sendPacketToPlayer(ep, packetFortuneList, fortuneList);
+			ep.openGui(QuarryPlus.instance,
+					QuarryPlus.guiIdGuiQuarryFortuneList, worldObj, xCoord,
+					yCoord, zCoord);
+			break;
+		case fortuneRemove:
+			fortuneList.remove(data.readLong());
+			sendPacketToPlayer(ep, packetFortuneList, fortuneList);
+			ep.openGui(QuarryPlus.instance,
+					QuarryPlus.guiIdGuiQuarryFortuneList, worldObj, xCoord,
+					yCoord, zCoord);
+			break;
+		case silktouchAdd:
+			silktouchList.add(data.readLong());
+			sendPacketToPlayer(ep, packetSilktouchList, silktouchList);
+			ep.openGui(QuarryPlus.instance,
+					QuarryPlus.guiIdGuiQuarrySilktouchList, worldObj, xCoord,
+					yCoord, zCoord);
+			break;
+		case silktouchRemove:
+			silktouchList.remove(data.readLong());
+			sendPacketToPlayer(ep, packetSilktouchList, silktouchList);
+			ep.openGui(QuarryPlus.instance,
+					QuarryPlus.guiIdGuiQuarrySilktouchList, worldObj, xCoord,
+					yCoord, zCoord);
+			break;
+		case fortuneTInc:
+			fortuneInclude = !fortuneInclude;
+			sendPacketToPlayer(ep, fortuneTInc, fortuneInclude);
+			ep.openGui(QuarryPlus.instance,
+					QuarryPlus.guiIdGuiQuarryFortuneList, worldObj, xCoord,
+					yCoord, zCoord);
+			break;
+		case silktouchTInc:
+			silktouchInclude = !silktouchInclude;
+			sendPacketToPlayer(ep, silktouchTInc, silktouchInclude);
+			ep.openGui(QuarryPlus.instance,
+					QuarryPlus.guiIdGuiQuarrySilktouchList, worldObj, xCoord,
+					yCoord, zCoord);
+			break;
+		case reinit:
+			reinit();
+			break;
+		case tRemoveWater:
+			removeWater = !removeWater;
+			sendPacketToPlayer(ep, tRemoveWater, removeWater);
+			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdContainerQuarry,
+					worldObj, xCoord, yCoord, zCoord);
+			break;
+		case tRemoveLava:
+			removeLava = !removeLava;
+			sendPacketToPlayer(ep, tRemoveLava, removeLava);
+			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdContainerQuarry,
+					worldObj, xCoord, yCoord, zCoord);
+			break;
+		case tRemoveLiquid:
+			removeLiquid = !removeLiquid;
+			sendPacketToPlayer(ep, tRemoveLiquid, removeLiquid);
+			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdContainerQuarry,
+					worldObj, xCoord, yCoord, zCoord);
+			break;
+		case tBuildAdvFrame:
+			buildAdvFrame = !buildAdvFrame;
+			sendPacketToPlayer(ep, tBuildAdvFrame, buildAdvFrame);
+			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdContainerQuarry,
+					worldObj, xCoord, yCoord, zCoord);
+			break;
+		case openFortuneGui:
+			ep.openGui(QuarryPlus.instance,
+					QuarryPlus.guiIdGuiQuarryFortuneList, worldObj, xCoord,
+					yCoord, zCoord);
+			break;
+		case openSilktouchGui:
+			ep.openGui(QuarryPlus.instance,
+					QuarryPlus.guiIdGuiQuarrySilktouchList, worldObj, xCoord,
+					yCoord, zCoord);
+			break;
+		case openQuarryGui:
+			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdContainerQuarry,
+					worldObj, xCoord, yCoord, zCoord);
+			break;
+		}
+	}
+
+	private void recievePacketOnClient(ByteArrayDataInput data) {
+		switch (data.readByte()) {
+		case packetFortuneList:
+			fortuneList.clear();
+			int fsize = data.readInt();
+			for (int i = 0; i < fsize; i++) {
+				fortuneList.add(data.readLong());
+			}
+			break;
+		case packetSilktouchList:
+			silktouchList.clear();
+			int ssize = data.readInt();
+			for (int i = 0; i < ssize; i++) {
+				silktouchList.add(data.readLong());
+			}
+			break;
+		case packetNow:
+			now = PROGRESS.valueOf(data.readByte());
+			initEntities();
+			break;
+		case packetHeadPos:
+			headPos[0] = data.readDouble();
+			headPos[1] = data.readDouble();
+			headPos[2] = data.readDouble();
+			heads.setHead(headPos[0], headPos[1], headPos[2]);
+			break;
+		case fortuneTInc:
+			fortuneInclude = data.readBoolean();
+			break;
+		case silktouchTInc:
+			silktouchInclude = data.readBoolean();
+			break;
+		case tRemoveWater:
+			removeWater = data.readBoolean();
+			break;
+		case tRemoveLava:
+			removeLava = data.readBoolean();
+			break;
+		case tRemoveLiquid:
+			removeLiquid = data.readBoolean();
+			break;
+		case tBuildAdvFrame:
+			buildAdvFrame = data.readBoolean();
+			break;
+		}
+	}
+
+	private void updateServerEntity() {
 		switch (now) {
 		case NOTNEEDBREAK:
 			if (cacheNonNeeded.size() > 0) {
@@ -207,24 +409,11 @@ public class TileQuarry extends TileEntity implements IPowerReceptor,
 					cacheFrame.remove(0);
 				break;
 			}
-			if (buildAdvFrame)
-				now = PROGRESS.FILL;
-			else {
-				now = PROGRESS.MOVEHEAD;
-				worldObj.spawnEntityInWorld(new EntityMechanicalArm(worldObj,
-						box.xMin + 0.75D, box.yMax, box.zMin + 0.75D, box
-								.sizeX() - 1.5D, box.sizeZ() - 1.5D, this));
-				heads.setHead(headPos[0], headPos[1], headPos[2]);
-				heads.updatePosition();
-				sendPacketToAllPlayers(getDescriptionPacket());
-				for (; !checkTarget();) {
-					setNextTarget();
-				}
-			}
+			now = PROGRESS.FILL;
 			box.deleteLasers();
-			sendPacketToAllPlayers(getDescriptionPacket());
+			sendNowPacket();
 		case FILL:
-			if (cacheFills.size() > 0) {
+			if (cacheFills.size() > 0 && buildAdvFrame) {
 				if (makeFrame(cacheFills.get(0)))
 					cacheFills.remove(0);
 				break;
@@ -235,8 +424,8 @@ public class TileQuarry extends TileEntity implements IPowerReceptor,
 					box.sizeX() - 1.5D, box.sizeZ() - 1.5D, this));
 			heads.setHead(headPos[0], headPos[1], headPos[2]);
 			heads.updatePosition();
-			sendPacketToAllPlayers(getDescriptionPacket());
-			for (; !checkTarget();) {
+			sendNowPacket();
+			while (!checkTarget()) {
 				setNextTarget();
 			}
 			break;
@@ -244,14 +433,14 @@ public class TileQuarry extends TileEntity implements IPowerReceptor,
 			boolean done = moveHead();
 			heads.setHead(headPos[0], headPos[1], headPos[2]);
 			heads.updatePosition();
-			sendPacketToAllPlayers(getDescriptionPacket());
+			sendHeadPosPacket();
 			if (!done)
 				break;
 			now = PROGRESS.BREAKBLOCK;
 		case BREAKBLOCK:
 			if (breakBlock(target)) {
 				now = PROGRESS.MOVEHEAD;
-				for (; !checkTarget();) {
+				while (!checkTarget()) {
 					setNextTarget();
 				}
 			}
@@ -271,10 +460,22 @@ public class TileQuarry extends TileEntity implements IPowerReceptor,
 		cacheItems = cache;
 	}
 
+	private void initBlocks() {
+		switch (now) {
+		case NOTNEEDBREAK:
+			initNonNeededBlocks();
+		case MAKEFRAME:
+			initFrames();
+		case FILL:
+			initFills();
+		default:
+		}
+	}
+
 	private boolean checkTarget() {
 		if (target[1] < 1) {
 			destroy();
-			sendPacketToAllPlayers(getDescriptionPacket());
+			sendNowPacket();
 			return true;
 		}
 		int bid = worldObj.getBlockId(target[0], target[1], target[2]);
@@ -291,119 +492,6 @@ public class TileQuarry extends TileEntity implements IPowerReceptor,
 						.isLiquid())
 			return false;
 		return true;
-	}
-
-	private void destroy() {
-		box.deleteLasers();
-		now = PROGRESS.NONE;
-		if (heads != null) {
-			heads.setDead();
-			heads = null;
-		}
-		if (!worldObj.isRemote) {
-			destroyFrames();
-		}
-	}
-
-	@Override
-	public void invalidate() {
-		ForgeChunkManager.releaseTicket(chunkTicket);
-		destroy();
-		if (!worldObj.isRemote
-				&& worldObj.getGameRules().getGameRuleBooleanValue(
-						"doTileDrops")) {
-			ItemStack is = new ItemStack(QuarryPlus.itemQuarry);
-			setEnchantment(is);
-			float var6 = 0.7F;
-			double var7 = (double) (worldObj.rand.nextFloat() * var6)
-					+ (double) (1.0F - var6) * 0.5D;
-			double var9 = (double) (worldObj.rand.nextFloat() * var6)
-					+ (double) (1.0F - var6) * 0.5D;
-			double var11 = (double) (worldObj.rand.nextFloat() * var6)
-					+ (double) (1.0F - var6) * 0.5D;
-			EntityItem var13 = new EntityItem(worldObj, (double) xCoord + var7,
-					(double) yCoord + var9, (double) zCoord + var11, is);
-			var13.delayBeforeCanPickup = 10;
-			worldObj.spawnEntityInWorld(var13);
-		}
-		super.invalidate();
-	}
-
-	@Override
-	public void readFromNBT(NBTTagCompound nbttc) {
-		super.readFromNBT(nbttc);
-		box.initialize(nbttc);
-		silktouch = nbttc.getBoolean("silktouch");
-		fortune = nbttc.getByte("fortune");
-		efficiency = nbttc.getByte("efficiency");
-		target[0] = nbttc.getInteger("targetX");
-		target[1] = nbttc.getInteger("targetY");
-		target[2] = nbttc.getInteger("targetZ");
-		headPos[0] = nbttc.getDouble("headPosX");
-		headPos[1] = nbttc.getDouble("headPosY");
-		headPos[2] = nbttc.getDouble("headPosZ");
-		removeWater = nbttc.getBoolean("removeWater");
-		removeLava = nbttc.getBoolean("removeLava");
-		removeLiquid = nbttc.getBoolean("removeLiquid");
-		buildAdvFrame = nbttc.getBoolean("buildAdvFrame");
-		fortuneInclude = nbttc.getBoolean("fortuneInclude");
-		silktouchInclude = nbttc.getBoolean("silktouchInclude");
-		readArrayList(nbttc.getTagList("fortuneList"), fortuneList);
-		readArrayList(nbttc.getTagList("silktouchList"), silktouchList);
-		addZ = nbttc.getBoolean("addZ");
-		addX = nbttc.getBoolean("addX");
-		PowerFramework.currentFramework.loadPowerProvider(this, nbttc);
-		now = PROGRESS.valueOf(nbttc.getByte("now"));
-		initialized = false;
-	}
-
-	private void readArrayList(NBTTagList nbttl, ArrayList<Long> target) {
-		target.clear();
-		for (int i = 0; i < nbttl.tagCount(); i++)
-			target.add(((NBTTagLong) nbttl.tagAt(i)).data);
-	}
-
-	@Override
-	public void writeToNBT(NBTTagCompound nbttc) {
-		super.writeToNBT(nbttc);
-		box.writeToNBT(nbttc);
-		nbttc.setBoolean("silktouch", silktouch);
-		nbttc.setByte("fortune", fortune);
-		nbttc.setByte("efficiency", efficiency);
-		nbttc.setInteger("targetX", target[0]);
-		nbttc.setInteger("targetY", target[1]);
-		nbttc.setInteger("targetZ", target[2]);
-		nbttc.setDouble("headPosX", headPos[0]);
-		nbttc.setDouble("headPosY", headPos[1]);
-		nbttc.setDouble("headPosZ", headPos[2]);
-		nbttc.setBoolean("removeWater", removeWater);
-		nbttc.setBoolean("removeLava", removeLava);
-		nbttc.setBoolean("removeLiquid", removeLiquid);
-		nbttc.setBoolean("buildAdvFrame", buildAdvFrame);
-		nbttc.setBoolean("addZ", addZ);
-		nbttc.setBoolean("addX", addX);
-		nbttc.setBoolean("fortuneInclude", fortuneInclude);
-		nbttc.setBoolean("silktouchInclude", silktouchInclude);
-		nbttc.setTag("fortuneList", writeArrayList(fortuneList));
-		nbttc.setTag("silktouchList", writeArrayList(silktouchList));
-		PowerFramework.currentFramework.savePowerProvider(this, nbttc);
-		nbttc.setByte("now", now.getByteValue());
-	}
-
-	private NBTTagList writeArrayList(ArrayList<Long> target) {
-		NBTTagList nbttl = new NBTTagList();
-		for (Long l : target)
-			nbttl.appendTag(new NBTTagLong("", l));
-		return nbttl;
-	}
-
-	private void setEnchantment(ItemStack is) {
-		if (silktouch)
-			is.addEnchantment(Enchantment.enchantmentsList[33], 1);
-		if (fortune > 0)
-			is.addEnchantment(Enchantment.enchantmentsList[35], fortune);
-		if (efficiency > 0)
-			is.addEnchantment(Enchantment.enchantmentsList[32], efficiency);
 	}
 
 	private boolean makeFrame(int[] coord) {
@@ -445,6 +533,103 @@ public class TileQuarry extends TileEntity implements IPowerReceptor,
 		}
 	}
 
+	private boolean breakBlock(int[] coord) {
+		float pw = (-7.93F * (float) efficiency + 40F)
+				* blockHardness(coord[0], coord[1], coord[2]);
+		if (pp.useEnergy(pw, pw, true) != pw)
+			return false;
+		cacheItems.addAll(getDroppedItems(coord[0], coord[1], coord[2]));
+		worldObj.playAuxSFXAtEntity(
+				null,
+				2001,
+				coord[0],
+				coord[1],
+				coord[2],
+				worldObj.getBlockId(coord[0], coord[1], coord[2])
+						+ (worldObj.getBlockMetadata(coord[0], coord[1],
+								coord[2]) << 12));
+		worldObj.setBlockWithNotify(coord[0], coord[1], coord[2], 0);
+		checkDropItem(coord);
+		return true;
+	}
+
+	private void dropItem() {
+		ItemStack is = new ItemStack(QuarryPlus.itemQuarry);
+		setEnchantment(is);
+		float var6 = 0.7F;
+		double var7 = (double) (worldObj.rand.nextFloat() * var6)
+				+ (double) (1.0F - var6) * 0.5D;
+		double var9 = (double) (worldObj.rand.nextFloat() * var6)
+				+ (double) (1.0F - var6) * 0.5D;
+		double var11 = (double) (worldObj.rand.nextFloat() * var6)
+				+ (double) (1.0F - var6) * 0.5D;
+		EntityItem var13 = new EntityItem(worldObj, (double) xCoord + var7,
+				(double) yCoord + var9, (double) zCoord + var11, is);
+		var13.delayBeforeCanPickup = 10;
+		worldObj.spawnEntityInWorld(var13);
+	}
+
+	private float blockHardness(int x, int y, int z) {
+		Block b = Block.blocksList[worldObj.getBlockId(x, y, z)];
+		if (b != null) {
+			if (worldObj.getBlockMaterial(x, y, z).isLiquid())
+				return 0;
+			return b.getBlockHardness(worldObj, x, y, z);
+		}
+		return (float) 0;
+	}
+
+	private ArrayList<ItemStack> getDroppedItems(int x, int y, int z) {
+		Block b = Block.blocksList[worldObj.getBlockId(x, y, z)];
+		int meta = worldObj.getBlockMetadata(x, y, z);
+		if (b == null)
+			return new ArrayList<ItemStack>();
+		if (b.canSilkHarvest(worldObj, null, x, y, z, meta)
+				&& silktouch
+				&& (silktouchList.contains(data((short) b.blockID, meta)) == silktouchInclude)) {
+			ArrayList<ItemStack> al = new ArrayList<ItemStack>();
+			al.add(new ItemStack(b, 1, meta));
+			return al;
+		}
+		return b.getBlockDropped(
+				worldObj,
+				x,
+				y,
+				z,
+				meta,
+				((fortuneList.contains(data((short) b.blockID, meta)) == fortuneInclude) ? fortune
+						: 0));
+	}
+
+	@SuppressWarnings("rawtypes")
+	private void checkDropItem(int[] coord) {
+		AxisAlignedBB axis = AxisAlignedBB.getBoundingBox(coord[0] - 4,
+				coord[1] - 4, coord[2] - 4, coord[0] + 6, coord[1] + 6,
+				coord[2] + 6);
+		List result = worldObj.getEntitiesWithinAABB(EntityItem.class, axis);
+		for (int ii = 0; ii < result.size(); ii++) {
+			if (result.get(ii) instanceof EntityItem) {
+				EntityItem entity = (EntityItem) result.get(ii);
+				if (entity.isDead)
+					continue;
+				ItemStack drop = entity.getEntityItem();
+				if (drop.stackSize <= 0)
+					continue;
+				CoreProxy.proxy.removeEntity(entity);
+				cacheItems.add(drop);
+			}
+		}
+	}
+
+	private void setEnchantment(ItemStack is) {
+		if (silktouch)
+			is.addEnchantment(Enchantment.enchantmentsList[33], 1);
+		if (fortune > 0)
+			is.addEnchantment(Enchantment.enchantmentsList[35], fortune);
+		if (efficiency > 0)
+			is.addEnchantment(Enchantment.enchantmentsList[32], efficiency);
+	}
+
 	private void createBox() {
 		if (!checkIAreaProvider(xCoord - 1, yCoord, zCoord))
 			if (!checkIAreaProvider(xCoord + 1, yCoord, zCoord))
@@ -480,15 +665,6 @@ public class TileQuarry extends TileEntity implements IPowerReceptor,
 							}
 	}
 
-	private void setFirstPos() {
-		target[0] = box.xMin + 1;
-		target[2] = box.zMin + 1;
-		target[1] = box.yMin;
-		headPos[0] = box.centerX();
-		headPos[2] = box.centerZ();
-		headPos[1] = box.yMax - 1;
-	}
-
 	private boolean checkIAreaProvider(int x, int y, int z) {
 		if (worldObj.getBlockTileEntity(x, y, z) instanceof IAreaProvider) {
 			box.initialize(((IAreaProvider) worldObj
@@ -509,6 +685,15 @@ public class TileQuarry extends TileEntity implements IPowerReceptor,
 			return true;
 		}
 		return false;
+	}
+
+	private void setFirstPos() {
+		target[0] = box.xMin + 1;
+		target[2] = box.zMin + 1;
+		target[1] = box.yMin;
+		headPos[0] = box.centerX();
+		headPos[2] = box.centerZ();
+		headPos[1] = box.yMax - 1;
 	}
 
 	private void initFrames() {
@@ -669,76 +854,223 @@ public class TileQuarry extends TileEntity implements IPowerReceptor,
 				+ Math.pow(target[2] - headPos[2], 2));
 	}
 
-	private boolean breakBlock(int[] coord) {
-		float pw = (-7.93F * (float) efficiency + 40F)
-				* blockHardness(coord[0], coord[1], coord[2]);
-		if (pp.useEnergy(pw, pw, true) != pw)
-			return false;
-		cacheItems.addAll(getDroppedItems(coord[0], coord[1], coord[2]));
-		worldObj.playAuxSFXAtEntity(
-				null,
-				2001,
-				coord[0],
-				coord[1],
-				coord[2],
-				worldObj.getBlockId(coord[0], coord[1], coord[2])
-						+ (worldObj.getBlockMetadata(coord[0], coord[1],
-								coord[2]) << 12));
-		worldObj.setBlockWithNotify(coord[0], coord[1], coord[2], 0);
-		checkDropItem(coord);
-		return true;
+	private void requestTicket() {
+		if (chunkTicket != null)
+			return;
+		chunkTicket = ForgeChunkManager.requestTicket(QuarryPlus.instance,
+				worldObj, Type.NORMAL);
+		if (chunkTicket == null)
+			return;
+		chunkTicket.getModData().setInteger("quarryX", xCoord);
+		chunkTicket.getModData().setInteger("quarryY", yCoord);
+		chunkTicket.getModData().setInteger("quarryZ", zCoord);
+		forceChunkLoading(chunkTicket);
 	}
 
-	@SuppressWarnings("rawtypes")
-	private void checkDropItem(int[] coord) {
-		AxisAlignedBB axis = AxisAlignedBB.getBoundingBox(coord[0] - 4,
-				coord[1] - 4, coord[2] - 4, coord[0] + 6, coord[1] + 6,
-				coord[2] + 6);
-		List result = worldObj.getEntitiesWithinAABB(EntityItem.class, axis);
-		for (int ii = 0; ii < result.size(); ii++) {
-			if (result.get(ii) instanceof EntityItem) {
-				EntityItem entity = (EntityItem) result.get(ii);
-				if (entity.isDead)
-					continue;
-				ItemStack drop = entity.getEntityItem();
-				if (drop.stackSize <= 0)
-					continue;
-				CoreProxy.proxy.removeEntity(entity);
-				cacheItems.add(drop);
+	private void initFromNBT() {
+		initEntities();
+		if (worldObj != null)
+			if (!worldObj.isRemote)
+				initBlocks();
+		initialized = true;
+	}
+
+	private void initEntities() {
+		box.deleteLasers();
+		switch (now) {
+		case NOTNEEDBREAK:
+		case MAKEFRAME:
+			box.createLasers(worldObj, LaserKind.Stripes);
+			break;
+		case MOVEHEAD:
+		case BREAKBLOCK:
+			if (heads == null)
+				worldObj.spawnEntityInWorld(new EntityMechanicalArm(worldObj,
+						box.xMin + 0.75D, box.yMax, box.zMin + 0.75D, box
+								.sizeX() - 1.5D, box.sizeZ() - 1.5D, this));
+			break;
+		default:
+		}
+
+		if (heads != null) {
+			if (now != PROGRESS.BREAKBLOCK && now != PROGRESS.MOVEHEAD) {
+				heads.setDead();
+				heads = null;
+			} else {
+				heads.setHead(headPos[0], headPos[1], headPos[2]);
+				heads.updatePosition();
 			}
 		}
 	}
 
-	private float blockHardness(int x, int y, int z) {
-		Block b = Block.blocksList[worldObj.getBlockId(x, y, z)];
-		if (b != null) {
-			if (worldObj.getBlockMaterial(x, y, z).isLiquid())
-				return 0;
-			return b.getBlockHardness(worldObj, x, y, z);
+	private void destroy() {
+		box.deleteLasers();
+		now = PROGRESS.NONE;
+		if (heads != null) {
+			heads.setDead();
+			heads = null;
 		}
-		return (float) 0;
+		if (!worldObj.isRemote) {
+			destroyFrames();
+		}
 	}
 
-	private ArrayList<ItemStack> getDroppedItems(int x, int y, int z) {
-		Block b = Block.blocksList[worldObj.getBlockId(x, y, z)];
-		int meta = worldObj.getBlockMetadata(x, y, z);
-		if (b == null)
-			return new ArrayList<ItemStack>();
-		if (b.canSilkHarvest(worldObj, null, x, y, z, meta)
-				&& silktouch
-				&& (silktouchList.contains(data((short) b.blockID, meta)) == silktouchInclude)) {
-			ArrayList<ItemStack> al = new ArrayList<ItemStack>();
-			al.add(new ItemStack(b, 1, meta));
-			return al;
+	void init(NBTTagList nbttl) {
+		if (nbttl != null)
+			for (int i = 0; i < nbttl.tagCount(); i++) {
+				short id = ((NBTTagCompound) nbttl.tagAt(i)).getShort("id");
+				short lvl = ((NBTTagCompound) nbttl.tagAt(i)).getShort("lvl");
+				if (id == 33)
+					silktouch = true;
+				if (id == 35)
+					fortune = (byte) lvl;
+				if (id == 32)
+					efficiency = (byte) lvl;
+			}
+		createBox();
+		requestTicket();
+		initPowerProvider();
+		reinit();
+	}
+
+	void reinit() {
+		now = PROGRESS.NOTNEEDBREAK;
+		if (!worldObj.isRemote) {
+			setFirstPos();
+			initBlocks();
 		}
-		return b.getBlockDropped(
-				worldObj,
-				x,
-				y,
-				z,
-				meta,
-				((fortuneList.contains(data((short) b.blockID, meta)) == fortuneInclude) ? fortune
-						: 0));
+		initEntities();
+		sendPacketToAllPlayers(PacketHandler.getPacketFromNBT(this));
+	}
+
+	void forceChunkLoading(Ticket ticket) {
+		if (chunkTicket == null) {
+			chunkTicket = ticket;
+		}
+
+		Set<ChunkCoordIntPair> chunks = Sets.newHashSet();
+		ChunkCoordIntPair quarryChunk = new ChunkCoordIntPair(xCoord >> 4,
+				zCoord >> 4);
+		chunks.add(quarryChunk);
+		ForgeChunkManager.forceChunk(ticket, quarryChunk);
+
+		for (int chunkX = box.xMin >> 4; chunkX <= box.xMax >> 4; chunkX++) {
+			for (int chunkZ = box.zMin >> 4; chunkZ <= box.zMax >> 4; chunkZ++) {
+				ChunkCoordIntPair chunk = new ChunkCoordIntPair(chunkX, chunkZ);
+				ForgeChunkManager.forceChunk(ticket, chunk);
+				chunks.add(chunk);
+			}
+		}
+		sendPacketToAllPlayers(PacketHandler.getPacketFromNBT(this));
+	}
+
+	void setArm(EntityMechanicalArm ema) {
+		heads = ema;
+	}
+
+	public ArrayList<String> getEnchantments() {
+		ArrayList<String> als = new ArrayList<String>();
+		if (silktouch)
+			als.add(Enchantment.enchantmentsList[33].getTranslatedName(1));
+		if (fortune > 0)
+			als.add(Enchantment.enchantmentsList[35].getTranslatedName(fortune));
+		if (efficiency > 0)
+			als.add(Enchantment.enchantmentsList[32]
+					.getTranslatedName(efficiency));
+		return als;
+	}
+
+	@Override
+	public void updateEntity() {
+		if (!initialized)
+			initFromNBT();
+		if (!worldObj.isRemote)
+			updateServerEntity();
+	}
+
+	@Override
+	public Packet getDescriptionPacket() {
+		return PacketHandler.getPacketFromNBT(this);
+	}
+
+	@Override
+	public void invalidate() {
+		destroy();
+		if (!worldObj.isRemote) {
+			ForgeChunkManager.releaseTicket(chunkTicket);
+			if (worldObj.getGameRules().getGameRuleBooleanValue("doTileDrops")) {
+				dropItem();
+			}
+		}
+		super.invalidate();
+	}
+
+	@Override
+	public void readFromNBT(NBTTagCompound nbttc) {
+		super.readFromNBT(nbttc);
+		box.initialize(nbttc);
+		addZ = nbttc.getBoolean("addZ");
+		addX = nbttc.getBoolean("addX");
+		target[0] = nbttc.getInteger("targetX");
+		target[1] = nbttc.getInteger("targetY");
+		target[2] = nbttc.getInteger("targetZ");
+		now = PROGRESS.valueOf(nbttc.getByte("now"));
+		silktouch = nbttc.getBoolean("silktouch");
+		fortune = nbttc.getByte("fortune");
+		efficiency = nbttc.getByte("efficiency");
+		headPos[0] = nbttc.getDouble("headPosX");
+		headPos[1] = nbttc.getDouble("headPosY");
+		headPos[2] = nbttc.getDouble("headPosZ");
+		removeWater = nbttc.getBoolean("removeWater");
+		removeLava = nbttc.getBoolean("removeLava");
+		removeLiquid = nbttc.getBoolean("removeLiquid");
+		buildAdvFrame = nbttc.getBoolean("buildAdvFrame");
+		fortuneInclude = nbttc.getBoolean("fortuneInclude");
+		silktouchInclude = nbttc.getBoolean("silktouchInclude");
+		readArrayList(nbttc.getTagList("fortuneList"), fortuneList);
+		readArrayList(nbttc.getTagList("silktouchList"), silktouchList);
+		PowerFramework.currentFramework.loadPowerProvider(this, nbttc);
+		initialized = false;
+	}
+
+	private void readArrayList(NBTTagList nbttl, ArrayList<Long> target) {
+		target.clear();
+		for (int i = 0; i < nbttl.tagCount(); i++)
+			target.add(((NBTTagLong) nbttl.tagAt(i)).data);
+	}
+
+	@Override
+	public void writeToNBT(NBTTagCompound nbttc) {
+		super.writeToNBT(nbttc);
+		box.writeToNBT(nbttc);
+		nbttc.setInteger("targetX", target[0]);
+		nbttc.setInteger("targetY", target[1]);
+		nbttc.setInteger("targetZ", target[2]);
+		nbttc.setBoolean("addZ", addZ);
+		nbttc.setBoolean("addX", addX);
+		nbttc.setByte("now", now.getByteValue());
+		nbttc.setBoolean("silktouch", silktouch);
+		nbttc.setByte("fortune", fortune);
+		nbttc.setByte("efficiency", efficiency);
+		nbttc.setDouble("headPosX", headPos[0]);
+		nbttc.setDouble("headPosY", headPos[1]);
+		nbttc.setDouble("headPosZ", headPos[2]);
+		nbttc.setBoolean("removeWater", removeWater);
+		nbttc.setBoolean("removeLava", removeLava);
+		nbttc.setBoolean("removeLiquid", removeLiquid);
+		nbttc.setBoolean("buildAdvFrame", buildAdvFrame);
+		nbttc.setBoolean("fortuneInclude", fortuneInclude);
+		nbttc.setBoolean("silktouchInclude", silktouchInclude);
+		nbttc.setTag("fortuneList", writeArrayList(fortuneList));
+		nbttc.setTag("silktouchList", writeArrayList(silktouchList));
+		PowerFramework.currentFramework.savePowerProvider(this, nbttc);
+	}
+
+	private NBTTagList writeArrayList(ArrayList<Long> target) {
+		NBTTagList nbttl = new NBTTagList();
+		for (Long l : target)
+			nbttl.appendTag(new NBTTagLong("", l));
+		return nbttl;
 	}
 
 	@Override
@@ -761,44 +1093,6 @@ public class TileQuarry extends TileEntity implements IPowerReceptor,
 		return (int) Math.ceil(Math.min(getPowerProvider()
 				.getMaxEnergyReceived(), getPowerProvider()
 				.getMaxEnergyStored() - getPowerProvider().getEnergyStored()));
-	}
-
-	protected void setArm(EntityMechanicalArm ema) {
-		heads = ema;
-	}
-
-	protected void forceChunkLoading(Ticket ticket) {
-		if (chunkTicket == null) {
-			chunkTicket = ticket;
-		}
-
-		Set<ChunkCoordIntPair> chunks = Sets.newHashSet();
-		ChunkCoordIntPair quarryChunk = new ChunkCoordIntPair(xCoord >> 4,
-				zCoord >> 4);
-		chunks.add(quarryChunk);
-		ForgeChunkManager.forceChunk(ticket, quarryChunk);
-
-		for (int chunkX = box.xMin >> 4; chunkX <= box.xMax >> 4; chunkX++) {
-			for (int chunkZ = box.zMin >> 4; chunkZ <= box.zMax >> 4; chunkZ++) {
-				ChunkCoordIntPair chunk = new ChunkCoordIntPair(chunkX, chunkZ);
-				ForgeChunkManager.forceChunk(ticket, chunk);
-				chunks.add(chunk);
-			}
-		}
-		sendPacketToAllPlayers(getDescriptionPacket());
-	}
-
-	private void requestTicket() {
-		if (chunkTicket != null)
-			return;
-		chunkTicket = ForgeChunkManager.requestTicket(QuarryPlus.instance,
-				worldObj, Type.NORMAL);
-		if (chunkTicket == null)
-			return;
-		chunkTicket.getModData().setInteger("quarryX", xCoord);
-		chunkTicket.getModData().setInteger("quarryY", yCoord);
-		chunkTicket.getModData().setInteger("quarryZ", zCoord);
-		forceChunkLoading(chunkTicket);
 	}
 
 	@Override
@@ -825,4 +1119,5 @@ public class TileQuarry extends TileEntity implements IPowerReceptor,
 	public boolean allowActions() {
 		return false;
 	}
+
 }

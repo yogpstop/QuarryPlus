@@ -1,12 +1,8 @@
 package org.yogpstop.qp.client;
 
-import java.util.ArrayList;
-
-import org.yogpstop.qp.PacketHandler;
 import org.yogpstop.qp.QuarryPlus;
 import org.yogpstop.qp.TileQuarry;
 
-import net.minecraft.block.Block;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
@@ -19,13 +15,18 @@ public class GuiQuarryManual extends GuiScreen {
 	private GuiScreen parent;
 	private GuiTextField blockid;
 	private GuiTextField meta;
-	private ArrayList<Long> target;
+	private byte targetid;
 	private TileQuarry quarry;
 
-	public GuiQuarryManual(GuiScreen parents, ArrayList<Long> all, TileQuarry tq) {
+	public GuiQuarryManual(GuiScreen parents, byte id, TileQuarry tq) {
 		parent = parents;
-		target = all;
+		targetid = id;
 		quarry = tq;
+	}
+
+	@Override
+	public boolean doesGuiPauseGame() {
+		return false;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -56,26 +57,24 @@ public class GuiQuarryManual extends GuiScreen {
 				return;
 			}
 			try {
-				metaid = Integer.parseInt(meta.getText());
+				if (meta.getText().equals(""))
+					metaid = 0;
+				else
+					metaid = Integer.parseInt(meta.getText());
 			} catch (Exception e) {
 				meta.setText(StatCollector.translateToLocal("tof.error"));
 				return;
 			}
-			if (target.contains(data(bid, metaid))
-					|| bid == Block.stone.blockID) {
+			if ((targetid == 1 ? quarry.fortuneList : quarry.silktouchList)
+					.contains(data(bid, metaid))) {
 				mc.displayGuiScreen(new GuiError(this, StatCollector
 						.translateToLocal("tof.alreadyerror"), getname(bid,
 						metaid)));
 				return;
 			}
-			byte listid = 0;
-			if (target == quarry.fortuneList)
-				listid = 1;
-			if (target == quarry.silktouchList)
-				listid = 2;
-			PacketHandler.sendTileQuarryListPacket(listid, (byte) 1,
-					QuarryPlus.data(bid, metaid), quarry.xCoord, quarry.yCoord,
-					quarry.zCoord);
+			quarry.sendPacketToServer(
+					(byte) (TileQuarry.fortuneAdd + targetid - 1),
+					QuarryPlus.data(bid, metaid));
 			break;
 		case -2:
 			mc.displayGuiScreen(parent);

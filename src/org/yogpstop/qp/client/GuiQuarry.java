@@ -1,13 +1,10 @@
 package org.yogpstop.qp.client;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
 import java.util.ArrayList;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.network.packet.Packet250CustomPayload;
 import static net.minecraft.util.StatCollector.translateToLocal;
 import net.minecraft.world.World;
 
@@ -15,7 +12,6 @@ import org.lwjgl.opengl.GL11;
 import org.yogpstop.qp.ContainerQuarry;
 import org.yogpstop.qp.TileQuarry;
 
-import cpw.mods.fml.common.network.PacketDispatcher;
 import cpw.mods.fml.relauncher.SideOnly;
 import cpw.mods.fml.relauncher.Side;
 
@@ -73,20 +69,20 @@ public class GuiQuarry extends GuiContainer {
 		int half = (xSize - (offset << 2)) >> 1;
 		int full = (xSize - (offset << 1));
 
-		controlList.add(new GuiButton(1, i + offset, j + 46, half, 20,
-				translateToLocal("gui.fortuneList")));
-		controlList.add(new GuiButton(2, i2 + offset, j + 46, half, 20,
-				translateToLocal("gui.silktouchList")));
-		controlList
-				.add(a3 = new GuiButton(3, i + offset, j + 71, half, 20, ""));
-		controlList
-				.add(a4 = new GuiButton(4, i2 + offset, j + 71, half, 20, ""));
-		controlList
-				.add(a5 = new GuiButton(5, i + offset, j + 96, half, 20, ""));
-		controlList
-				.add(a6 = new GuiButton(6, i2 + offset, j + 96, half, 20, ""));
-		controlList.add(new GuiButton(0, i + offset, j + 121, full, 20,
-				translateToLocal("gui.quarryReset")));
+		controlList.add(new GuiButton(TileQuarry.openFortuneGui, i + offset,
+				j + 46, half, 20, translateToLocal("gui.fortuneList")));
+		controlList.add(new GuiButton(TileQuarry.openSilktouchGui, i2 + offset,
+				j + 46, half, 20, translateToLocal("gui.silktouchList")));
+		controlList.add(a3 = new GuiButton(TileQuarry.tBuildAdvFrame, i
+				+ offset, j + 71, half, 20, ""));
+		controlList.add(a4 = new GuiButton(TileQuarry.tRemoveWater,
+				i2 + offset, j + 71, half, 20, ""));
+		controlList.add(a5 = new GuiButton(TileQuarry.tRemoveLava, i + offset,
+				j + 96, half, 20, ""));
+		controlList.add(a6 = new GuiButton(TileQuarry.tRemoveLiquid, i2
+				+ offset, j + 96, half, 20, ""));
+		controlList.add(new GuiButton(TileQuarry.reinit, i + offset, j + 121,
+				full, 20, translateToLocal("gui.quarryReset")));
 		setNames();
 	}
 
@@ -110,20 +106,6 @@ public class GuiQuarry extends GuiContainer {
 		if (!par1GuiButton.enabled) {
 			return;
 		}
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		DataOutputStream dos = new DataOutputStream(bos);
-
-		try {
-			dos.writeByte(par1GuiButton.id);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		Packet250CustomPayload packet = new Packet250CustomPayload();
-		packet.channel = "QuarryPlusGUIBtn";
-		packet.data = bos.toByteArray();
-		packet.length = bos.size();
-		packet.isChunkDataPacket = true;
-
-		PacketDispatcher.sendPacketToServer(packet);
+		tileQuarry.sendPacketToServer((byte) par1GuiButton.id);
 	}
 }
