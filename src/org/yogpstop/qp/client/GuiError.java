@@ -27,7 +27,7 @@ public class GuiError extends GuiScreen {
 
 	@SuppressWarnings("unchecked")
 	public void initGui() {
-		this.controlList.add(new GuiSmallButton(0, this.width / 2 - 75,
+		this.buttonList.add(new GuiSmallButton(0, this.width / 2 - 75,
 				this.height / 6 + 96, this.buttonText1));
 	}
 

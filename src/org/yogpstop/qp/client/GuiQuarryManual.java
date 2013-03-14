@@ -32,10 +32,10 @@ public class GuiQuarryManual extends GuiScreen {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void initGui() {
-		controlList.add(new GuiButton(-1, this.width / 2 - 150,
+		buttonList.add(new GuiButton(-1, this.width / 2 - 150,
 				this.height - 26, 140, 20, StatCollector
 						.translateToLocal("gui.done")));
-		controlList.add(new GuiButton(-2, this.width / 2 + 10,
+		buttonList.add(new GuiButton(-2, this.width / 2 + 10,
 				this.height - 26, 140, 20, StatCollector
 						.translateToLocal("gui.cancel")));
 		blockid = new GuiTextField(fontRenderer, this.width / 2 - 50, 50, 100,

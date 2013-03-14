@@ -498,8 +498,8 @@ public class TileQuarry extends TileEntity implements IPowerReceptor,
 		float y = Math.max(-4.8F * (float) efficiency + 25F, 0F);
 		if (pp.useEnergy(y, y, true) != y)
 			return false;
-		worldObj.setBlockWithNotify(coord[0], coord[1], coord[2],
-				frameBlock.blockID);
+		worldObj.func_94575_c(coord[0], coord[1], coord[2], frameBlock.blockID);
+
 		return true;
 	}
 
@@ -548,13 +548,13 @@ public class TileQuarry extends TileEntity implements IPowerReceptor,
 				worldObj.getBlockId(coord[0], coord[1], coord[2])
 						+ (worldObj.getBlockMetadata(coord[0], coord[1],
 								coord[2]) << 12));
-		worldObj.setBlockWithNotify(coord[0], coord[1], coord[2], 0);
+		worldObj.func_94575_c(coord[0], coord[1], coord[2], 0);
 		checkDropItem(coord);
 		return true;
 	}
 
 	private void dropItem() {
-		ItemStack is = new ItemStack(QuarryPlus.itemQuarry);
+		ItemStack is = new ItemStack(QuarryPlus.blockQuarry);
 		setEnchantment(is);
 		float var6 = 0.7F;
 		double var7 = (double) (worldObj.rand.nextFloat() * var6)
@@ -816,7 +816,7 @@ public class TileQuarry extends TileEntity implements IPowerReceptor,
 
 	private void setBreakableFrame(int x, int y, int z) {
 		if (worldObj.getBlockId(x, y, z) == frameBlock.blockID) {
-			worldObj.setBlockMetadata(x, y, z, 1);
+			worldObj.setBlockMetadataWithNotify(x, y, z, 1, 3);
 		}
 	}
 

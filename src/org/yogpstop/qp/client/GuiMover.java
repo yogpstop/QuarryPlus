@@ -36,9 +36,9 @@ public class GuiMover extends GuiContainer {
 		a1 = new GuiButton(1, i + 126, j + 20, 20, 15, ">>");
 		a3 = new GuiButton(3, i + 126, j + 36, 20, 15, ">>");
 		a5 = new GuiButton(5, i + 126, j + 52, 20, 15, ">>");
-		controlList.add(a1);
-		controlList.add(a3);
-		controlList.add(a5);
+		buttonList.add(a1);
+		buttonList.add(a3);
+		buttonList.add(a5);
 	}
 
 	@Override
@@ -60,9 +60,8 @@ public class GuiMover extends GuiContainer {
 
 	@Override
 	protected void drawGuiContainerBackgroundLayer(float f, int i, int j) {
-		int k = mc.renderEngine.getTexture("/org/yogpstop/qp/mover.png");
 		GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-		mc.renderEngine.bindTexture(k);
+		mc.renderEngine.func_98187_b("/org/yogpstop/qp/mover.png");
 		int l = width - xSize >> 1;
 		int i1 = height - ySize >> 1;
 		drawTexturedModalRect(l, i1, 0, 0, xSize, ySize);

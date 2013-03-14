@@ -16,7 +16,7 @@ import net.minecraft.world.World;
 import com.google.common.io.ByteArrayDataInput;
 
 public class ContainerMover extends Container {
-	public IInventory craftMatrix = new InventoryBasic("Matrix", 2);
+	public IInventory craftMatrix = new InventoryBasic("Matrix", false, 2);
 	private World worldObj;
 	private GuiMover gui;
 	private int posX;

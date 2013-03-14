@@ -48,9 +48,8 @@ public class GuiQuarry extends GuiContainer {
 
 	@Override
 	protected void drawGuiContainerBackgroundLayer(float f, int i, int j) {
-		int k = mc.renderEngine.getTexture("/org/yogpstop/qp/quarry.png");
 		GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-		mc.renderEngine.bindTexture(k);
+		mc.renderEngine.func_98187_b("/org/yogpstop/qp/quarry.png");
 		int l = width - xSize >> 1;
 		int i1 = height - ySize >> 1;
 		drawTexturedModalRect(l, i1, 0, 0, xSize, ySize);
@@ -69,19 +68,19 @@ public class GuiQuarry extends GuiContainer {
 		int half = (xSize - (offset << 2)) >> 1;
 		int full = (xSize - (offset << 1));
 
-		controlList.add(new GuiButton(TileQuarry.openFortuneGui, i + offset,
+		buttonList.add(new GuiButton(TileQuarry.openFortuneGui, i + offset,
 				j + 46, half, 20, translateToLocal("gui.fortuneList")));
-		controlList.add(new GuiButton(TileQuarry.openSilktouchGui, i2 + offset,
+		buttonList.add(new GuiButton(TileQuarry.openSilktouchGui, i2 + offset,
 				j + 46, half, 20, translateToLocal("gui.silktouchList")));
-		controlList.add(a3 = new GuiButton(TileQuarry.tBuildAdvFrame, i
-				+ offset, j + 71, half, 20, ""));
-		controlList.add(a4 = new GuiButton(TileQuarry.tRemoveWater,
-				i2 + offset, j + 71, half, 20, ""));
-		controlList.add(a5 = new GuiButton(TileQuarry.tRemoveLava, i + offset,
+		buttonList.add(a3 = new GuiButton(TileQuarry.tBuildAdvFrame,
+				i + offset, j + 71, half, 20, ""));
+		buttonList.add(a4 = new GuiButton(TileQuarry.tRemoveWater, i2 + offset,
+				j + 71, half, 20, ""));
+		buttonList.add(a5 = new GuiButton(TileQuarry.tRemoveLava, i + offset,
 				j + 96, half, 20, ""));
-		controlList.add(a6 = new GuiButton(TileQuarry.tRemoveLiquid, i2
-				+ offset, j + 96, half, 20, ""));
-		controlList.add(new GuiButton(TileQuarry.reinit, i + offset, j + 121,
+		buttonList.add(a6 = new GuiButton(TileQuarry.tRemoveLiquid,
+				i2 + offset, j + 96, half, 20, ""));
+		buttonList.add(new GuiButton(TileQuarry.reinit, i + offset, j + 121,
 				full, 20, translateToLocal("gui.quarryReset")));
 		setNames();
 	}

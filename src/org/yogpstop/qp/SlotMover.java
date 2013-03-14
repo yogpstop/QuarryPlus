@@ -25,7 +25,7 @@ public class SlotMover extends Slot {
 			}
 			return false;
 		case 1:
-			if (par1ItemStack.itemID == QuarryPlus.itemQuarry.itemID) {
+			if (par1ItemStack.itemID == QuarryPlus.blockQuarry.blockID) {
 				return true;
 			}
 		}

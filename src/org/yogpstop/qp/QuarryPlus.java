@@ -2,8 +2,6 @@ package org.yogpstop.qp;
 
 import java.util.logging.Level;
 
-import org.yogpstop.qp.client.QuarryItemRenderer;
-
 import buildcraft.BuildCraftBuilders;
 import buildcraft.BuildCraftCore;
 import buildcraft.BuildCraftFactory;
@@ -13,7 +11,6 @@ import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.StatCollector;
-import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.common.Configuration;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.Property;
@@ -42,8 +39,6 @@ public class QuarryPlus {
 	public static Block blockMarker;
 	public static Block blockMover;
 
-	public static Item itemQuarry;
-
 	public static int RecipeDifficulty;
 
 	public static final int guiIdContainerQuarry = 1;
@@ -58,13 +53,11 @@ public class QuarryPlus {
 		try {
 			cfg.load();
 			blockQuarry = (new BlockQuarry(cfg.getBlock("Quarry", 4001)
-					.getInt())).setBlockName("QuarryPlus");
+					.getInt()));
 			blockMarker = (new BlockMarker(cfg.getBlock("Marker", 4002)
-					.getInt())).setBlockName("MarkerPlus");
+					.getInt()));
 			blockMover = (new BlockMover(cfg.getBlock("EnchantMover", 4003)
-					.getInt())).setBlockName("EnchantMover");
-			itemQuarry = (new ItemQuarry(cfg.getItem("ItemQuarry", 25001)
-					.getInt())).setItemName("QuarryPlus");
+					.getInt()));
 			Property RD = cfg.get(Configuration.CATEGORY_GENERAL,
 					"RecipeDifficulty", 2);
 			RD.comment = "0:AsCheatRecipe,1:EasyRecipe,2:NormalRecipe(Default),3:HardRecipe,other:NormalRecipe";
@@ -98,7 +91,7 @@ public class QuarryPlus {
 					"X", "Y", Character.valueOf('Y'),
 					BuildCraftBuilders.markerBlock, Character.valueOf('X'),
 					Item.redstone });
-			GameRegistry.addRecipe(new ItemStack(itemQuarry, 1), new Object[] {
+			GameRegistry.addRecipe(new ItemStack(blockQuarry, 1), new Object[] {
 					"X", "Y", Character.valueOf('Y'),
 					BuildCraftFactory.quarryBlock, Character.valueOf('X'),
 					Item.redstone });
@@ -113,7 +106,7 @@ public class QuarryPlus {
 					"X", "Y", Character.valueOf('Y'),
 					BuildCraftBuilders.markerBlock, Character.valueOf('X'),
 					Item.ingotGold });
-			GameRegistry.addRecipe(new ItemStack(itemQuarry, 1), new Object[] {
+			GameRegistry.addRecipe(new ItemStack(blockQuarry, 1), new Object[] {
 					" X ", "DYD", Character.valueOf('Y'),
 					BuildCraftFactory.quarryBlock, Character.valueOf('X'),
 					Block.anvil, Character.valueOf('D'),
@@ -131,7 +124,7 @@ public class QuarryPlus {
 					new ItemStack(BuildCraftSilicon.redstoneChipset, 1, 2),
 					Character.valueOf('Y'), BuildCraftBuilders.markerBlock,
 					Character.valueOf('Z'), BuildCraftCore.diamondGearItem });
-			GameRegistry.addRecipe(new ItemStack(itemQuarry, 1), new Object[] {
+			GameRegistry.addRecipe(new ItemStack(blockQuarry, 1), new Object[] {
 					"GBG", "CQC", "WAW", Character.valueOf('G'),
 					BuildCraftCore.diamondGearItem, Character.valueOf('B'),
 					Block.blockDiamond, Character.valueOf('C'),
@@ -152,7 +145,7 @@ public class QuarryPlus {
 					"X", "Y", Character.valueOf('X'),
 					new ItemStack(BuildCraftSilicon.redstoneChipset, 1, 2),
 					Character.valueOf('Y'), BuildCraftBuilders.markerBlock });
-			GameRegistry.addRecipe(new ItemStack(itemQuarry, 1), new Object[] {
+			GameRegistry.addRecipe(new ItemStack(blockQuarry, 1), new Object[] {
 					"GDG", "IQI", "WAW", Character.valueOf('G'),
 					BuildCraftCore.goldGearItem, Character.valueOf('D'),
 					new ItemStack(BuildCraftSilicon.redstoneChipset, 1, 3),
@@ -168,8 +161,6 @@ public class QuarryPlus {
 					Block.obsidian, Character.valueOf('A'), Block.anvil });
 		}
 		NetworkRegistry.instance().registerGuiHandler(this, new GuiHandler());
-		MinecraftForgeClient.registerItemRenderer(itemQuarry.itemID,
-				new QuarryItemRenderer());
 		proxy.registerTextures();
 	}
 

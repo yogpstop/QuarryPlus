@@ -416,14 +416,14 @@ public class TileMarker extends TileBuildCraft implements IAreaProvider {
 
 		for (TileWrapper m : o.vect.clone()) {
 			if (m.isSet()) {
-				worldObj.setBlockWithNotify(m.x, m.y, m.z, 0);
+				worldObj.func_94575_c(m.x, m.y, m.z, 0);
 
 				blockMarker.dropBlockAsItem(worldObj, m.x, m.y, m.z,
 						blockMarker.blockID, 0);
 			}
 		}
 
-		worldObj.setBlockWithNotify(o.vectO.x, o.vectO.y, o.vectO.z, 0);
+		worldObj.func_94575_c(o.vectO.x, o.vectO.y, o.vectO.z, 0);
 
 		blockMarker.dropBlockAsItem(worldObj, o.vectO.x, o.vectO.y, o.vectO.z,
 				blockMarker.blockID, 0);

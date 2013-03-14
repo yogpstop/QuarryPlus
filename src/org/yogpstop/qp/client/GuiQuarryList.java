@@ -28,18 +28,18 @@ public class GuiQuarryList extends GuiScreen {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void initGui() {
-		controlList.add(new GuiButton(TileQuarry.openQuarryGui,
+		buttonList.add(new GuiButton(TileQuarry.openQuarryGui,
 				this.width / 2 - 125, this.height - 26, 250, 20, StatCollector
 						.translateToLocal("gui.done")));
-		controlList.add(new GuiButton(TileQuarry.fortuneTInc + targetid - 1,
+		buttonList.add(new GuiButton(TileQuarry.fortuneTInc + targetid - 1,
 				this.width * 2 / 3 + 10, 50, 100, 20, StatCollector
 						.translateToLocal(include() ? "tof.include"
 								: "tof.exclude")));
-		controlList.add(new GuiButton(-1, this.width * 2 / 3 + 10, 80, 100, 20,
+		buttonList.add(new GuiButton(-1, this.width * 2 / 3 + 10, 80, 100, 20,
 				StatCollector.translateToLocal("tof.addnewore") + "("
 						+ StatCollector.translateToLocal("tof.manualinput")
 						+ ")"));
-		controlList.add(delete = new GuiButton(TileQuarry.fortuneRemove
+		buttonList.add(delete = new GuiButton(TileQuarry.fortuneRemove
 				+ targetid - 1, this.width * 2 / 3 + 10, 110, 100, 20,
 				StatCollector.translateToLocal("selectServer.delete")));
 		oreslot = new GuiSlotQuarryList(mc, this.width * 3 / 5, this.height,
