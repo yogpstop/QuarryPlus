@@ -7,34 +7,29 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 
 public class SlotMover extends Slot {
-	Container parentsC;
+    Container parentsC;
 
-	public SlotMover(IInventory par1iInventory, int par2, int par3, int par4,
-			Container c) {
-		super(par1iInventory, par2, par3, par4);
-		parentsC = c;
+    public SlotMover(IInventory par1iInventory, int par2, int par3, int par4, Container c) {
+        super(par1iInventory, par2, par3, par4);
+        parentsC = c;
 
-	}
+    }
 
-	@Override
-	public boolean isItemValid(ItemStack par1ItemStack) {
-		switch (this.slotNumber) {
-		case 0:
-			if (par1ItemStack.itemID == Item.pickaxeDiamond.itemID) {
-				return true;
-			}
-			return false;
-		case 1:
-			if (par1ItemStack.itemID == QuarryPlus.blockQuarry.blockID) {
-				return true;
-			}
-		}
-		return false;
-	}
+    @Override
+    public boolean isItemValid(ItemStack par1ItemStack) {
+        switch (this.slotNumber) {
+        case 0:
+            if (par1ItemStack.itemID == Item.pickaxeDiamond.itemID) { return true; }
+            return false;
+        case 1:
+            if (par1ItemStack.itemID == QuarryPlus.blockQuarry.blockID) { return true; }
+        }
+        return false;
+    }
 
-	@Override
-	public void onSlotChanged() {
-		parentsC.onCraftMatrixChanged(inventory);
-		super.onSlotChanged();
-	}
+    @Override
+    public void onSlotChanged() {
+        parentsC.onCraftMatrixChanged(inventory);
+        super.onSlotChanged();
+    }
 }

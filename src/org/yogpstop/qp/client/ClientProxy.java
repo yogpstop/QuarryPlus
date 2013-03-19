@@ -13,10 +13,9 @@ import cpw.mods.fml.relauncher.Side;
 
 @SideOnly(Side.CLIENT)
 public class ClientProxy extends CommonProxy {
-	public void registerTextures() {
-		MinecraftForgeClient.preloadTexture("/org/yogpstop/qp/blocks.png");
-		RenderingRegistry.registerEntityRenderingHandler(
-				EntityMechanicalArm.class, new RenderVoid());
-	}
+    public void registerTextures() {
+        MinecraftForgeClient.preloadTexture("/org/yogpstop/qp/blocks.png");
+        RenderingRegistry.registerEntityRenderingHandler(EntityMechanicalArm.class, new RenderVoid());
+    }
 
 }
