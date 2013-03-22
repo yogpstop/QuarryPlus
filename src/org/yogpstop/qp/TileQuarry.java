@@ -350,7 +350,8 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
             headPos[0] = data.readDouble();
             headPos[1] = data.readDouble();
             headPos[2] = data.readDouble();
-            heads.setHead(headPos[0], headPos[1], headPos[2]);
+            if (heads != null)
+	            heads.setHead(headPos[0], headPos[1], headPos[2]);
             break;
         case fortuneTInc:
             fortuneInclude = data.readBoolean();
@@ -409,9 +410,11 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
             break;
         case MOVEHEAD:
             boolean done = moveHead();
-            heads.setHead(headPos[0], headPos[1], headPos[2]);
-            heads.updatePosition();
-            sendHeadPosPacket();
+            if (heads != null) {
+	            heads.setHead(headPos[0], headPos[1], headPos[2]);
+	            heads.updatePosition();
+	            sendHeadPosPacket();
+	        }
             if (!done)
                 break;
             now = PROGRESS.BREAKBLOCK;
@@ -485,22 +488,16 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
             target[0]++;
         else
             target[0]--;
-        if (target[0] == box.xMax || target[0] == box.xMin) {
+        if (target[0] <= box.xMin || box.xMax <= target[0]) {
             addX = !addX;
-            if (addX)
-                target[0]++;
-            else
-                target[0]--;
+            target[0] = Math.max(box.xMin, Math.min(target[0], box.xMax));
             if (addZ)
                 target[2]++;
             else
                 target[2]--;
-            if (target[2] == box.zMax || target[2] == box.zMin) {
+            if (target[2] <= box.zMin || box.zMax <= target[2]) {
                 addZ = !addZ;
-                if (addZ)
-                    target[2]++;
-                else
-                    target[2]--;
+                target[2] = Math.max(box.zMin, Math.min(target[2], box.zMax));
                 target[1]--;
             }
         }
