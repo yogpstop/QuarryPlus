@@ -350,7 +350,8 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
             headPos[0] = data.readDouble();
             headPos[1] = data.readDouble();
             headPos[2] = data.readDouble();
-            heads.setHead(headPos[0], headPos[1], headPos[2]);
+            if (heads != null)
+	            heads.setHead(headPos[0], headPos[1], headPos[2]);
             break;
         case fortuneTInc:
             fortuneInclude = data.readBoolean();
@@ -409,9 +410,11 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
             break;
         case MOVEHEAD:
             boolean done = moveHead();
-            heads.setHead(headPos[0], headPos[1], headPos[2]);
-            heads.updatePosition();
-            sendHeadPosPacket();
+            if (heads != null) {
+	            heads.setHead(headPos[0], headPos[1], headPos[2]);
+	            heads.updatePosition();
+	            sendHeadPosPacket();
+	        }
             if (!done)
                 break;
             now = PROGRESS.BREAKBLOCK;
