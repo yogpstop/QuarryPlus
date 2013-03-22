@@ -485,22 +485,16 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
             target[0]++;
         else
             target[0]--;
-        if (target[0] == box.xMax || target[0] == box.xMin) {
+        if (target[0] <= box.xMin || box.xMax <= target[0]) {
             addX = !addX;
-            if (addX)
-                target[0]++;
-            else
-                target[0]--;
+            target[0] = Math.max(box.xMin, Math.min(target[0], box.xMax));
             if (addZ)
                 target[2]++;
             else
                 target[2]--;
-            if (target[2] == box.zMax || target[2] == box.zMin) {
+            if (target[2] <= box.zMin || box.zMax <= target[2]) {
                 addZ = !addZ;
-                if (addZ)
-                    target[2]++;
-                else
-                    target[2]--;
+                target[2] = Math.max(box.zMin, Math.min(target[2], box.zMax));
                 target[1]--;
             }
         }
