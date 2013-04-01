@@ -50,16 +50,16 @@ public class BlockQuarry extends BlockContainer {
         case 1:
             return textureTop;
         default:
-            return field_94336_cN;
+            return blockIcon;
         }
     }
 
     @Override
     @SideOnly(Side.CLIENT)
-    public void func_94332_a(IconRegister par1IconRegister) {
-        field_94336_cN = par1IconRegister.func_94245_a("yogpstop/quarryplus:quarry");
-        textureTop = par1IconRegister.func_94245_a("yogpstop/quarryplus:quarry_top");
-        textureFront = par1IconRegister.func_94245_a("yogpstop/quarryplus:quarry_front");
+    public void registerIcons(IconRegister par1IconRegister) {
+        blockIcon = par1IconRegister.registerIcon("yogpstop/quarryplus:quarry");
+        textureTop = par1IconRegister.registerIcon("yogpstop/quarryplus:quarry_top");
+        textureFront = par1IconRegister.registerIcon("yogpstop/quarryplus:quarry_front");
     }
 
     @Override

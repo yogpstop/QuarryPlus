@@ -471,7 +471,7 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
         float y = Math.max(-4.8F * (float) efficiency + 25F, 0F);
         if (pp.useEnergy(y, y, true) != y)
             return false;
-        worldObj.func_94575_c(coord[0], coord[1], coord[2], frameBlock.blockID);
+        worldObj.setBlock(coord[0], coord[1], coord[2], frameBlock.blockID);
 
         return true;
     }
@@ -513,7 +513,7 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
         cacheItems.addAll(getDroppedItems(coord[0], coord[1], coord[2]));
         worldObj.playAuxSFXAtEntity(null, 2001, coord[0], coord[1], coord[2],
                 worldObj.getBlockId(coord[0], coord[1], coord[2]) + (worldObj.getBlockMetadata(coord[0], coord[1], coord[2]) << 12));
-        worldObj.func_94575_c(coord[0], coord[1], coord[2], 0);
+        worldObj.setBlockToAir(coord[0], coord[1], coord[2]);
         checkDropItem(coord);
         return true;
     }
@@ -1018,12 +1018,6 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
     public void doWork() {}
 
     @Override
-    public int powerRequest() {
-        return (int) Math.ceil(Math.min(getPowerProvider().getMaxEnergyReceived(), getPowerProvider().getMaxEnergyStored()
-                - getPowerProvider().getEnergyStored()));
-    }
-
-    @Override
     public boolean isPipeConnected(ForgeDirection with) {
         return true;
     }
@@ -1046,6 +1040,12 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
     @Override
     public boolean allowActions() {
         return false;
+    }
+
+    @Override
+    public int powerRequest(ForgeDirection from) {
+        return (int) Math.ceil(Math.min(getPowerProvider().getMaxEnergyReceived(), getPowerProvider().getMaxEnergyStored()
+                - getPowerProvider().getEnergyStored()));
     }
 
 }

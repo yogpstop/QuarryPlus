@@ -28,15 +28,16 @@ public class BlockMover extends Block {
         case 0:
             return textureBottom;
         default:
-            return field_94336_cN;
+            return blockIcon;
         }
     }
 
     @SideOnly(Side.CLIENT)
-    public void func_94332_a(IconRegister par1IconRegister) {
-        this.field_94336_cN = par1IconRegister.func_94245_a("yogpstop/quarryplus:mover");
-        this.textureTop = par1IconRegister.func_94245_a("yogpstop/quarryplus:mover_top");
-        this.textureBottom = par1IconRegister.func_94245_a("yogpstop/quarryplus:mover_bottom");
+    @Override
+    public void registerIcons(IconRegister par1IconRegister) {
+        this.blockIcon = par1IconRegister.registerIcon("yogpstop/quarryplus:mover");
+        this.textureTop = par1IconRegister.registerIcon("yogpstop/quarryplus:mover_top");
+        this.textureBottom = par1IconRegister.registerIcon("yogpstop/quarryplus:mover_bottom");
     }
 
     @Override

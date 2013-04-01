@@ -46,7 +46,7 @@ public class GuiQuarry extends GuiContainer {
     @Override
     protected void drawGuiContainerBackgroundLayer(float f, int i, int j) {
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-        mc.renderEngine.func_98187_b("/org/yogpstop/qp/quarry.png");
+        mc.renderEngine.bindTexture("/org/yogpstop/qp/quarry.png");
         int l = width - xSize >> 1;
         int i1 = height - ySize >> 1;
         drawTexturedModalRect(l, i1, 0, 0, xSize, ySize);

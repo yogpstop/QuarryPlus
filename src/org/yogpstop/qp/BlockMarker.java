@@ -123,7 +123,7 @@ public class BlockMarker extends BlockContainer {
             }
             if (flag) {
                 dropBlockAsItem(world, i, j, k, blockID, 0);
-                world.func_94575_c(i, j, k, 0);
+                world.setBlockToAir(i, j, k);
             }
         }
     }
@@ -199,7 +199,7 @@ public class BlockMarker extends BlockContainer {
     private boolean dropTorchIfCantStay(World world, int i, int j, int k) {
         if (!canPlaceBlockAt(world, i, j, k)) {
             dropBlockAsItem(world, i, j, k, blockID, 0);
-            world.func_94575_c(i, j, k, 0);
+            world.setBlockToAir(i, j, k);
             return false;
         } else
             return true;
@@ -213,7 +213,7 @@ public class BlockMarker extends BlockContainer {
 
     @Override
     @SideOnly(Side.CLIENT)
-    public void func_94332_a(IconRegister par1IconRegister) {
-        field_94336_cN = par1IconRegister.func_94245_a("yogpstop/quarryplus:marker");
+    public void registerIcons(IconRegister par1IconRegister) {
+        blockIcon = par1IconRegister.registerIcon("yogpstop/quarryplus:marker");
     }
 }
