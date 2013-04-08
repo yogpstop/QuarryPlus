@@ -399,8 +399,8 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
                 break;
             }
             this.now = PROGRESS.MOVEHEAD;
-            this.worldObj.spawnEntityInWorld(new EntityMechanicalArm(this.worldObj, this.box.xMin + 0.75D, this.box.yMax, this.box.zMin + 0.75D, this.box.sizeX() - 1.5D, this.box.sizeZ() - 1.5D,
-                    this));
+            this.worldObj.spawnEntityInWorld(new EntityMechanicalArm(this.worldObj, this.box.xMin + 0.75D, this.box.yMax, this.box.zMin + 0.75D, this.box
+                    .sizeX() - 1.5D, this.box.sizeZ() - 1.5D, this));
             this.heads.setHead(this.headPos[0], this.headPos[1], this.headPos[2]);
             this.heads.updatePosition();
             sendNowPacket();
@@ -481,6 +481,7 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
 
     private boolean addX = true;
     private boolean addZ = true;
+    private boolean repeatY = false;
     private Ticket chunkTicket;
 
     private void setNextTarget() {
@@ -498,7 +499,9 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
             if (this.target[2] <= this.box.zMin || this.box.zMax <= this.target[2]) {
                 this.addZ = !this.addZ;
                 this.target[2] = Math.max(this.box.zMin, Math.min(this.target[2], this.box.zMax));
-                this.target[1]--;
+                this.repeatY = !this.repeatY;
+                if (!this.repeatY)
+                    this.target[1]--;
             }
         }
     }
@@ -542,13 +545,15 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
         int meta = this.worldObj.getBlockMetadata(x, y, z);
         if (b == null)
             return new ArrayList<ItemStack>();
-        if (b.canSilkHarvest(this.worldObj, null, x, y, z, meta) && this.silktouch && (this.silktouchList.contains(data((short) b.blockID, meta)) == this.silktouchInclude)) {
+        if (b.canSilkHarvest(this.worldObj, null, x, y, z, meta) && this.silktouch
+                && (this.silktouchList.contains(data((short) b.blockID, meta)) == this.silktouchInclude)) {
             ArrayList<ItemStack> al = new ArrayList<ItemStack>();
-            //TODO
+            // TODO
             al.add(new ItemStack(b, 1, meta));
             return al;
         }
-        return b.getBlockDropped(this.worldObj, x, y, z, meta, ((this.fortuneList.contains(data((short) b.blockID, meta)) == this.fortuneInclude) ? this.fortune : 0));
+        return b.getBlockDropped(this.worldObj, x, y, z, meta,
+                ((this.fortuneList.contains(data((short) b.blockID, meta)) == this.fortuneInclude) ? this.fortune : 0));
     }
 
     private void checkDropItem(int[] coord) {
@@ -782,7 +787,8 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
     }
 
     private double getRestDistance() {
-        return Math.sqrt(Math.pow(this.target[0] - this.headPos[0], 2) + Math.pow(this.target[1] + 1 - this.headPos[1], 2) + Math.pow(this.target[2] - this.headPos[2], 2));
+        return Math.sqrt(Math.pow(this.target[0] - this.headPos[0], 2) + Math.pow(this.target[1] + 1 - this.headPos[1], 2)
+                + Math.pow(this.target[2] - this.headPos[2], 2));
     }
 
     private void requestTicket() {
@@ -815,8 +821,8 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
         case MOVEHEAD:
         case BREAKBLOCK:
             if (this.heads == null)
-                this.worldObj.spawnEntityInWorld(new EntityMechanicalArm(this.worldObj, this.box.xMin + 0.75D, this.box.yMax, this.box.zMin + 0.75D, this.box.sizeX() - 1.5D,
-                        this.box.sizeZ() - 1.5D, this));
+                this.worldObj.spawnEntityInWorld(new EntityMechanicalArm(this.worldObj, this.box.xMin + 0.75D, this.box.yMax, this.box.zMin + 0.75D, this.box
+                        .sizeX() - 1.5D, this.box.sizeZ() - 1.5D, this));
             break;
         default:
         }
@@ -938,6 +944,7 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
         this.box.initialize(nbttc);
         this.addZ = nbttc.getBoolean("addZ");
         this.addX = nbttc.getBoolean("addX");
+        this.repeatY = nbttc.getBoolean("repeatY");
         this.target[0] = nbttc.getInteger("targetX");
         this.target[1] = nbttc.getInteger("targetY");
         this.target[2] = nbttc.getInteger("targetZ");
@@ -975,6 +982,7 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
         nbttc.setInteger("targetZ", this.target[2]);
         nbttc.setBoolean("addZ", this.addZ);
         nbttc.setBoolean("addX", this.addX);
+        nbttc.setBoolean("repeatY", this.repeatY);
         nbttc.setByte("now", this.now.getByteValue());
         nbttc.setBoolean("silktouch", this.silktouch);
         nbttc.setByte("fortune", this.fortune);
