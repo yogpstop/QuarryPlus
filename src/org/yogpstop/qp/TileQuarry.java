@@ -8,13 +8,18 @@ import static org.yogpstop.qp.QuarryPlus.data;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.Sets;
 import com.google.common.io.ByteArrayDataInput;
 
+import cpw.mods.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper;
 import cpw.mods.fml.common.network.PacketDispatcher;
 import cpw.mods.fml.common.network.Player;
 
@@ -548,12 +553,48 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
         if (b.canSilkHarvest(this.worldObj, null, x, y, z, meta) && this.silktouch
                 && (this.silktouchList.contains(data((short) b.blockID, meta)) == this.silktouchInclude)) {
             ArrayList<ItemStack> al = new ArrayList<ItemStack>();
-            // TODO
-            al.add(new ItemStack(b, 1, meta));
+            al.add(createStackedBlock(b, meta));
             return al;
         }
         return b.getBlockDropped(this.worldObj, x, y, z, meta,
                 ((this.fortuneList.contains(data((short) b.blockID, meta)) == this.fortuneInclude) ? this.fortune : 0));
+    }
+
+    private static ItemStack createStackedBlock(Block b, int meta) {
+        Class cls = b.getClass();
+        Method createStackedBlockMethod = getMethodRepeating(cls);
+        createStackedBlockMethod.setAccessible(true);
+        try {
+            return (ItemStack) createStackedBlockMethod.invoke(b, meta);
+        } catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private static String createStackedBlock;
+    static {
+        try {
+            createStackedBlock = ImmutableBiMap
+                    .copyOf((Map<String, String>) FMLDeobfuscatingRemapper.class.getDeclaredMethod("getMethodMap", java.lang.String.class).invoke(
+                            FMLDeobfuscatingRemapper.INSTANCE, FMLDeobfuscatingRemapper.INSTANCE.unmap("net/minecraft/block/Block"))).inverse()
+                    .get("createStackedBlock");
+        } catch (SecurityException | NoSuchMethodException | IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static Method getMethodRepeating(Class cls) {
+        Method cache;
+        try {
+            cache = cls.getDeclaredMethod(createStackedBlock, int.class);
+        } catch (SecurityException e) {
+            e.printStackTrace();
+            return null;
+        } catch (NoSuchMethodException e) {
+            cache = getMethodRepeating(cls.getSuperclass());
+        }
+        return cache;
     }
 
     private void checkDropItem(int[] coord) {

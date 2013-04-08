@@ -328,7 +328,7 @@ public class TileMarker extends TileBuildCraft implements IAreaProvider {
 
         if (this.origin.isSet()) {
             markerOrigin = this.origin.vectO.getMarker(this.worldObj);
-
+            
             Origin o = this.origin;
 
             if (markerOrigin != null && markerOrigin.lasers != null) {
