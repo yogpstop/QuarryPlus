@@ -75,11 +75,11 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
         MOVEHEAD((byte) 4),
         BREAKBLOCK((byte) 5);
         PROGRESS(final byte arg) {
-            byteValue = arg;
+            this.byteValue = arg;
         }
 
         public byte getByteValue() {
-            return byteValue;
+            return this.byteValue;
         }
 
         public static PROGRESS valueOf(final byte arg) {
@@ -119,17 +119,17 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
     public static final byte packetSilktouchList = 18;
 
     private void initPowerProvider() {
-        pp = PowerFramework.currentFramework.createPowerProvider();
-        pp.configure(0, 0, 100, 0, 30000);
+        this.pp = PowerFramework.currentFramework.createPowerProvider();
+        this.pp.configure(0, 0, 100, 0, 30000);
     }
 
     public void sendPacketToServer(byte id) {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         DataOutputStream dos = new DataOutputStream(bos);
         try {
-            dos.writeInt(xCoord);
-            dos.writeInt(yCoord);
-            dos.writeInt(zCoord);
+            dos.writeInt(this.xCoord);
+            dos.writeInt(this.yCoord);
+            dos.writeInt(this.zCoord);
             dos.writeByte(id);
         } catch (Exception e) {
             e.printStackTrace();
@@ -147,9 +147,9 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         DataOutputStream dos = new DataOutputStream(bos);
         try {
-            dos.writeInt(xCoord);
-            dos.writeInt(yCoord);
-            dos.writeInt(zCoord);
+            dos.writeInt(this.xCoord);
+            dos.writeInt(this.yCoord);
+            dos.writeInt(this.zCoord);
             dos.writeByte(id);
             dos.writeLong(value);
         } catch (Exception e) {
@@ -168,11 +168,11 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         DataOutputStream dos = new DataOutputStream(bos);
         try {
-            dos.writeInt(xCoord);
-            dos.writeInt(yCoord);
-            dos.writeInt(zCoord);
+            dos.writeInt(this.xCoord);
+            dos.writeInt(this.yCoord);
+            dos.writeInt(this.zCoord);
             dos.writeByte(packetNow);
-            dos.writeByte(now.getByteValue());
+            dos.writeByte(this.now.getByteValue());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -189,13 +189,13 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         DataOutputStream dos = new DataOutputStream(bos);
         try {
-            dos.writeInt(xCoord);
-            dos.writeInt(yCoord);
-            dos.writeInt(zCoord);
+            dos.writeInt(this.xCoord);
+            dos.writeInt(this.yCoord);
+            dos.writeInt(this.zCoord);
             dos.writeByte(packetHeadPos);
-            dos.writeDouble(headPos[0]);
-            dos.writeDouble(headPos[1]);
-            dos.writeDouble(headPos[2]);
+            dos.writeDouble(this.headPos[0]);
+            dos.writeDouble(this.headPos[1]);
+            dos.writeDouble(this.headPos[2]);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -212,9 +212,9 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         DataOutputStream dos = new DataOutputStream(bos);
         try {
-            dos.writeInt(xCoord);
-            dos.writeInt(yCoord);
-            dos.writeInt(zCoord);
+            dos.writeInt(this.xCoord);
+            dos.writeInt(this.yCoord);
+            dos.writeInt(this.zCoord);
             dos.writeByte(id);
             dos.writeBoolean(value);
         } catch (Exception e) {
@@ -233,9 +233,9 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         DataOutputStream dos = new DataOutputStream(bos);
         try {
-            dos.writeInt(xCoord);
-            dos.writeInt(yCoord);
-            dos.writeInt(zCoord);
+            dos.writeInt(this.xCoord);
+            dos.writeInt(this.yCoord);
+            dos.writeInt(this.zCoord);
             dos.writeByte(id);
             dos.writeInt(value.size());
             for (Long l : value)
@@ -253,7 +253,7 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
     }
 
     void recievePacket(ByteArrayDataInput data, EntityPlayer ep) {
-        if (worldObj.isRemote)
+        if (this.worldObj.isRemote)
             recievePacketOnClient(data);
         else
             recievePacketOnServer(data, ep);
@@ -262,66 +262,66 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
     private void recievePacketOnServer(ByteArrayDataInput data, EntityPlayer ep) {
         switch (data.readByte()) {
         case fortuneAdd:
-            fortuneList.add(data.readLong());
-            sendPacketToPlayer(ep, packetFortuneList, fortuneList);
-            ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdGuiQuarryFortuneList, worldObj, xCoord, yCoord, zCoord);
+            this.fortuneList.add(data.readLong());
+            sendPacketToPlayer(ep, packetFortuneList, this.fortuneList);
+            ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdGuiQuarryFortuneList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
             break;
         case fortuneRemove:
-            fortuneList.remove(data.readLong());
-            sendPacketToPlayer(ep, packetFortuneList, fortuneList);
-            ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdGuiQuarryFortuneList, worldObj, xCoord, yCoord, zCoord);
+            this.fortuneList.remove(data.readLong());
+            sendPacketToPlayer(ep, packetFortuneList, this.fortuneList);
+            ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdGuiQuarryFortuneList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
             break;
         case silktouchAdd:
-            silktouchList.add(data.readLong());
-            sendPacketToPlayer(ep, packetSilktouchList, silktouchList);
-            ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdGuiQuarrySilktouchList, worldObj, xCoord, yCoord, zCoord);
+            this.silktouchList.add(data.readLong());
+            sendPacketToPlayer(ep, packetSilktouchList, this.silktouchList);
+            ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdGuiQuarrySilktouchList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
             break;
         case silktouchRemove:
-            silktouchList.remove(data.readLong());
-            sendPacketToPlayer(ep, packetSilktouchList, silktouchList);
-            ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdGuiQuarrySilktouchList, worldObj, xCoord, yCoord, zCoord);
+            this.silktouchList.remove(data.readLong());
+            sendPacketToPlayer(ep, packetSilktouchList, this.silktouchList);
+            ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdGuiQuarrySilktouchList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
             break;
         case fortuneTInc:
-            fortuneInclude = !fortuneInclude;
-            sendPacketToPlayer(ep, fortuneTInc, fortuneInclude);
-            ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdGuiQuarryFortuneList, worldObj, xCoord, yCoord, zCoord);
+            this.fortuneInclude = !this.fortuneInclude;
+            sendPacketToPlayer(ep, fortuneTInc, this.fortuneInclude);
+            ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdGuiQuarryFortuneList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
             break;
         case silktouchTInc:
-            silktouchInclude = !silktouchInclude;
-            sendPacketToPlayer(ep, silktouchTInc, silktouchInclude);
-            ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdGuiQuarrySilktouchList, worldObj, xCoord, yCoord, zCoord);
+            this.silktouchInclude = !this.silktouchInclude;
+            sendPacketToPlayer(ep, silktouchTInc, this.silktouchInclude);
+            ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdGuiQuarrySilktouchList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
             break;
         case reinit:
             reinit();
             break;
         case tRemoveWater:
-            removeWater = !removeWater;
-            sendPacketToPlayer(ep, tRemoveWater, removeWater);
-            ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdContainerQuarry, worldObj, xCoord, yCoord, zCoord);
+            this.removeWater = !this.removeWater;
+            sendPacketToPlayer(ep, tRemoveWater, this.removeWater);
+            ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdContainerQuarry, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
             break;
         case tRemoveLava:
-            removeLava = !removeLava;
-            sendPacketToPlayer(ep, tRemoveLava, removeLava);
-            ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdContainerQuarry, worldObj, xCoord, yCoord, zCoord);
+            this.removeLava = !this.removeLava;
+            sendPacketToPlayer(ep, tRemoveLava, this.removeLava);
+            ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdContainerQuarry, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
             break;
         case tRemoveLiquid:
-            removeLiquid = !removeLiquid;
-            sendPacketToPlayer(ep, tRemoveLiquid, removeLiquid);
-            ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdContainerQuarry, worldObj, xCoord, yCoord, zCoord);
+            this.removeLiquid = !this.removeLiquid;
+            sendPacketToPlayer(ep, tRemoveLiquid, this.removeLiquid);
+            ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdContainerQuarry, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
             break;
         case tBuildAdvFrame:
-            buildAdvFrame = !buildAdvFrame;
-            sendPacketToPlayer(ep, tBuildAdvFrame, buildAdvFrame);
-            ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdContainerQuarry, worldObj, xCoord, yCoord, zCoord);
+            this.buildAdvFrame = !this.buildAdvFrame;
+            sendPacketToPlayer(ep, tBuildAdvFrame, this.buildAdvFrame);
+            ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdContainerQuarry, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
             break;
         case openFortuneGui:
-            ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdGuiQuarryFortuneList, worldObj, xCoord, yCoord, zCoord);
+            ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdGuiQuarryFortuneList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
             break;
         case openSilktouchGui:
-            ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdGuiQuarrySilktouchList, worldObj, xCoord, yCoord, zCoord);
+            ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdGuiQuarrySilktouchList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
             break;
         case openQuarryGui:
-            ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdContainerQuarry, worldObj, xCoord, yCoord, zCoord);
+            ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdContainerQuarry, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
             break;
         }
     }
@@ -329,80 +329,80 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
     private void recievePacketOnClient(ByteArrayDataInput data) {
         switch (data.readByte()) {
         case packetFortuneList:
-            fortuneList.clear();
+            this.fortuneList.clear();
             int fsize = data.readInt();
             for (int i = 0; i < fsize; i++) {
-                fortuneList.add(data.readLong());
+                this.fortuneList.add(data.readLong());
             }
             break;
         case packetSilktouchList:
-            silktouchList.clear();
+            this.silktouchList.clear();
             int ssize = data.readInt();
             for (int i = 0; i < ssize; i++) {
-                silktouchList.add(data.readLong());
+                this.silktouchList.add(data.readLong());
             }
             break;
         case packetNow:
-            now = PROGRESS.valueOf(data.readByte());
+            this.now = PROGRESS.valueOf(data.readByte());
             initEntities();
             break;
         case packetHeadPos:
-            headPos[0] = data.readDouble();
-            headPos[1] = data.readDouble();
-            headPos[2] = data.readDouble();
-            if (heads != null)
-	            heads.setHead(headPos[0], headPos[1], headPos[2]);
+            this.headPos[0] = data.readDouble();
+            this.headPos[1] = data.readDouble();
+            this.headPos[2] = data.readDouble();
+            if (this.heads != null)
+                this.heads.setHead(this.headPos[0], this.headPos[1], this.headPos[2]);
             break;
         case fortuneTInc:
-            fortuneInclude = data.readBoolean();
+            this.fortuneInclude = data.readBoolean();
             break;
         case silktouchTInc:
-            silktouchInclude = data.readBoolean();
+            this.silktouchInclude = data.readBoolean();
             break;
         case tRemoveWater:
-            removeWater = data.readBoolean();
+            this.removeWater = data.readBoolean();
             break;
         case tRemoveLava:
-            removeLava = data.readBoolean();
+            this.removeLava = data.readBoolean();
             break;
         case tRemoveLiquid:
-            removeLiquid = data.readBoolean();
+            this.removeLiquid = data.readBoolean();
             break;
         case tBuildAdvFrame:
-            buildAdvFrame = data.readBoolean();
+            this.buildAdvFrame = data.readBoolean();
             break;
         }
     }
 
     private void updateServerEntity() {
-        switch (now) {
+        switch (this.now) {
         case NOTNEEDBREAK:
-            if (cacheNonNeeded.size() > 0) {
-                if (breakBlock(cacheNonNeeded.get(0)))
-                    cacheNonNeeded.remove(0);
+            if (this.cacheNonNeeded.size() > 0) {
+                if (breakBlock(this.cacheNonNeeded.get(0)))
+                    this.cacheNonNeeded.remove(0);
                 break;
             }
-            now = PROGRESS.MAKEFRAME;
+            this.now = PROGRESS.MAKEFRAME;
         case MAKEFRAME:
-            if (cacheFrame.size() > 0) {
-                if (makeFrame(cacheFrame.get(0)))
-                    cacheFrame.remove(0);
+            if (this.cacheFrame.size() > 0) {
+                if (makeFrame(this.cacheFrame.get(0)))
+                    this.cacheFrame.remove(0);
                 break;
             }
-            now = PROGRESS.FILL;
-            box.deleteLasers();
+            this.now = PROGRESS.FILL;
+            this.box.deleteLasers();
             sendNowPacket();
         case FILL:
-            if (cacheFills.size() > 0 && buildAdvFrame) {
-                if (makeFrame(cacheFills.get(0)))
-                    cacheFills.remove(0);
+            if (this.cacheFills.size() > 0 && this.buildAdvFrame) {
+                if (makeFrame(this.cacheFills.get(0)))
+                    this.cacheFills.remove(0);
                 break;
             }
-            now = PROGRESS.MOVEHEAD;
-            worldObj.spawnEntityInWorld(new EntityMechanicalArm(worldObj, box.xMin + 0.75D, box.yMax, box.zMin + 0.75D, box.sizeX() - 1.5D, box.sizeZ() - 1.5D,
+            this.now = PROGRESS.MOVEHEAD;
+            this.worldObj.spawnEntityInWorld(new EntityMechanicalArm(this.worldObj, this.box.xMin + 0.75D, this.box.yMax, this.box.zMin + 0.75D, this.box.sizeX() - 1.5D, this.box.sizeZ() - 1.5D,
                     this));
-            heads.setHead(headPos[0], headPos[1], headPos[2]);
-            heads.updatePosition();
+            this.heads.setHead(this.headPos[0], this.headPos[1], this.headPos[2]);
+            this.heads.updatePosition();
             sendNowPacket();
             while (!checkTarget()) {
                 setNextTarget();
@@ -410,17 +410,17 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
             break;
         case MOVEHEAD:
             boolean done = moveHead();
-            if (heads != null) {
-	            heads.setHead(headPos[0], headPos[1], headPos[2]);
-	            heads.updatePosition();
-	            sendHeadPosPacket();
-	        }
+            if (this.heads != null) {
+                this.heads.setHead(this.headPos[0], this.headPos[1], this.headPos[2]);
+                this.heads.updatePosition();
+                sendHeadPosPacket();
+            }
             if (!done)
                 break;
-            now = PROGRESS.BREAKBLOCK;
+            this.now = PROGRESS.BREAKBLOCK;
         case BREAKBLOCK:
-            if (breakBlock(target)) {
-                now = PROGRESS.MOVEHEAD;
+            if (breakBlock(this.target)) {
+                this.now = PROGRESS.MOVEHEAD;
                 while (!checkTarget()) {
                     setNextTarget();
                 }
@@ -430,18 +430,18 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
             break;
         }
         ArrayList<ItemStack> cache = new ArrayList<ItemStack>();
-        for (ItemStack is : cacheItems) {
-            ItemStack added = addToRandomInventory(is, worldObj, xCoord, yCoord, zCoord, ForgeDirection.UNKNOWN);
+        for (ItemStack is : this.cacheItems) {
+            ItemStack added = addToRandomInventory(is, this.worldObj, this.xCoord, this.yCoord, this.zCoord, ForgeDirection.UNKNOWN);
             is.stackSize -= added.stackSize;
             if (is.stackSize > 0)
                 if (!addToRandomPipeEntry(this, ForgeDirection.UNKNOWN, is))
                     cache.add(is);
         }
-        cacheItems = cache;
+        this.cacheItems = cache;
     }
 
     private void initBlocks() {
-        switch (now) {
+        switch (this.now) {
         case NOTNEEDBREAK:
             initNonNeededBlocks();
         case MAKEFRAME:
@@ -453,28 +453,28 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
     }
 
     private boolean checkTarget() {
-        if (target[1] < 1) {
+        if (this.target[1] < 1) {
             destroy();
             sendNowPacket();
             return true;
         }
-        int bid = worldObj.getBlockId(target[0], target[1], target[2]);
+        int bid = this.worldObj.getBlockId(this.target[0], this.target[1], this.target[2]);
         if (bid == 0 || bid == Block.bedrock.blockID)
             return false;
-        if (!removeLava && (bid == Block.lavaMoving.blockID || bid == Block.lavaStill.blockID))
+        if (!this.removeLava && (bid == Block.lavaMoving.blockID || bid == Block.lavaStill.blockID))
             return false;
-        if (!removeWater && (bid == Block.waterMoving.blockID || bid == Block.waterStill.blockID))
+        if (!this.removeWater && (bid == Block.waterMoving.blockID || bid == Block.waterStill.blockID))
             return false;
-        if (!removeLiquid && worldObj.getBlockMaterial(target[0], target[1], target[2]).isLiquid())
+        if (!this.removeLiquid && this.worldObj.getBlockMaterial(this.target[0], this.target[1], this.target[2]).isLiquid())
             return false;
         return true;
     }
 
     private boolean makeFrame(int[] coord) {
-        float y = Math.max(-4.8F * (float) efficiency + 25F, 0F);
-        if (pp.useEnergy(y, y, true) != y)
+        float y = Math.max(-4.8F * this.efficiency + 25F, 0F);
+        if (this.pp.useEnergy(y, y, true) != y)
             return false;
-        worldObj.setBlock(coord[0], coord[1], coord[2], frameBlock.blockID);
+        this.worldObj.setBlock(coord[0], coord[1], coord[2], frameBlock.blockID);
 
         return true;
     }
@@ -484,33 +484,33 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
     private Ticket chunkTicket;
 
     private void setNextTarget() {
-        if (addX)
-            target[0]++;
+        if (this.addX)
+            this.target[0]++;
         else
-            target[0]--;
-        if (target[0] <= box.xMin || box.xMax <= target[0]) {
-            addX = !addX;
-            target[0] = Math.max(box.xMin, Math.min(target[0], box.xMax));
-            if (addZ)
-                target[2]++;
+            this.target[0]--;
+        if (this.target[0] <= this.box.xMin || this.box.xMax <= this.target[0]) {
+            this.addX = !this.addX;
+            this.target[0] = Math.max(this.box.xMin, Math.min(this.target[0], this.box.xMax));
+            if (this.addZ)
+                this.target[2]++;
             else
-                target[2]--;
-            if (target[2] <= box.zMin || box.zMax <= target[2]) {
-                addZ = !addZ;
-                target[2] = Math.max(box.zMin, Math.min(target[2], box.zMax));
-                target[1]--;
+                this.target[2]--;
+            if (this.target[2] <= this.box.zMin || this.box.zMax <= this.target[2]) {
+                this.addZ = !this.addZ;
+                this.target[2] = Math.max(this.box.zMin, Math.min(this.target[2], this.box.zMax));
+                this.target[1]--;
             }
         }
     }
 
     private boolean breakBlock(int[] coord) {
-        float pw = (-7.93F * (float) efficiency + 40F) * blockHardness(coord[0], coord[1], coord[2]);
-        if (pp.useEnergy(pw, pw, true) != pw)
+        float pw = (-7.93F * this.efficiency + 40F) * blockHardness(coord[0], coord[1], coord[2]);
+        if (this.pp.useEnergy(pw, pw, true) != pw)
             return false;
-        cacheItems.addAll(getDroppedItems(coord[0], coord[1], coord[2]));
-        worldObj.playAuxSFXAtEntity(null, 2001, coord[0], coord[1], coord[2],
-                worldObj.getBlockId(coord[0], coord[1], coord[2]) + (worldObj.getBlockMetadata(coord[0], coord[1], coord[2]) << 12));
-        worldObj.setBlockToAir(coord[0], coord[1], coord[2]);
+        this.cacheItems.addAll(getDroppedItems(coord[0], coord[1], coord[2]));
+        this.worldObj.playAuxSFXAtEntity(null, 2001, coord[0], coord[1], coord[2],
+                this.worldObj.getBlockId(coord[0], coord[1], coord[2]) + (this.worldObj.getBlockMetadata(coord[0], coord[1], coord[2]) << 12));
+        this.worldObj.setBlockToAir(coord[0], coord[1], coord[2]);
         checkDropItem(coord);
         return true;
     }
@@ -519,41 +519,41 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
         ItemStack is = new ItemStack(QuarryPlus.blockQuarry);
         setEnchantment(is);
         float var6 = 0.7F;
-        double var7 = (double) (worldObj.rand.nextFloat() * var6) + (double) (1.0F - var6) * 0.5D;
-        double var9 = (double) (worldObj.rand.nextFloat() * var6) + (double) (1.0F - var6) * 0.5D;
-        double var11 = (double) (worldObj.rand.nextFloat() * var6) + (double) (1.0F - var6) * 0.5D;
-        EntityItem var13 = new EntityItem(worldObj, (double) xCoord + var7, (double) yCoord + var9, (double) zCoord + var11, is);
+        double var7 = this.worldObj.rand.nextFloat() * var6 + (1.0F - var6) * 0.5D;
+        double var9 = this.worldObj.rand.nextFloat() * var6 + (1.0F - var6) * 0.5D;
+        double var11 = this.worldObj.rand.nextFloat() * var6 + (1.0F - var6) * 0.5D;
+        EntityItem var13 = new EntityItem(this.worldObj, this.xCoord + var7, this.yCoord + var9, this.zCoord + var11, is);
         var13.delayBeforeCanPickup = 10;
-        worldObj.spawnEntityInWorld(var13);
+        this.worldObj.spawnEntityInWorld(var13);
     }
 
     private float blockHardness(int x, int y, int z) {
-        Block b = Block.blocksList[worldObj.getBlockId(x, y, z)];
+        Block b = Block.blocksList[this.worldObj.getBlockId(x, y, z)];
         if (b != null) {
-            if (worldObj.getBlockMaterial(x, y, z).isLiquid())
+            if (this.worldObj.getBlockMaterial(x, y, z).isLiquid())
                 return 0;
-            return b.getBlockHardness(worldObj, x, y, z);
+            return b.getBlockHardness(this.worldObj, x, y, z);
         }
-        return (float) 0;
+        return 0;
     }
 
     private ArrayList<ItemStack> getDroppedItems(int x, int y, int z) {
-        Block b = Block.blocksList[worldObj.getBlockId(x, y, z)];
-        int meta = worldObj.getBlockMetadata(x, y, z);
+        Block b = Block.blocksList[this.worldObj.getBlockId(x, y, z)];
+        int meta = this.worldObj.getBlockMetadata(x, y, z);
         if (b == null)
             return new ArrayList<ItemStack>();
-        if (b.canSilkHarvest(worldObj, null, x, y, z, meta) && silktouch && (silktouchList.contains(data((short) b.blockID, meta)) == silktouchInclude)) {
+        if (b.canSilkHarvest(this.worldObj, null, x, y, z, meta) && this.silktouch && (this.silktouchList.contains(data((short) b.blockID, meta)) == this.silktouchInclude)) {
             ArrayList<ItemStack> al = new ArrayList<ItemStack>();
+            //TODO
             al.add(new ItemStack(b, 1, meta));
             return al;
         }
-        return b.getBlockDropped(worldObj, x, y, z, meta, ((fortuneList.contains(data((short) b.blockID, meta)) == fortuneInclude) ? fortune : 0));
+        return b.getBlockDropped(this.worldObj, x, y, z, meta, ((this.fortuneList.contains(data((short) b.blockID, meta)) == this.fortuneInclude) ? this.fortune : 0));
     }
 
-    @SuppressWarnings("rawtypes")
     private void checkDropItem(int[] coord) {
         AxisAlignedBB axis = AxisAlignedBB.getBoundingBox(coord[0] - 4, coord[1] - 4, coord[2] - 4, coord[0] + 6, coord[1] + 6, coord[2] + 6);
-        List result = worldObj.getEntitiesWithinAABB(EntityItem.class, axis);
+        List result = this.worldObj.getEntitiesWithinAABB(EntityItem.class, axis);
         for (int ii = 0; ii < result.size(); ii++) {
             if (result.get(ii) instanceof EntityItem) {
                 EntityItem entity = (EntityItem) result.get(ii);
@@ -563,89 +563,89 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
                 if (drop.stackSize <= 0)
                     continue;
                 CoreProxy.proxy.removeEntity(entity);
-                cacheItems.add(drop);
+                this.cacheItems.add(drop);
             }
         }
     }
 
     private void setEnchantment(ItemStack is) {
-        if (silktouch)
+        if (this.silktouch)
             is.addEnchantment(Enchantment.enchantmentsList[33], 1);
-        if (fortune > 0)
-            is.addEnchantment(Enchantment.enchantmentsList[35], fortune);
-        if (efficiency > 0)
-            is.addEnchantment(Enchantment.enchantmentsList[32], efficiency);
+        if (this.fortune > 0)
+            is.addEnchantment(Enchantment.enchantmentsList[35], this.fortune);
+        if (this.efficiency > 0)
+            is.addEnchantment(Enchantment.enchantmentsList[32], this.efficiency);
     }
 
     private void createBox() {
-        if (!checkIAreaProvider(xCoord - 1, yCoord, zCoord))
-            if (!checkIAreaProvider(xCoord + 1, yCoord, zCoord))
-                if (!checkIAreaProvider(xCoord, yCoord, zCoord - 1))
-                    if (!checkIAreaProvider(xCoord, yCoord, zCoord + 1))
-                        if (!checkIAreaProvider(xCoord, yCoord - 1, zCoord))
-                            if (!checkIAreaProvider(xCoord, yCoord + 1, zCoord)) {
+        if (!checkIAreaProvider(this.xCoord - 1, this.yCoord, this.zCoord))
+            if (!checkIAreaProvider(this.xCoord + 1, this.yCoord, this.zCoord))
+                if (!checkIAreaProvider(this.xCoord, this.yCoord, this.zCoord - 1))
+                    if (!checkIAreaProvider(this.xCoord, this.yCoord, this.zCoord + 1))
+                        if (!checkIAreaProvider(this.xCoord, this.yCoord - 1, this.zCoord))
+                            if (!checkIAreaProvider(this.xCoord, this.yCoord + 1, this.zCoord)) {
                                 int xMin = 0, zMin = 0;
-                                ForgeDirection o = ForgeDirection.values()[worldObj.getBlockMetadata(xCoord, yCoord, zCoord)].getOpposite();
+                                ForgeDirection o = ForgeDirection.values()[this.worldObj.getBlockMetadata(this.xCoord, this.yCoord, this.zCoord)].getOpposite();
                                 switch (o) {
                                 case EAST:
-                                    xMin = xCoord + 1;
-                                    zMin = zCoord - 5;
+                                    xMin = this.xCoord + 1;
+                                    zMin = this.zCoord - 5;
                                     break;
                                 case WEST:
-                                    xMin = xCoord - 11;
-                                    zMin = zCoord - 5;
+                                    xMin = this.xCoord - 11;
+                                    zMin = this.zCoord - 5;
                                     break;
                                 case SOUTH:
-                                    xMin = xCoord - 5;
-                                    zMin = zCoord + 1;
+                                    xMin = this.xCoord - 5;
+                                    zMin = this.zCoord + 1;
                                     break;
                                 case NORTH:
                                 default:
-                                    xMin = xCoord - 5;
-                                    zMin = zCoord - 11;
+                                    xMin = this.xCoord - 5;
+                                    zMin = this.zCoord - 11;
                                     break;
                                 }
-                                box.initialize(xMin, yCoord, zMin, xMin + 10, yCoord + 4, zMin + 10);
+                                this.box.initialize(xMin, this.yCoord, zMin, xMin + 10, this.yCoord + 4, zMin + 10);
                             }
     }
 
     private boolean checkIAreaProvider(int x, int y, int z) {
-        if (worldObj.getBlockTileEntity(x, y, z) instanceof IAreaProvider) {
-            box.initialize(((IAreaProvider) worldObj.getBlockTileEntity(x, y, z)));
-            box.reorder();
-            if (box.contains(xCoord, yCoord, zCoord)) {
-                box.reset();
+        if (this.worldObj.getBlockTileEntity(x, y, z) instanceof IAreaProvider) {
+            this.box.initialize(((IAreaProvider) this.worldObj.getBlockTileEntity(x, y, z)));
+            this.box.reorder();
+            if (this.box.contains(this.xCoord, this.yCoord, this.zCoord)) {
+                this.box.reset();
                 return false;
             }
-            if (box.sizeX() < 3 || box.sizeZ() < 3) {
-                box.reset();
+            if (this.box.sizeX() < 3 || this.box.sizeZ() < 3) {
+                this.box.reset();
                 return false;
             }
-            if (box.sizeY() <= 1)
-                box.yMax += 3 - box.sizeY();
-            ((IAreaProvider) worldObj.getBlockTileEntity(x, y, z)).removeFromWorld();
+            if (this.box.sizeY() <= 1)
+                this.box.yMax += 3 - this.box.sizeY();
+            ((IAreaProvider) this.worldObj.getBlockTileEntity(x, y, z)).removeFromWorld();
             return true;
         }
         return false;
     }
 
     private void setFirstPos() {
-        target[0] = box.xMin + 1;
-        target[2] = box.zMin + 1;
-        target[1] = box.yMin;
-        headPos[0] = box.centerX();
-        headPos[2] = box.centerZ();
-        headPos[1] = box.yMax - 1;
+        this.target[0] = this.box.xMin + 1;
+        this.target[2] = this.box.zMin + 1;
+        this.target[1] = this.box.yMin;
+        this.headPos[0] = this.box.centerX();
+        this.headPos[2] = this.box.centerZ();
+        this.headPos[1] = this.box.yMax - 1;
     }
 
     private void initFrames() {
-        cacheFrame = new ArrayList<int[]>();
-        int xn = box.xMin;
-        int xx = box.xMax;
-        int yn = box.yMin;
-        int yx = box.yMax;
-        int zn = box.zMin;
-        int zx = box.zMax;
+        this.cacheFrame = new ArrayList<int[]>();
+        int xn = this.box.xMin;
+        int xx = this.box.xMax;
+        int yn = this.box.yMin;
+        int yx = this.box.yMax;
+        int zn = this.box.zMin;
+        int zx = this.box.zMax;
         for (int x = xn + 1; x <= xx - 1; x++) {
             checkAndAddFrame(new int[] { x, yn, zn });
             checkAndAddFrame(new int[] { x, yn, zx });
@@ -675,16 +675,16 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
     }
 
     private void checkAndAddFrame(int[] coord) {
-        if (!(worldObj.getBlockId(coord[0], coord[1], coord[2]) == frameBlock.blockID && worldObj.getBlockMetadata(coord[0], coord[1], coord[2]) == 0))
-            cacheFrame.add(coord);
+        if (!(this.worldObj.getBlockId(coord[0], coord[1], coord[2]) == frameBlock.blockID && this.worldObj.getBlockMetadata(coord[0], coord[1], coord[2]) == 0))
+            this.cacheFrame.add(coord);
     }
 
     private void initFills() {
-        int xn = box.xMin;
-        int xx = box.xMax;
-        int yn = box.yMin;
-        int zn = box.zMin;
-        int zx = box.zMax;
+        int xn = this.box.xMin;
+        int xx = this.box.xMax;
+        int yn = this.box.yMin;
+        int zn = this.box.zMin;
+        int zx = this.box.zMax;
         for (int y = yn; y > 0; y--) {
             for (int x = xn; x <= xx; x++) {
                 checkAndAddFill(x, y, zn);
@@ -698,18 +698,18 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
     }
 
     private void checkAndAddFill(int x, int y, int z) {
-        if (!worldObj.getBlockMaterial(x, y, z).isSolid()) {
-            cacheFills.add(new int[] { x, y, z });
+        if (!this.worldObj.getBlockMaterial(x, y, z).isSolid()) {
+            this.cacheFills.add(new int[] { x, y, z });
         }
     }
 
     private void destroyFrames() {
-        int xn = box.xMin;
-        int xx = box.xMax;
-        int yn = box.yMin;
-        int yx = box.yMax;
-        int zn = box.zMin;
-        int zx = box.zMax;
+        int xn = this.box.xMin;
+        int xx = this.box.xMax;
+        int yn = this.box.yMin;
+        int yx = this.box.yMax;
+        int zn = this.box.zMin;
+        int zx = this.box.zMax;
         for (int x = xn; x <= xx; x++) {
             setBreakableFrame(x, yn, zn);
             setBreakableFrame(x, yn, zx);
@@ -731,115 +731,115 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
     }
 
     private void initNonNeededBlocks() {
-        cacheNonNeeded = new ArrayList<int[]>();
-        for (int y = box.yMax; y >= box.yMin; y--) {
-            for (int x = box.xMin; x <= box.xMax; x++) {
-                for (int z = box.zMin; z <= box.zMax; z++) {
-                    int bid = worldObj.getBlockId(x, y, z);
+        this.cacheNonNeeded = new ArrayList<int[]>();
+        for (int y = this.box.yMax; y >= this.box.yMin; y--) {
+            for (int x = this.box.xMin; x <= this.box.xMax; x++) {
+                for (int z = this.box.zMin; z <= this.box.zMax; z++) {
+                    int bid = this.worldObj.getBlockId(x, y, z);
                     if (bid != 0 && bid != Block.bedrock.blockID)
-                        if (bid == frameBlock.blockID && worldObj.getBlockMetadata(x, y, z) == 0) {
+                        if (bid == frameBlock.blockID && this.worldObj.getBlockMetadata(x, y, z) == 0) {
                             byte flag = 0;
-                            if (x == box.xMin || x == box.xMax)
+                            if (x == this.box.xMin || x == this.box.xMax)
                                 flag++;
-                            if (y == box.yMin || y == box.yMax)
+                            if (y == this.box.yMin || y == this.box.yMax)
                                 flag++;
-                            if (z == box.zMin || z == box.zMax)
+                            if (z == this.box.zMin || z == this.box.zMax)
                                 flag++;
                             if (flag < 2)
-                                cacheNonNeeded.add(new int[] { x, y, z });
+                                this.cacheNonNeeded.add(new int[] { x, y, z });
                         } else
-                            cacheNonNeeded.add(new int[] { x, y, z });
+                            this.cacheNonNeeded.add(new int[] { x, y, z });
                 }
             }
         }
     }
 
     private void setBreakableFrame(int x, int y, int z) {
-        if (worldObj.getBlockId(x, y, z) == frameBlock.blockID) {
-            worldObj.setBlockMetadataWithNotify(x, y, z, 1, 3);
+        if (this.worldObj.getBlockId(x, y, z) == frameBlock.blockID) {
+            this.worldObj.setBlockMetadataWithNotify(x, y, z, 1, 3);
         }
     }
 
     private boolean moveHead() {
         float distance = (float) getRestDistance();
         float x = 31.8F;
-        float pw = Math.min(2F + pp.getEnergyStored() / 500F, ((distance / 2F - 0.1F) * 200F / (efficiency * x + 1F)) + 0.01F);
-        float used = pp.useEnergy(pw, pw, true);
-        float blocks = used * ((float) efficiency * x + 1F) / 200F + 0.1F;
+        float pw = Math.min(2F + this.pp.getEnergyStored() / 500F, ((distance / 2F - 0.1F) * 200F / (this.efficiency * x + 1F)) + 0.01F);
+        float used = this.pp.useEnergy(pw, pw, true);
+        float blocks = used * (this.efficiency * x + 1F) / 200F + 0.1F;
 
         if (blocks * 2 > distance) {
-            headPos[0] = target[0];
-            headPos[1] = target[1] + 1;
-            headPos[2] = target[2];
+            this.headPos[0] = this.target[0];
+            this.headPos[1] = this.target[1] + 1;
+            this.headPos[2] = this.target[2];
             return true;
         }
         if (used > 0) {
-            headPos[0] += Math.cos(Math.atan2(target[2] - headPos[2], target[0] - headPos[0])) * blocks;
-            headPos[1] += Math.sin(Math.atan2(target[1] + 1 - headPos[1], target[0] - headPos[0])) * blocks;
-            headPos[2] += Math.sin(Math.atan2(target[2] - headPos[2], target[0] - headPos[0])) * blocks;
+            this.headPos[0] += Math.cos(Math.atan2(this.target[2] - this.headPos[2], this.target[0] - this.headPos[0])) * blocks;
+            this.headPos[1] += Math.sin(Math.atan2(this.target[1] + 1 - this.headPos[1], this.target[0] - this.headPos[0])) * blocks;
+            this.headPos[2] += Math.sin(Math.atan2(this.target[2] - this.headPos[2], this.target[0] - this.headPos[0])) * blocks;
         }
         return false;
     }
 
     private double getRestDistance() {
-        return Math.sqrt(Math.pow(target[0] - headPos[0], 2) + Math.pow(target[1] + 1 - headPos[1], 2) + Math.pow(target[2] - headPos[2], 2));
+        return Math.sqrt(Math.pow(this.target[0] - this.headPos[0], 2) + Math.pow(this.target[1] + 1 - this.headPos[1], 2) + Math.pow(this.target[2] - this.headPos[2], 2));
     }
 
     private void requestTicket() {
-        if (chunkTicket != null)
+        if (this.chunkTicket != null)
             return;
-        chunkTicket = ForgeChunkManager.requestTicket(QuarryPlus.instance, worldObj, Type.NORMAL);
-        if (chunkTicket == null)
+        this.chunkTicket = ForgeChunkManager.requestTicket(QuarryPlus.instance, this.worldObj, Type.NORMAL);
+        if (this.chunkTicket == null)
             return;
-        chunkTicket.getModData().setInteger("quarryX", xCoord);
-        chunkTicket.getModData().setInteger("quarryY", yCoord);
-        chunkTicket.getModData().setInteger("quarryZ", zCoord);
-        forceChunkLoading(chunkTicket);
+        this.chunkTicket.getModData().setInteger("quarryX", this.xCoord);
+        this.chunkTicket.getModData().setInteger("quarryY", this.yCoord);
+        this.chunkTicket.getModData().setInteger("quarryZ", this.zCoord);
+        forceChunkLoading(this.chunkTicket);
     }
 
     private void initFromNBT() {
         initEntities();
-        if (worldObj != null)
-            if (!worldObj.isRemote)
+        if (this.worldObj != null)
+            if (!this.worldObj.isRemote)
                 initBlocks();
-        initialized = true;
+        this.initialized = true;
     }
 
     private void initEntities() {
-        box.deleteLasers();
-        switch (now) {
+        this.box.deleteLasers();
+        switch (this.now) {
         case NOTNEEDBREAK:
         case MAKEFRAME:
-            box.createLasers(worldObj, LaserKind.Stripes);
+            this.box.createLasers(this.worldObj, LaserKind.Stripes);
             break;
         case MOVEHEAD:
         case BREAKBLOCK:
-            if (heads == null)
-                worldObj.spawnEntityInWorld(new EntityMechanicalArm(worldObj, box.xMin + 0.75D, box.yMax, box.zMin + 0.75D, box.sizeX() - 1.5D,
-                        box.sizeZ() - 1.5D, this));
+            if (this.heads == null)
+                this.worldObj.spawnEntityInWorld(new EntityMechanicalArm(this.worldObj, this.box.xMin + 0.75D, this.box.yMax, this.box.zMin + 0.75D, this.box.sizeX() - 1.5D,
+                        this.box.sizeZ() - 1.5D, this));
             break;
         default:
         }
 
-        if (heads != null) {
-            if (now != PROGRESS.BREAKBLOCK && now != PROGRESS.MOVEHEAD) {
-                heads.setDead();
-                heads = null;
+        if (this.heads != null) {
+            if (this.now != PROGRESS.BREAKBLOCK && this.now != PROGRESS.MOVEHEAD) {
+                this.heads.setDead();
+                this.heads = null;
             } else {
-                heads.setHead(headPos[0], headPos[1], headPos[2]);
-                heads.updatePosition();
+                this.heads.setHead(this.headPos[0], this.headPos[1], this.headPos[2]);
+                this.heads.updatePosition();
             }
         }
     }
 
     private void destroy() {
-        box.deleteLasers();
-        now = PROGRESS.NONE;
-        if (heads != null) {
-            heads.setDead();
-            heads = null;
+        this.box.deleteLasers();
+        this.now = PROGRESS.NONE;
+        if (this.heads != null) {
+            this.heads.setDead();
+            this.heads = null;
         }
-        if (!worldObj.isRemote) {
+        if (!this.worldObj.isRemote) {
             destroyFrames();
         }
     }
@@ -850,11 +850,11 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
                 short id = ((NBTTagCompound) nbttl.tagAt(i)).getShort("id");
                 short lvl = ((NBTTagCompound) nbttl.tagAt(i)).getShort("lvl");
                 if (id == 33)
-                    silktouch = true;
+                    this.silktouch = true;
                 if (id == 35)
-                    fortune = (byte) lvl;
+                    this.fortune = (byte) lvl;
                 if (id == 32)
-                    efficiency = (byte) lvl;
+                    this.efficiency = (byte) lvl;
             }
         createBox();
         requestTicket();
@@ -863,8 +863,8 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
     }
 
     void reinit() {
-        now = PROGRESS.NOTNEEDBREAK;
-        if (!worldObj.isRemote) {
+        this.now = PROGRESS.NOTNEEDBREAK;
+        if (!this.worldObj.isRemote) {
             setFirstPos();
             initBlocks();
         }
@@ -873,17 +873,17 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
     }
 
     void forceChunkLoading(Ticket ticket) {
-        if (chunkTicket == null) {
-            chunkTicket = ticket;
+        if (this.chunkTicket == null) {
+            this.chunkTicket = ticket;
         }
 
         Set<ChunkCoordIntPair> chunks = Sets.newHashSet();
-        ChunkCoordIntPair quarryChunk = new ChunkCoordIntPair(xCoord >> 4, zCoord >> 4);
+        ChunkCoordIntPair quarryChunk = new ChunkCoordIntPair(this.xCoord >> 4, this.zCoord >> 4);
         chunks.add(quarryChunk);
         ForgeChunkManager.forceChunk(ticket, quarryChunk);
 
-        for (int chunkX = box.xMin >> 4; chunkX <= box.xMax >> 4; chunkX++) {
-            for (int chunkZ = box.zMin >> 4; chunkZ <= box.zMax >> 4; chunkZ++) {
+        for (int chunkX = this.box.xMin >> 4; chunkX <= this.box.xMax >> 4; chunkX++) {
+            for (int chunkZ = this.box.zMin >> 4; chunkZ <= this.box.zMax >> 4; chunkZ++) {
                 ChunkCoordIntPair chunk = new ChunkCoordIntPair(chunkX, chunkZ);
                 ForgeChunkManager.forceChunk(ticket, chunk);
                 chunks.add(chunk);
@@ -893,25 +893,25 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
     }
 
     void setArm(EntityMechanicalArm ema) {
-        heads = ema;
+        this.heads = ema;
     }
 
     public ArrayList<String> getEnchantments() {
         ArrayList<String> als = new ArrayList<String>();
-        if (silktouch)
+        if (this.silktouch)
             als.add(Enchantment.enchantmentsList[33].getTranslatedName(1));
-        if (fortune > 0)
-            als.add(Enchantment.enchantmentsList[35].getTranslatedName(fortune));
-        if (efficiency > 0)
-            als.add(Enchantment.enchantmentsList[32].getTranslatedName(efficiency));
+        if (this.fortune > 0)
+            als.add(Enchantment.enchantmentsList[35].getTranslatedName(this.fortune));
+        if (this.efficiency > 0)
+            als.add(Enchantment.enchantmentsList[32].getTranslatedName(this.efficiency));
         return als;
     }
 
     @Override
     public void updateEntity() {
-        if (!initialized)
+        if (!this.initialized)
             initFromNBT();
-        if (!worldObj.isRemote)
+        if (!this.worldObj.isRemote)
             updateServerEntity();
     }
 
@@ -923,9 +923,9 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
     @Override
     public void invalidate() {
         destroy();
-        if (!worldObj.isRemote) {
-            ForgeChunkManager.releaseTicket(chunkTicket);
-            if (worldObj.getGameRules().getGameRuleBooleanValue("doTileDrops")) {
+        if (!this.worldObj.isRemote) {
+            ForgeChunkManager.releaseTicket(this.chunkTicket);
+            if (this.worldObj.getGameRules().getGameRuleBooleanValue("doTileDrops")) {
                 dropItem();
             }
         }
@@ -935,32 +935,32 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
     @Override
     public void readFromNBT(NBTTagCompound nbttc) {
         super.readFromNBT(nbttc);
-        box.initialize(nbttc);
-        addZ = nbttc.getBoolean("addZ");
-        addX = nbttc.getBoolean("addX");
-        target[0] = nbttc.getInteger("targetX");
-        target[1] = nbttc.getInteger("targetY");
-        target[2] = nbttc.getInteger("targetZ");
-        now = PROGRESS.valueOf(nbttc.getByte("now"));
-        silktouch = nbttc.getBoolean("silktouch");
-        fortune = nbttc.getByte("fortune");
-        efficiency = nbttc.getByte("efficiency");
-        headPos[0] = nbttc.getDouble("headPosX");
-        headPos[1] = nbttc.getDouble("headPosY");
-        headPos[2] = nbttc.getDouble("headPosZ");
-        removeWater = nbttc.getBoolean("removeWater");
-        removeLava = nbttc.getBoolean("removeLava");
-        removeLiquid = nbttc.getBoolean("removeLiquid");
-        buildAdvFrame = nbttc.getBoolean("buildAdvFrame");
-        fortuneInclude = nbttc.getBoolean("fortuneInclude");
-        silktouchInclude = nbttc.getBoolean("silktouchInclude");
-        readArrayList(nbttc.getTagList("fortuneList"), fortuneList);
-        readArrayList(nbttc.getTagList("silktouchList"), silktouchList);
+        this.box.initialize(nbttc);
+        this.addZ = nbttc.getBoolean("addZ");
+        this.addX = nbttc.getBoolean("addX");
+        this.target[0] = nbttc.getInteger("targetX");
+        this.target[1] = nbttc.getInteger("targetY");
+        this.target[2] = nbttc.getInteger("targetZ");
+        this.now = PROGRESS.valueOf(nbttc.getByte("now"));
+        this.silktouch = nbttc.getBoolean("silktouch");
+        this.fortune = nbttc.getByte("fortune");
+        this.efficiency = nbttc.getByte("efficiency");
+        this.headPos[0] = nbttc.getDouble("headPosX");
+        this.headPos[1] = nbttc.getDouble("headPosY");
+        this.headPos[2] = nbttc.getDouble("headPosZ");
+        this.removeWater = nbttc.getBoolean("removeWater");
+        this.removeLava = nbttc.getBoolean("removeLava");
+        this.removeLiquid = nbttc.getBoolean("removeLiquid");
+        this.buildAdvFrame = nbttc.getBoolean("buildAdvFrame");
+        this.fortuneInclude = nbttc.getBoolean("fortuneInclude");
+        this.silktouchInclude = nbttc.getBoolean("silktouchInclude");
+        readArrayList(nbttc.getTagList("fortuneList"), this.fortuneList);
+        readArrayList(nbttc.getTagList("silktouchList"), this.silktouchList);
         PowerFramework.currentFramework.loadPowerProvider(this, nbttc);
-        initialized = false;
+        this.initialized = false;
     }
 
-    private void readArrayList(NBTTagList nbttl, ArrayList<Long> target) {
+    private static void readArrayList(NBTTagList nbttl, ArrayList<Long> target) {
         target.clear();
         for (int i = 0; i < nbttl.tagCount(); i++)
             target.add(((NBTTagLong) nbttl.tagAt(i)).data);
@@ -969,31 +969,31 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
     @Override
     public void writeToNBT(NBTTagCompound nbttc) {
         super.writeToNBT(nbttc);
-        box.writeToNBT(nbttc);
-        nbttc.setInteger("targetX", target[0]);
-        nbttc.setInteger("targetY", target[1]);
-        nbttc.setInteger("targetZ", target[2]);
-        nbttc.setBoolean("addZ", addZ);
-        nbttc.setBoolean("addX", addX);
-        nbttc.setByte("now", now.getByteValue());
-        nbttc.setBoolean("silktouch", silktouch);
-        nbttc.setByte("fortune", fortune);
-        nbttc.setByte("efficiency", efficiency);
-        nbttc.setDouble("headPosX", headPos[0]);
-        nbttc.setDouble("headPosY", headPos[1]);
-        nbttc.setDouble("headPosZ", headPos[2]);
-        nbttc.setBoolean("removeWater", removeWater);
-        nbttc.setBoolean("removeLava", removeLava);
-        nbttc.setBoolean("removeLiquid", removeLiquid);
-        nbttc.setBoolean("buildAdvFrame", buildAdvFrame);
-        nbttc.setBoolean("fortuneInclude", fortuneInclude);
-        nbttc.setBoolean("silktouchInclude", silktouchInclude);
-        nbttc.setTag("fortuneList", writeArrayList(fortuneList));
-        nbttc.setTag("silktouchList", writeArrayList(silktouchList));
+        this.box.writeToNBT(nbttc);
+        nbttc.setInteger("targetX", this.target[0]);
+        nbttc.setInteger("targetY", this.target[1]);
+        nbttc.setInteger("targetZ", this.target[2]);
+        nbttc.setBoolean("addZ", this.addZ);
+        nbttc.setBoolean("addX", this.addX);
+        nbttc.setByte("now", this.now.getByteValue());
+        nbttc.setBoolean("silktouch", this.silktouch);
+        nbttc.setByte("fortune", this.fortune);
+        nbttc.setByte("efficiency", this.efficiency);
+        nbttc.setDouble("headPosX", this.headPos[0]);
+        nbttc.setDouble("headPosY", this.headPos[1]);
+        nbttc.setDouble("headPosZ", this.headPos[2]);
+        nbttc.setBoolean("removeWater", this.removeWater);
+        nbttc.setBoolean("removeLava", this.removeLava);
+        nbttc.setBoolean("removeLiquid", this.removeLiquid);
+        nbttc.setBoolean("buildAdvFrame", this.buildAdvFrame);
+        nbttc.setBoolean("fortuneInclude", this.fortuneInclude);
+        nbttc.setBoolean("silktouchInclude", this.silktouchInclude);
+        nbttc.setTag("fortuneList", writeArrayList(this.fortuneList));
+        nbttc.setTag("silktouchList", writeArrayList(this.silktouchList));
         PowerFramework.currentFramework.savePowerProvider(this, nbttc);
     }
 
-    private NBTTagList writeArrayList(ArrayList<Long> target) {
+    private static NBTTagList writeArrayList(ArrayList<Long> target) {
         NBTTagList nbttl = new NBTTagList();
         for (Long l : target)
             nbttl.appendTag(new NBTTagLong("", l));
@@ -1002,13 +1002,13 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
 
     @Override
     public void setPowerProvider(IPowerProvider provider) {
-        pp = provider;
+        this.pp = provider;
 
     }
 
     @Override
     public IPowerProvider getPowerProvider() {
-        return pp;
+        return this.pp;
     }
 
     @Override
@@ -1021,7 +1021,7 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
 
     @Override
     public boolean isActive() {
-        return now != PROGRESS.NONE;
+        return this.now != PROGRESS.NONE;
     }
 
     @Override

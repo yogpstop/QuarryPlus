@@ -25,15 +25,17 @@ public class GuiError extends GuiScreen {
         this.buttonText1 = StatCollector.translateToLocal("gui.done");
     }
 
-    @SuppressWarnings("unchecked")
+    @Override
     public void initGui() {
         this.buttonList.add(new GuiSmallButton(0, this.width / 2 - 75, this.height / 6 + 96, this.buttonText1));
     }
 
+    @Override
     protected void actionPerformed(GuiButton par1GuiButton) {
-        Minecraft.getMinecraft().displayGuiScreen(parent);
+        Minecraft.getMinecraft().displayGuiScreen(this.parent);
     }
 
+    @Override
     public void drawScreen(int par1, int par2, float par3) {
         this.drawDefaultBackground();
         this.drawCenteredString(this.fontRenderer, this.message1, this.width / 2, 70, 16777215);
@@ -44,7 +46,7 @@ public class GuiError extends GuiScreen {
     @Override
     protected void keyTyped(char par1, int par2) {
         if (par2 == 1 || par1 == 'e') {
-            mc.displayGuiScreen(parent);
+            this.mc.displayGuiScreen(this.parent);
         }
     }
 }

@@ -64,13 +64,13 @@ public class ContainerMover extends Container {
     @Override
     public boolean canInteractWith(EntityPlayer var1) {
         return this.worldObj.getBlockId(this.posX, this.posY, this.posZ) != QuarryPlus.blockMover.blockID ? false : var1.getDistanceSq(
-                (double) this.posX + 0.5D, (double) this.posY + 0.5D, (double) this.posZ + 0.5D) <= 64.0D;
+                this.posX + 0.5D, this.posY + 0.5D, this.posZ + 0.5D) <= 64.0D;
     }
 
     @Override
     public void detectAndSendChanges() {
         super.detectAndSendChanges();
-        if (gui != null) {
+        if (this.gui != null) {
             checkInventory();
         }
     }
@@ -78,7 +78,7 @@ public class ContainerMover extends Container {
     private void moveEnchant(short eid) {
         if (!checkTo(eid))
             return;
-        ItemStack is = craftMatrix.getStackInSlot(0);
+        ItemStack is = this.craftMatrix.getStackInSlot(0);
         NBTTagList list = is.getEnchantmentTagList();
         if (list == null)
             return;
@@ -111,7 +111,7 @@ public class ContainerMover extends Container {
             if (is.getTagCompound().hasNoTags())
                 is.setTagCompound(null);
         }
-        is = craftMatrix.getStackInSlot(1);
+        is = this.craftMatrix.getStackInSlot(1);
         list = is.getEnchantmentTagList();
         if (list == null) {
             if (!is.hasTagCompound())
@@ -146,19 +146,19 @@ public class ContainerMover extends Container {
         }
         if (!done) {
             NBTTagCompound ench = new NBTTagCompound();
-            ench.setShort("id", (short) eid);
+            ench.setShort("id", eid);
             ench.setShort("lvl", (short) 1);
             list.appendTag(ench);
         }
     }
 
     private void checkInventory() {
-        gui.a1.enabled = false;
-        gui.a3.enabled = false;
-        gui.a5.enabled = false;
-        if (craftMatrix.getStackInSlot(1) == null)
+        this.gui.a1.enabled = false;
+        this.gui.a3.enabled = false;
+        this.gui.a5.enabled = false;
+        if (this.craftMatrix.getStackInSlot(1) == null)
             return;
-        ItemStack pickaxeIs = craftMatrix.getStackInSlot(0);
+        ItemStack pickaxeIs = this.craftMatrix.getStackInSlot(0);
         if (pickaxeIs != null) {
             NBTTagList pickaxeE = pickaxeIs.getEnchantmentTagList();
             if (pickaxeE != null)
@@ -171,13 +171,13 @@ public class ContainerMover extends Container {
                         continue;
                     switch (id) {
                     case 32:
-                        gui.a5.enabled = true;
+                        this.gui.a5.enabled = true;
                         break;
                     case 33:
-                        gui.a1.enabled = true;
+                        this.gui.a1.enabled = true;
                         break;
                     case 35:
-                        gui.a3.enabled = true;
+                        this.gui.a3.enabled = true;
                         break;
                     }
 
@@ -186,7 +186,7 @@ public class ContainerMover extends Container {
     }
 
     private boolean checkTo(short id) {
-        ItemStack quarryIs = craftMatrix.getStackInSlot(1);
+        ItemStack quarryIs = this.craftMatrix.getStackInSlot(1);
         if (quarryIs != null) {
             NBTTagList quarryE = quarryIs.getEnchantmentTagList();
             if (quarryE != null) {

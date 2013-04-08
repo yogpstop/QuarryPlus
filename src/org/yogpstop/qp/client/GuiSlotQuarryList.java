@@ -15,23 +15,23 @@ public class GuiSlotQuarryList extends GuiSlot {
 
     public GuiSlotQuarryList(Minecraft par1Minecraft, int par2, int par3, int par4, int par5, int par6, GuiQuarryList parents, ArrayList<Long> ali) {
         super(par1Minecraft, par2, par3, par4, par5, par6);
-        parent = parents;
-        target = ali;
+        this.parent = parents;
+        this.target = ali;
     }
 
     @Override
     protected int getSize() {
-        return target.size();
+        return this.target.size();
     }
 
     @Override
     protected void elementClicked(int var1, boolean var2) {
-        currentore = var1;
+        this.currentore = var1;
     }
 
     @Override
     protected boolean isSelected(int var1) {
-        return var1 == currentore;
+        return var1 == this.currentore;
     }
 
     @Override
@@ -41,7 +41,7 @@ public class GuiSlotQuarryList extends GuiSlot {
 
     @Override
     protected void drawSlot(int var1, int var2, int var3, int var4, Tessellator var5) {
-        String name = getname(target.get(var1));
+        String name = getname(this.target.get(var1));
         Minecraft.getMinecraft().fontRenderer.drawStringWithShadow(name,
                 (this.parent.width * 3 / 5 - Minecraft.getMinecraft().fontRenderer.getStringWidth(name)) / 2, var3 + 1, 0xFFFFFF);
     }

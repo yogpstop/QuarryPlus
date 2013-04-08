@@ -2,6 +2,8 @@ package org.yogpstop.qp;
 
 import java.util.ArrayList;
 
+import buildcraft.core.CreativeTabBuildCraft;
+
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
@@ -25,7 +27,7 @@ public class BlockQuarry extends BlockContainer {
         setHardness(1.5F);
         setResistance(10F);
         setStepSound(soundStoneFootstep);
-        setCreativeTab(null);
+        setCreativeTab(CreativeTabBuildCraft.tabBuildCraft);
     }
 
     @Override
@@ -34,32 +36,27 @@ public class BlockQuarry extends BlockContainer {
     }
 
     @Override
-    public int idPicked(World w, int x, int y, int z) {
-        return QuarryPlus.blockQuarry.blockID;
-    }
-
-    @Override
     public Icon getBlockTextureFromSideAndMetadata(int i, int j) {
         if (j == 0 && i == 3)
-            return textureFront;
+            return this.textureFront;
 
         if (i == j)
-            return textureFront;
+            return this.textureFront;
 
         switch (i) {
         case 1:
-            return textureTop;
+            return this.textureTop;
         default:
-            return blockIcon;
+            return this.blockIcon;
         }
     }
 
     @Override
     @SideOnly(Side.CLIENT)
     public void registerIcons(IconRegister par1IconRegister) {
-        blockIcon = par1IconRegister.registerIcon("yogpstop/quarryplus:quarry");
-        textureTop = par1IconRegister.registerIcon("yogpstop/quarryplus:quarry_top");
-        textureFront = par1IconRegister.registerIcon("yogpstop/quarryplus:quarry_front");
+        this.blockIcon = par1IconRegister.registerIcon("yogpstop/quarryplus:quarry");
+        this.textureTop = par1IconRegister.registerIcon("yogpstop/quarryplus:quarry_top");
+        this.textureFront = par1IconRegister.registerIcon("yogpstop/quarryplus:quarry_front");
     }
 
     @Override
@@ -69,7 +66,6 @@ public class BlockQuarry extends BlockContainer {
 
     @Override
     public void onBlockPlacedBy(World w, int x, int y, int z, EntityLiving el, ItemStack stack) {
-        super.onBlockPlacedBy(w, x, y, z, el, stack);
         ForgeDirection orientation = get2dOrientation(el.posX, el.posZ, x, z);
         w.setBlockMetadataWithNotify(x, y, z, orientation.getOpposite().ordinal(), 1);
         ((TileQuarry) w.getBlockTileEntity(x, y, z)).init(stack.getEnchantmentTagList());

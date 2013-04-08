@@ -46,7 +46,7 @@ public class QuarryPlus {
     public static final int guiIdGuiQuarrySilktouchList = 4;
 
     @Mod.PreInit
-    public void preInit(FMLPreInitializationEvent event) {
+    public static void preInit(FMLPreInitializationEvent event) {
         Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
         try {
             cfg.load();

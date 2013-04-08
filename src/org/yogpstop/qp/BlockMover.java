@@ -16,6 +16,7 @@ public class BlockMover extends Block {
 
     public BlockMover(int par1) {
         super(par1, Material.iron);
+        setHardness(1.2F);
         this.setCreativeTab(tabBuildCraft);
     }
 
@@ -24,11 +25,11 @@ public class BlockMover extends Block {
 
         switch (i) {
         case 1:
-            return textureTop;
+            return this.textureTop;
         case 0:
-            return textureBottom;
+            return this.textureBottom;
         default:
-            return blockIcon;
+            return this.blockIcon;
         }
     }
 
@@ -44,10 +45,9 @@ public class BlockMover extends Block {
     public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer entityPlayer, int par6, float par7, float par8, float par9) {
         if (world.isRemote) {
             return true;
-        } else {
-            entityPlayer.openGui(QuarryPlus.instance, QuarryPlus.guiIdContainerMover, world, x, y, z);
-            return true;
         }
+        entityPlayer.openGui(QuarryPlus.instance, QuarryPlus.guiIdContainerMover, world, x, y, z);
+        return true;
 
     }
 }

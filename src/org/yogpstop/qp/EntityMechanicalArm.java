@@ -50,7 +50,7 @@ public class EntityMechanicalArm extends Entity {
         setArmSize(width, height);
         setHead(i, j - 2, k);
 
-        noClip = true;
+        this.noClip = true;
 
         this.parent = parent;
         parent.setArm(this);
@@ -64,25 +64,25 @@ public class EntityMechanicalArm extends Entity {
     }
 
     private void setArmSize(double x, double z) {
-        armSizeX = x;
-        xArm.iSize = x;
-        armSizeZ = z;
-        zArm.kSize = z;
+        this.armSizeX = x;
+        this.xArm.iSize = x;
+        this.armSizeZ = z;
+        this.zArm.kSize = z;
         updatePosition();
     }
 
     private void makeParts(World world) {
-        xArm = FactoryProxy.proxy.newDrill(world, 0, 0, 0, 1, 0.5, 0.5);
-        yArm = FactoryProxy.proxy.newDrill(world, 0, 0, 0, 0.5, 1, 0.5);
-        zArm = FactoryProxy.proxy.newDrill(world, 0, 0, 0, 0.5, 0.5, 1);
+        this.xArm = FactoryProxy.proxy.newDrill(world, 0, 0, 0, 1, 0.5, 0.5);
+        this.yArm = FactoryProxy.proxy.newDrill(world, 0, 0, 0, 0.5, 1, 0.5);
+        this.zArm = FactoryProxy.proxy.newDrill(world, 0, 0, 0, 0.5, 0.5, 1);
 
-        head = FactoryProxy.proxy.newDrillHead(world, 0, 0, 0, 0.2, 1, 0.2);
-        head.shadowSize = 1.0F;
+        this.head = FactoryProxy.proxy.newDrillHead(world, 0, 0, 0, 0.2, 1, 0.2);
+        this.head.shadowSize = 1.0F;
 
-        world.spawnEntityInWorld(xArm);
-        world.spawnEntityInWorld(yArm);
-        world.spawnEntityInWorld(zArm);
-        world.spawnEntityInWorld(head);
+        world.spawnEntityInWorld(this.xArm);
+        world.spawnEntityInWorld(this.yArm);
+        world.spawnEntityInWorld(this.zArm);
+        world.spawnEntityInWorld(this.head);
     }
 
     @Override
@@ -90,20 +90,20 @@ public class EntityMechanicalArm extends Entity {
 
     @Override
     protected void readEntityFromNBT(NBTTagCompound nbttagcompound) {
-        xRoot = nbttagcompound.getDouble("xRoot");
-        yRoot = nbttagcompound.getDouble("yRoot");
-        zRoot = nbttagcompound.getDouble("zRoot");
-        armSizeX = nbttagcompound.getDouble("armSizeX");
-        armSizeZ = nbttagcompound.getDouble("armSizeZ");
-        setArmSize(armSizeX, armSizeZ);
+        this.xRoot = nbttagcompound.getDouble("xRoot");
+        this.yRoot = nbttagcompound.getDouble("yRoot");
+        this.zRoot = nbttagcompound.getDouble("zRoot");
+        this.armSizeX = nbttagcompound.getDouble("armSizeX");
+        this.armSizeZ = nbttagcompound.getDouble("armSizeZ");
+        setArmSize(this.armSizeX, this.armSizeZ);
         updatePosition();
     }
 
     private void findAndJoinQuarry() {
-        TileEntity te = worldObj.getBlockTileEntity((int) posX, (int) posY, (int) posZ);
+        TileEntity te = this.worldObj.getBlockTileEntity((int) this.posX, (int) this.posY, (int) this.posZ);
         if (te != null && te instanceof TileQuarry) {
-            parent = (TileQuarry) te;
-            parent.setArm(this);
+            this.parent = (TileQuarry) te;
+            this.parent.setArm(this);
         } else {
             setDead();
         }
@@ -111,43 +111,43 @@ public class EntityMechanicalArm extends Entity {
 
     @Override
     protected void writeEntityToNBT(NBTTagCompound nbttagcompound) {
-        nbttagcompound.setDouble("xRoot", xRoot);
-        nbttagcompound.setDouble("yRoot", yRoot);
-        nbttagcompound.setDouble("zRoot", zRoot);
-        nbttagcompound.setDouble("armSizeX", armSizeX);
-        nbttagcompound.setDouble("armSizeZ", armSizeZ);
+        nbttagcompound.setDouble("xRoot", this.xRoot);
+        nbttagcompound.setDouble("yRoot", this.yRoot);
+        nbttagcompound.setDouble("zRoot", this.zRoot);
+        nbttagcompound.setDouble("armSizeX", this.armSizeX);
+        nbttagcompound.setDouble("armSizeZ", this.armSizeZ);
     }
 
     @Override
     public void onUpdate() {
         super.onUpdate();
         updatePosition();
-        if (parent == null) {
+        if (this.parent == null) {
             findAndJoinQuarry();
         }
 
-        if (parent == null) {
+        if (this.parent == null) {
             setDead();
             return;
         }
     }
 
     public void updatePosition() {
-        double[] head = getHead();
-        this.xArm.setPosition(xRoot, yRoot, head[2] + 0.25);
-        this.yArm.jSize = yRoot - head[1] - 1;
-        this.yArm.setPosition(head[0] + 0.25, head[1] + 1, head[2] + 0.25);
-        this.zArm.setPosition(head[0] + 0.25, yRoot, zRoot);
-        this.head.setPosition(head[0] + 0.4, head[1], head[2] + 0.4);
+        double[] head1 = getHead();
+        this.xArm.setPosition(this.xRoot, this.yRoot, head1[2] + 0.25);
+        this.yArm.jSize = this.yRoot - head1[1] - 1;
+        this.yArm.setPosition(head1[0] + 0.25, head1[1] + 1, head1[2] + 0.25);
+        this.zArm.setPosition(head1[0] + 0.25, this.yRoot, this.zRoot);
+        this.head.setPosition(head1[0] + 0.4, head1[1], head1[2] + 0.4);
     }
 
     @Override
     public void setDead() {
-        if (worldObj != null && worldObj.isRemote) {
-            xArm.setDead();
-            yArm.setDead();
-            zArm.setDead();
-            head.setDead();
+        if (this.worldObj != null && this.worldObj.isRemote) {
+            this.xArm.setDead();
+            this.yArm.setDead();
+            this.zArm.setDead();
+            this.head.setDead();
         }
         super.setDead();
     }

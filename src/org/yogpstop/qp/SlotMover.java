@@ -11,7 +11,7 @@ public class SlotMover extends Slot {
 
     public SlotMover(IInventory par1iInventory, int par2, int par3, int par4, Container c) {
         super(par1iInventory, par2, par3, par4);
-        parentsC = c;
+        this.parentsC = c;
 
     }
 
@@ -29,7 +29,7 @@ public class SlotMover extends Slot {
 
     @Override
     public void onSlotChanged() {
-        parentsC.onCraftMatrixChanged(inventory);
+        this.parentsC.onCraftMatrixChanged(this.inventory);
         super.onSlotChanged();
     }
 }

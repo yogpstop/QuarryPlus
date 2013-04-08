@@ -31,8 +31,8 @@ public class BlockMarker extends BlockContainer {
         setCreativeTab(CreativeTabBuildCraft.tabBuildCraft);
     }
 
-    @SuppressWarnings({ "all" })
-    // @Override (client only)
+    @Override
+    @SideOnly(Side.CLIENT)
     public AxisAlignedBB getSelectedBoundingBoxFromPool(World world, int i, int j, int k) {
         int meta = world.getBlockMetadata(i, j, k);
 
@@ -58,10 +58,6 @@ public class BlockMarker extends BlockContainer {
     @Override
     public int getRenderType() {
         return BuildCraftCore.markerModel;
-    }
-
-    public boolean isACube() {
-        return false;
     }
 
     @Override
@@ -122,7 +118,7 @@ public class BlockMarker extends BlockContainer {
                 flag = true;
             }
             if (flag) {
-                dropBlockAsItem(world, i, j, k, blockID, 0);
+                dropBlockAsItem(world, i, j, k, this.blockID, 0);
                 world.setBlockToAir(i, j, k);
             }
         }
@@ -198,14 +194,13 @@ public class BlockMarker extends BlockContainer {
 
     private boolean dropTorchIfCantStay(World world, int i, int j, int k) {
         if (!canPlaceBlockAt(world, i, j, k)) {
-            dropBlockAsItem(world, i, j, k, blockID, 0);
+            dropBlockAsItem(world, i, j, k, this.blockID, 0);
             world.setBlockToAir(i, j, k);
             return false;
-        } else
-            return true;
+        }
+        return true;
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
     public void addCreativeItems(ArrayList itemList) {
         itemList.add(new ItemStack(this));
@@ -214,6 +209,6 @@ public class BlockMarker extends BlockContainer {
     @Override
     @SideOnly(Side.CLIENT)
     public void registerIcons(IconRegister par1IconRegister) {
-        blockIcon = par1IconRegister.registerIcon("yogpstop/quarryplus:marker");
+        this.blockIcon = par1IconRegister.registerIcon("yogpstop/quarryplus:marker");
     }
 }

@@ -27,18 +27,17 @@ public class GuiMover extends GuiContainer {
         this.inventorySlots = new ContainerMover(player, world, x, y, z, this);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void initGui() {
         super.initGui();
-        int i = width - xSize >> 1;
-        int j = height - ySize >> 1;
-        a1 = new GuiButton(1, i + 126, j + 20, 20, 15, ">>");
-        a3 = new GuiButton(3, i + 126, j + 36, 20, 15, ">>");
-        a5 = new GuiButton(5, i + 126, j + 52, 20, 15, ">>");
-        buttonList.add(a1);
-        buttonList.add(a3);
-        buttonList.add(a5);
+        int i = this.width - this.xSize >> 1;
+        int j = this.height - this.ySize >> 1;
+        this.a1 = new GuiButton(1, i + 126, j + 20, 20, 15, ">>");
+        this.a3 = new GuiButton(3, i + 126, j + 36, 20, 15, ">>");
+        this.a5 = new GuiButton(5, i + 126, j + 52, 20, 15, ">>");
+        this.buttonList.add(this.a1);
+        this.buttonList.add(this.a3);
+        this.buttonList.add(this.a5);
     }
 
     @Override
@@ -51,16 +50,16 @@ public class GuiMover extends GuiContainer {
     }
 
     private void drawString(String s, int i) {
-        fontRenderer.drawString(s, (xSize - fontRenderer.getStringWidth(s)) / 2, (int) (6F + 16.5F * (float) i), 0x404040);
+        this.fontRenderer.drawString(s, (this.xSize - this.fontRenderer.getStringWidth(s)) / 2, (int) (6F + 16.5F * i), 0x404040);
     }
 
     @Override
     protected void drawGuiContainerBackgroundLayer(float f, int i, int j) {
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-        mc.renderEngine.bindTexture("/org/yogpstop/qp/mover.png");
-        int l = width - xSize >> 1;
-        int i1 = height - ySize >> 1;
-        drawTexturedModalRect(l, i1, 0, 0, xSize, ySize);
+        this.mc.renderEngine.bindTexture("/org/yogpstop/qp/mover.png");
+        int l = this.width - this.xSize >> 1;
+        int i1 = this.height - this.ySize >> 1;
+        drawTexturedModalRect(l, i1, 0, 0, this.xSize, this.ySize);
     }
 
     @Override

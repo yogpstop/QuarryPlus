@@ -32,7 +32,7 @@ public class ContainerQuarry extends Container {
     @Override
     public boolean canInteractWith(EntityPlayer entityPlayer) {
         return this.world.getBlockId(this.xCoord, this.yCoord, this.zCoord) != QuarryPlus.blockQuarry.blockID ? false : entityPlayer.getDistanceSq(
-                (double) this.xCoord + 0.5D, (double) this.yCoord + 0.5D, (double) this.zCoord + 0.5D) <= 64.0D;
+                this.xCoord + 0.5D, this.yCoord + 0.5D, this.zCoord + 0.5D) <= 64.0D;
     }
 
     @Override

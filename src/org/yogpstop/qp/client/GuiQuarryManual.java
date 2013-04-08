@@ -19,9 +19,9 @@ public class GuiQuarryManual extends GuiScreen {
     private TileQuarry quarry;
 
     public GuiQuarryManual(GuiScreen parents, byte id, TileQuarry tq) {
-        parent = parents;
-        targetid = id;
-        quarry = tq;
+        this.parent = parents;
+        this.targetid = id;
+        this.quarry = tq;
     }
 
     @Override
@@ -29,13 +29,12 @@ public class GuiQuarryManual extends GuiScreen {
         return false;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void initGui() {
-        buttonList.add(new GuiButton(-1, this.width / 2 - 150, this.height - 26, 140, 20, StatCollector.translateToLocal("gui.done")));
-        buttonList.add(new GuiButton(-2, this.width / 2 + 10, this.height - 26, 140, 20, StatCollector.translateToLocal("gui.cancel")));
-        blockid = new GuiTextField(fontRenderer, this.width / 2 - 50, 50, 100, 20);
-        meta = new GuiTextField(fontRenderer, this.width / 2 - 50, 80, 100, 20);
+        this.buttonList.add(new GuiButton(-1, this.width / 2 - 150, this.height - 26, 140, 20, StatCollector.translateToLocal("gui.done")));
+        this.buttonList.add(new GuiButton(-2, this.width / 2 + 10, this.height - 26, 140, 20, StatCollector.translateToLocal("gui.cancel")));
+        this.blockid = new GuiTextField(this.fontRenderer, this.width / 2 - 50, 50, 100, 20);
+        this.meta = new GuiTextField(this.fontRenderer, this.width / 2 - 50, 80, 100, 20);
         this.blockid.setFocused(true);
     }
 
@@ -46,28 +45,28 @@ public class GuiQuarryManual extends GuiScreen {
             short bid;
             int metaid;
             try {
-                bid = Short.parseShort(blockid.getText());
+                bid = Short.parseShort(this.blockid.getText());
             } catch (Exception e) {
-                blockid.setText(StatCollector.translateToLocal("tof.error"));
+                this.blockid.setText(StatCollector.translateToLocal("tof.error"));
                 return;
             }
             try {
-                if (meta.getText().equals(""))
+                if (this.meta.getText().equals(""))
                     metaid = 0;
                 else
-                    metaid = Integer.parseInt(meta.getText());
+                    metaid = Integer.parseInt(this.meta.getText());
             } catch (Exception e) {
-                meta.setText(StatCollector.translateToLocal("tof.error"));
+                this.meta.setText(StatCollector.translateToLocal("tof.error"));
                 return;
             }
-            if ((targetid == 1 ? quarry.fortuneList : quarry.silktouchList).contains(data(bid, metaid))) {
-                mc.displayGuiScreen(new GuiError(this, StatCollector.translateToLocal("tof.alreadyerror"), getname(bid, metaid)));
+            if ((this.targetid == 1 ? this.quarry.fortuneList : this.quarry.silktouchList).contains(data(bid, metaid))) {
+                this.mc.displayGuiScreen(new GuiError(this, StatCollector.translateToLocal("tof.alreadyerror"), getname(bid, metaid)));
                 return;
             }
-            quarry.sendPacketToServer((byte) (TileQuarry.fortuneAdd + targetid - 1), QuarryPlus.data(bid, metaid));
+            this.quarry.sendPacketToServer((byte) (TileQuarry.fortuneAdd + this.targetid - 1), QuarryPlus.data(bid, metaid));
             break;
         case -2:
-            mc.displayGuiScreen(parent);
+            this.mc.displayGuiScreen(this.parent);
             break;
         }
     }
@@ -88,7 +87,7 @@ public class GuiQuarryManual extends GuiScreen {
             return;
         }
         if (par2 == 1 || par1 == 'e') {
-            mc.displayGuiScreen(parent);
+            this.mc.displayGuiScreen(this.parent);
         }
     }
 
@@ -104,12 +103,12 @@ public class GuiQuarryManual extends GuiScreen {
     public void drawScreen(int i, int j, float k) {
         drawDefaultBackground();
         String title = StatCollector.translateToLocal("tof.selectblock");
-        fontRenderer.drawStringWithShadow(title, (this.width - fontRenderer.getStringWidth(title)) / 2, 8, 0xFFFFFF);
-        fontRenderer.drawStringWithShadow(StatCollector.translateToLocal("tof.blockid"),
-                this.width / 2 - 60 - fontRenderer.getStringWidth(StatCollector.translateToLocal("tof.blockid")), 50, 0xFFFFFF);
-        fontRenderer.drawStringWithShadow(StatCollector.translateToLocal("tof.meta"),
-                this.width / 2 - 60 - fontRenderer.getStringWidth(StatCollector.translateToLocal("tof.meta")), 80, 0xFFFFFF);
-        fontRenderer.drawString(StatCollector.translateToLocal("tof.tipsmeta"), 16, 110, 0xFFFFFF);
+        this.fontRenderer.drawStringWithShadow(title, (this.width - this.fontRenderer.getStringWidth(title)) / 2, 8, 0xFFFFFF);
+        this.fontRenderer.drawStringWithShadow(StatCollector.translateToLocal("tof.blockid"),
+                this.width / 2 - 60 - this.fontRenderer.getStringWidth(StatCollector.translateToLocal("tof.blockid")), 50, 0xFFFFFF);
+        this.fontRenderer.drawStringWithShadow(StatCollector.translateToLocal("tof.meta"),
+                this.width / 2 - 60 - this.fontRenderer.getStringWidth(StatCollector.translateToLocal("tof.meta")), 80, 0xFFFFFF);
+        this.fontRenderer.drawString(StatCollector.translateToLocal("tof.tipsmeta"), 16, 110, 0xFFFFFF);
         this.blockid.drawTextBox();
         this.meta.drawTextBox();
         super.drawScreen(i, j, k);
