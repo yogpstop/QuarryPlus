@@ -24,8 +24,6 @@ public class PacketHandler implements IPacketHandler {
 
     @Override
     public void onPacketData(INetworkManager network, Packet250CustomPayload packet, Player player) {
-        System.out.print("Recieve  ");
-        System.out.println(packet.channel);
         if (packet.channel.equals("QPTENBT")) {
             setNBTFromPacket(packet, (EntityPlayer) player);
         } else if (packet.channel.equals("QuarryPlusGUIBtn")) {
@@ -62,8 +60,6 @@ public class PacketHandler implements IPacketHandler {
         packet.length = bos.size();
         packet.isChunkDataPacket = true;
         PacketDispatcher.sendPacketToServer(packet);
-        System.out.print("Sent  ");
-        System.out.println(packet.channel);
     }
 
     private static void openGuiFromPacket(ByteArrayDataInput badi, EntityPlayer ep) {

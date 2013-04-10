@@ -63,8 +63,8 @@ public class ContainerMover extends Container {
 
     @Override
     public boolean canInteractWith(EntityPlayer var1) {
-        return this.worldObj.getBlockId(this.posX, this.posY, this.posZ) != QuarryPlus.blockMover.blockID ? false : var1.getDistanceSq(
-                this.posX + 0.5D, this.posY + 0.5D, this.posZ + 0.5D) <= 64.0D;
+        return this.worldObj.getBlockId(this.posX, this.posY, this.posZ) != QuarryPlus.blockMover.blockID ? false : var1.getDistanceSq(this.posX + 0.5D,
+                this.posY + 0.5D, this.posZ + 0.5D) <= 64.0D;
     }
 
     @Override
@@ -73,6 +73,11 @@ public class ContainerMover extends Container {
         if (this.gui != null) {
             checkInventory();
         }
+    }
+
+    @Override
+    public ItemStack transferStackInSlot(EntityPlayer pl, int i) {
+        return null;
     }
 
     private void moveEnchant(short eid) {
@@ -200,11 +205,6 @@ public class ContainerMover extends Container {
             }
         }
         return true;
-    }
-
-    @Override
-    public ItemStack transferStackInSlot(EntityPlayer player, int slotIndex) {
-        return null;
     }
 
     public void readPacketData(ByteArrayDataInput data) {

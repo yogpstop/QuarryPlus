@@ -1,14 +1,20 @@
+/** 
+ * Copyright (c) SpaceToad, 2011
+ * http://www.mod-buildcraft.com
+ * 
+ * BuildCraft is distributed under the terms of the Minecraft Mod Public 
+ * License 1.0, or MMPL. Please check the contents of the license located in
+ * http://www.mod-buildcraft.com/MMPL-1.0.txt
+ */
+
 package org.yogpstop.qp;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 
-import static org.yogpstop.qp.QuarryPlus.blockMarker;
-
 import buildcraft.api.core.IAreaProvider;
 import buildcraft.api.core.LaserKind;
 import buildcraft.api.core.Position;
-
 import buildcraft.core.EntityBlock;
 import buildcraft.core.TileBuildCraft;
 import buildcraft.core.network.PacketUpdate;
@@ -102,24 +108,24 @@ public class TileMarker extends TileBuildCraft implements IAreaProvider {
         if (this.showSignals) {
             this.signals = new EntityBlock[6];
             if (!this.origin.isSet() || !this.origin.vect[0].isSet()) {
-                this.signals[0] = Utils.createLaser(this.worldObj, new Position(this.xCoord, this.yCoord, this.zCoord), new Position(this.xCoord + maxSize - 1, this.yCoord, this.zCoord),
-                        LaserKind.Blue);
-                this.signals[1] = Utils.createLaser(this.worldObj, new Position(this.xCoord - maxSize + 1, this.yCoord, this.zCoord), new Position(this.xCoord, this.yCoord, this.zCoord),
-                        LaserKind.Blue);
+                this.signals[0] = Utils.createLaser(this.worldObj, new Position(this.xCoord, this.yCoord, this.zCoord), new Position(this.xCoord + maxSize - 1,
+                        this.yCoord, this.zCoord), LaserKind.Blue);
+                this.signals[1] = Utils.createLaser(this.worldObj, new Position(this.xCoord - maxSize + 1, this.yCoord, this.zCoord), new Position(this.xCoord,
+                        this.yCoord, this.zCoord), LaserKind.Blue);
             }
 
             if (!this.origin.isSet() || !this.origin.vect[1].isSet()) {
-                this.signals[2] = Utils.createLaser(this.worldObj, new Position(this.xCoord, this.yCoord, this.zCoord), new Position(this.xCoord, this.yCoord + maxSize - 1, this.zCoord),
-                        LaserKind.Blue);
-                this.signals[3] = Utils.createLaser(this.worldObj, new Position(this.xCoord, this.yCoord - maxSize + 1, this.zCoord), new Position(this.xCoord, this.yCoord, this.zCoord),
-                        LaserKind.Blue);
+                this.signals[2] = Utils.createLaser(this.worldObj, new Position(this.xCoord, this.yCoord, this.zCoord), new Position(this.xCoord, this.yCoord
+                        + maxSize - 1, this.zCoord), LaserKind.Blue);
+                this.signals[3] = Utils.createLaser(this.worldObj, new Position(this.xCoord, this.yCoord - maxSize + 1, this.zCoord), new Position(this.xCoord,
+                        this.yCoord, this.zCoord), LaserKind.Blue);
             }
 
             if (!this.origin.isSet() || !this.origin.vect[2].isSet()) {
-                this.signals[4] = Utils.createLaser(this.worldObj, new Position(this.xCoord, this.yCoord, this.zCoord), new Position(this.xCoord, this.yCoord, this.zCoord + maxSize - 1),
-                        LaserKind.Blue);
-                this.signals[5] = Utils.createLaser(this.worldObj, new Position(this.xCoord, this.yCoord, this.zCoord - maxSize + 1), new Position(this.xCoord, this.yCoord, this.zCoord),
-                        LaserKind.Blue);
+                this.signals[4] = Utils.createLaser(this.worldObj, new Position(this.xCoord, this.yCoord, this.zCoord), new Position(this.xCoord, this.yCoord,
+                        this.zCoord + maxSize - 1), LaserKind.Blue);
+                this.signals[5] = Utils.createLaser(this.worldObj, new Position(this.xCoord, this.yCoord, this.zCoord - maxSize + 1), new Position(this.xCoord,
+                        this.yCoord, this.zCoord), LaserKind.Blue);
             }
         }
     }
@@ -159,7 +165,7 @@ public class TileMarker extends TileBuildCraft implements IAreaProvider {
     }
 
     void setVect(int n) {
-        int markerId = blockMarker.blockID;
+        int markerId = QuarryPlus.blockMarker.blockID;
 
         int[] coords = new int[3];
 
@@ -328,50 +334,51 @@ public class TileMarker extends TileBuildCraft implements IAreaProvider {
 
         if (this.origin.isSet()) {
             markerOrigin = this.origin.vectO.getMarker(this.worldObj);
-            
-            Origin o = this.origin;
+            if (markerOrigin != null) {
+                Origin o = this.origin;
 
-            if (markerOrigin != null && markerOrigin.lasers != null) {
-                for (EntityBlock entity : markerOrigin.lasers) {
-                    if (entity != null) {
-                        entity.setDead();
-                    }
-                }
-                markerOrigin.lasers = null;
-            }
-
-            for (TileWrapper m : o.vect) {
-                TileMarker mark = m.getMarker(this.worldObj);
-
-                if (mark != null) {
-                    if (mark.lasers != null) {
-                        for (EntityBlock entity : mark.lasers) {
-                            if (entity != null) {
-                                entity.setDead();
-                            }
+                if (markerOrigin.lasers != null) {
+                    for (EntityBlock entity : markerOrigin.lasers) {
+                        if (entity != null) {
+                            entity.setDead();
                         }
-                        mark.lasers = null;
                     }
+                    markerOrigin.lasers = null;
+                }
 
-                    if (mark != this) {
-                        mark.origin = new Origin();
+                for (TileWrapper m : o.vect) {
+                    TileMarker mark = m.getMarker(this.worldObj);
+
+                    if (mark != null) {
+                        if (mark.lasers != null) {
+                            for (EntityBlock entity : mark.lasers) {
+                                if (entity != null) {
+                                    entity.setDead();
+                                }
+                            }
+                            mark.lasers = null;
+                        }
+
+                        if (mark != this) {
+                            mark.origin = new Origin();
+                        }
                     }
                 }
-            }
 
-            if (markerOrigin != this) {
-                markerOrigin.origin = new Origin();
-            }
-
-            for (TileWrapper wrapper : o.vect) {
-                TileMarker mark = wrapper.getMarker(this.worldObj);
-
-                if (mark != null) {
-                    mark.updateSignals();
+                if (markerOrigin != this) {
+                    markerOrigin.origin = new Origin();
                 }
-            }
 
-            markerOrigin.updateSignals();
+                for (TileWrapper wrapper : o.vect) {
+                    TileMarker mark = wrapper.getMarker(this.worldObj);
+
+                    if (mark != null) {
+                        mark.updateSignals();
+                    }
+                }
+
+                markerOrigin.updateSignals();
+            }
         }
 
         if (this.signals != null) {
@@ -398,15 +405,15 @@ public class TileMarker extends TileBuildCraft implements IAreaProvider {
 
         for (TileWrapper m : o.vect.clone()) {
             if (m.isSet()) {
-                this.worldObj.setBlockToAir(m.x, m.y, m.z);
+                this.worldObj.setBlock(m.x, m.y, m.z, 0);
 
-                blockMarker.dropBlockAsItem(this.worldObj, m.x, m.y, m.z, blockMarker.blockID, 0);
+                QuarryPlus.blockMarker.dropBlockAsItem(this.worldObj, m.x, m.y, m.z, QuarryPlus.blockMarker.blockID, 0);
             }
         }
 
-        this.worldObj.setBlockToAir(o.vectO.x, o.vectO.y, o.vectO.z);
+        this.worldObj.setBlock(o.vectO.x, o.vectO.y, o.vectO.z, 0);
 
-        blockMarker.dropBlockAsItem(this.worldObj, o.vectO.x, o.vectO.y, o.vectO.z, blockMarker.blockID, 0);
+        QuarryPlus.blockMarker.dropBlockAsItem(this.worldObj, o.vectO.x, o.vectO.y, o.vectO.z, QuarryPlus.blockMarker.blockID, 0);
     }
 
     @Override

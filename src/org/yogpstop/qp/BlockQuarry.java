@@ -28,11 +28,25 @@ public class BlockQuarry extends BlockContainer {
         setResistance(10F);
         setStepSound(soundStoneFootstep);
         setCreativeTab(CreativeTabBuildCraft.tabBuildCraft);
+        setUnlocalizedName("QuarryPlus");
     }
 
     @Override
     public ArrayList<ItemStack> getBlockDropped(World world, int x, int y, int z, int metadata, int fortune) {
-        return new ArrayList<ItemStack>();
+        ArrayList<ItemStack> ret = new ArrayList<ItemStack>();
+        TileQuarry tq = (TileQuarry) world.getBlockTileEntity(x, y, z);
+        if (tq == null)
+            return ret;
+        int count = quantityDropped(metadata, fortune, world.rand);
+        int id = idDropped(metadata, world.rand, fortune);
+        if (id > 0) {
+            for (int i = 0; i < count; i++) {
+                ItemStack is = new ItemStack(id, 1, damageDropped(metadata));
+                tq.setEnchantment(is);
+                ret.add(is);
+            }
+        }
+        return ret;
     }
 
     @Override

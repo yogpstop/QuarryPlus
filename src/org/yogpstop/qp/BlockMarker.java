@@ -29,6 +29,7 @@ public class BlockMarker extends BlockContainer {
 
         setLightValue(0.5F);
         setCreativeTab(CreativeTabBuildCraft.tabBuildCraft);
+        setUnlocalizedName("MarkerPlus");
     }
 
     @Override
@@ -59,6 +60,10 @@ public class BlockMarker extends BlockContainer {
     public int getRenderType() {
         return BuildCraftCore.markerModel;
     }
+
+    /*
+     * public boolean isACube() { return false; }
+     */
 
     @Override
     public TileEntity createNewTileEntity(World var1) {
@@ -118,8 +123,8 @@ public class BlockMarker extends BlockContainer {
                 flag = true;
             }
             if (flag) {
-                dropBlockAsItem(world, i, j, k, this.blockID, 0);
-                world.setBlockToAir(i, j, k);
+                dropBlockAsItem(world, i, j, k, QuarryPlus.blockMarker.blockID, 0);
+                world.setBlock(i, j, k, 0);
             }
         }
     }
@@ -194,8 +199,8 @@ public class BlockMarker extends BlockContainer {
 
     private boolean dropTorchIfCantStay(World world, int i, int j, int k) {
         if (!canPlaceBlockAt(world, i, j, k)) {
-            dropBlockAsItem(world, i, j, k, this.blockID, 0);
-            world.setBlockToAir(i, j, k);
+            dropBlockAsItem(world, i, j, k, QuarryPlus.blockMarker.blockID, 0);
+            world.setBlock(i, j, k, 0);
             return false;
         }
         return true;

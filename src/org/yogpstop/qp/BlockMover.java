@@ -18,6 +18,7 @@ public class BlockMover extends Block {
         super(par1, Material.iron);
         setHardness(1.2F);
         this.setCreativeTab(tabBuildCraft);
+        setUnlocalizedName("EnchantMover");
     }
 
     @Override

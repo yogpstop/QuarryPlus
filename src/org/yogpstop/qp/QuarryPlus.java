@@ -25,7 +25,7 @@ import cpw.mods.fml.common.registry.LanguageRegistry;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.FMLLog;
 
-@Mod(modid = "QuarryPlus", name = "QuarryPlus", version = "@VERSION@", dependencies = "required-after:BuildCraft|Factory@[3.4.2,)")
+@Mod(modid = "QuarryPlus", name = "QuarryPlus", version = "@VERSION@", dependencies = "required-after:BuildCraft|Factory")
 @NetworkMod(clientSideRequired = true, serverSideRequired = false, channels = { "QPOpenGUI", "QuarryPlusGUIBtn", "QPTENBT", "QuarryPlusTQ" }, packetHandler = PacketHandler.class)
 public class QuarryPlus {
     @SidedProxy(clientSide = "org.yogpstop.qp.client.ClientProxy", serverSide = "org.yogpstop.qp.CommonProxy")

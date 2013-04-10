@@ -32,4 +32,9 @@ public class SlotMover extends Slot {
         this.parentsC.onCraftMatrixChanged(this.inventory);
         super.onSlotChanged();
     }
+
+    @Override
+    public int getSlotStackLimit() {
+        return 1;
+    }
 }

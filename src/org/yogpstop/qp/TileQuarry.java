@@ -12,14 +12,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.Sets;
 import com.google.common.io.ByteArrayDataInput;
 
-import cpw.mods.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper;
 import cpw.mods.fml.common.network.PacketDispatcher;
 import cpw.mods.fml.common.network.Player;
 
@@ -475,6 +472,65 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
         return true;
     }
 
+    private boolean addX = true;
+    private boolean addZ = true;
+    private boolean digged = false;
+
+    private void setNextTarget() {
+        if (this.addX)
+            this.target[0]++;
+        else
+            this.target[0]--;
+        if (this.target[0] <= this.box.xMin || this.box.xMax <= this.target[0]) {
+            this.addX = !this.addX;
+            this.target[0] = Math.max(this.box.xMin + 1, Math.min(this.target[0], this.box.xMax - 1));
+            if (this.addZ)
+                this.target[2]++;
+            else
+                this.target[2]--;
+            if (this.target[2] <= this.box.zMin || this.box.zMax <= this.target[2]) {
+                this.addZ = !this.addZ;
+                this.target[2] = Math.max(this.box.zMin + 1, Math.min(this.target[2], this.box.zMax - 1));
+                if (this.digged) {
+                    this.addX = !this.addX;
+                    this.digged = false;
+                } else {
+                    this.target[1]--;
+                    double aa = getDistance(this.box.xMin + 1, this.target[1], this.box.zMin + 1);
+                    double ad = getDistance(this.box.xMin + 1, this.target[1], this.box.zMax - 1);
+                    double da = getDistance(this.box.xMax - 1, this.target[1], this.box.zMin + 1);
+                    double dd = getDistance(this.box.xMax - 1, this.target[1], this.box.zMax - 1);
+                    double res = Math.min(aa, Math.min(ad, Math.min(da, dd)));
+                    if (res == aa) {
+                        this.addX = true;
+                        this.addZ = true;
+                        this.target[0] = this.box.xMin + 1;
+                        this.target[2] = this.box.zMin + 1;
+                    } else if (res == ad) {
+                        this.addX = true;
+                        this.addZ = false;
+                        this.target[0] = this.box.xMin + 1;
+                        this.target[2] = this.box.zMax - 1;
+                    } else if (res == da) {
+                        this.addX = false;
+                        this.addZ = true;
+                        this.target[0] = this.box.xMax - 1;
+                        this.target[2] = this.box.zMin + 1;
+                    } else if (res == dd) {
+                        this.addX = false;
+                        this.addZ = false;
+                        this.target[0] = this.box.xMax - 1;
+                        this.target[2] = this.box.zMax - 1;
+                    }
+                }
+            }
+        }
+    }
+
+    private double getDistance(int x, int y, int z) {
+        return Math.sqrt(Math.pow(x - this.headPos[0], 2) + Math.pow(y + 1 - this.headPos[1], 2) + Math.pow(z - this.headPos[2], 2));
+    }
+
     private boolean makeFrame(int[] coord) {
         float y = Math.max(-4.8F * this.efficiency + 25F, 0F);
         if (this.pp.useEnergy(y, y, true) != y)
@@ -484,34 +540,8 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
         return true;
     }
 
-    private boolean addX = true;
-    private boolean addZ = true;
-    private boolean repeatY = false;
-    private Ticket chunkTicket;
-
-    private void setNextTarget() {
-        if (this.addX)
-            this.target[0]++;
-        else
-            this.target[0]--;
-        if (this.target[0] <= this.box.xMin || this.box.xMax <= this.target[0]) {
-            this.addX = !this.addX;
-            this.target[0] = Math.max(this.box.xMin, Math.min(this.target[0], this.box.xMax));
-            if (this.addZ)
-                this.target[2]++;
-            else
-                this.target[2]--;
-            if (this.target[2] <= this.box.zMin || this.box.zMax <= this.target[2]) {
-                this.addZ = !this.addZ;
-                this.target[2] = Math.max(this.box.zMin, Math.min(this.target[2], this.box.zMax));
-                this.repeatY = !this.repeatY;
-                if (!this.repeatY)
-                    this.target[1]--;
-            }
-        }
-    }
-
     private boolean breakBlock(int[] coord) {
+        this.digged = true;
         float pw = (-7.93F * this.efficiency + 40F) * blockHardness(coord[0], coord[1], coord[2]);
         if (this.pp.useEnergy(pw, pw, true) != pw)
             return false;
@@ -566,31 +596,24 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
         createStackedBlockMethod.setAccessible(true);
         try {
             return (ItemStack) createStackedBlockMethod.invoke(b, meta);
-        } catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
             e.printStackTrace();
         }
         return null;
     }
 
-    private static String createStackedBlock;
-    static {
-        try {
-            createStackedBlock = ImmutableBiMap
-                    .copyOf((Map<String, String>) FMLDeobfuscatingRemapper.class.getDeclaredMethod("getMethodMap", java.lang.String.class).invoke(
-                            FMLDeobfuscatingRemapper.INSTANCE, FMLDeobfuscatingRemapper.INSTANCE.unmap("net/minecraft/block/Block"))).inverse()
-                    .get("createStackedBlock");
-        } catch (SecurityException | NoSuchMethodException | IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
-        }
-    }
+    private static final String createStackedBlock = "func_71880_c_";
 
     private static Method getMethodRepeating(Class cls) {
-        Method cache;
+        Method cache = null;
         try {
             cache = cls.getDeclaredMethod(createStackedBlock, int.class);
         } catch (SecurityException e) {
             e.printStackTrace();
-            return null;
         } catch (NoSuchMethodException e) {
             cache = getMethodRepeating(cls.getSuperclass());
         }
@@ -614,7 +637,7 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
         }
     }
 
-    private void setEnchantment(ItemStack is) {
+    public void setEnchantment(ItemStack is) {
         if (this.silktouch)
             is.addEnchantment(Enchantment.enchantmentsList[33], 1);
         if (this.fortune > 0)
@@ -832,6 +855,8 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
                 + Math.pow(this.target[2] - this.headPos[2], 2));
     }
 
+    private Ticket chunkTicket;
+
     private void requestTicket() {
         if (this.chunkTicket != null)
             return;
@@ -985,7 +1010,7 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
         this.box.initialize(nbttc);
         this.addZ = nbttc.getBoolean("addZ");
         this.addX = nbttc.getBoolean("addX");
-        this.repeatY = nbttc.getBoolean("repeatY");
+        this.digged = nbttc.getBoolean("digged");
         this.target[0] = nbttc.getInteger("targetX");
         this.target[1] = nbttc.getInteger("targetY");
         this.target[2] = nbttc.getInteger("targetZ");
@@ -1023,7 +1048,7 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
         nbttc.setInteger("targetZ", this.target[2]);
         nbttc.setBoolean("addZ", this.addZ);
         nbttc.setBoolean("addX", this.addX);
-        nbttc.setBoolean("repeatY", this.repeatY);
+        nbttc.setBoolean("digged", this.digged);
         nbttc.setByte("now", this.now.getByteValue());
         nbttc.setBoolean("silktouch", this.silktouch);
         nbttc.setByte("fortune", this.fortune);
