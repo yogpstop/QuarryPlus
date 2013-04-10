@@ -553,18 +553,6 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
         return true;
     }
 
-    private void dropItem() {
-        ItemStack is = new ItemStack(QuarryPlus.blockQuarry);
-        setEnchantment(is);
-        float var6 = 0.7F;
-        double var7 = this.worldObj.rand.nextFloat() * var6 + (1.0F - var6) * 0.5D;
-        double var9 = this.worldObj.rand.nextFloat() * var6 + (1.0F - var6) * 0.5D;
-        double var11 = this.worldObj.rand.nextFloat() * var6 + (1.0F - var6) * 0.5D;
-        EntityItem var13 = new EntityItem(this.worldObj, this.xCoord + var7, this.yCoord + var9, this.zCoord + var11, is);
-        var13.delayBeforeCanPickup = 10;
-        this.worldObj.spawnEntityInWorld(var13);
-    }
-
     private float blockHardness(int x, int y, int z) {
         Block b = Block.blocksList[this.worldObj.getBlockId(x, y, z)];
         if (b != null) {
@@ -997,9 +985,6 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
         destroy();
         if (!this.worldObj.isRemote) {
             ForgeChunkManager.releaseTicket(this.chunkTicket);
-            if (this.worldObj.getGameRules().getGameRuleBooleanValue("doTileDrops")) {
-                dropItem();
-            }
         }
         super.invalidate();
     }
