@@ -31,21 +31,27 @@ public class BlockQuarry extends BlockContainer {
         setUnlocalizedName("QuarryPlus");
     }
 
+    private final ArrayList<ItemStack> drop = new ArrayList<ItemStack>();
+
     @Override
-    public ArrayList<ItemStack> getBlockDropped(World world, int x, int y, int z, int metadata, int fortune) {
-        ArrayList<ItemStack> ret = new ArrayList<ItemStack>();
+    public void breakBlock(World world, int x, int y, int z, int id, int meta) {
+        this.drop.clear();
         TileQuarry tq = (TileQuarry) world.getBlockTileEntity(x, y, z);
-        if (tq == null)
-            return ret;
-        int count = quantityDropped(metadata, fortune, world.rand);
-        int id = idDropped(metadata, world.rand, fortune);
-        if (id > 0) {
+        int count = quantityDropped(meta, 0, world.rand);
+        int id1 = idDropped(meta, world.rand, 0);
+        if (id1 > 0) {
             for (int i = 0; i < count; i++) {
-                ItemStack is = new ItemStack(id, 1, damageDropped(metadata));
+                ItemStack is = new ItemStack(id1, 1, damageDropped(meta));
                 tq.setEnchantment(is);
-                ret.add(is);
+                this.drop.add(is);
             }
         }
+    }
+
+    @Override
+    public ArrayList<ItemStack> getBlockDropped(World world, int x, int y, int z, int metadata, int fortune) {
+        ArrayList<ItemStack> ret = (ArrayList<ItemStack>) this.drop.clone();
+        this.drop.clear();
         return ret;
     }
 
