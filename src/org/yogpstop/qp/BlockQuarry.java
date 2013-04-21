@@ -46,6 +46,7 @@ public class BlockQuarry extends BlockContainer {
                 this.drop.add(is);
             }
         }
+        super.breakBlock(world, x, y, z, id, meta);
     }
 
     @Override
