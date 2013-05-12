@@ -22,7 +22,7 @@ public class BlockMover extends Block {
     }
 
     @Override
-    public Icon getBlockTextureFromSideAndMetadata(int i, int j) {
+    public Icon getIcon(int i, int j) {
 
         switch (i) {
         case 1:
