@@ -1,7 +1,6 @@
 package org.yogpstop.qp;
 
 import static buildcraft.BuildCraftFactory.frameBlock;
-import static buildcraft.core.utils.Utils.addToRandomInventory;
 import static buildcraft.core.utils.Utils.addToRandomPipeEntry;
 import static cpw.mods.fml.common.network.PacketDispatcher.sendPacketToAllPlayers;
 import static org.yogpstop.qp.QuarryPlus.data;
@@ -433,13 +432,41 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
         }
         ArrayList<ItemStack> cache = new ArrayList<ItemStack>();
         for (ItemStack is : this.cacheItems) {
-            ItemStack added = addToRandomInventory(is, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
+            ItemStack added = addToRandomInventory(is);
             is.stackSize -= added.stackSize;
             if (is.stackSize > 0)
                 if (!addToRandomPipeEntry(this, ForgeDirection.UNKNOWN, is))
                     cache.add(is);
         }
         this.cacheItems = cache;
+    }
+
+    private static Method aTRI;
+    private static int aTRIargc;
+
+    private ItemStack addToRandomInventory(ItemStack is) {
+        if (aTRI == null) {
+            Method[] mtd = buildcraft.core.utils.Utils.class.getMethods();
+            for (Method m : mtd) {
+                if (m.getName().equals("addToRandomInventory")) {
+                    aTRI=m;
+                    aTRIargc=m.getParameterTypes().length;
+                    break;
+                }
+            }
+        }
+
+        try {
+            if (aTRIargc == 5)
+                return (ItemStack) aTRI.invoke(null, is, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
+            else if (aTRIargc == 6)
+                return (ItemStack) aTRI.invoke(null, is, this.worldObj, this.xCoord, this.yCoord, this.zCoord, ForgeDirection.UNKNOWN);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        ItemStack isc = is.copy();
+        isc.stackSize=0;
+        return isc;
     }
 
     private void initBlocks() {
