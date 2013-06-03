@@ -433,7 +433,7 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
         }
         ArrayList<ItemStack> cache = new ArrayList<ItemStack>();
         for (ItemStack is : this.cacheItems) {
-            ItemStack added = addToRandomInventory(is, this.worldObj, this.xCoord, this.yCoord, this.zCoord, ForgeDirection.UNKNOWN);
+            ItemStack added = addToRandomInventory(is, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
             is.stackSize -= added.stackSize;
             if (is.stackSize > 0)
                 if (!addToRandomPipeEntry(this, ForgeDirection.UNKNOWN, is))
