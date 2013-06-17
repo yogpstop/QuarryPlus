@@ -607,7 +607,7 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
 
     private static ItemStack createStackedBlock(Block b, int meta) {
         Class cls = b.getClass();
-        Method createStackedBlockMethod = getMethodRepeating(cls);
+        Method createStackedBlockMethod = getMethodRepeating(cls,b.blockID,meta,b.getUnlocalizedName());
         createStackedBlockMethod.setAccessible(true);
         try {
             return (ItemStack) createStackedBlockMethod.invoke(b, meta);
@@ -623,14 +623,16 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
 
     private static final String createStackedBlock = "func_71880_c_";
 
-    private static Method getMethodRepeating(Class cls) {
+    private static Method getMethodRepeating(Class cls,int id,int meta,String bname) {
         Method cache = null;
         try {
             cache = cls.getDeclaredMethod(createStackedBlock, int.class);
         } catch (SecurityException e) {
             e.printStackTrace();
         } catch (NoSuchMethodException e) {
-            cache = getMethodRepeating(cls.getSuperclass());
+            cache = getMethodRepeating(cls.getSuperclass(),id,meta,bname);
+        } catch (NoClassDefFoundError e) {
+            System.out.printf("yogpstop: NoClassDefFoundError %d:%d %s %s",id,meta,bname,e.getMessage());
         }
         return cache;
     }
