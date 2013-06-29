@@ -26,7 +26,6 @@ import buildcraft.api.power.IPowerReceptor;
 import buildcraft.api.power.PowerFramework;
 import buildcraft.api.transport.IPipeConnection;
 import buildcraft.core.Box;
-import buildcraft.core.IMachine;
 import buildcraft.core.proxy.CoreProxy;
 
 import net.minecraft.block.Block;
@@ -47,7 +46,7 @@ import net.minecraftforge.common.ForgeDirection;
 import net.minecraftforge.common.ForgeChunkManager.Ticket;
 import net.minecraftforge.common.ForgeChunkManager.Type;
 
-public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConnection, IMachine {
+public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConnection {
     public boolean removeLava, removeWater, removeLiquid, buildAdvFrame;
 
     public final ArrayList<Long> fortuneList = new ArrayList<Long>();
@@ -598,41 +597,37 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
         if (b.canSilkHarvest(this.worldObj, null, x, y, z, meta) && this.silktouch
                 && (this.silktouchList.contains(data((short) b.blockID, meta)) == this.silktouchInclude)) {
             ArrayList<ItemStack> al = new ArrayList<ItemStack>();
-            al.add(createStackedBlock(b, meta));
-            return al;
+            try{
+            	al.add(createStackedBlock(b, meta));
+                return al;
+            } catch (Exception e) {
+            	e.printStackTrace();
+            } catch (Error e) {
+            	e.printStackTrace();
+            }
         }
         return b.getBlockDropped(this.worldObj, x, y, z, meta,
                 ((this.fortuneList.contains(data((short) b.blockID, meta)) == this.fortuneInclude) ? this.fortune : 0));
     }
 
-    private static ItemStack createStackedBlock(Block b, int meta) {
+    private static ItemStack createStackedBlock(Block b, int meta) throws SecurityException, NoClassDefFoundError, IllegalAccessException,
+    		 IllegalArgumentException, InvocationTargetException  {
         Class cls = b.getClass();
         Method createStackedBlockMethod = getMethodRepeating(cls,b.blockID,meta,b.getUnlocalizedName());
         createStackedBlockMethod.setAccessible(true);
-        try {
-            return (ItemStack) createStackedBlockMethod.invoke(b, meta);
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        }
-        return null;
+        return (ItemStack) createStackedBlockMethod.invoke(b, meta);
     }
 
     private static final String createStackedBlock = "func_71880_c_";
 
-    private static Method getMethodRepeating(Class cls,int id,int meta,String bname) {
+    private static Method getMethodRepeating(Class cls,int id,int meta,String bname) throws SecurityException, NoClassDefFoundError {
         Method cache = null;
         try {
             cache = cls.getDeclaredMethod(createStackedBlock, int.class);
-        } catch (SecurityException e) {
-            e.printStackTrace();
         } catch (NoSuchMethodException e) {
             cache = getMethodRepeating(cls.getSuperclass(),id,meta,bname);
         } catch (NoClassDefFoundError e) {
-            System.out.printf("yogpstop: NoClassDefFoundError %d:%d %s %s",id,meta,bname,e.getMessage());
+            throw new NoClassDefFoundError(String.format("yogpstop: %d:%d %s %s",id,meta,bname,e.getMessage()));
         }
         return cache;
     }
@@ -1105,26 +1100,6 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
     @Override
     public boolean isPipeConnected(ForgeDirection with) {
         return true;
-    }
-
-    @Override
-    public boolean isActive() {
-        return this.now != PROGRESS.NONE;
-    }
-
-    @Override
-    public boolean manageLiquids() {
-        return false;
-    }
-
-    @Override
-    public boolean manageSolids() {
-        return true;
-    }
-
-    @Override
-    public boolean allowActions() {
-        return false;
     }
 
     @Override
