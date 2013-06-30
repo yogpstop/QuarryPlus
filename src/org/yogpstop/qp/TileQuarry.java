@@ -25,6 +25,8 @@ import buildcraft.api.power.IPowerProvider;
 import buildcraft.api.power.IPowerReceptor;
 import buildcraft.api.power.PowerFramework;
 import buildcraft.api.transport.IPipeConnection;
+import buildcraft.api.transport.IPipeEntry;
+import buildcraft.api.transport.IPipedItem;
 import buildcraft.core.Box;
 import buildcraft.core.proxy.CoreProxy;
 
@@ -46,7 +48,7 @@ import net.minecraftforge.common.ForgeDirection;
 import net.minecraftforge.common.ForgeChunkManager.Ticket;
 import net.minecraftforge.common.ForgeChunkManager.Type;
 
-public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConnection {
+public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConnection, IPipeEntry {
     public boolean removeLava, removeWater, removeLiquid, buildAdvFrame;
 
     public final ArrayList<Long> fortuneList = new ArrayList<Long>();
@@ -1108,4 +1110,12 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
                 - getPowerProvider().getEnergyStored()));
     }
 
+    @Override
+    public void entityEntering(ItemStack payload, ForgeDirection orientation){}
+
+    @Override
+    public void entityEntering(IPipedItem item, ForgeDirection orientation){}
+
+    @Override
+    public boolean acceptItems(){ return false; }
 }
