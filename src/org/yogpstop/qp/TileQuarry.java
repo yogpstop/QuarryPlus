@@ -1,8 +1,5 @@
 package org.yogpstop.qp;
 
-import static buildcraft.BuildCraftFactory.frameBlock;
-import static buildcraft.core.utils.Utils.addToRandomPipeEntry;
-import static cpw.mods.fml.common.network.PacketDispatcher.sendPacketToAllPlayers;
 import static org.yogpstop.qp.QuarryPlus.data;
 
 import java.io.ByteArrayOutputStream;
@@ -17,6 +14,7 @@ import com.google.common.collect.Sets;
 import com.google.common.io.ByteArrayDataInput;
 
 import cpw.mods.fml.common.network.PacketDispatcher;
+import static cpw.mods.fml.common.network.PacketDispatcher.sendPacketToAllPlayers;
 import cpw.mods.fml.common.network.Player;
 
 import buildcraft.api.core.IAreaProvider;
@@ -27,8 +25,10 @@ import buildcraft.api.power.PowerFramework;
 import buildcraft.api.transport.IPipeConnection;
 import buildcraft.api.transport.IPipeEntry;
 import buildcraft.api.transport.IPipedItem;
+import static buildcraft.BuildCraftFactory.frameBlock;
 import buildcraft.core.Box;
 import buildcraft.core.proxy.CoreProxy;
+import static buildcraft.core.utils.Utils.addToRandomPipeEntry;
 
 import net.minecraft.block.Block;
 import net.minecraft.enchantment.Enchantment;
@@ -43,10 +43,11 @@ import net.minecraft.network.packet.Packet250CustomPayload;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.ChunkCoordIntPair;
+
 import net.minecraftforge.common.ForgeChunkManager;
-import net.minecraftforge.common.ForgeDirection;
 import net.minecraftforge.common.ForgeChunkManager.Ticket;
 import net.minecraftforge.common.ForgeChunkManager.Type;
+import net.minecraftforge.common.ForgeDirection;
 
 public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConnection, IPipeEntry {
 	public boolean removeLava, removeWater, removeLiquid, buildAdvFrame;
@@ -97,9 +98,6 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
 	private final int[] target = new int[3];
 
 	private ArrayList<ItemStack> cacheItems = new ArrayList<ItemStack>();
-	private ArrayList<int[]> cacheFrame = new ArrayList<int[]>();
-	private ArrayList<int[]> cacheNonNeeded = new ArrayList<int[]>();
-	private ArrayList<int[]> cacheFills = new ArrayList<int[]>();
 
 	public static final byte fortuneAdd = 1;
 	public static final byte silktouchAdd = 2;
@@ -376,33 +374,13 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
 	private void updateServerEntity() {
 		switch (this.now) {
 		case NOTNEEDBREAK:
-			if (this.cacheNonNeeded.size() > 0) {
-				if (breakBlock(this.cacheNonNeeded.get(0))) this.cacheNonNeeded.remove(0);
-				break;
-			}
-			this.now = PROGRESS.MAKEFRAME;
-		case MAKEFRAME:
-			if (this.cacheFrame.size() > 0) {
-				if (makeFrame(this.cacheFrame.get(0))) this.cacheFrame.remove(0);
-				break;
-			}
-			this.now = PROGRESS.FILL;
-			this.box.deleteLasers();
-			sendNowPacket();
-		case FILL:
-			if (this.cacheFills.size() > 0 && this.buildAdvFrame) {
-				if (makeFrame(this.cacheFills.get(0))) this.cacheFills.remove(0);
-				break;
-			}
-			this.now = PROGRESS.MOVEHEAD;
-			this.worldObj.spawnEntityInWorld(new EntityMechanicalArm(this.worldObj, this.box.xMin + 0.75D, this.box.yMax, this.box.zMin + 0.75D, this.box
-					.sizeX() - 1.5D, this.box.sizeZ() - 1.5D, this));
-			this.heads.setHead(this.headPos[0], this.headPos[1], this.headPos[2]);
-			this.heads.updatePosition();
-			sendNowPacket();
-			while (!checkTarget()) {
+			if (breakBlock(this.target)) while (!checkTarget())
 				setNextTarget();
-			}
+			break;
+		case MAKEFRAME:
+		case FILL:
+			if (makeFrame(this.target)) while (!checkTarget())
+				setNextTarget();
 			break;
 		case MOVEHEAD:
 			boolean done = moveHead();
@@ -459,76 +437,155 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
 		return isc;
 	}
 
-	private void initBlocks() {
-		switch (this.now) {
-		case NOTNEEDBREAK:
-			initNonNeededBlocks();
-		case MAKEFRAME:
-			initFrames();
-		case FILL:
-			initFills();
-		}
-	}
-
 	private boolean checkTarget() {
-		if (this.target[1] < 1) {
-			destroy();
-			sendNowPacket();
+		int bid = this.worldObj.getBlockId(this.target[0], this.target[1], this.target[2]);
+		switch (this.now) {
+		case BREAKBLOCK:
+		case MOVEHEAD:
+			if (this.target[1] < 1) {
+				destroy();
+				sendNowPacket();
+				return true;
+			}
+			if (bid == 0 || bid == Block.bedrock.blockID) return false;
+			if (!this.removeLava && (bid == Block.lavaMoving.blockID || bid == Block.lavaStill.blockID)) return false;
+			if (!this.removeWater && (bid == Block.waterMoving.blockID || bid == Block.waterStill.blockID)) return false;
+			if (!this.removeLiquid && this.worldObj.getBlockMaterial(this.target[0], this.target[1], this.target[2]).isLiquid()) return false;
+			return true;
+		case NOTNEEDBREAK:
+			if (this.target[1] < this.box.yMin) {
+				this.now = PROGRESS.MAKEFRAME;
+				this.target[0] = this.box.xMin;
+				this.target[1] = this.box.yMax;
+				this.target[2] = this.box.zMin;
+				this.addX = this.addZ = true;
+				this.digged = this.changeZ = false;
+				return true;
+			}
+			if (bid == 0 || bid == Block.bedrock.blockID) return false;
+			if (bid == frameBlock.blockID && this.worldObj.getBlockMetadata(this.target[0], this.target[1], this.target[2]) == 0) {
+				byte flag = 0;
+				if (this.target[0] == this.box.xMin || this.target[0] == this.box.xMax) flag++;
+				if (this.target[1] == this.box.yMin || this.target[1] == this.box.yMax) flag++;
+				if (this.target[2] == this.box.zMin || this.target[2] == this.box.zMax) flag++;
+				if (flag > 1) return false;
+			}
+			return true;
+		case MAKEFRAME:
+			if (this.target[1] < this.box.yMin) {
+				this.now = PROGRESS.FILL;
+				this.target[0] = this.box.xMin;
+				this.target[1] = this.box.yMin;
+				this.target[2] = this.box.zMin;
+				this.addX = this.addZ = true;
+				this.digged = this.changeZ = false;
+				this.box.deleteLasers();
+				sendNowPacket();
+				return true;
+			}
+			byte flag = 0;
+			if (this.target[0] == this.box.xMin || this.target[0] == this.box.xMax) flag++;
+			if (this.target[1] == this.box.yMin || this.target[1] == this.box.yMax) flag++;
+			if (this.target[2] == this.box.zMin || this.target[2] == this.box.zMax) flag++;
+			if (flag > 1) {
+				if (bid == frameBlock.blockID && this.worldObj.getBlockMetadata(this.target[0], this.target[1], this.target[2]) == 0) return false;
+				return true;
+			}
+			return false;
+		case FILL:
+			if (!this.buildAdvFrame || this.target[1] < 1) {
+				this.now = PROGRESS.MOVEHEAD;
+				this.target[0] = this.box.xMin + 1;
+				this.target[1] = this.box.yMin;
+				this.target[2] = this.box.zMin + 1;
+				this.addX = this.addZ = true;
+				this.digged = this.changeZ = false;
+				this.worldObj.spawnEntityInWorld(new EntityMechanicalArm(this.worldObj, this.box.xMin + 0.75D, this.box.yMax, this.box.zMin + 0.75D, this.box
+						.sizeX() - 1.5D, this.box.sizeZ() - 1.5D, this));
+				this.heads.setHead(this.headPos[0], this.headPos[1], this.headPos[2]);
+				this.heads.updatePosition();
+				sendNowPacket();
+				return true;
+			}
+			if (this.worldObj.getBlockMaterial(this.target[0], this.target[1], this.target[2]).isSolid()) return false;
 			return true;
 		}
-		int bid = this.worldObj.getBlockId(this.target[0], this.target[1], this.target[2]);
-		if (bid == 0 || bid == Block.bedrock.blockID) return false;
-		if (!this.removeLava && (bid == Block.lavaMoving.blockID || bid == Block.lavaStill.blockID)) return false;
-		if (!this.removeWater && (bid == Block.waterMoving.blockID || bid == Block.waterStill.blockID)) return false;
-		if (!this.removeLiquid && this.worldObj.getBlockMaterial(this.target[0], this.target[1], this.target[2]).isLiquid()) return false;
+		System.out.println("yogpstop: what!!?");
 		return true;
 	}
 
 	private boolean addX = true;
 	private boolean addZ = true;
 	private boolean digged = false;
+	private boolean changeZ = false;
 
 	private void setNextTarget() {
-		if (this.addX) this.target[0]++;
-		else this.target[0]--;
-		if (this.target[0] <= this.box.xMin || this.box.xMax <= this.target[0]) {
-			this.addX = !this.addX;
-			this.target[0] = Math.max(this.box.xMin + 1, Math.min(this.target[0], this.box.xMax - 1));
-			if (this.addZ) this.target[2]++;
-			else this.target[2]--;
-			if (this.target[2] <= this.box.zMin || this.box.zMax <= this.target[2]) {
+		if (this.now == PROGRESS.MAKEFRAME || this.now == PROGRESS.FILL) {
+			if (this.changeZ) {
+				if (this.addZ) this.target[2]++;
+				else this.target[2]--;
+			} else {
+				if (this.addX) this.target[0]++;
+				else this.target[0]--;
+			}
+			if (this.target[0] < this.box.xMin || this.box.xMax < this.target[0]) {
+				this.addX = !this.addX;
+				this.changeZ = true;
+				this.target[0] = Math.max(this.box.xMin, Math.min(this.box.xMax, this.target[0]));
+			}
+			if (this.target[2] < this.box.zMin || this.box.zMax < this.target[2]) {
 				this.addZ = !this.addZ;
-				this.target[2] = Math.max(this.box.zMin + 1, Math.min(this.target[2], this.box.zMax - 1));
-				if (this.digged) {
-					this.addX = !this.addX;
-					this.digged = false;
-				} else {
-					this.target[1]--;
-					double aa = getDistance(this.box.xMin + 1, this.target[1], this.box.zMin + 1);
-					double ad = getDistance(this.box.xMin + 1, this.target[1], this.box.zMax - 1);
-					double da = getDistance(this.box.xMax - 1, this.target[1], this.box.zMin + 1);
-					double dd = getDistance(this.box.xMax - 1, this.target[1], this.box.zMax - 1);
-					double res = Math.min(aa, Math.min(ad, Math.min(da, dd)));
-					if (res == aa) {
-						this.addX = true;
-						this.addZ = true;
-						this.target[0] = this.box.xMin + 1;
-						this.target[2] = this.box.zMin + 1;
-					} else if (res == ad) {
-						this.addX = true;
-						this.addZ = false;
-						this.target[0] = this.box.xMin + 1;
-						this.target[2] = this.box.zMax - 1;
-					} else if (res == da) {
-						this.addX = false;
-						this.addZ = true;
-						this.target[0] = this.box.xMax - 1;
-						this.target[2] = this.box.zMin + 1;
-					} else if (res == dd) {
-						this.addX = false;
-						this.addZ = false;
-						this.target[0] = this.box.xMax - 1;
-						this.target[2] = this.box.zMax - 1;
+				this.changeZ = false;
+				this.target[2] = Math.max(this.box.zMin, Math.min(this.box.zMax, this.target[2]));
+			}
+			if (this.box.xMin == this.target[0] && this.box.zMin == this.target[2]) {
+				if (this.digged) this.digged = false;
+				else this.target[1]--;
+			}
+		} else {
+			if (this.addX) this.target[0]++;
+			else this.target[0]--;
+			if (this.target[0] < this.box.xMin + (this.now == PROGRESS.NOTNEEDBREAK ? 0 : 1)
+					|| this.box.xMax - (this.now == PROGRESS.NOTNEEDBREAK ? 0 : 1) < this.target[0]) {
+				this.addX = !this.addX;
+				this.target[0] = Math.max(this.box.xMin + (this.now == PROGRESS.NOTNEEDBREAK ? 0 : 1),
+						Math.min(this.target[0], this.box.xMax - (this.now == PROGRESS.NOTNEEDBREAK ? 0 : 1)));
+				if (this.addZ) this.target[2]++;
+				else this.target[2]--;
+				if (this.target[2] < this.box.zMin + (this.now == PROGRESS.NOTNEEDBREAK ? 0 : 1)
+						|| this.box.zMax - (this.now == PROGRESS.NOTNEEDBREAK ? 0 : 1) < this.target[2]) {
+					this.addZ = !this.addZ;
+					this.target[2] = Math.max(this.box.zMin + (this.now == PROGRESS.NOTNEEDBREAK ? 0 : 1),
+							Math.min(this.target[2], this.box.zMax - (this.now == PROGRESS.NOTNEEDBREAK ? 0 : 1)));
+					if (this.digged) this.digged = false;
+					else {
+						this.target[1]--;
+						double aa = getDistance(this.box.xMin + 1, this.target[1], this.box.zMin + 1);
+						double ad = getDistance(this.box.xMin + 1, this.target[1], this.box.zMax - 1);
+						double da = getDistance(this.box.xMax - 1, this.target[1], this.box.zMin + 1);
+						double dd = getDistance(this.box.xMax - 1, this.target[1], this.box.zMax - 1);
+						double res = Math.min(aa, Math.min(ad, Math.min(da, dd)));
+						if (res == aa) {
+							this.addX = true;
+							this.addZ = true;
+							this.target[0] = this.box.xMin + 1;
+							this.target[2] = this.box.zMin + 1;
+						} else if (res == ad) {
+							this.addX = true;
+							this.addZ = false;
+							this.target[0] = this.box.xMin + 1;
+							this.target[2] = this.box.zMax - 1;
+						} else if (res == da) {
+							this.addX = false;
+							this.addZ = true;
+							this.target[0] = this.box.xMax - 1;
+							this.target[2] = this.box.zMin + 1;
+						} else if (res == dd) {
+							this.addX = false;
+							this.addZ = false;
+							this.target[0] = this.box.xMax - 1;
+							this.target[2] = this.box.zMax - 1;
+						}
 					}
 				}
 			}
@@ -540,6 +597,7 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
 	}
 
 	private boolean makeFrame(int[] coord) {
+		this.digged = true;
 		float y = Math.max(-4.8F * this.efficiency + 25F, 0F);
 		if (this.pp.useEnergy(y, y, true) != y) return false;
 		this.worldObj.setBlock(coord[0], coord[1], coord[2], frameBlock.blockID);
@@ -680,77 +738,12 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
 	}
 
 	private void setFirstPos() {
-		this.target[0] = this.box.xMin + 1;
-		this.target[2] = this.box.zMin + 1;
-		this.target[1] = this.box.yMin;
+		this.target[0] = this.box.xMin;
+		this.target[2] = this.box.zMin;
+		this.target[1] = this.box.yMax;
 		this.headPos[0] = this.box.centerX();
 		this.headPos[2] = this.box.centerZ();
 		this.headPos[1] = this.box.yMax - 1;
-	}
-
-	private void initFrames() {
-		this.cacheFrame = new ArrayList<int[]>();
-		int xn = this.box.xMin;
-		int xx = this.box.xMax;
-		int yn = this.box.yMin;
-		int yx = this.box.yMax;
-		int zn = this.box.zMin;
-		int zx = this.box.zMax;
-		for (int x = xn + 1; x <= xx - 1; x++) {
-			checkAndAddFrame(new int[] { x, yn, zn });
-			checkAndAddFrame(new int[] { x, yn, zx });
-			checkAndAddFrame(new int[] { x, yx, zn });
-			checkAndAddFrame(new int[] { x, yx, zx });
-		}
-		for (int y = yn + 1; y <= yx - 1; y++) {
-			checkAndAddFrame(new int[] { xn, y, zn });
-			checkAndAddFrame(new int[] { xn, y, zx });
-			checkAndAddFrame(new int[] { xx, y, zn });
-			checkAndAddFrame(new int[] { xx, y, zx });
-		}
-		for (int z = zn + 1; z <= zx - 1; z++) {
-			checkAndAddFrame(new int[] { xn, yn, z });
-			checkAndAddFrame(new int[] { xn, yx, z });
-			checkAndAddFrame(new int[] { xx, yn, z });
-			checkAndAddFrame(new int[] { xx, yx, z });
-		}
-		checkAndAddFrame(new int[] { xn, yn, zn });
-		checkAndAddFrame(new int[] { xn, yn, zx });
-		checkAndAddFrame(new int[] { xn, yx, zn });
-		checkAndAddFrame(new int[] { xn, yx, zx });
-		checkAndAddFrame(new int[] { xx, yn, zn });
-		checkAndAddFrame(new int[] { xx, yn, zx });
-		checkAndAddFrame(new int[] { xx, yx, zn });
-		checkAndAddFrame(new int[] { xx, yx, zx });
-	}
-
-	private void checkAndAddFrame(int[] coord) {
-		if (!(this.worldObj.getBlockId(coord[0], coord[1], coord[2]) == frameBlock.blockID && this.worldObj.getBlockMetadata(coord[0], coord[1], coord[2]) == 0)) this.cacheFrame
-				.add(coord);
-	}
-
-	private void initFills() {
-		int xn = this.box.xMin;
-		int xx = this.box.xMax;
-		int yn = this.box.yMin;
-		int zn = this.box.zMin;
-		int zx = this.box.zMax;
-		for (int y = yn; y > 0; y--) {
-			for (int x = xn; x <= xx; x++) {
-				checkAndAddFill(x, y, zn);
-				checkAndAddFill(x, y, zx);
-			}
-			for (int z = zn + 1; z < zx; z++) {
-				checkAndAddFill(xn, y, z);
-				checkAndAddFill(xx, y, z);
-			}
-		}
-	}
-
-	private void checkAndAddFill(int x, int y, int z) {
-		if (!this.worldObj.getBlockMaterial(x, y, z).isSolid()) {
-			this.cacheFills.add(new int[] { x, y, z });
-		}
 	}
 
 	private void destroyFrames() {
@@ -777,24 +770,6 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
 			setBreakableFrame(xn, yx, z);
 			setBreakableFrame(xx, yn, z);
 			setBreakableFrame(xx, yx, z);
-		}
-	}
-
-	private void initNonNeededBlocks() {
-		this.cacheNonNeeded = new ArrayList<int[]>();
-		for (int y = this.box.yMax; y >= this.box.yMin; y--) {
-			for (int x = this.box.xMin; x <= this.box.xMax; x++) {
-				for (int z = this.box.zMin; z <= this.box.zMax; z++) {
-					int bid = this.worldObj.getBlockId(x, y, z);
-					if (bid != 0 && bid != Block.bedrock.blockID) if (bid == frameBlock.blockID && this.worldObj.getBlockMetadata(x, y, z) == 0) {
-						byte flag = 0;
-						if (x == this.box.xMin || x == this.box.xMax) flag++;
-						if (y == this.box.yMin || y == this.box.yMax) flag++;
-						if (z == this.box.zMin || z == this.box.zMax) flag++;
-						if (flag < 2) this.cacheNonNeeded.add(new int[] { x, y, z });
-					} else this.cacheNonNeeded.add(new int[] { x, y, z });
-				}
-			}
 		}
 	}
 
@@ -844,7 +819,6 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
 
 	private void initFromNBT() {
 		initEntities();
-		if (this.worldObj != null) if (!this.worldObj.isRemote) initBlocks();
 		this.initialized = true;
 	}
 
@@ -860,7 +834,6 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
 			if (this.heads == null) this.worldObj.spawnEntityInWorld(new EntityMechanicalArm(this.worldObj, this.box.xMin + 0.75D, this.box.yMax,
 					this.box.zMin + 0.75D, this.box.sizeX() - 1.5D, this.box.sizeZ() - 1.5D, this));
 			break;
-		default:
 		}
 
 		if (this.heads != null) {
@@ -904,7 +877,6 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
 		this.now = PROGRESS.NOTNEEDBREAK;
 		if (!this.worldObj.isRemote) {
 			setFirstPos();
-			initBlocks();
 		}
 		initEntities();
 		sendPacketToAllPlayers(PacketHandler.getPacketFromNBT(this));
@@ -969,6 +941,7 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
 		this.addZ = nbttc.getBoolean("addZ");
 		this.addX = nbttc.getBoolean("addX");
 		this.digged = nbttc.getBoolean("digged");
+		this.changeZ = nbttc.getBoolean("changeZ");
 		this.target[0] = nbttc.getInteger("targetX");
 		this.target[1] = nbttc.getInteger("targetY");
 		this.target[2] = nbttc.getInteger("targetZ");
@@ -1007,6 +980,7 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
 		nbttc.setBoolean("addZ", this.addZ);
 		nbttc.setBoolean("addX", this.addX);
 		nbttc.setBoolean("digged", this.digged);
+		nbttc.setBoolean("changeZ", this.changeZ);
 		nbttc.setByte("now", this.now.getByteValue());
 		nbttc.setBoolean("silktouch", this.silktouch);
 		nbttc.setByte("fortune", this.fortune);
