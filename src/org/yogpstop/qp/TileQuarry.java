@@ -22,7 +22,6 @@ import buildcraft.api.core.LaserKind;
 import buildcraft.api.power.IPowerProvider;
 import buildcraft.api.power.IPowerReceptor;
 import buildcraft.api.power.PowerFramework;
-import buildcraft.api.transport.IPipeConnection;
 import buildcraft.api.transport.IPipeEntry;
 import buildcraft.api.transport.IPipedItem;
 import static buildcraft.BuildCraftFactory.frameBlock;
@@ -49,7 +48,7 @@ import net.minecraftforge.common.ForgeChunkManager.Ticket;
 import net.minecraftforge.common.ForgeChunkManager.Type;
 import net.minecraftforge.common.ForgeDirection;
 
-public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConnection, IPipeEntry {
+public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry {
 	public boolean removeLava, removeWater, removeLiquid, buildAdvFrame;
 
 	public final ArrayList<Long> fortuneList = new ArrayList<Long>();
@@ -560,31 +559,31 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
 					if (this.digged) this.digged = false;
 					else {
 						this.target[1]--;
-						double aa = getDistance(this.box.xMin + 1, this.target[1], this.box.zMin + 1);
-						double ad = getDistance(this.box.xMin + 1, this.target[1], this.box.zMax - 1);
-						double da = getDistance(this.box.xMax - 1, this.target[1], this.box.zMin + 1);
-						double dd = getDistance(this.box.xMax - 1, this.target[1], this.box.zMax - 1);
+						double aa = getDistance(this.box.xMin + 1, this.target[1], this.box.zMin + (this.now == PROGRESS.NOTNEEDBREAK ? 0 : 1));
+						double ad = getDistance(this.box.xMin + 1, this.target[1], this.box.zMax - (this.now == PROGRESS.NOTNEEDBREAK ? 0 : 1));
+						double da = getDistance(this.box.xMax - 1, this.target[1], this.box.zMin + (this.now == PROGRESS.NOTNEEDBREAK ? 0 : 1));
+						double dd = getDistance(this.box.xMax - 1, this.target[1], this.box.zMax - (this.now == PROGRESS.NOTNEEDBREAK ? 0 : 1));
 						double res = Math.min(aa, Math.min(ad, Math.min(da, dd)));
 						if (res == aa) {
 							this.addX = true;
 							this.addZ = true;
-							this.target[0] = this.box.xMin + 1;
-							this.target[2] = this.box.zMin + 1;
+							this.target[0] = this.box.xMin + (this.now == PROGRESS.NOTNEEDBREAK ? 0 : 1);
+							this.target[2] = this.box.zMin + (this.now == PROGRESS.NOTNEEDBREAK ? 0 : 1);
 						} else if (res == ad) {
 							this.addX = true;
 							this.addZ = false;
-							this.target[0] = this.box.xMin + 1;
-							this.target[2] = this.box.zMax - 1;
+							this.target[0] = this.box.xMin + (this.now == PROGRESS.NOTNEEDBREAK ? 0 : 1);
+							this.target[2] = this.box.zMax - (this.now == PROGRESS.NOTNEEDBREAK ? 0 : 1);
 						} else if (res == da) {
 							this.addX = false;
 							this.addZ = true;
-							this.target[0] = this.box.xMax - 1;
-							this.target[2] = this.box.zMin + 1;
+							this.target[0] = this.box.xMax - (this.now == PROGRESS.NOTNEEDBREAK ? 0 : 1);
+							this.target[2] = this.box.zMin + (this.now == PROGRESS.NOTNEEDBREAK ? 0 : 1);
 						} else if (res == dd) {
 							this.addX = false;
 							this.addZ = false;
-							this.target[0] = this.box.xMax - 1;
-							this.target[2] = this.box.zMax - 1;
+							this.target[0] = this.box.xMax - (this.now == PROGRESS.NOTNEEDBREAK ? 0 : 1);
+							this.target[2] = this.box.zMax - (this.now == PROGRESS.NOTNEEDBREAK ? 0 : 1);
 						}
 					}
 				}
@@ -1019,11 +1018,6 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
 
 	@Override
 	public void doWork() {}
-
-	@Override
-	public boolean isPipeConnected(ForgeDirection with) {
-		return true;
-	}
 
 	@Override
 	public int powerRequest(ForgeDirection from) {
