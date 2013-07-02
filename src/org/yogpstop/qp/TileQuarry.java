@@ -598,7 +598,7 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
 
 	private static final String createStackedBlock = "func_71880_c_";
 
-	private static Method getMethodRepeating(Class cls, int id, int meta, String bname) throws SecurityException, NoClassDefFoundError {
+	private static Method getMethodRepeating(Class<?> cls, int id, int meta, String bname) throws SecurityException, NoClassDefFoundError {
 		Method cache = null;
 		try {
 			cache = cls.getDeclaredMethod(createStackedBlock, int.class);
@@ -612,7 +612,7 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeConne
 
 	private void checkDropItem(int[] coord) {
 		AxisAlignedBB axis = AxisAlignedBB.getBoundingBox(coord[0] - 4, coord[1] - 4, coord[2] - 4, coord[0] + 6, coord[1] + 6, coord[2] + 6);
-		List result = this.worldObj.getEntitiesWithinAABB(EntityItem.class, axis);
+		List<?> result = this.worldObj.getEntitiesWithinAABB(EntityItem.class, axis);
 		for (int ii = 0; ii < result.size(); ii++) {
 			if (result.get(ii) instanceof EntityItem) {
 				EntityItem entity = (EntityItem) result.get(ii);
