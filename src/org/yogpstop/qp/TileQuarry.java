@@ -50,14 +50,16 @@ import net.minecraftforge.common.ForgeDirection;
 
 public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry {
 	public boolean removeLava, removeWater, removeLiquid, buildAdvFrame;
-
 	public final ArrayList<Long> fortuneList = new ArrayList<Long>();
-	public boolean fortuneInclude, silktouchInclude;
 	public final ArrayList<Long> silktouchList = new ArrayList<Long>();
-	private final double[] headPos = new double[3];
-	private final Box box = new Box();
+	public boolean fortuneInclude, silktouchInclude;
 
+	private double headPosX, headPosY, headPosZ;
+	private int targetX, targetY, targetZ;
+
+	private final Box box = new Box();
 	private EntityMechanicalArm heads;
+	private IPowerProvider pp;
 
 	private byte fortune;
 	private boolean silktouch;
@@ -65,38 +67,16 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 
 	private boolean initialized = true;
 
-	private PROGRESS now = PROGRESS.NONE;
-
-	private IPowerProvider pp;
-
-	private enum PROGRESS {
-		NONE((byte) 0),
-		NOTNEEDBREAK((byte) 1),
-		MAKEFRAME((byte) 2),
-		FILL((byte) 3),
-		MOVEHEAD((byte) 4),
-		BREAKBLOCK((byte) 5);
-		PROGRESS(final byte arg) {
-			this.byteValue = arg;
-		}
-
-		public byte getByteValue() {
-			return this.byteValue;
-		}
-
-		public static PROGRESS valueOf(final byte arg) {
-			for (PROGRESS d : values()) {
-				if (d.getByteValue() == arg) { return d; }
-			}
-			return null;
-		}
-
-		private final byte byteValue;
-	}
-
-	private final int[] target = new int[3];
+	private byte now = NONE;
 
 	private ArrayList<ItemStack> cacheItems = new ArrayList<ItemStack>();
+
+	private static final byte NONE = 0;
+	private static final byte NOTNEEDBREAK = 1;
+	private static final byte MAKEFRAME = 2;
+	private static final byte FILL = 3;
+	private static final byte MOVEHEAD = 4;
+	private static final byte BREAKBLOCK = 5;
 
 	public static final byte fortuneAdd = 1;
 	public static final byte silktouchAdd = 2;
@@ -171,7 +151,7 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 			dos.writeInt(this.yCoord);
 			dos.writeInt(this.zCoord);
 			dos.writeByte(packetNow);
-			dos.writeByte(this.now.getByteValue());
+			dos.writeByte(this.now);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -192,9 +172,9 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 			dos.writeInt(this.yCoord);
 			dos.writeInt(this.zCoord);
 			dos.writeByte(packetHeadPos);
-			dos.writeDouble(this.headPos[0]);
-			dos.writeDouble(this.headPos[1]);
-			dos.writeDouble(this.headPos[2]);
+			dos.writeDouble(this.headPosX);
+			dos.writeDouble(this.headPosY);
+			dos.writeDouble(this.headPosZ);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -340,14 +320,14 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 			}
 			break;
 		case packetNow:
-			this.now = PROGRESS.valueOf(data.readByte());
+			this.now = data.readByte();
 			initEntities();
 			break;
 		case packetHeadPos:
-			this.headPos[0] = data.readDouble();
-			this.headPos[1] = data.readDouble();
-			this.headPos[2] = data.readDouble();
-			if (this.heads != null) this.heads.setHead(this.headPos[0], this.headPos[1], this.headPos[2]);
+			this.headPosX = data.readDouble();
+			this.headPosY = data.readDouble();
+			this.headPosZ = data.readDouble();
+			if (this.heads != null) this.heads.setHead(this.headPosX, this.headPosY, this.headPosZ);
 			break;
 		case fortuneTInc:
 			this.fortuneInclude = data.readBoolean();
@@ -373,32 +353,30 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 	private void updateServerEntity() {
 		switch (this.now) {
 		case NOTNEEDBREAK:
-			if (breakBlock(this.target)) while (!checkTarget())
+			if (breakBlock()) while (!checkTarget())
 				setNextTarget();
 			break;
 		case MAKEFRAME:
 		case FILL:
-			if (makeFrame(this.target)) while (!checkTarget())
+			if (makeFrame()) while (!checkTarget())
 				setNextTarget();
 			break;
 		case MOVEHEAD:
 			boolean done = moveHead();
 			if (this.heads != null) {
-				this.heads.setHead(this.headPos[0], this.headPos[1], this.headPos[2]);
+				this.heads.setHead(this.headPosX, this.headPosY, this.headPosZ);
 				this.heads.updatePosition();
 				sendHeadPosPacket();
 			}
 			if (!done) break;
-			this.now = PROGRESS.BREAKBLOCK;
+			this.now = BREAKBLOCK;
 		case BREAKBLOCK:
-			if (breakBlock(this.target)) {
-				this.now = PROGRESS.MOVEHEAD;
+			if (breakBlock()) {
+				this.now = MOVEHEAD;
 				while (!checkTarget()) {
 					setNextTarget();
 				}
 			}
-			break;
-		default:
 			break;
 		}
 		ArrayList<ItemStack> cache = new ArrayList<ItemStack>();
@@ -412,19 +390,18 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 
 	private static Method aTRI;
 	private static int aTRIargc;
-
-	private ItemStack addToRandomInventory(ItemStack is) {
-		if (aTRI == null) {
-			Method[] mtd = buildcraft.core.utils.Utils.class.getMethods();
-			for (Method m : mtd) {
-				if (m.getName().equals("addToRandomInventory")) {
-					aTRI = m;
-					aTRIargc = m.getParameterTypes().length;
-					break;
-				}
+	static {
+		Method[] mtd = buildcraft.core.utils.Utils.class.getMethods();
+		for (Method m : mtd) {
+			if (m.getName().equals("addToRandomInventory")) {
+				aTRI = m;
+				aTRIargc = m.getParameterTypes().length;
+				break;
 			}
 		}
+	}
 
+	private ItemStack addToRandomInventory(ItemStack is) {
 		try {
 			if (aTRIargc == 5) return (ItemStack) aTRI.invoke(null, is, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
 			else if (aTRIargc == 6) return (ItemStack) aTRI.invoke(null, is, this.worldObj, this.xCoord, this.yCoord, this.zCoord, ForgeDirection.UNKNOWN);
@@ -437,11 +414,11 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 	}
 
 	private boolean checkTarget() {
-		int bid = this.worldObj.getBlockId(this.target[0], this.target[1], this.target[2]);
+		int bid = this.worldObj.getBlockId(this.targetX, this.targetY, this.targetZ);
 		switch (this.now) {
 		case BREAKBLOCK:
 		case MOVEHEAD:
-			if (this.target[1] < 1) {
+			if (this.targetY < 1) {
 				destroy();
 				sendNowPacket();
 				return true;
@@ -449,33 +426,33 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 			if (bid == 0 || bid == Block.bedrock.blockID) return false;
 			if (!this.removeLava && (bid == Block.lavaMoving.blockID || bid == Block.lavaStill.blockID)) return false;
 			if (!this.removeWater && (bid == Block.waterMoving.blockID || bid == Block.waterStill.blockID)) return false;
-			if (!this.removeLiquid && this.worldObj.getBlockMaterial(this.target[0], this.target[1], this.target[2]).isLiquid()) return false;
+			if (!this.removeLiquid && this.worldObj.getBlockMaterial(this.targetX, this.targetY, this.targetZ).isLiquid()) return false;
 			return true;
 		case NOTNEEDBREAK:
-			if (this.target[1] < this.box.yMin) {
-				this.now = PROGRESS.MAKEFRAME;
-				this.target[0] = this.box.xMin;
-				this.target[1] = this.box.yMax;
-				this.target[2] = this.box.zMin;
+			if (this.targetY < this.box.yMin) {
+				this.now = MAKEFRAME;
+				this.targetX = this.box.xMin;
+				this.targetY = this.box.yMax;
+				this.targetZ = this.box.zMin;
 				this.addX = this.addZ = true;
 				this.digged = this.changeZ = false;
 				return true;
 			}
 			if (bid == 0 || bid == Block.bedrock.blockID) return false;
-			if (bid == frameBlock.blockID && this.worldObj.getBlockMetadata(this.target[0], this.target[1], this.target[2]) == 0) {
+			if (bid == frameBlock.blockID && this.worldObj.getBlockMetadata(this.targetX, this.targetY, this.targetZ) == 0) {
 				byte flag = 0;
-				if (this.target[0] == this.box.xMin || this.target[0] == this.box.xMax) flag++;
-				if (this.target[1] == this.box.yMin || this.target[1] == this.box.yMax) flag++;
-				if (this.target[2] == this.box.zMin || this.target[2] == this.box.zMax) flag++;
+				if (this.targetX == this.box.xMin || this.targetX == this.box.xMax) flag++;
+				if (this.targetY == this.box.yMin || this.targetY == this.box.yMax) flag++;
+				if (this.targetZ == this.box.zMin || this.targetZ == this.box.zMax) flag++;
 				if (flag > 1) return false;
 			}
 			return true;
 		case MAKEFRAME:
-			if (this.target[1] < this.box.yMin) {
-				this.now = PROGRESS.FILL;
-				this.target[0] = this.box.xMin;
-				this.target[1] = this.box.yMin;
-				this.target[2] = this.box.zMin;
+			if (this.targetY < this.box.yMin) {
+				this.now = FILL;
+				this.targetX = this.box.xMin;
+				this.targetY = this.box.yMin;
+				this.targetZ = this.box.zMin;
 				this.addX = this.addZ = true;
 				this.digged = this.changeZ = false;
 				this.box.deleteLasers();
@@ -483,33 +460,33 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 				return true;
 			}
 			byte flag = 0;
-			if (this.target[0] == this.box.xMin || this.target[0] == this.box.xMax) flag++;
-			if (this.target[1] == this.box.yMin || this.target[1] == this.box.yMax) flag++;
-			if (this.target[2] == this.box.zMin || this.target[2] == this.box.zMax) flag++;
+			if (this.targetX == this.box.xMin || this.targetX == this.box.xMax) flag++;
+			if (this.targetY == this.box.yMin || this.targetY == this.box.yMax) flag++;
+			if (this.targetZ == this.box.zMin || this.targetZ == this.box.zMax) flag++;
 			if (flag > 1) {
-				if (bid == frameBlock.blockID && this.worldObj.getBlockMetadata(this.target[0], this.target[1], this.target[2]) == 0) return false;
+				if (bid == frameBlock.blockID && this.worldObj.getBlockMetadata(this.targetX, this.targetY, this.targetZ) == 0) return false;
 				return true;
 			}
 			return false;
 		case FILL:
-			if (!this.buildAdvFrame || this.target[1] < 1) {
-				this.now = PROGRESS.MOVEHEAD;
-				this.target[0] = this.box.xMin + 1;
-				this.target[1] = this.box.yMin;
-				this.target[2] = this.box.zMin + 1;
+			if (!this.buildAdvFrame || this.targetY < 1) {
+				this.now = MOVEHEAD;
+				this.targetX = this.box.xMin + 1;
+				this.targetY = this.box.yMin;
+				this.targetZ = this.box.zMin + 1;
 				this.addX = this.addZ = true;
 				this.digged = this.changeZ = false;
 				this.worldObj.spawnEntityInWorld(new EntityMechanicalArm(this.worldObj, this.box.xMin + 0.75D, this.box.yMax, this.box.zMin + 0.75D, this.box
 						.sizeX() - 1.5D, this.box.sizeZ() - 1.5D, this));
-				this.heads.setHead(this.headPos[0], this.headPos[1], this.headPos[2]);
+				this.heads.setHead(this.headPosX, this.headPosY, this.headPosZ);
 				this.heads.updatePosition();
 				sendNowPacket();
 				return true;
 			}
-			if (this.worldObj.getBlockMaterial(this.target[0], this.target[1], this.target[2]).isSolid()) return false;
+			if (this.worldObj.getBlockMaterial(this.targetX, this.targetY, this.targetZ).isSolid()) return false;
 			return true;
 		}
-		System.out.println("yogpstop: what!!?");
+		System.out.println("yogpstop: Unknown status");
 		return true;
 	}
 
@@ -519,71 +496,69 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 	private boolean changeZ = false;
 
 	private void setNextTarget() {
-		if (this.now == PROGRESS.MAKEFRAME || this.now == PROGRESS.FILL) {
+		if (this.now == MAKEFRAME || this.now == FILL) {
 			if (this.changeZ) {
-				if (this.addZ) this.target[2]++;
-				else this.target[2]--;
+				if (this.addZ) this.targetZ++;
+				else this.targetZ--;
 			} else {
-				if (this.addX) this.target[0]++;
-				else this.target[0]--;
+				if (this.addX) this.targetX++;
+				else this.targetX--;
 			}
-			if (this.target[0] < this.box.xMin || this.box.xMax < this.target[0]) {
+			if (this.targetX < this.box.xMin || this.box.xMax < this.targetX) {
 				this.addX = !this.addX;
 				this.changeZ = true;
-				this.target[0] = Math.max(this.box.xMin, Math.min(this.box.xMax, this.target[0]));
+				this.targetX = Math.max(this.box.xMin, Math.min(this.box.xMax, this.targetX));
 			}
-			if (this.target[2] < this.box.zMin || this.box.zMax < this.target[2]) {
+			if (this.targetZ < this.box.zMin || this.box.zMax < this.targetZ) {
 				this.addZ = !this.addZ;
 				this.changeZ = false;
-				this.target[2] = Math.max(this.box.zMin, Math.min(this.box.zMax, this.target[2]));
+				this.targetZ = Math.max(this.box.zMin, Math.min(this.box.zMax, this.targetZ));
 			}
-			if (this.box.xMin == this.target[0] && this.box.zMin == this.target[2]) {
+			if (this.box.xMin == this.targetX && this.box.zMin == this.targetZ) {
 				if (this.digged) this.digged = false;
-				else this.target[1]--;
+				else this.targetY--;
 			}
 		} else {
-			if (this.addX) this.target[0]++;
-			else this.target[0]--;
-			if (this.target[0] < this.box.xMin + (this.now == PROGRESS.NOTNEEDBREAK ? 0 : 1)
-					|| this.box.xMax - (this.now == PROGRESS.NOTNEEDBREAK ? 0 : 1) < this.target[0]) {
+			if (this.addX) this.targetX++;
+			else this.targetX--;
+			if (this.targetX < this.box.xMin + (this.now == NOTNEEDBREAK ? 0 : 1) || this.box.xMax - (this.now == NOTNEEDBREAK ? 0 : 1) < this.targetX) {
 				this.addX = !this.addX;
-				this.target[0] = Math.max(this.box.xMin + (this.now == PROGRESS.NOTNEEDBREAK ? 0 : 1),
-						Math.min(this.target[0], this.box.xMax - (this.now == PROGRESS.NOTNEEDBREAK ? 0 : 1)));
-				if (this.addZ) this.target[2]++;
-				else this.target[2]--;
-				if (this.target[2] < this.box.zMin + (this.now == PROGRESS.NOTNEEDBREAK ? 0 : 1)
-						|| this.box.zMax - (this.now == PROGRESS.NOTNEEDBREAK ? 0 : 1) < this.target[2]) {
+				this.targetX = Math.max(this.box.xMin + (this.now == NOTNEEDBREAK ? 0 : 1),
+						Math.min(this.targetX, this.box.xMax - (this.now == NOTNEEDBREAK ? 0 : 1)));
+				if (this.addZ) this.targetZ++;
+				else this.targetZ--;
+				if (this.targetZ < this.box.zMin + (this.now == NOTNEEDBREAK ? 0 : 1) || this.box.zMax - (this.now == NOTNEEDBREAK ? 0 : 1) < this.targetZ) {
 					this.addZ = !this.addZ;
-					this.target[2] = Math.max(this.box.zMin + (this.now == PROGRESS.NOTNEEDBREAK ? 0 : 1),
-							Math.min(this.target[2], this.box.zMax - (this.now == PROGRESS.NOTNEEDBREAK ? 0 : 1)));
+					this.targetZ = Math.max(this.box.zMin + (this.now == NOTNEEDBREAK ? 0 : 1),
+							Math.min(this.targetZ, this.box.zMax - (this.now == NOTNEEDBREAK ? 0 : 1)));
 					if (this.digged) this.digged = false;
 					else {
-						this.target[1]--;
-						double aa = getDistance(this.box.xMin + 1, this.target[1], this.box.zMin + (this.now == PROGRESS.NOTNEEDBREAK ? 0 : 1));
-						double ad = getDistance(this.box.xMin + 1, this.target[1], this.box.zMax - (this.now == PROGRESS.NOTNEEDBREAK ? 0 : 1));
-						double da = getDistance(this.box.xMax - 1, this.target[1], this.box.zMin + (this.now == PROGRESS.NOTNEEDBREAK ? 0 : 1));
-						double dd = getDistance(this.box.xMax - 1, this.target[1], this.box.zMax - (this.now == PROGRESS.NOTNEEDBREAK ? 0 : 1));
+						this.targetY--;
+						double aa = getDistance(this.box.xMin + 1, this.targetY, this.box.zMin + (this.now == NOTNEEDBREAK ? 0 : 1));
+						double ad = getDistance(this.box.xMin + 1, this.targetY, this.box.zMax - (this.now == NOTNEEDBREAK ? 0 : 1));
+						double da = getDistance(this.box.xMax - 1, this.targetY, this.box.zMin + (this.now == NOTNEEDBREAK ? 0 : 1));
+						double dd = getDistance(this.box.xMax - 1, this.targetY, this.box.zMax - (this.now == NOTNEEDBREAK ? 0 : 1));
 						double res = Math.min(aa, Math.min(ad, Math.min(da, dd)));
 						if (res == aa) {
 							this.addX = true;
 							this.addZ = true;
-							this.target[0] = this.box.xMin + (this.now == PROGRESS.NOTNEEDBREAK ? 0 : 1);
-							this.target[2] = this.box.zMin + (this.now == PROGRESS.NOTNEEDBREAK ? 0 : 1);
+							this.targetX = this.box.xMin + (this.now == NOTNEEDBREAK ? 0 : 1);
+							this.targetZ = this.box.zMin + (this.now == NOTNEEDBREAK ? 0 : 1);
 						} else if (res == ad) {
 							this.addX = true;
 							this.addZ = false;
-							this.target[0] = this.box.xMin + (this.now == PROGRESS.NOTNEEDBREAK ? 0 : 1);
-							this.target[2] = this.box.zMax - (this.now == PROGRESS.NOTNEEDBREAK ? 0 : 1);
+							this.targetX = this.box.xMin + (this.now == NOTNEEDBREAK ? 0 : 1);
+							this.targetZ = this.box.zMax - (this.now == NOTNEEDBREAK ? 0 : 1);
 						} else if (res == da) {
 							this.addX = false;
 							this.addZ = true;
-							this.target[0] = this.box.xMax - (this.now == PROGRESS.NOTNEEDBREAK ? 0 : 1);
-							this.target[2] = this.box.zMin + (this.now == PROGRESS.NOTNEEDBREAK ? 0 : 1);
+							this.targetX = this.box.xMax - (this.now == NOTNEEDBREAK ? 0 : 1);
+							this.targetZ = this.box.zMin + (this.now == NOTNEEDBREAK ? 0 : 1);
 						} else if (res == dd) {
 							this.addX = false;
 							this.addZ = false;
-							this.target[0] = this.box.xMax - (this.now == PROGRESS.NOTNEEDBREAK ? 0 : 1);
-							this.target[2] = this.box.zMax - (this.now == PROGRESS.NOTNEEDBREAK ? 0 : 1);
+							this.targetX = this.box.xMax - (this.now == NOTNEEDBREAK ? 0 : 1);
+							this.targetZ = this.box.zMax - (this.now == NOTNEEDBREAK ? 0 : 1);
 						}
 					}
 				}
@@ -592,44 +567,45 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 	}
 
 	private double getDistance(int x, int y, int z) {
-		return Math.sqrt(Math.pow(x - this.headPos[0], 2) + Math.pow(y + 1 - this.headPos[1], 2) + Math.pow(z - this.headPos[2], 2));
+		return Math.sqrt(Math.pow(x - this.headPosX, 2) + Math.pow(y + 1 - this.headPosY, 2) + Math.pow(z - this.headPosZ, 2));
 	}
 
-	private boolean makeFrame(int[] coord) {
+	private boolean makeFrame() {
 		this.digged = true;
-		float y = Math.max(-4.8F * this.efficiency + 25F, 0F);
-		if (this.pp.useEnergy(y, y, true) != y) return false;
-		this.worldObj.setBlock(coord[0], coord[1], coord[2], frameBlock.blockID);
+		float power = Math.max(-4.8F * this.efficiency + 25F, 0F);
+		if (this.pp.useEnergy(power, power, true) != power) return false;
+		this.worldObj.setBlock(this.targetX, this.targetY, this.targetZ, frameBlock.blockID);
 
 		return true;
 	}
 
-	private boolean breakBlock(int[] coord) {
+	private boolean breakBlock() {
 		this.digged = true;
-		float pw = (-7.93F * this.efficiency + 40F) * blockHardness(coord[0], coord[1], coord[2]);
+		float pw = Math.max(-7.93F * this.efficiency + 40F, 0F) * blockHardness();
 		if (this.pp.useEnergy(pw, pw, true) != pw) return false;
-		this.cacheItems.addAll(getDroppedItems(coord[0], coord[1], coord[2]));
-		this.worldObj.playAuxSFXAtEntity(null, 2001, coord[0], coord[1], coord[2],
-				this.worldObj.getBlockId(coord[0], coord[1], coord[2]) + (this.worldObj.getBlockMetadata(coord[0], coord[1], coord[2]) << 12));
-		this.worldObj.setBlockToAir(coord[0], coord[1], coord[2]);
-		checkDropItem(coord);
+		this.cacheItems.addAll(getDroppedItems());
+		this.worldObj.playAuxSFXAtEntity(null, 2001, this.targetX, this.targetY, this.targetZ,
+				this.worldObj.getBlockId(this.targetX, this.targetY, this.targetZ)
+						+ (this.worldObj.getBlockMetadata(this.targetX, this.targetY, this.targetZ) << 12));
+		this.worldObj.setBlockToAir(this.targetX, this.targetY, this.targetZ);
+		checkDropItem();
 		return true;
 	}
 
-	private float blockHardness(int x, int y, int z) {
-		Block b = Block.blocksList[this.worldObj.getBlockId(x, y, z)];
+	private float blockHardness() {
+		Block b = Block.blocksList[this.worldObj.getBlockId(this.targetX, this.targetY, this.targetZ)];
 		if (b != null) {
-			if (this.worldObj.getBlockMaterial(x, y, z).isLiquid()) return 0;
-			return b.getBlockHardness(this.worldObj, x, y, z);
+			if (this.worldObj.getBlockMaterial(this.targetX, this.targetY, this.targetZ).isLiquid()) return 0;
+			return b.getBlockHardness(this.worldObj, this.targetX, this.targetY, this.targetZ);
 		}
 		return 0;
 	}
 
-	private ArrayList<ItemStack> getDroppedItems(int x, int y, int z) {
-		Block b = Block.blocksList[this.worldObj.getBlockId(x, y, z)];
-		int meta = this.worldObj.getBlockMetadata(x, y, z);
+	private ArrayList<ItemStack> getDroppedItems() {
+		Block b = Block.blocksList[this.worldObj.getBlockId(this.targetX, this.targetY, this.targetZ)];
+		int meta = this.worldObj.getBlockMetadata(this.targetX, this.targetY, this.targetZ);
 		if (b == null) return new ArrayList<ItemStack>();
-		if (b.canSilkHarvest(this.worldObj, null, x, y, z, meta) && this.silktouch
+		if (b.canSilkHarvest(this.worldObj, null, this.targetX, this.targetY, this.targetZ, meta) && this.silktouch
 				&& (this.silktouchList.contains(data((short) b.blockID, meta)) == this.silktouchInclude)) {
 			ArrayList<ItemStack> al = new ArrayList<ItemStack>();
 			try {
@@ -641,34 +617,38 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 				e.printStackTrace();
 			}
 		}
-		return b.getBlockDropped(this.worldObj, x, y, z, meta,
+		return b.getBlockDropped(this.worldObj, this.targetX, this.targetY, this.targetZ, meta,
 				((this.fortuneList.contains(data((short) b.blockID, meta)) == this.fortuneInclude) ? this.fortune : 0));
 	}
 
 	private static ItemStack createStackedBlock(Block b, int meta) throws SecurityException, NoClassDefFoundError, IllegalAccessException,
 			IllegalArgumentException, InvocationTargetException {
 		Class<? extends Block> cls = b.getClass();
-		Method createStackedBlockMethod = getMethodRepeating(cls, b.blockID, meta, b.getUnlocalizedName());
+		Method createStackedBlockMethod;
+		try{
+			createStackedBlockMethod = getMethodRepeating(cls);
+		} catch (NoClassDefFoundError e){
+			throw new NoClassDefFoundError(String.format("yogpstop: %d:%d %s %s", b.blockID, meta, b.getUnlocalizedName(), e.getMessage()));
+		}
 		createStackedBlockMethod.setAccessible(true);
 		return (ItemStack) createStackedBlockMethod.invoke(b, meta);
 	}
 
 	private static final String createStackedBlock = "func_71880_c_";
 
-	private static Method getMethodRepeating(Class<?> cls, int id, int meta, String bname) throws SecurityException, NoClassDefFoundError {
+	private static Method getMethodRepeating(Class<?> cls) throws SecurityException, NoClassDefFoundError {
 		Method cache = null;
 		try {
 			cache = cls.getDeclaredMethod(createStackedBlock, int.class);
 		} catch (NoSuchMethodException e) {
-			cache = getMethodRepeating(cls.getSuperclass(), id, meta, bname);
-		} catch (NoClassDefFoundError e) {
-			throw new NoClassDefFoundError(String.format("yogpstop: %d:%d %s %s", id, meta, bname, e.getMessage()));
+			cache = getMethodRepeating(cls.getSuperclass());
 		}
 		return cache;
 	}
 
-	private void checkDropItem(int[] coord) {
-		AxisAlignedBB axis = AxisAlignedBB.getBoundingBox(coord[0] - 4, coord[1] - 4, coord[2] - 4, coord[0] + 6, coord[1] + 6, coord[2] + 6);
+	private void checkDropItem() {
+		AxisAlignedBB axis = AxisAlignedBB.getBoundingBox(this.targetX - 4, this.targetY - 4, this.targetZ - 4, this.targetX + 6, this.targetY + 6,
+				this.targetZ + 6);
 		List<?> result = this.worldObj.getEntitiesWithinAABB(EntityItem.class, axis);
 		for (int ii = 0; ii < result.size(); ii++) {
 			if (result.get(ii) instanceof EntityItem) {
@@ -682,7 +662,7 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 		}
 	}
 
-	public void setEnchantment(ItemStack is) {
+	void setEnchantment(ItemStack is) {
 		if (this.silktouch) is.addEnchantment(Enchantment.enchantmentsList[33], 1);
 		if (this.fortune > 0) is.addEnchantment(Enchantment.enchantmentsList[35], this.fortune);
 		if (this.efficiency > 0) is.addEnchantment(Enchantment.enchantmentsList[32], this.efficiency);
@@ -737,12 +717,12 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 	}
 
 	private void setFirstPos() {
-		this.target[0] = this.box.xMin;
-		this.target[2] = this.box.zMin;
-		this.target[1] = this.box.yMax;
-		this.headPos[0] = this.box.centerX();
-		this.headPos[2] = this.box.centerZ();
-		this.headPos[1] = this.box.yMax - 1;
+		this.targetX = this.box.xMin;
+		this.targetZ = this.box.zMin;
+		this.targetY = this.box.yMax;
+		this.headPosX = this.box.centerX();
+		this.headPosZ = this.box.centerZ();
+		this.headPosY = this.box.yMax - 1;
 	}
 
 	private void destroyFrames() {
@@ -779,29 +759,24 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 	}
 
 	private boolean moveHead() {
-		float distance = (float) getRestDistance();
+		float distance = (float) getDistance(this.targetX, this.targetY, this.targetZ);
 		float x = 31.8F;
 		float pw = Math.min(2F + this.pp.getEnergyStored() / 500F, ((distance / 2F - 0.1F) * 200F / (this.efficiency * x + 1F)) + 0.01F);
 		float used = this.pp.useEnergy(pw, pw, true);
 		float blocks = used * (this.efficiency * x + 1F) / 200F + 0.1F;
 
 		if (blocks * 2 > distance) {
-			this.headPos[0] = this.target[0];
-			this.headPos[1] = this.target[1] + 1;
-			this.headPos[2] = this.target[2];
+			this.headPosX = this.targetX;
+			this.headPosY = this.targetY + 1;
+			this.headPosZ = this.targetZ;
 			return true;
 		}
 		if (used > 0) {
-			this.headPos[0] += Math.cos(Math.atan2(this.target[2] - this.headPos[2], this.target[0] - this.headPos[0])) * blocks;
-			this.headPos[1] += Math.sin(Math.atan2(this.target[1] + 1 - this.headPos[1], this.target[0] - this.headPos[0])) * blocks;
-			this.headPos[2] += Math.sin(Math.atan2(this.target[2] - this.headPos[2], this.target[0] - this.headPos[0])) * blocks;
+			this.headPosX += Math.cos(Math.atan2(this.targetZ - this.headPosZ, this.targetX - this.headPosX)) * blocks;
+			this.headPosY += Math.sin(Math.atan2(this.targetY + 1 - this.headPosY, this.targetX - this.headPosX)) * blocks;
+			this.headPosZ += Math.sin(Math.atan2(this.targetZ - this.headPosZ, this.targetX - this.headPosX)) * blocks;
 		}
 		return false;
-	}
-
-	private double getRestDistance() {
-		return Math.sqrt(Math.pow(this.target[0] - this.headPos[0], 2) + Math.pow(this.target[1] + 1 - this.headPos[1], 2)
-				+ Math.pow(this.target[2] - this.headPos[2], 2));
 	}
 
 	private Ticket chunkTicket;
@@ -814,11 +789,6 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 		this.chunkTicket.getModData().setInteger("quarryY", this.yCoord);
 		this.chunkTicket.getModData().setInteger("quarryZ", this.zCoord);
 		forceChunkLoading(this.chunkTicket);
-	}
-
-	private void initFromNBT() {
-		initEntities();
-		this.initialized = true;
 	}
 
 	private void initEntities() {
@@ -836,11 +806,11 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 		}
 
 		if (this.heads != null) {
-			if (this.now != PROGRESS.BREAKBLOCK && this.now != PROGRESS.MOVEHEAD) {
+			if (this.now != BREAKBLOCK && this.now != MOVEHEAD) {
 				this.heads.setDead();
 				this.heads = null;
 			} else {
-				this.heads.setHead(this.headPos[0], this.headPos[1], this.headPos[2]);
+				this.heads.setHead(this.headPosX, this.headPosY, this.headPosZ);
 				this.heads.updatePosition();
 			}
 		}
@@ -848,7 +818,7 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 
 	private void destroy() {
 		this.box.deleteLasers();
-		this.now = PROGRESS.NONE;
+		this.now = NONE;
 		if (this.heads != null) {
 			this.heads.setDead();
 			this.heads = null;
@@ -856,6 +826,15 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 		if (!this.worldObj.isRemote) {
 			destroyFrames();
 		}
+	}
+
+	private void reinit() {
+		this.now = NOTNEEDBREAK;
+		if (!this.worldObj.isRemote) {
+			setFirstPos();
+		}
+		initEntities();
+		sendPacketToAllPlayers(PacketHandler.getPacketFromNBT(this));
 	}
 
 	void init(NBTTagList nbttl) {
@@ -870,15 +849,6 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 		requestTicket();
 		initPowerProvider();
 		reinit();
-	}
-
-	void reinit() {
-		this.now = PROGRESS.NOTNEEDBREAK;
-		if (!this.worldObj.isRemote) {
-			setFirstPos();
-		}
-		initEntities();
-		sendPacketToAllPlayers(PacketHandler.getPacketFromNBT(this));
 	}
 
 	void forceChunkLoading(Ticket ticket) {
@@ -915,7 +885,10 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 
 	@Override
 	public void updateEntity() {
-		if (!this.initialized) initFromNBT();
+		if (!this.initialized) {
+			initEntities();
+			this.initialized = true;
+		}
 		if (!this.worldObj.isRemote) updateServerEntity();
 	}
 
@@ -941,16 +914,16 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 		this.addX = nbttc.getBoolean("addX");
 		this.digged = nbttc.getBoolean("digged");
 		this.changeZ = nbttc.getBoolean("changeZ");
-		this.target[0] = nbttc.getInteger("targetX");
-		this.target[1] = nbttc.getInteger("targetY");
-		this.target[2] = nbttc.getInteger("targetZ");
-		this.now = PROGRESS.valueOf(nbttc.getByte("now"));
+		this.targetX = nbttc.getInteger("targetX");
+		this.targetY = nbttc.getInteger("targetY");
+		this.targetZ = nbttc.getInteger("targetZ");
+		this.now = nbttc.getByte("now");
 		this.silktouch = nbttc.getBoolean("silktouch");
 		this.fortune = nbttc.getByte("fortune");
 		this.efficiency = nbttc.getByte("efficiency");
-		this.headPos[0] = nbttc.getDouble("headPosX");
-		this.headPos[1] = nbttc.getDouble("headPosY");
-		this.headPos[2] = nbttc.getDouble("headPosZ");
+		this.headPosX = nbttc.getDouble("headPosX");
+		this.headPosY = nbttc.getDouble("headPosY");
+		this.headPosZ = nbttc.getDouble("headPosZ");
 		this.removeWater = nbttc.getBoolean("removeWater");
 		this.removeLava = nbttc.getBoolean("removeLava");
 		this.removeLiquid = nbttc.getBoolean("removeLiquid");
@@ -973,20 +946,20 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 	public void writeToNBT(NBTTagCompound nbttc) {
 		super.writeToNBT(nbttc);
 		this.box.writeToNBT(nbttc);
-		nbttc.setInteger("targetX", this.target[0]);
-		nbttc.setInteger("targetY", this.target[1]);
-		nbttc.setInteger("targetZ", this.target[2]);
+		nbttc.setInteger("targetX", this.targetX);
+		nbttc.setInteger("targetY", this.targetY);
+		nbttc.setInteger("targetZ", this.targetZ);
 		nbttc.setBoolean("addZ", this.addZ);
 		nbttc.setBoolean("addX", this.addX);
 		nbttc.setBoolean("digged", this.digged);
 		nbttc.setBoolean("changeZ", this.changeZ);
-		nbttc.setByte("now", this.now.getByteValue());
+		nbttc.setByte("now", this.now);
 		nbttc.setBoolean("silktouch", this.silktouch);
 		nbttc.setByte("fortune", this.fortune);
 		nbttc.setByte("efficiency", this.efficiency);
-		nbttc.setDouble("headPosX", this.headPos[0]);
-		nbttc.setDouble("headPosY", this.headPos[1]);
-		nbttc.setDouble("headPosZ", this.headPos[2]);
+		nbttc.setDouble("headPosX", this.headPosX);
+		nbttc.setDouble("headPosY", this.headPosY);
+		nbttc.setDouble("headPosZ", this.headPosZ);
 		nbttc.setBoolean("removeWater", this.removeWater);
 		nbttc.setBoolean("removeLava", this.removeLava);
 		nbttc.setBoolean("removeLiquid", this.removeLiquid);
