@@ -19,6 +19,7 @@ import cpw.mods.fml.common.network.Player;
 
 import buildcraft.api.core.IAreaProvider;
 import buildcraft.api.core.LaserKind;
+import buildcraft.api.gates.ITrigger;
 import buildcraft.api.power.IPowerProvider;
 import buildcraft.api.power.IPowerReceptor;
 import buildcraft.api.power.PowerFramework;
@@ -49,6 +50,9 @@ import net.minecraftforge.common.ForgeChunkManager.Type;
 import net.minecraftforge.common.ForgeDirection;
 
 public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry {
+	public static final ITrigger active = new TriggerQuarryPlus(754,true);
+	public static final ITrigger deactive = new TriggerQuarryPlus(755,false);
+	
 	public boolean removeLava, removeWater, removeLiquid, buildAdvFrame;
 	public final ArrayList<Long> fortuneList = new ArrayList<Long>();
 	public final ArrayList<Long> silktouchList = new ArrayList<Long>();
@@ -71,12 +75,12 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 
 	private ArrayList<ItemStack> cacheItems = new ArrayList<ItemStack>();
 
-	private static final byte NONE = 0;
-	private static final byte NOTNEEDBREAK = 1;
-	private static final byte MAKEFRAME = 2;
-	private static final byte FILL = 3;
-	private static final byte MOVEHEAD = 4;
-	private static final byte BREAKBLOCK = 5;
+	public static final byte NONE = 0;
+	public static final byte NOTNEEDBREAK = 1;
+	public static final byte MAKEFRAME = 2;
+	public static final byte FILL = 3;
+	public static final byte MOVEHEAD = 4;
+	public static final byte BREAKBLOCK = 5;
 
 	public static final byte fortuneAdd = 1;
 	public static final byte silktouchAdd = 2;
@@ -100,6 +104,10 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 	private void initPowerProvider() {
 		this.pp = PowerFramework.currentFramework.createPowerProvider();
 		this.pp.configure(0, 0, 100, 0, 30000);
+	}
+	
+	public byte getNow(){
+		return this.now;
 	}
 
 	public void sendPacketToServer(byte id) {
