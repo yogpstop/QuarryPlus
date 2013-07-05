@@ -69,4 +69,5 @@ public class TriggerQuarryPlus implements ITrigger {
 	public ITriggerParameter createParameter() {
 		return new TriggerParameter();
 	}
+
 }

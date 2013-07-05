@@ -1,15 +1,21 @@
 package org.yogpstop.qp;
 
+import java.util.LinkedList;
 import java.util.logging.Level;
 
 import buildcraft.BuildCraftBuilders;
 import buildcraft.BuildCraftCore;
 import buildcraft.BuildCraftFactory;
 import buildcraft.BuildCraftSilicon;
+import buildcraft.api.gates.ActionManager;
+import buildcraft.api.gates.ITrigger;
+import buildcraft.api.gates.ITriggerProvider;
+import buildcraft.api.transport.IPipe;
 
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.StatCollector;
 import net.minecraftforge.common.Configuration;
 import net.minecraftforge.common.ForgeChunkManager;
@@ -27,7 +33,7 @@ import cpw.mods.fml.common.FMLLog;
 
 @Mod(modid = "QuarryPlus", name = "QuarryPlus", version = "@VERSION@", dependencies = "required-after:BuildCraft|Factory")
 @NetworkMod(clientSideRequired = true, serverSideRequired = false, channels = { "QPOpenGUI", "QuarryPlusGUIBtn", "QPTENBT", "QuarryPlusTQ" }, packetHandler = PacketHandler.class)
-public class QuarryPlus {
+public class QuarryPlus implements ITriggerProvider {
 	@SidedProxy(clientSide = "org.yogpstop.qp.client.ClientProxy", serverSide = "org.yogpstop.qp.CommonProxy")
 	public static CommonProxy proxy;
 
@@ -75,6 +81,8 @@ public class QuarryPlus {
 
 		GameRegistry.registerTileEntity(TileQuarry.class, "QuarryPlus");
 		GameRegistry.registerTileEntity(TileMarker.class, "MarkerPlus");
+
+		ActionManager.registerTriggerProvider(this);
 
 		switch (RecipeDifficulty) {
 		case 0:
@@ -153,5 +161,20 @@ public class QuarryPlus {
 
 	public static final boolean getBit(short value, byte pos) {
 		return (value << (16 - pos) >>> (15)) == 0 ? false : true;
+	}
+
+	@Override
+	public LinkedList<ITrigger> getPipeTriggers(IPipe pipe) {
+		return null;
+	}
+
+	@Override
+	public LinkedList<ITrigger> getNeighborTriggers(Block block, TileEntity tile) {
+		LinkedList<ITrigger> res = new LinkedList<ITrigger>();
+		if (tile instanceof TileQuarry) {
+			res.add(TileQuarry.active);
+			res.add(TileQuarry.deactive);
+		}
+		return res;
 	}
 }
