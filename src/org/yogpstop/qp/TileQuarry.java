@@ -779,11 +779,11 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 	}
 
 	private boolean moveHead() {
-		float distance = (float) getDistance(this.targetX, this.targetY, this.targetZ);
-		float x = 31.8F;
-		float pw = Math.min(2F + this.pp.getEnergyStored() / 500F, ((distance - 0.1F) * 200F / (this.efficiency * x + 1F)));
+		double distance = getDistance(this.targetX, this.targetY, this.targetZ);
+		float pw = (float) Math.max(Math.min(2F + this.pp.getEnergyStored() / 500F,
+				((distance - 0.1F) * basePower_MoveHead / Math.pow(powerCoefficient_MoveHead, this.efficiency))), 0);
 		float used = this.pp.useEnergy(pw, pw, true);
-		float blocks = used * (this.efficiency * x + 1F) / 200F + 0.1F;
+		double blocks = used * Math.pow(powerCoefficient_MoveHead, this.efficiency) / basePower_MoveHead + 0.1F;
 
 		if (blocks * 2 > distance) {
 			this.headPosX = this.targetX;
