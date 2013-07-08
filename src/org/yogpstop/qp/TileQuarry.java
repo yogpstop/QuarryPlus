@@ -590,7 +590,7 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 
 	private boolean makeFrame() {
 		this.digged = true;
-		float power = (float) Math.max(Math.pow(powerCoefficient_MakeFrame, this.efficiency) * basePower_MakeFrame, 0F);
+		float power = (float) Math.max(Math.pow(1 / powerCoefficient_MakeFrame, this.efficiency) * basePower_MakeFrame, 0F);
 		if (this.pp.useEnergy(power, power, true) != power) return false;
 		this.worldObj.setBlock(this.targetX, this.targetY, this.targetZ, frameBlock.blockID);
 
@@ -600,8 +600,8 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 	private boolean breakBlock() {
 		this.digged = true;
 		ArrayList<ItemStack> dropped = new ArrayList<ItemStack>();
-		float pw = (float) Math.max(Math.pow(powerCoefficient_BreakBlock, this.efficiency) * basePower_BreakBlock * blockHardness() * addDroppedItems(dropped),
-				0F);
+		float pw = (float) Math.max(Math.pow(1 / powerCoefficient_BreakBlock, this.efficiency) * basePower_BreakBlock * blockHardness()
+				* addDroppedItems(dropped), 0F);
 		if (this.pp.useEnergy(pw, pw, true) != pw) return false;
 		this.cacheItems.addAll(dropped);
 		this.worldObj.playAuxSFXAtEntity(null, 2001, this.targetX, this.targetY, this.targetZ,
@@ -780,10 +780,11 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 
 	private boolean moveHead() {
 		double distance = getDistance(this.targetX, this.targetY, this.targetZ);
-		float pw = (float) Math.max(Math.min(2F + this.pp.getEnergyStored() / 500F,
-				((distance - 0.1F) * basePower_MoveHead / Math.pow(powerCoefficient_MoveHead, this.efficiency))), 0);
+		float pw = (float) Math.max(
+				Math.min(2F + this.pp.getEnergyStored() / 500F,
+						((distance - 0.1F) * basePower_MoveHead / Math.pow(1 / powerCoefficient_MoveHead, this.efficiency))), 0);
 		float used = this.pp.useEnergy(pw, pw, true);
-		double blocks = used * Math.pow(powerCoefficient_MoveHead, this.efficiency) / basePower_MoveHead + 0.1F;
+		double blocks = used * Math.pow(1 / powerCoefficient_MoveHead, this.efficiency) / basePower_MoveHead + 0.1F;
 
 		if (blocks * 2 > distance) {
 			this.headPosX = this.targetX;
