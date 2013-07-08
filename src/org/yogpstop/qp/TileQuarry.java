@@ -50,9 +50,9 @@ import net.minecraftforge.common.ForgeChunkManager.Type;
 import net.minecraftforge.common.ForgeDirection;
 
 public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry {
-	public static final ITrigger active = new TriggerQuarryPlus(754,true);
-	public static final ITrigger deactive = new TriggerQuarryPlus(755,false);
-	
+	public static final ITrigger active = new TriggerQuarryPlus(754, true);
+	public static final ITrigger deactive = new TriggerQuarryPlus(755, false);
+
 	public boolean removeLava, removeWater, removeLiquid, buildAdvFrame;
 	public final ArrayList<Long> fortuneList = new ArrayList<Long>();
 	public final ArrayList<Long> silktouchList = new ArrayList<Long>();
@@ -74,6 +74,15 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 	private byte now = NONE;
 
 	private ArrayList<ItemStack> cacheItems = new ArrayList<ItemStack>();
+
+	public static double powerCoefficient_BreakBlock;
+	public static double basePower_BreakBlock;
+	public static double powerCoefficient_MakeFrame;
+	public static double basePower_MakeFrame;
+	public static double powerCoefficient_MoveHead;
+	public static double basePower_MoveHead;
+	public static double powerCoefficient_Fortune;
+	public static double powerCoefficient_Silktouch;
 
 	public static final byte NONE = 0;
 	public static final byte NOTNEEDBREAK = 1;
@@ -105,8 +114,8 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 		this.pp = PowerFramework.currentFramework.createPowerProvider();
 		this.pp.configure(0, 0, 100, 0, 30000);
 	}
-	
-	public byte getNow(){
+
+	public byte getNow() {
 		return this.now;
 	}
 
@@ -415,6 +424,7 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 			else if (aTRIargc == 6) return (ItemStack) aTRI.invoke(null, is, this.worldObj, this.xCoord, this.yCoord, this.zCoord, ForgeDirection.UNKNOWN);
 		} catch (Exception e) {
 			e.printStackTrace();
+			System.out.println(String.format("yogpstop: When putting %s", is.toString()));
 		}
 		ItemStack isc = is.copy();
 		isc.stackSize = 0;
@@ -580,7 +590,7 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 
 	private boolean makeFrame() {
 		this.digged = true;
-		float power = Math.max(-4.8F * this.efficiency + 25F, 0F);
+		float power = (float) Math.max(Math.pow(powerCoefficient_MakeFrame, this.efficiency) * basePower_MakeFrame, 0F);
 		if (this.pp.useEnergy(power, power, true) != power) return false;
 		this.worldObj.setBlock(this.targetX, this.targetY, this.targetZ, frameBlock.blockID);
 
@@ -589,9 +599,11 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 
 	private boolean breakBlock() {
 		this.digged = true;
-		float pw = Math.max(-7.93F * this.efficiency + 40F, 0F) * blockHardness();
+		ArrayList<ItemStack> dropped = new ArrayList<ItemStack>();
+		float pw = (float) Math.max(Math.pow(powerCoefficient_BreakBlock, this.efficiency) * basePower_BreakBlock * blockHardness() * addDroppedItems(dropped),
+				0F);
 		if (this.pp.useEnergy(pw, pw, true) != pw) return false;
-		this.cacheItems.addAll(getDroppedItems());
+		this.cacheItems.addAll(dropped);
 		this.worldObj.playAuxSFXAtEntity(null, 2001, this.targetX, this.targetY, this.targetZ,
 				this.worldObj.getBlockId(this.targetX, this.targetY, this.targetZ)
 						+ (this.worldObj.getBlockMetadata(this.targetX, this.targetY, this.targetZ) << 12));
@@ -609,33 +621,33 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 		return 0;
 	}
 
-	private ArrayList<ItemStack> getDroppedItems() {
+	private double addDroppedItems(ArrayList<ItemStack> list) {
 		Block b = Block.blocksList[this.worldObj.getBlockId(this.targetX, this.targetY, this.targetZ)];
 		int meta = this.worldObj.getBlockMetadata(this.targetX, this.targetY, this.targetZ);
-		if (b == null) return new ArrayList<ItemStack>();
+		if (b == null) return 1;
 		if (b.canSilkHarvest(this.worldObj, null, this.targetX, this.targetY, this.targetZ, meta) && this.silktouch
 				&& (this.silktouchList.contains(data((short) b.blockID, meta)) == this.silktouchInclude)) {
-			ArrayList<ItemStack> al = new ArrayList<ItemStack>();
 			try {
-				al.add(createStackedBlock(b, meta));
-				return al;
+				list.add(createStackedBlock(b, meta));
+				return powerCoefficient_Silktouch;
 			} catch (Exception e) {
 				e.printStackTrace();
 			} catch (Error e) {
 				e.printStackTrace();
 			}
 		}
-		return b.getBlockDropped(this.worldObj, this.targetX, this.targetY, this.targetZ, meta,
-				((this.fortuneList.contains(data((short) b.blockID, meta)) == this.fortuneInclude) ? this.fortune : 0));
+		list.addAll(b.getBlockDropped(this.worldObj, this.targetX, this.targetY, this.targetZ, meta,
+				((this.fortuneList.contains(data((short) b.blockID, meta)) == this.fortuneInclude) ? this.fortune : 0)));
+		return Math.pow(powerCoefficient_Fortune, this.fortune);
 	}
 
 	private static ItemStack createStackedBlock(Block b, int meta) throws SecurityException, NoClassDefFoundError, IllegalAccessException,
 			IllegalArgumentException, InvocationTargetException {
 		Class<? extends Block> cls = b.getClass();
 		Method createStackedBlockMethod;
-		try{
+		try {
 			createStackedBlockMethod = getMethodRepeating(cls);
-		} catch (NoClassDefFoundError e){
+		} catch (NoClassDefFoundError e) {
 			throw new NoClassDefFoundError(String.format("yogpstop: %d:%d %s %s", b.blockID, meta, b.getUnlocalizedName(), e.getMessage()));
 		}
 		createStackedBlockMethod.setAccessible(true);
@@ -769,7 +781,7 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 	private boolean moveHead() {
 		float distance = (float) getDistance(this.targetX, this.targetY, this.targetZ);
 		float x = 31.8F;
-		float pw = Math.min(2F + this.pp.getEnergyStored() / 500F, ((distance / 2F - 0.1F) * 200F / (this.efficiency * x + 1F)) + 0.01F);
+		float pw = Math.min(2F + this.pp.getEnergyStored() / 500F, ((distance - 0.1F) * 200F / (this.efficiency * x + 1F)));
 		float used = this.pp.useEnergy(pw, pw, true);
 		float blocks = used * (this.efficiency * x + 1F) / 200F + 0.1F;
 

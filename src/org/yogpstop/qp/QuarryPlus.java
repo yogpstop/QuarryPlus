@@ -62,6 +62,14 @@ public class QuarryPlus implements ITriggerProvider {
 			Property RD = cfg.get(Configuration.CATEGORY_GENERAL, "RecipeDifficulty", 2);
 			RD.comment = "0:AsCheatRecipe,1:EasyRecipe,2:NormalRecipe(Default),3:HardRecipe,other:NormalRecipe";
 			RecipeDifficulty = RD.getInt(2);
+			TileQuarry.powerCoefficient_BreakBlock = cfg.get(Configuration.CATEGORY_GENERAL, "PowerCofficientOnBreakBlock",1.3F).getDouble(1.3F);
+			TileQuarry.basePower_BreakBlock=cfg.get(Configuration.CATEGORY_GENERAL, "BasePowerOnBreakBlock", 40F).getDouble(40F);
+			TileQuarry.powerCoefficient_MakeFrame = cfg.get(Configuration.CATEGORY_GENERAL, "PowerCofficientOnMakeFrame",1.3F).getDouble(1.3F);
+			TileQuarry.basePower_MakeFrame=cfg.get(Configuration.CATEGORY_GENERAL, "BasePowerOnMakeFrame", 25F).getDouble(25F);
+			TileQuarry.powerCoefficient_MoveHead = cfg.get(Configuration.CATEGORY_GENERAL, "PowerCofficientOnBreakBlock",1.3F).getDouble(1.3F);
+			TileQuarry.basePower_MoveHead=cfg.get(Configuration.CATEGORY_GENERAL, "BasePowerOnBreakBlock", 200F).getDouble(200F);
+			TileQuarry.powerCoefficient_Fortune = cfg.get(Configuration.CATEGORY_GENERAL, "PowerCofficientWithFortune",1.3F).getDouble(1.3F);
+			TileQuarry.powerCoefficient_Silktouch = cfg.get(Configuration.CATEGORY_GENERAL, "PowerCofficientWithSilktouch",2F).getDouble(2F);
 		} catch (Exception e) {
 			FMLLog.log(Level.SEVERE, e, "Error Massage");
 		} finally {
