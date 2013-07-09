@@ -111,6 +111,8 @@ public class QuarryPlus implements ITriggerProvider {
 					new Object[] { "X", "Y", Character.valueOf('Y'), BuildCraftFactory.quarryBlock, Character.valueOf('X'), Item.redstone });
 			GameRegistry.addRecipe(new ItemStack(blockMover, 1), new Object[] { "X", "Y", Character.valueOf('Y'), BuildCraftFactory.autoWorkbenchBlock,
 					Character.valueOf('X'), Item.redstone });
+			GameRegistry.addRecipe(new ItemStack(blockMiningWell, 1), new Object[] { "X", "Y", Character.valueOf('Y'), BuildCraftFactory.miningWellBlock,
+					Character.valueOf('X'), Item.redstone });
 			break;
 		case 1:
 			GameRegistry.addRecipe(new ItemStack(blockMarker, 1),
@@ -121,6 +123,8 @@ public class QuarryPlus implements ITriggerProvider {
 							Character.valueOf('D'), new ItemStack(BuildCraftSilicon.redstoneChipset, 1, 3) });
 			GameRegistry.addRecipe(new ItemStack(blockMover, 1), new Object[] { "X", "Y", "Z", Character.valueOf('Z'), BuildCraftFactory.autoWorkbenchBlock,
 					Character.valueOf('Y'), Block.anvil, Character.valueOf('X'), Block.enchantmentTable });
+			GameRegistry.addRecipe(new ItemStack(blockMiningWell, 1), new Object[] { "X", "Y", Character.valueOf('Y'), BuildCraftFactory.miningWellBlock,
+					Character.valueOf('X'), new ItemStack(BuildCraftSilicon.redstoneChipset, 1, 3) });
 			break;
 		case 3:
 			GameRegistry.addRecipe(new ItemStack(blockMarker, 1), new Object[] { "X", "Y", "Z", Character.valueOf('X'),
@@ -136,6 +140,9 @@ public class QuarryPlus implements ITriggerProvider {
 							new Object[] { "DED", "GAG", "OOO", Character.valueOf('D'), Block.blockDiamond, Character.valueOf('E'), Block.enchantmentTable,
 									Character.valueOf('O'), Block.obsidian, Character.valueOf('A'), Block.anvil, Character.valueOf('G'),
 									BuildCraftCore.diamondGearItem });
+			GameRegistry.addRecipe(new ItemStack(blockMiningWell, 1), new Object[] { "X", "XYX", "Z", Character.valueOf('Y'),
+					BuildCraftFactory.miningWellBlock, Character.valueOf('X'), new ItemStack(BuildCraftSilicon.redstoneChipset, 1, 3), Character.valueOf('Z'),
+					Block.blockDiamond });
 			break;
 		default:
 			GameRegistry.addRecipe(new ItemStack(blockMarker, 1), new Object[] { "X", "Y", Character.valueOf('X'),
@@ -146,6 +153,9 @@ public class QuarryPlus implements ITriggerProvider {
 					BuildCraftFactory.autoWorkbenchBlock });
 			GameRegistry.addRecipe(new ItemStack(blockMover, 1), new Object[] { "DED", "OAO", "OOO", Character.valueOf('D'), BuildCraftCore.diamondGearItem,
 					Character.valueOf('E'), Block.enchantmentTable, Character.valueOf('O'), Block.obsidian, Character.valueOf('A'), Block.anvil });
+			GameRegistry.addRecipe(new ItemStack(blockMiningWell, 1), new Object[] { "X", "Y", "Z", Character.valueOf('Y'), BuildCraftFactory.miningWellBlock,
+					Character.valueOf('X'), new ItemStack(BuildCraftSilicon.redstoneChipset, 1, 3), Character.valueOf('Z'),
+					BuildCraftFactory.autoWorkbenchBlock });
 		}
 		NetworkRegistry.instance().registerGuiHandler(this, new GuiHandler());
 		proxy.registerTextures();
