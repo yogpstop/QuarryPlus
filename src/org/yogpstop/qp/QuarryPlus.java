@@ -140,7 +140,7 @@ public class QuarryPlus implements ITriggerProvider {
 							new Object[] { "DED", "GAG", "OOO", Character.valueOf('D'), Block.blockDiamond, Character.valueOf('E'), Block.enchantmentTable,
 									Character.valueOf('O'), Block.obsidian, Character.valueOf('A'), Block.anvil, Character.valueOf('G'),
 									BuildCraftCore.diamondGearItem });
-			GameRegistry.addRecipe(new ItemStack(blockMiningWell, 1), new Object[] { "X", "XYX", "Z", Character.valueOf('Y'),
+			GameRegistry.addRecipe(new ItemStack(blockMiningWell, 1), new Object[] { " X ", "XYX", " Z ", Character.valueOf('Y'),
 					BuildCraftFactory.miningWellBlock, Character.valueOf('X'), new ItemStack(BuildCraftSilicon.redstoneChipset, 1, 3), Character.valueOf('Z'),
 					Block.blockDiamond });
 			break;
