@@ -34,8 +34,7 @@ public class TileMiningWell extends TileBasic {
 			this.worldObj.setBlock(this.xCoord, depth, this.zCoord, plainPipeBlock.blockID);
 			depth--;
 		}
-		if (!this.working) return;
-		breakBlock(depth);
+		if (this.working) breakBlock(depth);
 		ArrayList<ItemStack> cache = new ArrayList<ItemStack>();
 		for (ItemStack is : this.cacheItems) {
 			ItemStack added = addToRandomInventory(is);
