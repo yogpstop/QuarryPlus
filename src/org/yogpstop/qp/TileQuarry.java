@@ -76,14 +76,14 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 
 	private ArrayList<ItemStack> cacheItems = new ArrayList<ItemStack>();
 
-	public static double powerCoefficient_BreakBlock;
-	public static double basePower_BreakBlock;
-	public static double powerCoefficient_MakeFrame;
-	public static double basePower_MakeFrame;
-	public static double powerCoefficient_MoveHead;
-	public static double basePower_MoveHead;
-	public static double powerCoefficient_Fortune;
-	public static double powerCoefficient_Silktouch;
+	public static double CE_BB;
+	public static double BP_BB;
+	public static double CE_MF;
+	public static double BP_MF;
+	public static double CE_MH;
+	public static double BP_MH;
+	public static double CF;
+	public static double CS;
 
 	public static final byte NONE = 0;
 	public static final byte NOTNEEDBREAK = 1;
@@ -592,7 +592,7 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 
 	private boolean makeFrame() {
 		this.digged = true;
-		float power = (float) Math.max(Math.pow(1D / powerCoefficient_MakeFrame, this.efficiency) * basePower_MakeFrame, 0D);
+		float power = (float) Math.max(BP_MF / Math.pow(CE_MF, this.efficiency), 0D);
 		if (this.pp.useEnergy(power, power, true) != power) return false;
 		this.worldObj.setBlock(this.targetX, this.targetY, this.targetZ, frameBlock.blockID);
 
@@ -602,8 +602,7 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 	private boolean breakBlock() {
 		this.digged = true;
 		ArrayList<ItemStack> dropped = new ArrayList<ItemStack>();
-		float pw = (float) Math.max(Math.pow(1D / powerCoefficient_BreakBlock, this.efficiency) * basePower_BreakBlock * blockHardness()
-				* addDroppedItems(dropped), 0D);
+		float pw = (float) Math.max(BP_BB * blockHardness() * addDroppedItems(dropped) / Math.pow(CE_BB, this.efficiency), 0D);
 		if (this.pp.useEnergy(pw, pw, true) != pw) return false;
 		this.cacheItems.addAll(dropped);
 		this.worldObj.playAuxSFXAtEntity(null, 2001, this.targetX, this.targetY, this.targetZ,
@@ -631,16 +630,19 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 				&& (this.silktouchList.contains(data((short) b.blockID, meta)) == this.silktouchInclude)) {
 			try {
 				list.add(createStackedBlock(b, meta));
-				return powerCoefficient_Silktouch;
+				return CS;
 			} catch (Exception e) {
 				e.printStackTrace();
 			} catch (Error e) {
 				e.printStackTrace();
 			}
 		}
-		list.addAll(b.getBlockDropped(this.worldObj, this.targetX, this.targetY, this.targetZ, meta,
-				((this.fortuneList.contains(data((short) b.blockID, meta)) == this.fortuneInclude) ? this.fortune : 0)));
-		return Math.pow(powerCoefficient_Fortune, this.fortune);
+		if (this.fortuneList.contains(data((short) b.blockID, meta)) == this.fortuneInclude) {
+			list.addAll(b.getBlockDropped(this.worldObj, this.targetX, this.targetY, this.targetZ, meta, this.fortune));
+			return Math.pow(CF, this.fortune);
+		}
+		list.addAll(b.getBlockDropped(this.worldObj, this.targetX, this.targetY, this.targetZ, meta, 0));
+		return 1;
 	}
 
 	private static ItemStack createStackedBlock(Block b, int meta) throws SecurityException, NoClassDefFoundError, IllegalAccessException,
@@ -785,10 +787,11 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 		double y = this.targetY + 1 - this.headPosY;
 		double z = this.targetZ - this.headPosZ;
 		double distance = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2) + Math.pow(z, 2));
-		float pw = (float) Math.max(Math.min(2D + Math.pow(powerCoefficient_MoveHead, this.efficiency) * this.pp.getEnergyStored() / 500D, ((distance - 0.1D)
-				* basePower_MoveHead / Math.pow(1D / powerCoefficient_MoveHead, this.efficiency))), 0D);
+		float pw = (float) Math.max(
+				Math.min(2D + Math.pow(CE_MH, this.efficiency) * this.pp.getEnergyStored() / 500D,
+						((distance - 0.1D) * BP_MH / Math.pow(CE_MH, this.efficiency))), 0D);
 		float used = this.pp.useEnergy(pw, pw, true);
-		double blocks = used * Math.pow(powerCoefficient_MoveHead, this.efficiency) / basePower_MoveHead + 0.1D;
+		double blocks = used * Math.pow(CE_MH, this.efficiency) / BP_MH + 0.1D;
 
 		if (blocks * 2 > distance) {
 			this.headPosX = this.targetX;

@@ -62,17 +62,17 @@ public class QuarryPlus implements ITriggerProvider {
 			Property RD = cfg.get(Configuration.CATEGORY_GENERAL, "RecipeDifficulty", 2);
 			RD.comment = "0:AsCheatRecipe,1:EasyRecipe,2:NormalRecipe(Default),3:HardRecipe,other:NormalRecipe";
 			RecipeDifficulty = RD.getInt(2);
-			TileQuarry.powerCoefficient_BreakBlock = cfg.get(Configuration.CATEGORY_GENERAL + ".BreakBlock", "PowerCoefficientWithEfficiency", 1.3D).getDouble(
+			TileQuarry.CE_BB = cfg.get(Configuration.CATEGORY_GENERAL + ".BreakBlock", "PowerCoefficientWithEfficiency", 1.3D).getDouble(
 					1.3D);
-			TileQuarry.basePower_BreakBlock = cfg.get(Configuration.CATEGORY_GENERAL + ".BreakBlock", "BasePower", 40D).getDouble(40D);
-			TileQuarry.powerCoefficient_MakeFrame = cfg.get(Configuration.CATEGORY_GENERAL + ".MakeFrame", "PowerCoefficientWithEfficiency", 1.3D).getDouble(
+			TileQuarry.BP_BB = cfg.get(Configuration.CATEGORY_GENERAL + ".BreakBlock", "BasePower", 40D).getDouble(40D);
+			TileQuarry.CE_MF = cfg.get(Configuration.CATEGORY_GENERAL + ".MakeFrame", "PowerCoefficientWithEfficiency", 1.3D).getDouble(
 					1.3D);
-			TileQuarry.basePower_MakeFrame = cfg.get(Configuration.CATEGORY_GENERAL + ".MakeFrame", "BasePower", 25D).getDouble(25D);
-			TileQuarry.powerCoefficient_MoveHead = cfg.get(Configuration.CATEGORY_GENERAL + ".MoveHead", "PowerCoefficientWithEfficiency", 1.3D)
+			TileQuarry.BP_MF = cfg.get(Configuration.CATEGORY_GENERAL + ".MakeFrame", "BasePower", 25D).getDouble(25D);
+			TileQuarry.CE_MH = cfg.get(Configuration.CATEGORY_GENERAL + ".MoveHead", "PowerCoefficientWithEfficiency", 1.3D)
 					.getDouble(1.3D);
-			TileQuarry.basePower_MoveHead = cfg.get(Configuration.CATEGORY_GENERAL + ".MoveHead", "BasePower", 200D).getDouble(200D);
-			TileQuarry.powerCoefficient_Fortune = cfg.get(Configuration.CATEGORY_GENERAL + ".BreakBlock", "PowerCoefficientWithFortune", 1.3D).getDouble(1.3D);
-			TileQuarry.powerCoefficient_Silktouch = cfg.get(Configuration.CATEGORY_GENERAL + ".BreakBlock", "PowerCoefficientWithSilktouch", 2D).getDouble(2D);
+			TileQuarry.BP_MH = cfg.get(Configuration.CATEGORY_GENERAL + ".MoveHead", "BasePower", 200D).getDouble(200D);
+			TileQuarry.CF = cfg.get(Configuration.CATEGORY_GENERAL + ".BreakBlock", "PowerCoefficientWithFortune", 1.3D).getDouble(1.3D);
+			TileQuarry.CS = cfg.get(Configuration.CATEGORY_GENERAL + ".BreakBlock", "PowerCoefficientWithSilktouch", 2D).getDouble(2D);
 			cfg.getCategory(Configuration.CATEGORY_GENERAL)
 					.setComment(
 							"PowerCoefficientWith(EnchantName) is Coefficient with correspond enchant.\nWithEfficiency value comes reciprocal number.\nBasePower is basical using power with no enchants.");
