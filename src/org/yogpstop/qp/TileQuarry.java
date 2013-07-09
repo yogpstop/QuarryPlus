@@ -34,6 +34,7 @@ import net.minecraft.block.Block;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -424,7 +425,8 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 			else if (aTRIargc == 6) return (ItemStack) aTRI.invoke(null, is, this.worldObj, this.xCoord, this.yCoord, this.zCoord, ForgeDirection.UNKNOWN);
 		} catch (Exception e) {
 			e.printStackTrace();
-			System.out.println(String.format("yogpstop: When putting %s", is.toString()));
+			System.out.println(String.format("yogpstop: error item %d:%d", is.itemID, is.getItemDamage()));
+			if (Item.itemsList[is.itemID] == null) return is;
 		}
 		ItemStack isc = is.copy();
 		isc.stackSize = 0;
@@ -590,7 +592,7 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 
 	private boolean makeFrame() {
 		this.digged = true;
-		float power = (float) Math.max(Math.pow(1 / powerCoefficient_MakeFrame, this.efficiency) * basePower_MakeFrame, 0D);
+		float power = (float) Math.max(Math.pow(1D / powerCoefficient_MakeFrame, this.efficiency) * basePower_MakeFrame, 0D);
 		if (this.pp.useEnergy(power, power, true) != power) return false;
 		this.worldObj.setBlock(this.targetX, this.targetY, this.targetZ, frameBlock.blockID);
 
@@ -600,7 +602,7 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 	private boolean breakBlock() {
 		this.digged = true;
 		ArrayList<ItemStack> dropped = new ArrayList<ItemStack>();
-		float pw = (float) Math.max(Math.pow(1 / powerCoefficient_BreakBlock, this.efficiency) * basePower_BreakBlock * blockHardness()
+		float pw = (float) Math.max(Math.pow(1D / powerCoefficient_BreakBlock, this.efficiency) * basePower_BreakBlock * blockHardness()
 				* addDroppedItems(dropped), 0D);
 		if (this.pp.useEnergy(pw, pw, true) != pw) return false;
 		this.cacheItems.addAll(dropped);
@@ -779,12 +781,14 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 	}
 
 	private boolean moveHead() {
-		double distance = getDistance(this.targetX, this.targetY, this.targetZ);
-		float pw = (float) Math.max(
-				Math.min(2D + this.pp.getEnergyStored() / 500D,
-						((distance - 0.1D) * basePower_MoveHead / Math.pow(1 / powerCoefficient_MoveHead, this.efficiency))), 0);
+		double x = this.targetX - this.headPosX;
+		double y = this.targetY + 1 - this.headPosY;
+		double z = this.targetZ - this.headPosZ;
+		double distance = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2) + Math.pow(z, 2));
+		float pw = (float) Math.max(Math.min(2D + Math.pow(powerCoefficient_MoveHead, this.efficiency) * this.pp.getEnergyStored() / 500D, ((distance - 0.1D)
+				* basePower_MoveHead / Math.pow(1D / powerCoefficient_MoveHead, this.efficiency))), 0D);
 		float used = this.pp.useEnergy(pw, pw, true);
-		double blocks = used * Math.pow(1 / powerCoefficient_MoveHead, this.efficiency) / basePower_MoveHead + 0.1D;
+		double blocks = used * Math.pow(powerCoefficient_MoveHead, this.efficiency) / basePower_MoveHead + 0.1D;
 
 		if (blocks * 2 > distance) {
 			this.headPosX = this.targetX;
@@ -793,9 +797,9 @@ public class TileQuarry extends TileEntity implements IPowerReceptor, IPipeEntry
 			return true;
 		}
 		if (used > 0) {
-			this.headPosX += Math.cos(Math.atan2(this.targetZ - this.headPosZ, this.targetX - this.headPosX)) * blocks;
-			this.headPosY += Math.sin(Math.atan2(this.targetY + 1 - this.headPosY, this.targetX - this.headPosX)) * blocks;
-			this.headPosZ += Math.sin(Math.atan2(this.targetZ - this.headPosZ, this.targetX - this.headPosX)) * blocks;
+			this.headPosX += x * blocks / distance;
+			this.headPosY += y * blocks / distance;
+			this.headPosZ += z * blocks / distance;
 		}
 		return false;
 	}
