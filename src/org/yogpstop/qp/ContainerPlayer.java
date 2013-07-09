@@ -5,13 +5,13 @@ import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
 import net.minecraft.world.World;
 
-public class ContainerQuarry extends Container {
+public class ContainerPlayer extends Container {
 	private World world;
 	private int xCoord;
 	private int yCoord;
 	private int zCoord;
 
-	public ContainerQuarry(EntityPlayer player, World world, int x, int y, int z) {
+	public ContainerPlayer(EntityPlayer player, World world, int x, int y, int z) {
 		this.world = world;
 		this.xCoord = x;
 		this.yCoord = y;
@@ -30,7 +30,8 @@ public class ContainerQuarry extends Container {
 
 	@Override
 	public boolean canInteractWith(EntityPlayer entityPlayer) {
-		return this.world.getBlockId(this.xCoord, this.yCoord, this.zCoord) != QuarryPlus.blockQuarry.blockID ? false : entityPlayer.getDistanceSq(
-				this.xCoord + 0.5D, this.yCoord + 0.5D, this.zCoord + 0.5D) <= 64.0D;
+		return (this.world.getBlockId(this.xCoord, this.yCoord, this.zCoord) == QuarryPlus.blockQuarry.blockID || this.world.getBlockId(this.xCoord,
+				this.yCoord, this.zCoord) == QuarryPlus.blockMiningWell.blockID)
+				&& entityPlayer.getDistanceSq(this.xCoord + 0.5D, this.yCoord + 0.5D, this.zCoord + 0.5D) <= 64.0D;
 	}
 }

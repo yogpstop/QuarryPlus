@@ -17,12 +17,12 @@ import buildcraft.api.gates.TriggerParameter;
 
 import buildcraft.core.triggers.ActionTriggerIconProvider;
 
-public class TriggerQuarryPlus implements ITrigger {
+public class TriggerPlusMachine implements ITrigger {
 
 	boolean active;
 	int id;
 
-	public TriggerQuarryPlus(int pid, boolean active) {
+	public TriggerPlusMachine(int pid, boolean active) {
 		this.id = pid;
 		this.active = active;
 		ActionManager.triggers[pid] = this;
@@ -30,8 +30,8 @@ public class TriggerQuarryPlus implements ITrigger {
 
 	@Override
 	public String getDescription() {
-		if (this.active) return "QuarryPlus is working";
-		return "QuarryPlus's work is done";
+		if (this.active) return "PlusMachine is working";
+		return "PlusMachine's work is done";
 	}
 
 	@Override
@@ -39,6 +39,9 @@ public class TriggerQuarryPlus implements ITrigger {
 		if (tile instanceof TileQuarry) {
 			if (this.active) return ((TileQuarry) tile).getNow() != TileQuarry.NONE;
 			return ((TileQuarry) tile).getNow() == TileQuarry.NONE;
+		} else if (tile instanceof TileMiningWell) {
+			if (this.active) return ((TileMiningWell) tile).isWorking();
+			return !((TileMiningWell) tile).isWorking();
 		}
 		return false;
 	}

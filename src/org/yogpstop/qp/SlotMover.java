@@ -22,7 +22,7 @@ public class SlotMover extends Slot {
 			if (par1ItemStack.itemID == Item.pickaxeDiamond.itemID) { return true; }
 			return false;
 		case 1:
-			if (par1ItemStack.itemID == QuarryPlus.blockQuarry.blockID) { return true; }
+			if (par1ItemStack.itemID == QuarryPlus.blockQuarry.blockID || par1ItemStack.itemID == QuarryPlus.blockMiningWell.blockID) { return true; }
 		}
 		return false;
 	}

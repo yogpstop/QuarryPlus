@@ -32,7 +32,7 @@ import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.FMLLog;
 
 @Mod(modid = "QuarryPlus", name = "QuarryPlus", version = "@VERSION@", dependencies = "required-after:BuildCraft|Factory")
-@NetworkMod(clientSideRequired = true, serverSideRequired = false, channels = { "QPOpenGUI", "QuarryPlusGUIBtn", "QPTENBT", "QuarryPlusTQ" }, packetHandler = PacketHandler.class)
+@NetworkMod(clientSideRequired = true, serverSideRequired = false, channels = { "QPOpenGUI", "QuarryPlusGUIBtn", "QPTENBT", "QuarryPlusTB" }, packetHandler = PacketHandler.class)
 public class QuarryPlus implements ITriggerProvider {
 	@SidedProxy(clientSide = "org.yogpstop.qp.client.ClientProxy", serverSide = "org.yogpstop.qp.CommonProxy")
 	public static CommonProxy proxy;
@@ -43,10 +43,11 @@ public class QuarryPlus implements ITriggerProvider {
 	public static Block blockQuarry;
 	public static Block blockMarker;
 	public static Block blockMover;
+	public static Block blockMiningWell;
 
 	public static int RecipeDifficulty;
 
-	public static final int guiIdContainerQuarry = 1;
+	public static final int guiIdContainerMiner = 1;
 	public static final int guiIdContainerMover = 2;
 	public static final int guiIdGuiQuarryFortuneList = 3;
 	public static final int guiIdGuiQuarrySilktouchList = 4;
@@ -59,20 +60,22 @@ public class QuarryPlus implements ITriggerProvider {
 			blockQuarry = (new BlockQuarry(cfg.getBlock("Quarry", 4001).getInt()));
 			blockMarker = (new BlockMarker(cfg.getBlock("Marker", 4002).getInt()));
 			blockMover = (new BlockMover(cfg.getBlock("EnchantMover", 4003).getInt()));
+			blockMiningWell = (new BlockMiningWell(cfg.getBlock("MiningWell", 4004).getInt()));
 			Property RD = cfg.get(Configuration.CATEGORY_GENERAL, "RecipeDifficulty", 2);
 			RD.comment = "0:AsCheatRecipe,1:EasyRecipe,2:NormalRecipe(Default),3:HardRecipe,other:NormalRecipe";
 			RecipeDifficulty = RD.getInt(2);
-			TileQuarry.CE_BB = cfg.get(Configuration.CATEGORY_GENERAL + ".BreakBlock", "PowerCoefficientWithEfficiency", 1.3D).getDouble(
-					1.3D);
+			TileQuarry.CE_BB = cfg.get(Configuration.CATEGORY_GENERAL + ".BreakBlock", "PowerCoefficientWithEfficiency", 1.3D).getDouble(1.3D);
 			TileQuarry.BP_BB = cfg.get(Configuration.CATEGORY_GENERAL + ".BreakBlock", "BasePower", 40D).getDouble(40D);
-			TileQuarry.CE_MF = cfg.get(Configuration.CATEGORY_GENERAL + ".MakeFrame", "PowerCoefficientWithEfficiency", 1.3D).getDouble(
-					1.3D);
+			TileQuarry.CE_MF = cfg.get(Configuration.CATEGORY_GENERAL + ".MakeFrame", "PowerCoefficientWithEfficiency", 1.3D).getDouble(1.3D);
 			TileQuarry.BP_MF = cfg.get(Configuration.CATEGORY_GENERAL + ".MakeFrame", "BasePower", 25D).getDouble(25D);
-			TileQuarry.CE_MH = cfg.get(Configuration.CATEGORY_GENERAL + ".MoveHead", "PowerCoefficientWithEfficiency", 1.3D)
-					.getDouble(1.3D);
+			TileQuarry.CE_MH = cfg.get(Configuration.CATEGORY_GENERAL + ".MoveHead", "PowerCoefficientWithEfficiency", 1.3D).getDouble(1.3D);
 			TileQuarry.BP_MH = cfg.get(Configuration.CATEGORY_GENERAL + ".MoveHead", "BasePower", 200D).getDouble(200D);
 			TileQuarry.CF = cfg.get(Configuration.CATEGORY_GENERAL + ".BreakBlock", "PowerCoefficientWithFortune", 1.3D).getDouble(1.3D);
 			TileQuarry.CS = cfg.get(Configuration.CATEGORY_GENERAL + ".BreakBlock", "PowerCoefficientWithSilktouch", 2D).getDouble(2D);
+			TileMiningWell.CE = cfg.get(Configuration.CATEGORY_GENERAL + ".MiningWell", "PowerCoefficientWithEfficiency", 1.3D).getDouble(1.3D);
+			TileMiningWell.BP = cfg.get(Configuration.CATEGORY_GENERAL + ".MiningWell", "BasePower", 60D).getDouble(60D);
+			TileMiningWell.CF = cfg.get(Configuration.CATEGORY_GENERAL + ".MiningWell", "PowerCoefficientWithFortune", 1.3D).getDouble(1.3D);
+			TileMiningWell.CS = cfg.get(Configuration.CATEGORY_GENERAL + ".MiningWell", "PowerCoefficientWithSilktouch", 2D).getDouble(2D);
 			cfg.getCategory(Configuration.CATEGORY_GENERAL)
 					.setComment(
 							"PowerCoefficientWith(EnchantName) is Coefficient with correspond enchant.\nWithEfficiency value comes reciprocal number.\nBasePower is basical using power with no enchants.");
@@ -92,9 +95,11 @@ public class QuarryPlus implements ITriggerProvider {
 		GameRegistry.registerBlock(blockQuarry, "QuarryPlus");
 		GameRegistry.registerBlock(blockMarker, "MarkerPlus");
 		GameRegistry.registerBlock(blockMover, "EnchantMover");
+		GameRegistry.registerBlock(blockMiningWell, "MiningWellPlus");
 
 		GameRegistry.registerTileEntity(TileQuarry.class, "QuarryPlus");
 		GameRegistry.registerTileEntity(TileMarker.class, "MarkerPlus");
+		GameRegistry.registerTileEntity(TileMiningWell.class, "MiningWellPlus");
 
 		ActionManager.registerTriggerProvider(this);
 
@@ -185,9 +190,9 @@ public class QuarryPlus implements ITriggerProvider {
 	@Override
 	public LinkedList<ITrigger> getNeighborTriggers(Block block, TileEntity tile) {
 		LinkedList<ITrigger> res = new LinkedList<ITrigger>();
-		if (tile instanceof TileQuarry) {
-			res.add(TileQuarry.active);
-			res.add(TileQuarry.deactive);
+		if (tile instanceof TileQuarry || tile instanceof TileMiningWell) {
+			res.add(TileBasic.active);
+			res.add(TileBasic.deactive);
 		}
 		return res;
 	}

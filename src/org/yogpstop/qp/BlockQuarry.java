@@ -2,7 +2,7 @@ package org.yogpstop.qp;
 
 import java.util.ArrayList;
 
-import buildcraft.core.CreativeTabBuildCraft;
+import static buildcraft.core.CreativeTabBuildCraft.tabBuildCraft;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -19,15 +19,14 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeDirection;
 
 public class BlockQuarry extends BlockContainer {
-	Icon textureTop;
-	Icon textureFront;
+	Icon textureTop, textureFront;
 
 	public BlockQuarry(int i) {
 		super(i, Material.iron);
 		setHardness(1.5F);
 		setResistance(10F);
 		setStepSound(soundStoneFootstep);
-		setCreativeTab(CreativeTabBuildCraft.tabBuildCraft);
+		setCreativeTab(tabBuildCraft);
 		setUnlocalizedName("QuarryPlus");
 	}
 
@@ -102,7 +101,7 @@ public class BlockQuarry extends BlockContainer {
 	@Override
 	public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer ep, int par6, float par7, float par8, float par9) {
 		if (ep.isSneaking()) return false;
-		ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdContainerQuarry, world, x, y, z);
+		ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdContainerMiner, world, x, y, z);
 		return true;
 	}
 

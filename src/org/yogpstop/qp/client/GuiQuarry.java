@@ -9,7 +9,8 @@ import static net.minecraft.util.StatCollector.translateToLocal;
 import net.minecraft.world.World;
 
 import org.lwjgl.opengl.GL11;
-import org.yogpstop.qp.ContainerQuarry;
+import org.yogpstop.qp.ContainerPlayer;
+import org.yogpstop.qp.TileBasic;
 import org.yogpstop.qp.TileQuarry;
 
 import cpw.mods.fml.relauncher.SideOnly;
@@ -20,7 +21,7 @@ public class GuiQuarry extends GuiContainer {
 	private TileQuarry tileQuarry;
 
 	public GuiQuarry(EntityPlayer player, World world, int x, int y, int z) {
-		super(new ContainerQuarry(player, world, x, y, z));
+		super(new ContainerPlayer(player, world, x, y, z));
 		this.tileQuarry = (TileQuarry) world.getBlockTileEntity(x, y, z);
 		this.ySize = 238;
 		this.xSize = 256;
@@ -61,13 +62,13 @@ public class GuiQuarry extends GuiContainer {
 		int half = (this.xSize - (offset << 2)) >> 1;
 		int full = (this.xSize - (offset << 1));
 
-		this.buttonList.add(new GuiButton(TileQuarry.openFortuneGui, i + offset, j + 46, half, 20, translateToLocal("gui.fortuneList")));
-		this.buttonList.add(new GuiButton(TileQuarry.openSilktouchGui, i2 + offset, j + 46, half, 20, translateToLocal("gui.silktouchList")));
+		this.buttonList.add(new GuiButton(TileBasic.openFortuneGui, i + offset, j + 46, half, 20, translateToLocal("gui.fortuneList")));
+		this.buttonList.add(new GuiButton(TileBasic.openSilktouchGui, i2 + offset, j + 46, half, 20, translateToLocal("gui.silktouchList")));
 		this.buttonList.add(this.a3 = new GuiButton(TileQuarry.tBuildAdvFrame, i + offset, j + 71, half, 20, ""));
 		this.buttonList.add(this.a4 = new GuiButton(TileQuarry.tRemoveWater, i2 + offset, j + 71, half, 20, ""));
 		this.buttonList.add(this.a5 = new GuiButton(TileQuarry.tRemoveLava, i + offset, j + 96, half, 20, ""));
 		this.buttonList.add(this.a6 = new GuiButton(TileQuarry.tRemoveLiquid, i2 + offset, j + 96, half, 20, ""));
-		this.buttonList.add(new GuiButton(TileQuarry.reinit, i + offset, j + 121, full, 20, translateToLocal("gui.quarryReset")));
+		this.buttonList.add(new GuiButton(TileBasic.reinit, i + offset, j + 121, full, 20, translateToLocal("gui.quarryReset")));
 		setNames();
 	}
 

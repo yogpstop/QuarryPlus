@@ -1,6 +1,7 @@
 tile.EnchantMover.name=EnchantMover
 tile.MarkerPlus.name=MarkerPlus
 tile.QuarryPlus.name=QuarryPlus
+tile.MiningWellPlus.name=MiningWellPlus
 gui.removeWater=RemoveWater
 gui.removeLava=RemoveLava
 gui.removeLiquid=RemoveLiquid
@@ -11,7 +12,7 @@ gui.quarryReset=ResetWork
 tof.error=Error
 tof.alreadyerror=This block is already added!!
 tof.selectblock=SelectBlock
-tof.blockid=Blockid
+tof.blockid=BlockID
 tof.meta=Meta
 tof.tipsmeta=Tips: Meta is 0 in most cases
 tof.addnewore=Add

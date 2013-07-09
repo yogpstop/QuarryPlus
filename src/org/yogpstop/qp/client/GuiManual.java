@@ -1,7 +1,7 @@
 package org.yogpstop.qp.client;
 
 import org.yogpstop.qp.QuarryPlus;
-import org.yogpstop.qp.TileQuarry;
+import org.yogpstop.qp.TileBasic;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
@@ -11,17 +11,17 @@ import net.minecraft.util.StatCollector;
 import static org.yogpstop.qp.QuarryPlus.getname;
 import static org.yogpstop.qp.QuarryPlus.data;
 
-public class GuiQuarryManual extends GuiScreen {
+public class GuiManual extends GuiScreen {
 	private GuiScreen parent;
 	private GuiTextField blockid;
 	private GuiTextField meta;
 	private byte targetid;
-	private TileQuarry quarry;
+	private TileBasic tile;
 
-	public GuiQuarryManual(GuiScreen parents, byte id, TileQuarry tq) {
+	public GuiManual(GuiScreen parents, byte id, TileBasic tq) {
 		this.parent = parents;
 		this.targetid = id;
-		this.quarry = tq;
+		this.tile = tq;
 	}
 
 	@Override
@@ -57,11 +57,11 @@ public class GuiQuarryManual extends GuiScreen {
 				this.meta.setText(StatCollector.translateToLocal("tof.error"));
 				return;
 			}
-			if ((this.targetid == 1 ? this.quarry.fortuneList : this.quarry.silktouchList).contains(data(bid, metaid))) {
+			if ((this.targetid == 1 ? this.tile.fortuneList : this.tile.silktouchList).contains(data(bid, metaid))) {
 				this.mc.displayGuiScreen(new GuiError(this, StatCollector.translateToLocal("tof.alreadyerror"), getname(bid, metaid)));
 				return;
 			}
-			this.quarry.sendPacketToServer((byte) (TileQuarry.fortuneAdd + this.targetid - 1), QuarryPlus.data(bid, metaid));
+			this.tile.sendPacketToServer((byte) (TileBasic.fortuneAdd + this.targetid - 1), QuarryPlus.data(bid, metaid));
 			break;
 		case -2:
 			this.mc.displayGuiScreen(this.parent);

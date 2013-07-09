@@ -34,10 +34,10 @@ public class PacketHandler implements IPacketHandler {
 					((ContainerMover) container).readPacketData(data);
 				}
 			}
-		} else if (packet.channel.equals("QuarryPlusTQ")) {
+		} else if (packet.channel.equals("QuarryPlusTB")) {
 			ByteArrayDataInput data = ByteStreams.newDataInput(packet.data);
-			TileQuarry tq = (TileQuarry) ((EntityPlayer) player).worldObj.getBlockTileEntity(data.readInt(), data.readInt(), data.readInt());
-			if (tq != null) tq.recievePacket(data, (EntityPlayer) player);
+			TileBasic tb = (TileBasic) ((EntityPlayer) player).worldObj.getBlockTileEntity(data.readInt(), data.readInt(), data.readInt());
+			if (tb != null) tb.recievePacket(data, (EntityPlayer) player);
 		} else if (packet.channel.equals("QPOpenGUI")) {
 			openGuiFromPacket(ByteStreams.newDataInput(packet.data), (EntityPlayer) player);
 		}

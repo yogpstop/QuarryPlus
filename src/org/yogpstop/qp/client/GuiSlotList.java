@@ -8,12 +8,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiSlot;
 import net.minecraft.client.renderer.Tessellator;
 
-public class GuiSlotQuarryList extends GuiSlot {
-	private GuiQuarryList parent;
+public class GuiSlotList extends GuiSlot {
+	private GuiList parent;
 	public int currentore = 0;
 	protected ArrayList<Long> target;
 
-	public GuiSlotQuarryList(Minecraft par1Minecraft, int par2, int par3, int par4, int par5, int par6, GuiQuarryList parents, ArrayList<Long> ali) {
+	public GuiSlotList(Minecraft par1Minecraft, int par2, int par3, int par4, int par5, int par6, GuiList parents, ArrayList<Long> ali) {
 		super(par1Minecraft, par2, par3, par4, par5, par6);
 		this.parent = parents;
 		this.target = ali;

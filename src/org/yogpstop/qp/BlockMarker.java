@@ -1,13 +1,11 @@
 package org.yogpstop.qp;
 
-import java.util.ArrayList;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 import buildcraft.BuildCraftCore;
 import buildcraft.builders.BuildersProxy;
-import buildcraft.core.CreativeTabBuildCraft;
+import static buildcraft.core.CreativeTabBuildCraft.tabBuildCraft;
 import buildcraft.core.utils.Utils;
 
 import net.minecraft.block.Block;
@@ -15,7 +13,6 @@ import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IconRegister;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.MovingObjectPosition;
@@ -28,7 +25,7 @@ public class BlockMarker extends BlockContainer {
 		super(i, Material.circuits);
 
 		setLightValue(0.5F);
-		setCreativeTab(CreativeTabBuildCraft.tabBuildCraft);
+		setCreativeTab(tabBuildCraft);
 		setUnlocalizedName("MarkerPlus");
 	}
 
@@ -199,11 +196,6 @@ public class BlockMarker extends BlockContainer {
 			return false;
 		}
 		return true;
-	}
-
-	@Override
-	public void addCreativeItems(ArrayList itemList) {
-		itemList.add(new ItemStack(this));
 	}
 
 	@Override
