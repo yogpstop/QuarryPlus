@@ -66,12 +66,6 @@ public abstract class TileBasic extends TileEntity implements IPowerReceptor, IP
 		initPowerProvider();
 	}
 
-	@Override
-	public void updateEntity() {
-		super.updateEntity();
-		getPowerProvider().update(this);
-	}
-
 	public void sendPacketToServer(byte id) {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		DataOutputStream dos = new DataOutputStream(bos);

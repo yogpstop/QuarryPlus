@@ -216,6 +216,7 @@ public class TileQuarry extends TileBasic {
 	}
 
 	private boolean checkTarget() {
+		if (this.targetY > this.box.yMax) this.targetY = this.box.yMax;
 		int bid = this.worldObj.getBlockId(this.targetX, this.targetY, this.targetZ);
 		switch (this.now) {
 		case BREAKBLOCK:
