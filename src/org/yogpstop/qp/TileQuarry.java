@@ -321,6 +321,7 @@ public class TileQuarry extends TileBasic {
 				else this.targetY--;
 			}
 		} else {
+			System.out.println(String.format("%d %d %d", this.targetX, this.targetY, this.targetZ));
 			if (this.addX) this.targetX++;
 			else this.targetX--;
 			if (this.targetX < this.box.xMin + (this.now == NOTNEEDBREAK ? 0 : 1) || this.box.xMax - (this.now == NOTNEEDBREAK ? 0 : 1) < this.targetX) {
@@ -619,9 +620,9 @@ public class TileQuarry extends TileBasic {
 
 	@Override
 	void init(NBTTagList nbttl) {
-		super.init(nbttl);
 		createBox();
 		requestTicket();
+		super.init(nbttl);
 	}
 
 	void forceChunkLoading(Ticket ticket) {

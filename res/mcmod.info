@@ -4,7 +4,7 @@
     "modid": "QuarryPlus",
     "name": "QuarryPlus",
     "description": "This mod add advanced quarry and more.",
-    "version": "1.3.2",
+    "version": "@VERSION@",
     "mcversion": "1.4.7",
     "url": "https://github.com/yogpstop/QuarryPlus",
     "authors": [ "yogpstop" ],
