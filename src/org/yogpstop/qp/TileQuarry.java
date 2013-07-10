@@ -650,6 +650,7 @@ public class TileQuarry extends TileBasic {
 
 	@Override
 	public void updateEntity() {
+		super.updateEntity();
 		if (!this.initialized) {
 			initEntities();
 			this.initialized = true;

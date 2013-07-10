@@ -28,6 +28,7 @@ public class TileMiningWell extends TileBasic {
 
 	@Override
 	public void updateEntity() {
+		super.updateEntity();
 		if (this.worldObj.isRemote) return;
 		int depth = this.yCoord - 1;
 		while (!checkTarget(depth)) {

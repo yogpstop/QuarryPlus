@@ -57,10 +57,11 @@ public class BlockMiningWell extends BlockContainer {
 	}
 
 	@Override
-	public void onBlockPlacedBy(World world, int i, int j, int k, EntityLiving entityliving, ItemStack stack) {
-		ForgeDirection orientation = get2dOrientation(entityliving.posX, entityliving.posZ, i, k);
-		world.setBlockMetadataWithNotify(i, j, k, orientation.getOpposite().ordinal(), 1);
-		((TileMiningWell) world.getBlockTileEntity(i, j, k)).init(stack.getEnchantmentTagList());
+	public void onBlockPlacedBy(World w, int x, int y, int z, EntityLiving el, ItemStack stack) {
+		super.onBlockPlacedBy(w, x, y, z, el, stack);
+		ForgeDirection orientation = get2dOrientation(el.posX, el.posZ, x, z);
+		w.setBlockMetadataWithNotify(x, y, z, orientation.getOpposite().ordinal(), 1);
+		((TileMiningWell) w.getBlockTileEntity(x, y, z)).init(stack.getEnchantmentTagList());
 	}
 
 	private static ForgeDirection get2dOrientation(double x1, double z1, double x2, double z2) {

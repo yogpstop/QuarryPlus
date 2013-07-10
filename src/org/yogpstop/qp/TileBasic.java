@@ -61,6 +61,17 @@ public abstract class TileBasic extends TileEntity implements IPowerReceptor, IP
 	public static final byte packetFortuneList = 17;
 	public static final byte packetSilktouchList = 18;
 
+	public TileBasic() {
+		super();
+		initPowerProvider();
+	}
+
+	@Override
+	public void updateEntity() {
+		super.updateEntity();
+		getPowerProvider().update(this);
+	}
+
 	public void sendPacketToServer(byte id) {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		DataOutputStream dos = new DataOutputStream(bos);
@@ -230,7 +241,6 @@ public abstract class TileBasic extends TileEntity implements IPowerReceptor, IP
 			if (id == 35) this.fortune = (byte) lvl;
 			if (id == 32) this.efficiency = (byte) lvl;
 		}
-		initPowerProvider();
 		reinit();
 	}
 

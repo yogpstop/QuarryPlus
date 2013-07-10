@@ -82,6 +82,7 @@ public class BlockQuarry extends BlockContainer {
 
 	@Override
 	public void onBlockPlacedBy(World w, int x, int y, int z, EntityLiving el, ItemStack stack) {
+		super.onBlockPlacedBy(w, x, y, z, el, stack);
 		ForgeDirection orientation = get2dOrientation(el.posX, el.posZ, x, z);
 		w.setBlockMetadataWithNotify(x, y, z, orientation.getOpposite().ordinal(), 1);
 		((TileQuarry) w.getBlockTileEntity(x, y, z)).init(stack.getEnchantmentTagList());
