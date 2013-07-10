@@ -5,7 +5,7 @@
     "name": "QuarryPlus",
     "description": "This mod add advanced quarry and more.",
     "version": "@VERSION@",
-    "mcversion": "1.4.7",
+    "mcversion": "@MCVERSION@",
     "url": "https://github.com/yogpstop/QuarryPlus",
     "authors": [ "yogpstop" ],
     "dependencies": [ "BuildCraft|Core", "BuildCraft|Factory"]
