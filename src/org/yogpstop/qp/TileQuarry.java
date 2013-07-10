@@ -288,7 +288,7 @@ public class TileQuarry extends TileBasic {
 			if (this.worldObj.getBlockMaterial(this.targetX, this.targetY, this.targetZ).isSolid()) return false;
 			return true;
 		}
-		System.out.println("yogpstop: Unknown status");
+		System.err.println("yogpstop: Unknown status");
 		return true;
 	}
 
@@ -321,7 +321,6 @@ public class TileQuarry extends TileBasic {
 				else this.targetY--;
 			}
 		} else {
-			System.out.println(String.format("%d %d %d", this.targetX, this.targetY, this.targetZ));
 			if (this.addX) this.targetX++;
 			else this.targetX--;
 			if (this.targetX < this.box.xMin + (this.now == NOTNEEDBREAK ? 0 : 1) || this.box.xMax - (this.now == NOTNEEDBREAK ? 0 : 1) < this.targetX) {
