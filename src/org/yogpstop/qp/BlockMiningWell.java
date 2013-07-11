@@ -16,12 +16,13 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Icon;
+import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
 import net.minecraftforge.common.ForgeDirection;
 
 public class BlockMiningWell extends BlockContainer {
-	Icon textureFront, textureBack, textureTop;
+	Icon textureFront, textureBack, textureTop, texW;
 
 	public BlockMiningWell(int par1) {
 		super(par1, Material.ground);
@@ -44,6 +45,18 @@ public class BlockMiningWell extends BlockContainer {
 		this.blockIcon = par1IconRegister.registerIcon("yogpstop/quarryplus:miningwell");
 		this.textureBack = par1IconRegister.registerIcon("yogpstop/quarryplus:miningwell_back");
 		this.textureTop = par1IconRegister.registerIcon("yogpstop/quarryplus:miningwell_top");
+		this.texW = par1IconRegister.registerIcon("yogpstop/quarryplus:miningwell_top_w");
+	}
+
+	@Override
+	public Icon getBlockTexture(IBlockAccess ba, int x, int y, int z, int side) {
+		TileEntity tile = ba.getBlockTileEntity(x, y, z);
+		if (tile instanceof TileMiningWell) {
+			if (side == 1) {
+				if (((TileMiningWell) tile).isWorking()) { return this.texW; }
+			}
+		}
+		return super.getBlockTexture(ba, x, y, z, side);
 	}
 
 	@Override

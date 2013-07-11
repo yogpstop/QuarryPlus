@@ -15,11 +15,13 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Icon;
+import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+
 import net.minecraftforge.common.ForgeDirection;
 
 public class BlockQuarry extends BlockContainer {
-	Icon textureTop, textureFront;
+	Icon textureTop, textureFront, texBB, texNNB, texMF, texF;
 
 	public BlockQuarry(int i) {
 		super(i, Material.iron);
@@ -54,6 +56,27 @@ public class BlockQuarry extends BlockContainer {
 	}
 
 	@Override
+	public Icon getBlockTexture(IBlockAccess ba, int x, int y, int z, int side) {
+		TileEntity tile = ba.getBlockTileEntity(x, y, z);
+		if (tile instanceof TileQuarry) {
+			if (side == 1) {
+				switch (((TileQuarry) tile).getNow()) {
+				case TileQuarry.BREAKBLOCK:
+				case TileQuarry.MOVEHEAD:
+					return this.texBB;
+				case TileQuarry.FILL:
+					return this.texF;
+				case TileQuarry.MAKEFRAME:
+					return this.texMF;
+				case TileQuarry.NOTNEEDBREAK:
+					return this.texNNB;
+				}
+			}
+		}
+		return super.getBlockTexture(ba, x, y, z, side);
+	}
+
+	@Override
 	public Icon getIcon(int i, int j) {
 		if (j == 0 && i == 3) return this.textureFront;
 
@@ -73,6 +96,10 @@ public class BlockQuarry extends BlockContainer {
 		this.blockIcon = par1IconRegister.registerIcon("yogpstop/quarryplus:quarry");
 		this.textureTop = par1IconRegister.registerIcon("yogpstop/quarryplus:quarry_top");
 		this.textureFront = par1IconRegister.registerIcon("yogpstop/quarryplus:quarry_front");
+		this.texBB = par1IconRegister.registerIcon("yogpstop/quarryplus:quarry_top_bb");
+		this.texNNB = par1IconRegister.registerIcon("yogpstop/quarryplus:quarry_top_nnb");
+		this.texMF = par1IconRegister.registerIcon("yogpstop/quarryplus:quarry_top_mf");
+		this.texF = par1IconRegister.registerIcon("yogpstop/quarryplus:quarry_top_f");
 	}
 
 	@Override
