@@ -200,7 +200,7 @@ public class QuarryPlus implements ITriggerProvider {
 	@Override
 	public LinkedList<ITrigger> getNeighborTriggers(Block block, TileEntity tile) {
 		LinkedList<ITrigger> res = new LinkedList<ITrigger>();
-		if (tile instanceof TileQuarry || tile instanceof TileMiningWell) {
+		if (tile instanceof TileBasic) {
 			res.add(TileBasic.active);
 			res.add(TileBasic.deactive);
 		}

@@ -255,7 +255,7 @@ public class TileQuarry extends TileBasic {
 				sendNowPacket();
 				return false;
 			}
-			if (bid != 0) {
+			if (this.worldObj.getBlockMaterial(this.targetX, this.targetY, this.targetZ).isSolid()) {
 				this.now = NOTNEEDBREAK;
 				this.targetX = this.box.xMin;
 				this.targetZ = this.box.zMin;
@@ -380,7 +380,6 @@ public class TileQuarry extends TileBasic {
 		float power = (float) Math.max(BP_MF / Math.pow(CE_MF, this.efficiency), 0D);
 		if (this.pp.useEnergy(power, power, true) != power) return false;
 		this.worldObj.setBlock(this.targetX, this.targetY, this.targetZ, frameBlock.blockID);
-
 		return true;
 	}
 
@@ -392,7 +391,7 @@ public class TileQuarry extends TileBasic {
 		this.cacheItems.addAll(dropped);
 		this.worldObj.playAuxSFXAtEntity(null, 2001, this.targetX, this.targetY, this.targetZ,
 				this.worldObj.getBlockId(this.targetX, this.targetY, this.targetZ)
-						+ (this.worldObj.getBlockMetadata(this.targetX, this.targetY, this.targetZ) << 12));
+						| (this.worldObj.getBlockMetadata(this.targetX, this.targetY, this.targetZ) << 12));
 		this.worldObj.setBlockToAir(this.targetX, this.targetY, this.targetZ);
 		checkDropItem();
 		if (this.now == BREAKBLOCK) this.now = MOVEHEAD;
@@ -488,7 +487,7 @@ public class TileQuarry extends TileBasic {
 				this.box.reset();
 				return false;
 			}
-			if (this.box.sizeY() <= 1) this.box.yMax += 3 - this.box.sizeY();
+			if (this.box.sizeY() <= 1) this.box.yMax = this.box.yMin + 3;
 			((IAreaProvider) this.worldObj.getBlockTileEntity(x, y, z)).removeFromWorld();
 			return true;
 		}
@@ -568,9 +567,10 @@ public class TileQuarry extends TileBasic {
 		if (this.chunkTicket != null) return;
 		this.chunkTicket = ForgeChunkManager.requestTicket(QuarryPlus.instance, this.worldObj, Type.NORMAL);
 		if (this.chunkTicket == null) return;
-		this.chunkTicket.getModData().setInteger("quarryX", this.xCoord);
-		this.chunkTicket.getModData().setInteger("quarryY", this.yCoord);
-		this.chunkTicket.getModData().setInteger("quarryZ", this.zCoord);
+		NBTTagCompound tag = this.chunkTicket.getModData();
+		tag.setInteger("quarryX", this.xCoord);
+		tag.setInteger("quarryY", this.yCoord);
+		tag.setInteger("quarryZ", this.zCoord);
 		forceChunkLoading(this.chunkTicket);
 	}
 

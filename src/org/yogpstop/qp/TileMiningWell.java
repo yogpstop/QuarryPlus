@@ -46,11 +46,11 @@ public class TileMiningWell extends TileBasic {
 	}
 
 	private boolean checkTarget(int depth) {
-		int bid = this.worldObj.getBlockId(this.xCoord, depth, this.zCoord);
 		if (depth < 1) {
 			this.working = false;
 			return true;
 		}
+		int bid = this.worldObj.getBlockId(this.xCoord, depth, this.zCoord);
 		if (bid == 0 || bid == Block.bedrock.blockID || bid == plainPipeBlock.blockID) return false;
 		return true;
 	}
