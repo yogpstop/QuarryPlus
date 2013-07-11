@@ -179,10 +179,6 @@ public class TileQuarry extends TileBasic {
 
 	private void updateServerEntity() {
 		switch (this.now) {
-		case NOTNEEDBREAK:
-			if (breakBlock()) while (!checkTarget())
-				setNextTarget();
-			break;
 		case MAKEFRAME:
 		case FILL:
 			if (makeFrame()) while (!checkTarget())
@@ -197,13 +193,10 @@ public class TileQuarry extends TileBasic {
 			}
 			if (!done) break;
 			this.now = BREAKBLOCK;
+		case NOTNEEDBREAK:
 		case BREAKBLOCK:
-			if (breakBlock()) {
-				this.now = MOVEHEAD;
-				while (!checkTarget()) {
-					setNextTarget();
-				}
-			}
+			if (breakBlock()) while (!checkTarget())
+				setNextTarget();
 			break;
 		}
 		ArrayList<ItemStack> cache = new ArrayList<ItemStack>();
@@ -402,6 +395,7 @@ public class TileQuarry extends TileBasic {
 						+ (this.worldObj.getBlockMetadata(this.targetX, this.targetY, this.targetZ) << 12));
 		this.worldObj.setBlockToAir(this.targetX, this.targetY, this.targetZ);
 		checkDropItem();
+		if (this.now == BREAKBLOCK) this.now = MOVEHEAD;
 		return true;
 	}
 
