@@ -1,10 +1,17 @@
 package org.yogpstop.qp;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.util.ArrayList;
+
+import com.google.common.io.ByteArrayDataInput;
+
+import cpw.mods.fml.common.network.PacketDispatcher;
 
 import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.packet.Packet250CustomPayload;
 
 import net.minecraftforge.common.ForgeDirection;
 
@@ -24,6 +31,38 @@ public class TileMiningWell extends TileBasic {
 
 	boolean isWorking() {
 		return this.working;
+	}
+	
+	private void sendNowPacket() {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		DataOutputStream dos = new DataOutputStream(bos);
+		try {
+			dos.writeInt(this.xCoord);
+			dos.writeInt(this.yCoord);
+			dos.writeInt(this.zCoord);
+			dos.writeByte(packetNow);
+			dos.writeBoolean(this.working);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		Packet250CustomPayload packet = new Packet250CustomPayload();
+		packet.channel = "QuarryPlusTB";
+		packet.data = bos.toByteArray();
+		packet.length = bos.size();
+		packet.isChunkDataPacket = true;
+
+		PacketDispatcher.sendPacketToAllPlayers(packet);
+	}
+	
+	@Override
+	protected void recievePacketOnClient(byte pattern, ByteArrayDataInput data) {
+		super.recievePacketOnClient(pattern, data);
+		switch (pattern) {
+		case packetNow:
+			this.working = data.readBoolean();
+			this.worldObj.markBlockForRenderUpdate(this.xCoord, this.yCoord, this.zCoord);
+			break;
+		}
 	}
 
 	@Override
@@ -48,6 +87,7 @@ public class TileMiningWell extends TileBasic {
 	private boolean checkTarget(int depth) {
 		if (depth < 1) {
 			this.working = false;
+			sendNowPacket();
 			return true;
 		}
 		int bid = this.worldObj.getBlockId(this.xCoord, depth, this.zCoord);
@@ -111,5 +151,6 @@ public class TileMiningWell extends TileBasic {
 	@Override
 	protected void reinit() {
 		this.working = true;
+		sendNowPacket();
 	}
 }

@@ -52,6 +52,7 @@ public abstract class TileBasic extends TileEntity implements IPowerReceptor, IP
 	public static final byte silktouchAdd = 2;
 	public static final byte fortuneRemove = 3;
 	public static final byte silktouchRemove = 4;
+	public static final byte packetNow = 5;
 	public static final byte fortuneTInc = 7;
 	public static final byte silktouchTInc = 8;
 	public static final byte reinit = 9;
@@ -289,7 +290,7 @@ public abstract class TileBasic extends TileEntity implements IPowerReceptor, IP
 			else if (aTRIargc == 6) return (ItemStack) aTRI.invoke(null, is, this.worldObj, this.xCoord, this.yCoord, this.zCoord, ForgeDirection.UNKNOWN);
 		} catch (Exception e) {
 			e.printStackTrace();
-			System.out.println(String.format("yogpstop: error item %d:%d", is.itemID, is.getItemDamage()));
+			System.err.println(String.format("yogpstop: error item %d:%d", is.itemID, is.getItemDamage()));
 			if (Item.itemsList[is.itemID] == null) return is;
 		}
 		ItemStack isc = is.copy();

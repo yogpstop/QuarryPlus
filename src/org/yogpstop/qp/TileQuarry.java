@@ -65,8 +65,7 @@ public class TileQuarry extends TileBasic {
 	public static final byte FILL = 3;
 	public static final byte MOVEHEAD = 4;
 	public static final byte BREAKBLOCK = 5;
-
-	public static final byte packetNow = 5;
+	
 	public static final byte packetHeadPos = 6;
 	public static final byte tBuildAdvFrame = 13;
 	public static final byte tRemoveWater = 10;
@@ -154,6 +153,7 @@ public class TileQuarry extends TileBasic {
 		switch (pattern) {
 		case packetNow:
 			this.now = data.readByte();
+			this.worldObj.markBlockForRenderUpdate(this.xCoord, this.yCoord, this.zCoord);
 			initEntities();
 			break;
 		case packetHeadPos:
@@ -230,9 +230,10 @@ public class TileQuarry extends TileBasic {
 				this.targetX = this.box.xMin;
 				this.targetY = this.box.yMax;
 				this.targetZ = this.box.zMin;
-				this.addX = this.addZ = true;
-				this.digged = this.changeZ = false;
-				return false;
+				this.addX = this.addZ = this.digged = true;
+				this.changeZ = false;
+				sendNowPacket();
+				return checkTarget();
 			}
 			if (bid == 0 || bid == Block.bedrock.blockID) return false;
 			if (bid == frameBlock.blockID && this.worldObj.getBlockMetadata(this.targetX, this.targetY, this.targetZ) == 0) {
@@ -249,20 +250,22 @@ public class TileQuarry extends TileBasic {
 				this.targetX = this.box.xMin;
 				this.targetY = this.box.yMin;
 				this.targetZ = this.box.zMin;
-				this.addX = this.addZ = true;
-				this.digged = this.changeZ = false;
+				this.addX = this.addZ = this.digged = true;
+				this.changeZ = false;
 				this.box.deleteLasers();
 				sendNowPacket();
-				return false;
+				return checkTarget();
 			}
-			if (this.worldObj.getBlockMaterial(this.targetX, this.targetY, this.targetZ).isSolid()) {
+			if (this.worldObj.getBlockMaterial(this.targetX, this.targetY, this.targetZ).isSolid()
+					&& (bid != frameBlock.blockID || this.worldObj.getBlockMetadata(this.targetX, this.targetY, this.targetZ) != 0)) {
 				this.now = NOTNEEDBREAK;
 				this.targetX = this.box.xMin;
 				this.targetZ = this.box.zMin;
 				this.targetY = this.box.yMax;
-				this.addX = this.addZ = true;
-				this.digged = this.changeZ = false;
-				return false;
+				this.addX = this.addZ = this.digged = true;
+				this.changeZ = false;
+				sendNowPacket();
+				return checkTarget();
 			}
 			byte flag = 0;
 			if (this.targetX == this.box.xMin || this.targetX == this.box.xMax) flag++;
@@ -279,14 +282,14 @@ public class TileQuarry extends TileBasic {
 				this.targetX = this.box.xMin + 1;
 				this.targetY = this.box.yMin;
 				this.targetZ = this.box.zMin + 1;
-				this.addX = this.addZ = true;
-				this.digged = this.changeZ = false;
+				this.addX = this.addZ = this.digged = true;
+				this.changeZ = false;
 				this.worldObj.spawnEntityInWorld(new EntityMechanicalArm(this.worldObj, this.box.xMin + 0.75D, this.box.yMax, this.box.zMin + 0.75D, this.box
 						.sizeX() - 1.5D, this.box.sizeZ() - 1.5D, this));
 				this.heads.setHead(this.headPosX, this.headPosY, this.headPosZ);
 				this.heads.updatePosition();
 				sendNowPacket();
-				return false;
+				return checkTarget();
 			}
 			if (this.worldObj.getBlockMaterial(this.targetX, this.targetY, this.targetZ).isSolid()) return false;
 			return true;
@@ -297,7 +300,7 @@ public class TileQuarry extends TileBasic {
 
 	private boolean addX = true;
 	private boolean addZ = true;
-	private boolean digged = false;
+	private boolean digged = true;
 	private boolean changeZ = false;
 
 	private void setNextTarget() {
@@ -313,11 +316,13 @@ public class TileQuarry extends TileBasic {
 				this.addX = !this.addX;
 				this.changeZ = true;
 				this.targetX = Math.max(this.box.xMin, Math.min(this.box.xMax, this.targetX));
+				setNextTarget();
 			}
 			if (this.targetZ < this.box.zMin || this.box.zMax < this.targetZ) {
 				this.addZ = !this.addZ;
 				this.changeZ = false;
 				this.targetZ = Math.max(this.box.zMin, Math.min(this.box.zMax, this.targetZ));
+				setNextTarget();
 			}
 			if (this.box.xMin == this.targetX && this.box.zMin == this.targetZ) {
 				if (this.digged) this.digged = false;
@@ -380,6 +385,7 @@ public class TileQuarry extends TileBasic {
 		float power = (float) Math.max(BP_MF / Math.pow(CE_MF, this.efficiency), 0D);
 		if (this.pp.useEnergy(power, power, true) != power) return false;
 		this.worldObj.setBlock(this.targetX, this.targetY, this.targetZ, frameBlock.blockID);
+		setNextTarget();
 		return true;
 	}
 
@@ -395,6 +401,7 @@ public class TileQuarry extends TileBasic {
 		this.worldObj.setBlockToAir(this.targetX, this.targetY, this.targetZ);
 		checkDropItem();
 		if (this.now == BREAKBLOCK) this.now = MOVEHEAD;
+		setNextTarget();
 		return true;
 	}
 
@@ -602,6 +609,7 @@ public class TileQuarry extends TileBasic {
 	private void destroy() {
 		this.box.deleteLasers();
 		this.now = NONE;
+		sendNowPacket();
 		if (this.heads != null) {
 			this.heads.setDead();
 			this.heads = null;
@@ -619,6 +627,7 @@ public class TileQuarry extends TileBasic {
 		}
 		initEntities();
 		PacketDispatcher.sendPacketToAllPlayers(PacketHandler.getPacketFromNBT(this));
+		sendNowPacket();
 	}
 
 	@Override
