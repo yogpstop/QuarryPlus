@@ -73,7 +73,7 @@ public class QuarryPlus implements ITriggerProvider {
 			TileQuarry.CF = cfg.get(Configuration.CATEGORY_GENERAL + ".BreakBlock", "PowerCoefficientWithFortune", 1.3D).getDouble(1.3D);
 			TileQuarry.CS = cfg.get(Configuration.CATEGORY_GENERAL + ".BreakBlock", "PowerCoefficientWithSilktouch", 2D).getDouble(2D);
 			TileMiningWell.CE = cfg.get(Configuration.CATEGORY_GENERAL + ".MiningWell", "PowerCoefficientWithEfficiency", 1.3D).getDouble(1.3D);
-			TileMiningWell.BP = cfg.get(Configuration.CATEGORY_GENERAL + ".MiningWell", "BasePower", 60D).getDouble(60D);
+			TileMiningWell.BP = cfg.get(Configuration.CATEGORY_GENERAL + ".MiningWell", "BasePower", 40D).getDouble(40D);
 			TileMiningWell.CF = cfg.get(Configuration.CATEGORY_GENERAL + ".MiningWell", "PowerCoefficientWithFortune", 1.3D).getDouble(1.3D);
 			TileMiningWell.CS = cfg.get(Configuration.CATEGORY_GENERAL + ".MiningWell", "PowerCoefficientWithSilktouch", 2D).getDouble(2D);
 			cfg.getCategory(Configuration.CATEGORY_GENERAL)
