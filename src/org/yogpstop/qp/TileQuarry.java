@@ -239,7 +239,7 @@ public class TileQuarry extends TileBasic {
 				this.targetZ = this.box.zMin;
 				this.addX = this.addZ = true;
 				this.digged = this.changeZ = false;
-				return true;
+				return false;
 			}
 			if (bid == 0 || bid == Block.bedrock.blockID) return false;
 			if (bid == frameBlock.blockID && this.worldObj.getBlockMetadata(this.targetX, this.targetY, this.targetZ) == 0) {
@@ -260,7 +260,16 @@ public class TileQuarry extends TileBasic {
 				this.digged = this.changeZ = false;
 				this.box.deleteLasers();
 				sendNowPacket();
-				return true;
+				return false;
+			}
+			if (bid != 0) {
+				this.now = NOTNEEDBREAK;
+				this.targetX = this.box.xMin;
+				this.targetZ = this.box.zMin;
+				this.targetY = this.box.yMax;
+				this.addX = this.addZ = true;
+				this.digged = this.changeZ = false;
+				return false;
 			}
 			byte flag = 0;
 			if (this.targetX == this.box.xMin || this.targetX == this.box.xMax) flag++;
@@ -284,7 +293,7 @@ public class TileQuarry extends TileBasic {
 				this.heads.setHead(this.headPosX, this.headPosY, this.headPosZ);
 				this.heads.updatePosition();
 				sendNowPacket();
-				return true;
+				return false;
 			}
 			if (this.worldObj.getBlockMaterial(this.targetX, this.targetY, this.targetZ).isSolid()) return false;
 			return true;
