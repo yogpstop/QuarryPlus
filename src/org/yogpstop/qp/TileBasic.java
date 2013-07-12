@@ -17,6 +17,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagLong;
+import net.minecraft.network.packet.Packet;
 import net.minecraft.tileentity.TileEntity;
 
 import net.minecraftforge.common.ForgeDirection;
@@ -104,14 +105,13 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 	protected void reinit() {
 		searchPump();
 	}
-	
-	protected void destroy(){
-		
-	}
-	
+
+	protected abstract void destroy();
+
 	@Override
-	public final void invalidate(){
+	public final void invalidate() {
 		destroy();
+		super.invalidate();
 	}
 
 	@Override
@@ -429,4 +429,9 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 
 	@Override
 	public final void doWork() {}
+
+	@Override
+	public final Packet getDescriptionPacket() {
+		return PacketHandler.getPacketFromNBT(this);
+	}
 }

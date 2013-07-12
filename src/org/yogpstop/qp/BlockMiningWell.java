@@ -2,7 +2,6 @@ package org.yogpstop.qp;
 
 import java.util.ArrayList;
 
-import static buildcraft.BuildCraftFactory.plainPipeBlock;
 import static buildcraft.core.CreativeTabBuildCraft.tabBuildCraft;
 
 import cpw.mods.fml.relauncher.Side;
@@ -100,12 +99,6 @@ public class BlockMiningWell extends BlockContainer {
 			}
 		}
 		super.breakBlock(world, x, y, z, id, meta);
-		for (int depth = y - 1; depth > 0; depth--) {
-			if (world.getBlockId(x, depth, z) != plainPipeBlock.blockID) {
-				break;
-			}
-			world.setBlockToAir(x, depth, z);
-		}
 	}
 
 	@Override

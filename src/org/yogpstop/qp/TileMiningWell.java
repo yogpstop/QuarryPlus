@@ -45,7 +45,7 @@ public class TileMiningWell extends TileBasic {
 		if (this.worldObj.isRemote) return;
 		int depth = this.yCoord - 1;
 		while (!checkTarget(depth)) {
-			this.worldObj.setBlock(this.xCoord, depth, this.zCoord, plainPipeBlock.blockID);
+			if (this.working) this.worldObj.setBlock(this.xCoord, depth, this.zCoord, plainPipeBlock.blockID);
 			depth--;
 		}
 		if (this.working) breakBlock(depth);
@@ -99,5 +99,11 @@ public class TileMiningWell extends TileBasic {
 	protected void destroy() {
 		this.working = false;
 		sendNowPacket(this, (byte) 0);
+		for (int depth = this.yCoord - 1; depth > 0; depth--) {
+			if (this.worldObj.getBlockId(this.xCoord, depth, this.zCoord) != plainPipeBlock.blockID) {
+				break;
+			}
+			this.worldObj.setBlockToAir(this.xCoord, depth, this.zCoord);
+		}
 	}
 }
