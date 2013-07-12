@@ -26,11 +26,11 @@ public class TilePump extends APacketTile implements ITankContainer {
 	private static final int CHUNK_SCALE = 16;
 	private static final int RANGE = 4;
 
-	private boolean[][][] blocks;
-	private int Xoffset, Zoffset;
-	private int currentHeight = Integer.MIN_VALUE;
 	private final HashMap<Integer, Integer> liquids = new HashMap<Integer, Integer>();
 	private ForgeDirection connectTo = ForgeDirection.UNKNOWN;
+	private boolean initialized = false;
+	private boolean[][][] blocks;
+	private int Xoffset, Zoffset, currentHeight = Integer.MIN_VALUE;
 	private int cx, cy = -1, cz;
 	private byte prev = (byte) ForgeDirection.UNKNOWN.ordinal();
 
@@ -203,12 +203,58 @@ public class TilePump extends APacketTile implements ITankContainer {
 	public void readFromNBT(NBTTagCompound nbttc) {
 		super.readFromNBT(nbttc);
 		this.efficiency = nbttc.getByte("efficiency");
+		this.connectTo = ForgeDirection.values()[nbttc.getByte("connectTo")];
+		if (!this.worldObj.isRemote) sendNowPacket();
 	}
 
 	@Override
 	public void writeToNBT(NBTTagCompound nbttc) {
 		super.writeToNBT(nbttc);
 		nbttc.setByte("efficiency", this.efficiency);
+		nbttc.setByte("connectTo", (byte) this.connectTo.ordinal());
+	}
+
+	@Override
+	public void updateEntity() {
+		super.updateEntity();
+		if (!this.worldObj.isRemote && !this.initialized) {
+			int pX, pY, pZ;
+			TileEntity te;
+
+			pX = this.xCoord;
+			pY = this.yCoord;
+			pZ = this.zCoord;
+			switch (this.connectTo) {
+			case UP:
+				pY++;
+				break;
+			case DOWN:
+				pY--;
+				break;
+			case SOUTH:
+				pZ++;
+				break;
+			case NORTH:
+				pZ--;
+				break;
+			case EAST:
+				pX++;
+				break;
+			case WEST:
+				pX--;
+				break;
+			default:
+			}
+			te = this.worldObj.getBlockTileEntity(pX, pY, pZ);
+			if (te instanceof TileBasic && ((TileBasic) te).connect(this.connectTo.getOpposite())) {
+				sendNowPacket();
+				this.initialized = true;
+			} else if (this.worldObj.isAirBlock(pX, pY, pZ)) {
+				this.connectTo = ForgeDirection.UNKNOWN;
+				sendNowPacket();
+				this.initialized = true;
+			}
+		}
 	}
 
 	void setEnchantment(ItemStack is) {
