@@ -64,7 +64,7 @@ public class BlockQuarry extends BlockContainer {
 				case TileQuarry.BREAKBLOCK:
 				case TileQuarry.MOVEHEAD:
 					return this.texBB;
-				case TileQuarry.FILL:
+				case TileQuarry.WAITLIQUID:
 					return this.texF;
 				case TileQuarry.MAKEFRAME:
 					return this.texMF;

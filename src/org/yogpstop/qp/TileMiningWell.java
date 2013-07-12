@@ -1,21 +1,16 @@
 package org.yogpstop.qp;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
+import static org.yogpstop.qp.PacketHandler.*;
+
 import java.util.ArrayList;
 
 import com.google.common.io.ByteArrayDataInput;
 
-import cpw.mods.fml.common.network.PacketDispatcher;
-
 import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.network.packet.Packet250CustomPayload;
 
 import net.minecraftforge.common.ForgeDirection;
-
-import static org.yogpstop.qp.QuarryPlus.data;
 
 import static buildcraft.BuildCraftFactory.plainPipeBlock;
 import static buildcraft.core.utils.Utils.addToRandomPipeEntry;
@@ -32,28 +27,7 @@ public class TileMiningWell extends TileBasic {
 	boolean isWorking() {
 		return this.working;
 	}
-	
-	private void sendNowPacket() {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		DataOutputStream dos = new DataOutputStream(bos);
-		try {
-			dos.writeInt(this.xCoord);
-			dos.writeInt(this.yCoord);
-			dos.writeInt(this.zCoord);
-			dos.writeByte(packetNow);
-			dos.writeBoolean(this.working);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		Packet250CustomPayload packet = new Packet250CustomPayload();
-		packet.channel = "QuarryPlusTB";
-		packet.data = bos.toByteArray();
-		packet.length = bos.size();
-		packet.isChunkDataPacket = true;
 
-		PacketDispatcher.sendPacketToAllPlayers(packet);
-	}
-	
 	@Override
 	protected void recievePacketOnClient(byte pattern, ByteArrayDataInput data) {
 		super.recievePacketOnClient(pattern, data);
@@ -86,54 +60,21 @@ public class TileMiningWell extends TileBasic {
 
 	private boolean checkTarget(int depth) {
 		if (depth < 1) {
-			this.working = false;
-			sendNowPacket();
+			destroy();
 			return true;
 		}
 		int bid = this.worldObj.getBlockId(this.xCoord, depth, this.zCoord);
 		if (bid == 0 || bid == Block.bedrock.blockID || bid == plainPipeBlock.blockID) return false;
+		if (this.pump == ForgeDirection.UNKNOWN && this.worldObj.getBlockMaterial(this.xCoord, depth, this.zCoord).isLiquid()) return false;
+		if (!this.working) {
+			this.working = true;
+			sendNowPacket(this, (byte) 1);
+		}
 		return true;
 	}
 
 	private boolean breakBlock(int depth) {
-		ArrayList<ItemStack> dropped = new ArrayList<ItemStack>();
-		float pw = (float) Math.max(BP * blockHardness(depth) * addDroppedItems(dropped, depth) / Math.pow(CE, this.efficiency), 0D);
-		if (this.pp.useEnergy(pw, pw, true) != pw) return false;
-		this.cacheItems.addAll(dropped);
-		this.worldObj.setBlock(this.xCoord, depth, this.zCoord, plainPipeBlock.blockID);
-		return true;
-	}
-
-	private float blockHardness(int depth) {
-		Block b = Block.blocksList[this.worldObj.getBlockId(this.xCoord, depth, this.zCoord)];
-		if (b != null) {
-			if (this.worldObj.getBlockMaterial(this.xCoord, depth, this.zCoord).isLiquid()) return 0;
-			return b.getBlockHardness(this.worldObj, this.xCoord, depth, this.zCoord);
-		}
-		return 0;
-	}
-
-	private double addDroppedItems(ArrayList<ItemStack> list, int depth) {
-		Block b = Block.blocksList[this.worldObj.getBlockId(this.xCoord, depth, this.zCoord)];
-		int meta = this.worldObj.getBlockMetadata(this.xCoord, depth, this.zCoord);
-		if (b == null) return 1;
-		if (b.canSilkHarvest(this.worldObj, null, this.xCoord, depth, this.zCoord, meta) && this.silktouch
-				&& (this.silktouchList.contains(data((short) b.blockID, meta)) == this.silktouchInclude)) {
-			try {
-				list.add(createStackedBlock(b, meta));
-				return CS;
-			} catch (Exception e) {
-				e.printStackTrace();
-			} catch (Error e) {
-				e.printStackTrace();
-			}
-		}
-		if (this.fortuneList.contains(data((short) b.blockID, meta)) == this.fortuneInclude) {
-			list.addAll(b.getBlockDropped(this.worldObj, this.xCoord, depth, this.zCoord, meta, this.fortune));
-			return Math.pow(CF, this.fortune);
-		}
-		list.addAll(b.getBlockDropped(this.worldObj, this.xCoord, depth, this.zCoord, meta, 0));
-		return 1;
+		return breakBlock(this.xCoord, depth, this.zCoord, BP, CE, CS, CF);
 	}
 
 	@Override
@@ -151,6 +92,12 @@ public class TileMiningWell extends TileBasic {
 	@Override
 	protected void reinit() {
 		this.working = true;
-		sendNowPacket();
+		sendNowPacket(this, (byte) 1);
+	}
+
+	@Override
+	protected void destroy() {
+		this.working = false;
+		sendNowPacket(this, (byte) 0);
 	}
 }

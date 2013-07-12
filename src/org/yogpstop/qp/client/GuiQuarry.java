@@ -10,7 +10,7 @@ import net.minecraft.world.World;
 
 import org.lwjgl.opengl.GL11;
 import org.yogpstop.qp.ContainerPlayer;
-import org.yogpstop.qp.TileBasic;
+import org.yogpstop.qp.PacketHandler;
 import org.yogpstop.qp.TileQuarry;
 
 import cpw.mods.fml.relauncher.SideOnly;
@@ -50,8 +50,6 @@ public class GuiQuarry extends GuiContainer {
 		drawTexturedModalRect(l, i1, 0, 0, this.xSize, this.ySize);
 	}
 
-	private GuiButton a3, a4, a5, a6;
-
 	@Override
 	public void initGui() {
 		super.initGui();
@@ -62,30 +60,14 @@ public class GuiQuarry extends GuiContainer {
 		int half = (this.xSize - (offset << 2)) >> 1;
 		int full = (this.xSize - (offset << 1));
 
-		this.buttonList.add(new GuiButton(TileBasic.openFortuneGui, i + offset, j + 46, half, 20, translateToLocal("gui.fortuneList")));
-		this.buttonList.add(new GuiButton(TileBasic.openSilktouchGui, i2 + offset, j + 46, half, 20, translateToLocal("gui.silktouchList")));
-		this.buttonList.add(this.a3 = new GuiButton(TileQuarry.tBuildAdvFrame, i + offset, j + 71, half, 20, ""));
-		this.buttonList.add(this.a4 = new GuiButton(TileQuarry.tRemoveWater, i2 + offset, j + 71, half, 20, ""));
-		this.buttonList.add(this.a5 = new GuiButton(TileQuarry.tRemoveLava, i + offset, j + 96, half, 20, ""));
-		this.buttonList.add(this.a6 = new GuiButton(TileQuarry.tRemoveLiquid, i2 + offset, j + 96, half, 20, ""));
-		this.buttonList.add(new GuiButton(TileBasic.reinit, i + offset, j + 121, full, 20, translateToLocal("gui.quarryReset")));
-		setNames();
-	}
-
-	public void setNames() {
-		this.a3.displayString = translateToLocal("gui.buildAdvFrame").concat(" : ").concat(
-				translateToLocal("options.".concat(this.tileQuarry.buildAdvFrame ? "on" : "off")));
-		this.a4.displayString = translateToLocal("gui.removeWater").concat(" : ").concat(
-				translateToLocal("options.".concat(this.tileQuarry.removeWater ? "on" : "off")));
-		this.a5.displayString = translateToLocal("gui.removeLava").concat(" : ").concat(
-				translateToLocal("options.".concat(this.tileQuarry.removeLava ? "on" : "off")));
-		this.a6.displayString = translateToLocal("gui.removeLiquid").concat(" : ").concat(
-				translateToLocal("options.".concat(this.tileQuarry.removeLiquid ? "on" : "off")));
+		this.buttonList.add(new GuiButton(PacketHandler.openFortuneGui, i + offset, j + 46, half, 20, translateToLocal("gui.fortuneList")));
+		this.buttonList.add(new GuiButton(PacketHandler.openSilktouchGui, i2 + offset, j + 46, half, 20, translateToLocal("gui.silktouchList")));
+		this.buttonList.add(new GuiButton(PacketHandler.reinit, i + offset, j + 121, full, 20, translateToLocal("gui.quarryReset")));
 	}
 
 	@Override
 	protected void actionPerformed(GuiButton par1GuiButton) {
 		if (!par1GuiButton.enabled) { return; }
-		this.tileQuarry.sendPacketToServer((byte) par1GuiButton.id);
+		PacketHandler.sendTilePacketToServer(this.tileQuarry, (byte) par1GuiButton.id);
 	}
 }

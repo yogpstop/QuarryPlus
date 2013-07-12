@@ -13,6 +13,7 @@ import net.minecraft.world.World;
 import org.lwjgl.opengl.GL11;
 
 import org.yogpstop.qp.ContainerMover;
+import org.yogpstop.qp.PacketHandler;
 
 import cpw.mods.fml.common.network.PacketDispatcher;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -74,7 +75,7 @@ public class GuiMover extends GuiContainer {
 			e.printStackTrace();
 		}
 		Packet250CustomPayload packet = new Packet250CustomPayload();
-		packet.channel = "QuarryPlusGUIBtn";
+		packet.channel = PacketHandler.BTN;
 		packet.data = bos.toByteArray();
 		packet.length = bos.size();
 		packet.isChunkDataPacket = true;

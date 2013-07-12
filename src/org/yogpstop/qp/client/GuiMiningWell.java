@@ -6,7 +6,7 @@ import java.util.ArrayList;
 
 import org.lwjgl.opengl.GL11;
 import org.yogpstop.qp.ContainerPlayer;
-import org.yogpstop.qp.TileBasic;
+import org.yogpstop.qp.PacketHandler;
 import org.yogpstop.qp.TileMiningWell;
 
 import net.minecraft.client.gui.GuiButton;
@@ -57,15 +57,15 @@ public class GuiMiningWell extends GuiContainer {
 		int half = (this.xSize - (offset << 2)) >> 1;
 		int full = (this.xSize - (offset << 1));
 
-		this.buttonList.add(new GuiButton(TileBasic.openFortuneGui, i + offset, j + 46, half, 20, translateToLocal("gui.fortuneList")));
-		this.buttonList.add(new GuiButton(TileBasic.openSilktouchGui, i2 + offset, j + 46, half, 20, translateToLocal("gui.silktouchList")));
-		this.buttonList.add(new GuiButton(TileBasic.reinit, i + offset, j + 121, full, 20, translateToLocal("gui.quarryReset")));
+		this.buttonList.add(new GuiButton(PacketHandler.openFortuneGui, i + offset, j + 46, half, 20, translateToLocal("gui.fortuneList")));
+		this.buttonList.add(new GuiButton(PacketHandler.openSilktouchGui, i2 + offset, j + 46, half, 20, translateToLocal("gui.silktouchList")));
+		this.buttonList.add(new GuiButton(PacketHandler.reinit, i + offset, j + 121, full, 20, translateToLocal("gui.quarryReset")));
 	}
 
 	@Override
 	protected void actionPerformed(GuiButton par1GuiButton) {
 		if (!par1GuiButton.enabled) { return; }
-		this.tileMiningWell.sendPacketToServer((byte) par1GuiButton.id);
+		PacketHandler.sendTilePacketToServer(this.tileMiningWell, (byte) par1GuiButton.id);
 	}
 
 }

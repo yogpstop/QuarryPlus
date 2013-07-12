@@ -3,6 +3,7 @@ package org.yogpstop.qp;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import net.minecraft.inventory.Container;
 import net.minecraft.nbt.CompressedStreamTools;
@@ -21,12 +22,31 @@ import cpw.mods.fml.common.network.Player;
 import cpw.mods.fml.common.network.IPacketHandler;
 
 public class PacketHandler implements IPacketHandler {
+	public static final String Tile = "QuarryPlusTile";
+	public static final String NBT = "QPTENBT";
+	public static final String BTN = "QPGUIBUTTON";
+	public static final String OGUI = "QPOpenGUI";
+
+	public static final byte fortuneAdd = 1;
+	public static final byte silktouchAdd = 2;
+	public static final byte fortuneRemove = 3;
+	public static final byte silktouchRemove = 4;
+	public static final byte packetNow = 5;
+	public static final byte packetHeadPos = 6;
+	public static final byte fortuneTInc = 7;
+	public static final byte silktouchTInc = 8;
+	public static final byte reinit = 9;
+	public static final byte openFortuneGui = 14;
+	public static final byte openSilktouchGui = 15;
+	public static final byte openMainGui = 16;
+	public static final byte packetFortuneList = 17;
+	public static final byte packetSilktouchList = 18;
 
 	@Override
 	public void onPacketData(INetworkManager network, Packet250CustomPayload packet, Player player) {
-		if (packet.channel.equals("QPTENBT")) {
+		if (packet.channel.equals(NBT)) {
 			setNBTFromPacket(packet, (EntityPlayer) player);
-		} else if (packet.channel.equals("QuarryPlusGUIBtn")) {
+		} else if (packet.channel.equals(BTN)) {
 			ByteArrayDataInput data = ByteStreams.newDataInput(packet.data);
 			Container container = ((EntityPlayer) player).openContainer;
 			if (container != null) {
@@ -34,11 +54,14 @@ public class PacketHandler implements IPacketHandler {
 					((ContainerMover) container).readPacketData(data);
 				}
 			}
-		} else if (packet.channel.equals("QuarryPlusTB")) {
+		} else if (packet.channel.equals(Tile)) {
 			ByteArrayDataInput data = ByteStreams.newDataInput(packet.data);
-			TileBasic tb = (TileBasic) ((EntityPlayer) player).worldObj.getBlockTileEntity(data.readInt(), data.readInt(), data.readInt());
-			if (tb != null) tb.recievePacket(data, (EntityPlayer) player);
-		} else if (packet.channel.equals("QPOpenGUI")) {
+			APacketTile tb = (APacketTile) ((EntityPlayer) player).worldObj.getBlockTileEntity(data.readInt(), data.readInt(), data.readInt());
+			if (tb != null) {
+				if (tb.worldObj.isRemote) tb.recievePacketOnClient(data.readByte(), data);
+				else tb.recievePacketOnServer(data.readByte(), data, (EntityPlayer) player);
+			}
+		} else if (packet.channel.equals(OGUI)) {
 			openGuiFromPacket(ByteStreams.newDataInput(packet.data), (EntityPlayer) player);
 		}
 	}
@@ -55,7 +78,7 @@ public class PacketHandler implements IPacketHandler {
 			e.printStackTrace();
 		}
 		Packet250CustomPayload packet = new Packet250CustomPayload();
-		packet.channel = "QPOpenGUI";
+		packet.channel = OGUI;
 		packet.data = bos.toByteArray();
 		packet.length = bos.size();
 		packet.isChunkDataPacket = true;
@@ -66,9 +89,9 @@ public class PacketHandler implements IPacketHandler {
 		ep.openGui(QuarryPlus.instance, badi.readByte(), ep.worldObj, badi.readInt(), badi.readInt(), badi.readInt());
 	}
 
-	public static Packet getPacketFromNBT(TileEntity te) {
+	static Packet getPacketFromNBT(TileEntity te) {
 		Packet250CustomPayload pkt = new Packet250CustomPayload();
-		pkt.channel = "QPTENBT";
+		pkt.channel = NBT;
 		pkt.isChunkDataPacket = true;
 		try {
 			NBTTagCompound nbttc = new NBTTagCompound();
@@ -91,6 +114,107 @@ public class PacketHandler implements IPacketHandler {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	private static Packet250CustomPayload composeTilePacket(ByteArrayOutputStream bos) {
+		Packet250CustomPayload packet = new Packet250CustomPayload();
+		packet.channel = Tile;
+		packet.data = bos.toByteArray();
+		packet.length = bos.size();
+		return packet;
+	}
+
+	public static void sendTilePacketToServer(APacketTile te, byte id) {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		DataOutputStream dos = new DataOutputStream(bos);
+		try {
+			dos.writeInt(te.xCoord);
+			dos.writeInt(te.yCoord);
+			dos.writeInt(te.zCoord);
+			dos.writeByte(id);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		PacketDispatcher.sendPacketToServer(composeTilePacket(bos));
+	}
+
+	public static void sendTilePacketToServer(APacketTile te, byte id, long data) {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		DataOutputStream dos = new DataOutputStream(bos);
+		try {
+			dos.writeInt(te.xCoord);
+			dos.writeInt(te.yCoord);
+			dos.writeInt(te.zCoord);
+			dos.writeByte(id);
+			dos.writeLong(data);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		PacketDispatcher.sendPacketToServer(composeTilePacket(bos));
+	}
+
+	static void sendPacketToPlayer(APacketTile te, EntityPlayer ep, byte id, boolean value) {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		DataOutputStream dos = new DataOutputStream(bos);
+		try {
+			dos.writeInt(te.xCoord);
+			dos.writeInt(te.yCoord);
+			dos.writeInt(te.zCoord);
+			dos.writeByte(id);
+			dos.writeBoolean(value);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		PacketDispatcher.sendPacketToPlayer(composeTilePacket(bos), (Player) ep);
+	}
+
+	static void sendPacketToPlayer(APacketTile te, EntityPlayer ep, byte id, ArrayList<Long> value) {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		DataOutputStream dos = new DataOutputStream(bos);
+		try {
+			dos.writeInt(te.xCoord);
+			dos.writeInt(te.yCoord);
+			dos.writeInt(te.zCoord);
+			dos.writeByte(id);
+			dos.writeInt(value.size());
+			for (Long l : value)
+				dos.writeLong(l);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		PacketDispatcher.sendPacketToPlayer(composeTilePacket(bos), (Player) ep);
+	}
+
+	static void sendNowPacket(APacketTile te, byte data) {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		DataOutputStream dos = new DataOutputStream(bos);
+		try {
+			dos.writeInt(te.xCoord);
+			dos.writeInt(te.yCoord);
+			dos.writeInt(te.zCoord);
+			dos.writeByte(packetNow);
+			dos.writeByte(data);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		PacketDispatcher.sendPacketToAllPlayers(composeTilePacket(bos));
+	}
+
+	static void sendHeadPosPacket(APacketTile te, double x, double y, double z) {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		DataOutputStream dos = new DataOutputStream(bos);
+		try {
+			dos.writeInt(te.xCoord);
+			dos.writeInt(te.yCoord);
+			dos.writeInt(te.zCoord);
+			dos.writeByte(packetHeadPos);
+			dos.writeDouble(x);
+			dos.writeDouble(y);
+			dos.writeDouble(z);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		PacketDispatcher.sendPacketToAllPlayers(composeTilePacket(bos));
 	}
 
 }

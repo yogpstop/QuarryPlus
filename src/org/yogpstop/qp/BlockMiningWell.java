@@ -51,11 +51,7 @@ public class BlockMiningWell extends BlockContainer {
 	@Override
 	public Icon getBlockTexture(IBlockAccess ba, int x, int y, int z, int side) {
 		TileEntity tile = ba.getBlockTileEntity(x, y, z);
-		if (tile instanceof TileMiningWell) {
-			if (side == 1) {
-				if (((TileMiningWell) tile).isWorking()) { return this.texW; }
-			}
-		}
+		if (tile instanceof TileMiningWell && side == 1 && ((TileMiningWell) tile).isWorking()) return this.texW;
 		return super.getBlockTexture(ba, x, y, z, side);
 	}
 

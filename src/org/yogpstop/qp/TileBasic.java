@@ -1,15 +1,13 @@
 package org.yogpstop.qp;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
+import static org.yogpstop.qp.QuarryPlus.data;
+import static org.yogpstop.qp.PacketHandler.*;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 
 import com.google.common.io.ByteArrayDataInput;
-
-import cpw.mods.fml.common.network.PacketDispatcher;
-import cpw.mods.fml.common.network.Player;
 
 import net.minecraft.block.Block;
 import net.minecraft.enchantment.Enchantment;
@@ -19,8 +17,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagLong;
-import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.Packet250CustomPayload;
 import net.minecraft.tileentity.TileEntity;
 
 import net.minecraftforge.common.ForgeDirection;
@@ -32,9 +28,11 @@ import buildcraft.api.power.PowerFramework;
 import buildcraft.api.transport.IPipeEntry;
 import buildcraft.api.transport.IPipedItem;
 
-public abstract class TileBasic extends TileEntity implements IPowerReceptor, IPipeEntry {
+public abstract class TileBasic extends APacketTile implements IPowerReceptor, IPipeEntry {
 	public static final ITrigger active = new TriggerPlusMachine(754, true);
 	public static final ITrigger deactive = new TriggerPlusMachine(755, false);
+
+	protected ForgeDirection pump = ForgeDirection.UNKNOWN;
 
 	protected IPowerProvider pp;
 
@@ -48,108 +46,9 @@ public abstract class TileBasic extends TileEntity implements IPowerReceptor, IP
 
 	protected ArrayList<ItemStack> cacheItems = new ArrayList<ItemStack>();
 
-	public static final byte fortuneAdd = 1;
-	public static final byte silktouchAdd = 2;
-	public static final byte fortuneRemove = 3;
-	public static final byte silktouchRemove = 4;
-	public static final byte packetNow = 5;
-	public static final byte fortuneTInc = 7;
-	public static final byte silktouchTInc = 8;
-	public static final byte reinit = 9;
-	public static final byte openFortuneGui = 14;
-	public static final byte openSilktouchGui = 15;
-	public static final byte openMainGui = 16;
-	public static final byte packetFortuneList = 17;
-	public static final byte packetSilktouchList = 18;
-
 	public TileBasic() {
 		super();
 		initPowerProvider();
-	}
-
-	public void sendPacketToServer(byte id) {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		DataOutputStream dos = new DataOutputStream(bos);
-		try {
-			dos.writeInt(this.xCoord);
-			dos.writeInt(this.yCoord);
-			dos.writeInt(this.zCoord);
-			dos.writeByte(id);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		Packet250CustomPayload packet = new Packet250CustomPayload();
-		packet.channel = "QuarryPlusTB";
-		packet.data = bos.toByteArray();
-		packet.length = bos.size();
-		packet.isChunkDataPacket = true;
-
-		PacketDispatcher.sendPacketToServer(packet);
-	}
-
-	public void sendPacketToServer(byte id, long value) {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		DataOutputStream dos = new DataOutputStream(bos);
-		try {
-			dos.writeInt(this.xCoord);
-			dos.writeInt(this.yCoord);
-			dos.writeInt(this.zCoord);
-			dos.writeByte(id);
-			dos.writeLong(value);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		Packet250CustomPayload packet = new Packet250CustomPayload();
-		packet.channel = "QuarryPlusTB";
-		packet.data = bos.toByteArray();
-		packet.length = bos.size();
-		packet.isChunkDataPacket = true;
-
-		PacketDispatcher.sendPacketToServer(packet);
-	}
-
-	protected void sendPacketToPlayer(EntityPlayer ep, byte id, boolean value) {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		DataOutputStream dos = new DataOutputStream(bos);
-		try {
-			dos.writeInt(this.xCoord);
-			dos.writeInt(this.yCoord);
-			dos.writeInt(this.zCoord);
-			dos.writeByte(id);
-			dos.writeBoolean(value);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		Packet250CustomPayload packet = new Packet250CustomPayload();
-		packet.channel = "QuarryPlusTB";
-		packet.data = bos.toByteArray();
-		packet.length = bos.size();
-		packet.isChunkDataPacket = true;
-
-		PacketDispatcher.sendPacketToPlayer(packet, (Player) ep);
-	}
-
-	protected void sendPacketToPlayer(EntityPlayer ep, byte id, ArrayList<Long> value) {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		DataOutputStream dos = new DataOutputStream(bos);
-		try {
-			dos.writeInt(this.xCoord);
-			dos.writeInt(this.yCoord);
-			dos.writeInt(this.zCoord);
-			dos.writeByte(id);
-			dos.writeInt(value.size());
-			for (Long l : value)
-				dos.writeLong(l);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		Packet250CustomPayload packet = new Packet250CustomPayload();
-		packet.channel = "QuarryPlusTB";
-		packet.data = bos.toByteArray();
-		packet.length = bos.size();
-		packet.isChunkDataPacket = true;
-
-		PacketDispatcher.sendPacketToPlayer(packet, (Player) ep);
 	}
 
 	void recievePacket(ByteArrayDataInput data, EntityPlayer ep) {
@@ -157,36 +56,37 @@ public abstract class TileBasic extends TileEntity implements IPowerReceptor, IP
 		else recievePacketOnServer(data.readByte(), data, ep);
 	}
 
+	@Override
 	protected void recievePacketOnServer(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {
 		switch (pattern) {
 		case fortuneAdd:
 			this.fortuneList.add(data.readLong());
-			sendPacketToPlayer(ep, packetFortuneList, this.fortuneList);
+			sendPacketToPlayer(this, ep, packetFortuneList, this.fortuneList);
 			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdGuiQuarryFortuneList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
 			break;
 		case fortuneRemove:
 			this.fortuneList.remove(data.readLong());
-			sendPacketToPlayer(ep, packetFortuneList, this.fortuneList);
+			sendPacketToPlayer(this, ep, packetFortuneList, this.fortuneList);
 			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdGuiQuarryFortuneList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
 			break;
 		case silktouchAdd:
 			this.silktouchList.add(data.readLong());
-			sendPacketToPlayer(ep, packetSilktouchList, this.silktouchList);
+			sendPacketToPlayer(this, ep, packetSilktouchList, this.silktouchList);
 			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdGuiQuarrySilktouchList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
 			break;
 		case silktouchRemove:
 			this.silktouchList.remove(data.readLong());
-			sendPacketToPlayer(ep, packetSilktouchList, this.silktouchList);
+			sendPacketToPlayer(this, ep, packetSilktouchList, this.silktouchList);
 			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdGuiQuarrySilktouchList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
 			break;
 		case fortuneTInc:
 			this.fortuneInclude = !this.fortuneInclude;
-			sendPacketToPlayer(ep, fortuneTInc, this.fortuneInclude);
+			sendPacketToPlayer(this, ep, fortuneTInc, this.fortuneInclude);
 			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdGuiQuarryFortuneList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
 			break;
 		case silktouchTInc:
 			this.silktouchInclude = !this.silktouchInclude;
-			sendPacketToPlayer(ep, silktouchTInc, this.silktouchInclude);
+			sendPacketToPlayer(this, ep, silktouchTInc, this.silktouchInclude);
 			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdGuiQuarrySilktouchList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
 			break;
 		case reinit:
@@ -201,8 +101,20 @@ public abstract class TileBasic extends TileEntity implements IPowerReceptor, IP
 		}
 	}
 
-	protected abstract void reinit();
+	protected void reinit() {
+		searchPump();
+	}
+	
+	protected void destroy(){
+		
+	}
+	
+	@Override
+	public final void invalidate(){
+		destroy();
+	}
 
+	@Override
 	protected void recievePacketOnClient(byte pattern, ByteArrayDataInput data) {
 		switch (pattern) {
 		case packetFortuneList:
@@ -239,6 +151,145 @@ public abstract class TileBasic extends TileEntity implements IPowerReceptor, IP
 		reinit();
 	}
 
+	protected boolean breakBlock(int x, int y, int z, double BP, double CE, double CS, double CF) {
+		ArrayList<ItemStack> dropped = new ArrayList<ItemStack>();
+		if (this.worldObj.getBlockMaterial(x, y, z).isLiquid()) {
+			int pX = this.xCoord, pY = this.yCoord, pZ = this.zCoord;
+			switch (this.pump) {
+			case UP:
+				pY++;
+				break;
+			case DOWN:
+				pY--;
+				break;
+			case SOUTH:
+				pZ++;
+				break;
+			case NORTH:
+				pZ--;
+				break;
+			case EAST:
+				pX++;
+				break;
+			case WEST:
+				pX--;
+				break;
+			default:
+			}
+			TileEntity te = this.worldObj.getBlockTileEntity(pX, pY, pZ);
+			if (!(te instanceof TilePump)) return !searchPump();
+			return ((TilePump) te).removeLiquids(this.pp, x, y, z);
+		}
+		float pw = (float) Math.max(BP * blockHardness(x, y, z) * addDroppedItems(dropped, x, y, z, CS, CF) / Math.pow(CE, this.efficiency), 0D);
+		if (this.pp.useEnergy(pw, pw, true) != pw) return false;
+		this.cacheItems.addAll(dropped);
+		this.worldObj.playAuxSFXAtEntity(null, 2001, x, y, z, this.worldObj.getBlockId(x, y, z) | (this.worldObj.getBlockMetadata(x, y, z) << 12));
+		this.worldObj.setBlockToAir(x, y, z);
+
+		return true;
+	}
+
+	boolean pumpConnected() {
+		int pX = this.xCoord;
+		int pY = this.yCoord;
+		int pZ = this.zCoord;
+		switch (this.pump) {
+		case UP:
+			pY++;
+			break;
+		case DOWN:
+			pY--;
+			break;
+		case SOUTH:
+			pZ++;
+			break;
+		case NORTH:
+			pZ--;
+			break;
+		case EAST:
+			pX++;
+			break;
+		case WEST:
+			pX--;
+			break;
+		default:
+		}
+		TileEntity te = this.worldObj.getBlockTileEntity(pX, pY, pZ);
+		if (te instanceof TilePump) return true;
+		this.pump = ForgeDirection.UNKNOWN;
+		return false;
+	}
+
+	boolean searchPump() {
+		int pX, pY, pZ;
+		TileEntity te;
+		for (ForgeDirection fd : ForgeDirection.VALID_DIRECTIONS) {
+			pX = this.xCoord;
+			pY = this.yCoord;
+			pZ = this.zCoord;
+			switch (fd) {
+			case UP:
+				pY++;
+				break;
+			case DOWN:
+				pY--;
+				break;
+			case SOUTH:
+				pZ++;
+				break;
+			case NORTH:
+				pZ--;
+				break;
+			case EAST:
+				pX++;
+				break;
+			case WEST:
+				pX--;
+				break;
+			default:
+			}
+			te = this.worldObj.getBlockTileEntity(pX, pY, pZ);
+			if (te instanceof TilePump && ((TilePump) te).connect(fd.getOpposite())) {
+				this.pump = fd;
+				return true;
+			}
+		}
+		this.pump = ForgeDirection.UNKNOWN;
+		return false;
+	}
+
+	protected float blockHardness(int x, int y, int z) {
+		Block b = Block.blocksList[this.worldObj.getBlockId(x, y, z)];
+		if (b != null) {
+			if (this.worldObj.getBlockMaterial(x, y, z).isLiquid()) return 0;
+			return b.getBlockHardness(this.worldObj, x, y, z);
+		}
+		return 0;
+	}
+
+	protected double addDroppedItems(ArrayList<ItemStack> list, int x, int y, int z, double CS, double CF) {
+		Block b = Block.blocksList[this.worldObj.getBlockId(x, y, z)];
+		int meta = this.worldObj.getBlockMetadata(x, y, z);
+		if (b == null) return 1;
+		if (b.canSilkHarvest(this.worldObj, null, x, y, z, meta) && this.silktouch
+				&& (this.silktouchList.contains(data((short) b.blockID, meta)) == this.silktouchInclude)) {
+			try {
+				list.add(createStackedBlock(b, meta));
+				return CS;
+			} catch (Exception e) {
+				e.printStackTrace();
+			} catch (Error e) {
+				e.printStackTrace();
+			}
+		}
+		if (this.fortuneList.contains(data((short) b.blockID, meta)) == this.fortuneInclude) {
+			list.addAll(b.getBlockDropped(this.worldObj, x, y, z, meta, this.fortune));
+			return Math.pow(CF, this.fortune);
+		}
+		list.addAll(b.getBlockDropped(this.worldObj, x, y, z, meta, 0));
+		return 1;
+	}
+
 	@Override
 	public void entityEntering(ItemStack payload, ForgeDirection orientation) {}
 
@@ -251,17 +302,17 @@ public abstract class TileBasic extends TileEntity implements IPowerReceptor, IP
 	}
 
 	@Override
-	public void setPowerProvider(IPowerProvider provider) {
+	public final void setPowerProvider(IPowerProvider provider) {
 		this.pp = provider;
 	}
 
 	@Override
-	public IPowerProvider getPowerProvider() {
+	public final IPowerProvider getPowerProvider() {
 		return this.pp;
 	}
 
 	@Override
-	public int powerRequest(ForgeDirection from) {
+	public final int powerRequest(ForgeDirection from) {
 		return (int) Math.ceil(Math.min(getPowerProvider().getMaxEnergyReceived(), getPowerProvider().getMaxEnergyStored()
 				- getPowerProvider().getEnergyStored()));
 	}
@@ -377,10 +428,5 @@ public abstract class TileBasic extends TileEntity implements IPowerReceptor, IP
 	}
 
 	@Override
-	public Packet getDescriptionPacket() {
-		return PacketHandler.getPacketFromNBT(this);
-	}
-
-	@Override
-	public void doWork() {}
+	public final void doWork() {}
 }

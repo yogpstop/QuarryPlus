@@ -1,5 +1,6 @@
 package org.yogpstop.qp.client;
 
+import org.yogpstop.qp.PacketHandler;
 import org.yogpstop.qp.QuarryPlus;
 import org.yogpstop.qp.TileBasic;
 
@@ -61,7 +62,7 @@ public class GuiManual extends GuiScreen {
 				this.mc.displayGuiScreen(new GuiError(this, StatCollector.translateToLocal("tof.alreadyerror"), getname(bid, metaid)));
 				return;
 			}
-			this.tile.sendPacketToServer((byte) (TileBasic.fortuneAdd + this.targetid - 1), QuarryPlus.data(bid, metaid));
+			PacketHandler.sendTilePacketToServer(this.tile, (byte) (PacketHandler.fortuneAdd + this.targetid - 1), QuarryPlus.data(bid, metaid));
 			break;
 		case -2:
 			this.mc.displayGuiScreen(this.parent);

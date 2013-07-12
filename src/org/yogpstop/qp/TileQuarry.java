@@ -1,9 +1,7 @@
 package org.yogpstop.qp;
 
-import static org.yogpstop.qp.QuarryPlus.data;
+import static org.yogpstop.qp.PacketHandler.*;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -23,11 +21,9 @@ import static buildcraft.core.utils.Utils.addToRandomPipeEntry;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.item.EntityItem;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.network.packet.Packet250CustomPayload;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.ChunkCoordIntPair;
 
@@ -37,9 +33,6 @@ import net.minecraftforge.common.ForgeChunkManager.Type;
 import net.minecraftforge.common.ForgeDirection;
 
 public class TileQuarry extends TileBasic {
-
-	public boolean buildAdvFrame, removeLava, removeWater, removeLiquid;
-
 	private double headPosX, headPosY, headPosZ;
 	private int targetX, targetY, targetZ;
 
@@ -62,89 +55,12 @@ public class TileQuarry extends TileBasic {
 	public static final byte NONE = 0;
 	public static final byte NOTNEEDBREAK = 1;
 	public static final byte MAKEFRAME = 2;
-	public static final byte FILL = 3;
+	public static final byte WAITLIQUID = 3;
 	public static final byte MOVEHEAD = 4;
 	public static final byte BREAKBLOCK = 5;
-	
-	public static final byte packetHeadPos = 6;
-	public static final byte tBuildAdvFrame = 13;
-	public static final byte tRemoveWater = 10;
-	public static final byte tRemoveLava = 11;
-	public static final byte tRemoveLiquid = 12;
 
 	public byte getNow() {
 		return this.now;
-	}
-
-	private void sendNowPacket() {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		DataOutputStream dos = new DataOutputStream(bos);
-		try {
-			dos.writeInt(this.xCoord);
-			dos.writeInt(this.yCoord);
-			dos.writeInt(this.zCoord);
-			dos.writeByte(packetNow);
-			dos.writeByte(this.now);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		Packet250CustomPayload packet = new Packet250CustomPayload();
-		packet.channel = "QuarryPlusTB";
-		packet.data = bos.toByteArray();
-		packet.length = bos.size();
-		packet.isChunkDataPacket = true;
-
-		PacketDispatcher.sendPacketToAllPlayers(packet);
-	}
-
-	private void sendHeadPosPacket() {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		DataOutputStream dos = new DataOutputStream(bos);
-		try {
-			dos.writeInt(this.xCoord);
-			dos.writeInt(this.yCoord);
-			dos.writeInt(this.zCoord);
-			dos.writeByte(packetHeadPos);
-			dos.writeDouble(this.headPosX);
-			dos.writeDouble(this.headPosY);
-			dos.writeDouble(this.headPosZ);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		Packet250CustomPayload packet = new Packet250CustomPayload();
-		packet.channel = "QuarryPlusTB";
-		packet.data = bos.toByteArray();
-		packet.length = bos.size();
-		packet.isChunkDataPacket = true;
-
-		PacketDispatcher.sendPacketToAllPlayers(packet);
-	}
-
-	@Override
-	protected void recievePacketOnServer(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {
-		super.recievePacketOnServer(pattern, data, ep);
-		switch (pattern) {
-		case tBuildAdvFrame:
-			this.buildAdvFrame = !this.buildAdvFrame;
-			sendPacketToPlayer(ep, tBuildAdvFrame, this.buildAdvFrame);
-			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdContainerMiner, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
-			break;
-		case tRemoveWater:
-			this.removeWater = !this.removeWater;
-			sendPacketToPlayer(ep, tRemoveWater, this.removeWater);
-			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdContainerMiner, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
-			break;
-		case tRemoveLava:
-			this.removeLava = !this.removeLava;
-			sendPacketToPlayer(ep, tRemoveLava, this.removeLava);
-			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdContainerMiner, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
-			break;
-		case tRemoveLiquid:
-			this.removeLiquid = !this.removeLiquid;
-			sendPacketToPlayer(ep, tRemoveLiquid, this.removeLiquid);
-			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdContainerMiner, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
-			break;
-		}
 	}
 
 	@Override
@@ -162,25 +78,12 @@ public class TileQuarry extends TileBasic {
 			this.headPosZ = data.readDouble();
 			if (this.heads != null) this.heads.setHead(this.headPosX, this.headPosY, this.headPosZ);
 			break;
-		case tBuildAdvFrame:
-			this.buildAdvFrame = data.readBoolean();
-			break;
-		case tRemoveWater:
-			this.removeWater = data.readBoolean();
-			break;
-		case tRemoveLava:
-			this.removeLava = data.readBoolean();
-			break;
-		case tRemoveLiquid:
-			this.removeLiquid = data.readBoolean();
-			break;
 		}
 	}
 
 	private void updateServerEntity() {
 		switch (this.now) {
 		case MAKEFRAME:
-		case FILL:
 			if (makeFrame()) while (!checkTarget())
 				setNextTarget();
 			break;
@@ -189,7 +92,7 @@ public class TileQuarry extends TileBasic {
 			if (this.heads != null) {
 				this.heads.setHead(this.headPosX, this.headPosY, this.headPosZ);
 				this.heads.updatePosition();
-				sendHeadPosPacket();
+				sendHeadPosPacket(this, this.headPosX, this.headPosY, this.headPosZ);
 			}
 			if (!done) break;
 			this.now = BREAKBLOCK;
@@ -216,13 +119,11 @@ public class TileQuarry extends TileBasic {
 		case MOVEHEAD:
 			if (this.targetY < 1) {
 				destroy();
-				sendNowPacket();
+				sendNowPacket(this, this.now);
 				return true;
 			}
 			if (bid == 0 || bid == Block.bedrock.blockID) return false;
-			if (!this.removeLava && (bid == Block.lavaMoving.blockID || bid == Block.lavaStill.blockID)) return false;
-			if (!this.removeWater && (bid == Block.waterMoving.blockID || bid == Block.waterStill.blockID)) return false;
-			if (!this.removeLiquid && this.worldObj.getBlockMaterial(this.targetX, this.targetY, this.targetZ).isLiquid()) return false;
+			if (this.pump == ForgeDirection.UNKNOWN && this.worldObj.getBlockMaterial(this.targetX, this.targetY, this.targetZ).isLiquid()) return false;
 			return true;
 		case NOTNEEDBREAK:
 			if (this.targetY < this.box.yMin) {
@@ -232,7 +133,7 @@ public class TileQuarry extends TileBasic {
 				this.targetZ = this.box.zMin;
 				this.addX = this.addZ = this.digged = true;
 				this.changeZ = false;
-				sendNowPacket();
+				sendNowPacket(this, this.now);
 				return checkTarget();
 			}
 			if (bid == 0 || bid == Block.bedrock.blockID) return false;
@@ -246,14 +147,17 @@ public class TileQuarry extends TileBasic {
 			return true;
 		case MAKEFRAME:
 			if (this.targetY < this.box.yMin) {
-				this.now = FILL;
-				this.targetX = this.box.xMin;
+				this.now = MOVEHEAD;
+				this.targetX = this.box.xMin + 1;
 				this.targetY = this.box.yMin;
-				this.targetZ = this.box.zMin;
+				this.targetZ = this.box.zMin + 1;
 				this.addX = this.addZ = this.digged = true;
 				this.changeZ = false;
-				this.box.deleteLasers();
-				sendNowPacket();
+				this.worldObj.spawnEntityInWorld(new EntityMechanicalArm(this.worldObj, this.box.xMin + 0.75D, this.box.yMax, this.box.zMin + 0.75D, this.box
+						.sizeX() - 1.5D, this.box.sizeZ() - 1.5D, this));
+				this.heads.setHead(this.headPosX, this.headPosY, this.headPosZ);
+				this.heads.updatePosition();
+				sendNowPacket(this, this.now);
 				return checkTarget();
 			}
 			if (this.worldObj.getBlockMaterial(this.targetX, this.targetY, this.targetZ).isSolid()
@@ -264,7 +168,7 @@ public class TileQuarry extends TileBasic {
 				this.targetY = this.box.yMax;
 				this.addX = this.addZ = this.digged = true;
 				this.changeZ = false;
-				sendNowPacket();
+				sendNowPacket(this, this.now);
 				return checkTarget();
 			}
 			byte flag = 0;
@@ -276,23 +180,6 @@ public class TileQuarry extends TileBasic {
 				return true;
 			}
 			return false;
-		case FILL:
-			if (!this.buildAdvFrame || this.targetY < 1) {
-				this.now = MOVEHEAD;
-				this.targetX = this.box.xMin + 1;
-				this.targetY = this.box.yMin;
-				this.targetZ = this.box.zMin + 1;
-				this.addX = this.addZ = this.digged = true;
-				this.changeZ = false;
-				this.worldObj.spawnEntityInWorld(new EntityMechanicalArm(this.worldObj, this.box.xMin + 0.75D, this.box.yMax, this.box.zMin + 0.75D, this.box
-						.sizeX() - 1.5D, this.box.sizeZ() - 1.5D, this));
-				this.heads.setHead(this.headPosX, this.headPosY, this.headPosZ);
-				this.heads.updatePosition();
-				sendNowPacket();
-				return checkTarget();
-			}
-			if (this.worldObj.getBlockMaterial(this.targetX, this.targetY, this.targetZ).isSolid()) return false;
-			return true;
 		}
 		System.err.println("yogpstop: Unknown status");
 		return true;
@@ -304,7 +191,7 @@ public class TileQuarry extends TileBasic {
 	private boolean changeZ = false;
 
 	private void setNextTarget() {
-		if (this.now == MAKEFRAME || this.now == FILL) {
+		if (this.now == MAKEFRAME) {
 			if (this.changeZ) {
 				if (this.addZ) this.targetZ++;
 				else this.targetZ--;
@@ -391,50 +278,13 @@ public class TileQuarry extends TileBasic {
 
 	private boolean breakBlock() {
 		this.digged = true;
-		ArrayList<ItemStack> dropped = new ArrayList<ItemStack>();
-		float pw = (float) Math.max(BP_BB * blockHardness() * addDroppedItems(dropped) / Math.pow(CE_BB, this.efficiency), 0D);
-		if (this.pp.useEnergy(pw, pw, true) != pw) return false;
-		this.cacheItems.addAll(dropped);
-		this.worldObj.playAuxSFXAtEntity(null, 2001, this.targetX, this.targetY, this.targetZ,
-				this.worldObj.getBlockId(this.targetX, this.targetY, this.targetZ)
-						| (this.worldObj.getBlockMetadata(this.targetX, this.targetY, this.targetZ) << 12));
-		this.worldObj.setBlockToAir(this.targetX, this.targetY, this.targetZ);
-		checkDropItem();
-		if (this.now == BREAKBLOCK) this.now = MOVEHEAD;
-		setNextTarget();
-		return true;
-	}
-
-	private float blockHardness() {
-		Block b = Block.blocksList[this.worldObj.getBlockId(this.targetX, this.targetY, this.targetZ)];
-		if (b != null) {
-			if (this.worldObj.getBlockMaterial(this.targetX, this.targetY, this.targetZ).isLiquid()) return 0;
-			return b.getBlockHardness(this.worldObj, this.targetX, this.targetY, this.targetZ);
+		if (breakBlock(this.targetX, this.targetY, this.targetZ, BP_BB, CE_BB, CS, CF)) {
+			checkDropItem();
+			if (this.now == BREAKBLOCK) this.now = MOVEHEAD;
+			setNextTarget();
+			return true;
 		}
-		return 0;
-	}
-
-	private double addDroppedItems(ArrayList<ItemStack> list) {
-		Block b = Block.blocksList[this.worldObj.getBlockId(this.targetX, this.targetY, this.targetZ)];
-		int meta = this.worldObj.getBlockMetadata(this.targetX, this.targetY, this.targetZ);
-		if (b == null) return 1;
-		if (b.canSilkHarvest(this.worldObj, null, this.targetX, this.targetY, this.targetZ, meta) && this.silktouch
-				&& (this.silktouchList.contains(data((short) b.blockID, meta)) == this.silktouchInclude)) {
-			try {
-				list.add(createStackedBlock(b, meta));
-				return CS;
-			} catch (Exception e) {
-				e.printStackTrace();
-			} catch (Error e) {
-				e.printStackTrace();
-			}
-		}
-		if (this.fortuneList.contains(data((short) b.blockID, meta)) == this.fortuneInclude) {
-			list.addAll(b.getBlockDropped(this.worldObj, this.targetX, this.targetY, this.targetZ, meta, this.fortune));
-			return Math.pow(CF, this.fortune);
-		}
-		list.addAll(b.getBlockDropped(this.worldObj, this.targetX, this.targetY, this.targetZ, meta, 0));
-		return 1;
+		return false;
 	}
 
 	private void checkDropItem() {
@@ -606,10 +456,11 @@ public class TileQuarry extends TileBasic {
 		}
 	}
 
-	private void destroy() {
+	@Override
+	protected void destroy() {
 		this.box.deleteLasers();
 		this.now = NONE;
-		sendNowPacket();
+		sendNowPacket(this, this.now);
 		if (this.heads != null) {
 			this.heads.setDead();
 			this.heads = null;
@@ -617,6 +468,7 @@ public class TileQuarry extends TileBasic {
 		if (!this.worldObj.isRemote) {
 			destroyFrames();
 		}
+		ForgeChunkManager.releaseTicket(this.chunkTicket);
 	}
 
 	@Override
@@ -627,7 +479,7 @@ public class TileQuarry extends TileBasic {
 		}
 		initEntities();
 		PacketDispatcher.sendPacketToAllPlayers(PacketHandler.getPacketFromNBT(this));
-		sendNowPacket();
+		sendNowPacket(this, this.now);
 	}
 
 	@Override
@@ -672,15 +524,6 @@ public class TileQuarry extends TileBasic {
 	}
 
 	@Override
-	public void invalidate() {
-		destroy();
-		if (!this.worldObj.isRemote) {
-			ForgeChunkManager.releaseTicket(this.chunkTicket);
-		}
-		super.invalidate();
-	}
-
-	@Override
 	public void readFromNBT(NBTTagCompound nbttc) {
 		super.readFromNBT(nbttc);
 		this.box.initialize(nbttc);
@@ -695,10 +538,6 @@ public class TileQuarry extends TileBasic {
 		this.headPosX = nbttc.getDouble("headPosX");
 		this.headPosY = nbttc.getDouble("headPosY");
 		this.headPosZ = nbttc.getDouble("headPosZ");
-		this.buildAdvFrame = nbttc.getBoolean("buildAdvFrame");
-		this.removeWater = nbttc.getBoolean("removeWater");
-		this.removeLava = nbttc.getBoolean("removeLava");
-		this.removeLiquid = nbttc.getBoolean("removeLiquid");
 		this.initialized = false;
 	}
 
@@ -717,9 +556,5 @@ public class TileQuarry extends TileBasic {
 		nbttc.setDouble("headPosX", this.headPosX);
 		nbttc.setDouble("headPosY", this.headPosY);
 		nbttc.setDouble("headPosZ", this.headPosZ);
-		nbttc.setBoolean("buildAdvFrame", this.buildAdvFrame);
-		nbttc.setBoolean("removeWater", this.removeWater);
-		nbttc.setBoolean("removeLava", this.removeLava);
-		nbttc.setBoolean("removeLiquid", this.removeLiquid);
 	}
 }

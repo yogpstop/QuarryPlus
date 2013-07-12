@@ -32,7 +32,7 @@ import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.FMLLog;
 
 @Mod(modid = "QuarryPlus", name = "QuarryPlus", version = "@VERSION@", dependencies = "required-after:BuildCraft|Factory")
-@NetworkMod(clientSideRequired = true, serverSideRequired = false, channels = { "QPOpenGUI", "QuarryPlusGUIBtn", "QPTENBT", "QuarryPlusTB" }, packetHandler = PacketHandler.class)
+@NetworkMod(clientSideRequired = true, serverSideRequired = false, channels = { PacketHandler.BTN, PacketHandler.NBT, PacketHandler.OGUI, PacketHandler.Tile }, packetHandler = PacketHandler.class)
 public class QuarryPlus implements ITriggerProvider {
 	@SidedProxy(clientSide = "org.yogpstop.qp.client.ClientProxy", serverSide = "org.yogpstop.qp.CommonProxy")
 	public static CommonProxy proxy;
@@ -40,10 +40,7 @@ public class QuarryPlus implements ITriggerProvider {
 	@Mod.Instance("QuarryPlus")
 	public static QuarryPlus instance;
 
-	public static Block blockQuarry;
-	public static Block blockMarker;
-	public static Block blockMover;
-	public static Block blockMiningWell;
+	public static Block blockQuarry, blockMarker, blockMover, blockMiningWell, blockPump;
 
 	public static int RecipeDifficulty;
 
@@ -61,6 +58,8 @@ public class QuarryPlus implements ITriggerProvider {
 			blockMarker = (new BlockMarker(cfg.getBlock("Marker", 4002).getInt()));
 			blockMover = (new BlockMover(cfg.getBlock("EnchantMover", 4003).getInt()));
 			blockMiningWell = (new BlockMiningWell(cfg.getBlock("MiningWell", 4004).getInt()));
+			blockPump = (new BlockPump(cfg.getBlock("Pump", 4005).getInt()));
+
 			Property RD = cfg.get(Configuration.CATEGORY_GENERAL, "RecipeDifficulty", 2);
 			RD.comment = "0:AsCheatRecipe,1:EasyRecipe,2:NormalRecipe(Default),3:HardRecipe,other:NormalRecipe";
 			RecipeDifficulty = RD.getInt(2);
@@ -76,6 +75,8 @@ public class QuarryPlus implements ITriggerProvider {
 			TileMiningWell.BP = cfg.get(Configuration.CATEGORY_GENERAL + ".MiningWell", "BasePower", 40D).getDouble(40D);
 			TileMiningWell.CF = cfg.get(Configuration.CATEGORY_GENERAL + ".MiningWell", "PowerCoefficientWithFortune", 1.3D).getDouble(1.3D);
 			TileMiningWell.CS = cfg.get(Configuration.CATEGORY_GENERAL + ".MiningWell", "PowerCoefficientWithSilktouch", 2D).getDouble(2D);
+			TilePump.CE = cfg.get(Configuration.CATEGORY_GENERAL + ".Pump", "PowerCoefficientWithEfficiency", 1.3D).getDouble(1.3D);
+			TilePump.BP = cfg.get(Configuration.CATEGORY_GENERAL + ".Pump", "BasePower", 10D).getDouble(10D);
 			cfg.getCategory(Configuration.CATEGORY_GENERAL)
 					.setComment(
 							"PowerCoefficientWith(EnchantName) is Coefficient with correspond enchant.\nWithEfficiency value comes reciprocal number.\nBasePower is basical using power with no enchants.");
@@ -91,15 +92,16 @@ public class QuarryPlus implements ITriggerProvider {
 
 	@Mod.Init
 	public void init(FMLInitializationEvent event) {
-
 		GameRegistry.registerBlock(blockQuarry, "QuarryPlus");
 		GameRegistry.registerBlock(blockMarker, "MarkerPlus");
 		GameRegistry.registerBlock(blockMover, "EnchantMover");
 		GameRegistry.registerBlock(blockMiningWell, "MiningWellPlus");
+		GameRegistry.registerBlock(blockPump, "PumpPlus");
 
 		GameRegistry.registerTileEntity(TileQuarry.class, "QuarryPlus");
 		GameRegistry.registerTileEntity(TileMarker.class, "MarkerPlus");
 		GameRegistry.registerTileEntity(TileMiningWell.class, "MiningWellPlus");
+		GameRegistry.registerTileEntity(TilePump.class, "PumpPlus");
 
 		ActionManager.registerTriggerProvider(this);
 
@@ -185,7 +187,7 @@ public class QuarryPlus implements ITriggerProvider {
 	}
 
 	public static long data(short id, int meta) {
-		return id + (meta << 12);
+		return id | (meta << 12);
 	}
 
 	public static final boolean getBit(short value, byte pos) {
