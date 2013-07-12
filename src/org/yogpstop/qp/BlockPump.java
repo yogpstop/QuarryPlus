@@ -94,4 +94,9 @@ public class BlockPump extends BlockContainer {
 		((TilePump) w.getBlockTileEntity(x, y, z)).init(stack.getEnchantmentTagList());
 	}
 
+	@Override
+	public void onNeighborBlockChange(World w, int x, int y, int z, int bid) {
+		((TilePump) w.getBlockTileEntity(x, y, z)).reinit();
+	}
+
 }

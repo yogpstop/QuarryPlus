@@ -39,39 +39,7 @@ public class TilePump extends APacketTile implements ITankContainer {
 
 	protected byte efficiency;
 
-	boolean connect(ForgeDirection fd) {
-		int pX = this.xCoord;
-		int pY = this.yCoord;
-		int pZ = this.zCoord;
-		switch (this.connectTo) {
-		case UP:
-			pY++;
-			break;
-		case DOWN:
-			pY--;
-			break;
-		case SOUTH:
-			pZ++;
-			break;
-		case NORTH:
-			pZ--;
-			break;
-		case EAST:
-			pX++;
-			break;
-		case WEST:
-			pX--;
-			break;
-		default:
-		}
-		TileEntity te = this.worldObj.getBlockTileEntity(pX, pY, pZ);
-		if (te instanceof TileBasic && this.connectTo != fd) return false;
-		this.connectTo = fd;
-		sendNowPacket();
-		return true;
-	}
-
-	public boolean connected() {
+	boolean connected() {
 		int pX = this.xCoord;
 		int pY = this.yCoord;
 		int pZ = this.zCoord;
@@ -103,7 +71,7 @@ public class TilePump extends APacketTile implements ITankContainer {
 		return false;
 	}
 
-	public boolean working() {
+	boolean working() {
 		return this.currentHeight >= this.cy;
 	}
 
@@ -253,6 +221,10 @@ public class TilePump extends APacketTile implements ITankContainer {
 			short lvl = ((NBTTagCompound) nbttl.tagAt(i)).getShort("lvl");
 			if (id == 32) this.efficiency = (byte) lvl;
 		}
+		reinit();
+	}
+
+	void reinit() {
 		int pX, pY, pZ;
 		TileEntity te;
 		for (ForgeDirection fd : ForgeDirection.VALID_DIRECTIONS) {
@@ -281,11 +253,15 @@ public class TilePump extends APacketTile implements ITankContainer {
 			default:
 			}
 			te = this.worldObj.getBlockTileEntity(pX, pY, pZ);
-			if (te instanceof TileBasic && !((TileBasic) te).pumpConnected()) {
-				((TileBasic) te).searchPump();
-				break;
+			if (te instanceof TileBasic && ((TileBasic) te).connect(fd.getOpposite())) {
+				this.connectTo = fd;
+				sendNowPacket();
+				return;
 			}
 		}
+		this.connectTo = ForgeDirection.UNKNOWN;
+		sendNowPacket();
+		return;
 	}
 
 	private void sendNowPacket() {

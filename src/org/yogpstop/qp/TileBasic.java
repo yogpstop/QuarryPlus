@@ -102,9 +102,7 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		}
 	}
 
-	protected void reinit() {
-		searchPump();
-	}
+	protected abstract void reinit();
 
 	protected abstract void destroy();
 
@@ -177,7 +175,10 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 			default:
 			}
 			TileEntity te = this.worldObj.getBlockTileEntity(pX, pY, pZ);
-			if (!(te instanceof TilePump)) return !searchPump();
+			if (!(te instanceof TilePump)) {
+				this.pump = ForgeDirection.UNKNOWN;
+				return true;
+			}
 			return ((TilePump) te).removeLiquids(this.pp, x, y, z);
 		}
 		float pw = (float) Math.max(BP * blockHardness(x, y, z) * addDroppedItems(dropped, x, y, z, CS, CF) / Math.pow(CE, this.efficiency), 0D);
@@ -189,7 +190,7 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		return true;
 	}
 
-	boolean pumpConnected() {
+	boolean connect(ForgeDirection fd) {
 		int pX = this.xCoord;
 		int pY = this.yCoord;
 		int pZ = this.zCoord;
@@ -215,47 +216,9 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		default:
 		}
 		TileEntity te = this.worldObj.getBlockTileEntity(pX, pY, pZ);
-		if (te instanceof TilePump) return true;
-		this.pump = ForgeDirection.UNKNOWN;
-		return false;
-	}
-
-	boolean searchPump() {
-		int pX, pY, pZ;
-		TileEntity te;
-		for (ForgeDirection fd : ForgeDirection.VALID_DIRECTIONS) {
-			pX = this.xCoord;
-			pY = this.yCoord;
-			pZ = this.zCoord;
-			switch (fd) {
-			case UP:
-				pY++;
-				break;
-			case DOWN:
-				pY--;
-				break;
-			case SOUTH:
-				pZ++;
-				break;
-			case NORTH:
-				pZ--;
-				break;
-			case EAST:
-				pX++;
-				break;
-			case WEST:
-				pX--;
-				break;
-			default:
-			}
-			te = this.worldObj.getBlockTileEntity(pX, pY, pZ);
-			if (te instanceof TilePump && ((TilePump) te).connect(fd.getOpposite())) {
-				this.pump = fd;
-				return true;
-			}
-		}
-		this.pump = ForgeDirection.UNKNOWN;
-		return false;
+		if (te instanceof TilePump && this.pump != fd) return false;
+		this.pump = fd;
+		return true;
 	}
 
 	protected float blockHardness(int x, int y, int z) {
