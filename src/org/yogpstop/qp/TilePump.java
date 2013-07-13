@@ -24,7 +24,6 @@ import net.minecraftforge.liquids.LiquidContainerRegistry;
 import net.minecraftforge.liquids.LiquidStack;
 
 public class TilePump extends APacketTile implements ITankContainer {
-	private final HashMap<Integer, Integer> liquids = new HashMap<Integer, Integer>();
 	private ForgeDirection connectTo = ForgeDirection.UNKNOWN;
 	private boolean initialized = false;
 
@@ -83,7 +82,7 @@ public class TilePump extends APacketTile implements ITankContainer {
 
 	@Override
 	public LiquidStack drain(ForgeDirection from, int maxDrain, boolean doDrain) {
-		return null;
+		return InfVolatLiquidTank.get(from).drain(maxDrain, doDrain);
 	}
 
 	@Override
@@ -92,13 +91,13 @@ public class TilePump extends APacketTile implements ITankContainer {
 	}
 
 	@Override
-	public ILiquidTank[] getTanks(ForgeDirection direction) {
-		return null;
+	public ILiquidTank[] getTanks(ForgeDirection fd) {
+		return new ILiquidTank[] { InfVolatLiquidTank.get(fd) };
 	}
 
 	@Override
-	public ILiquidTank getTank(ForgeDirection direction, LiquidStack type) {
-		return null;
+	public ILiquidTank getTank(ForgeDirection fd, LiquidStack type) {
+		return InfVolatLiquidTank.get(fd);
 	}
 
 	@Override
@@ -313,10 +312,8 @@ public class TilePump extends APacketTile implements ITankContainer {
 		this.currentHeight++;
 		float p = (float) (block_count * BP / Math.pow(CE, this.efficiency));
 		if (pp.useEnergy(p, p, true) == p) {
-			for (Integer key : cacheLiquids.keySet()) {
-				if (!this.liquids.containsKey(key)) this.liquids.put(key, 0);
-				this.liquids.put(key, this.liquids.get(key) + cacheLiquids.get(key));
-			}
+			for (Integer key : cacheLiquids.keySet())
+				InfVolatLiquidTank.fill(key, cacheLiquids.get(key));
 			for (bx = 0; bx < this.block_side; bx++) {
 				for (bz = 0; bz < this.block_side; bz++) {
 					if (this.blocks[this.currentHeight - this.yOffset][bx][bz]) {
