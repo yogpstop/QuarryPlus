@@ -7,12 +7,14 @@ import com.google.common.io.ByteArrayDataInput;
 import buildcraft.api.power.IPowerProvider;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockStationary;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 import net.minecraftforge.common.ForgeDirection;
 import net.minecraftforge.liquids.ILiquid;
@@ -30,7 +32,9 @@ public class TilePump extends APacketTile implements ITankContainer {
 	private ForgeDirection connectTo = ForgeDirection.UNKNOWN;
 	private boolean initialized = false;
 	private boolean[][][] blocks;
-	private int Xoffset, Zoffset, currentHeight = Integer.MIN_VALUE;
+	private int[][][] bidl;
+	private int[][][] metal;
+	private int cXoffset, cYoffset, cZoffset, currentHeight = Integer.MIN_VALUE;
 	private int cx, cy = -1, cz;
 	private byte prev = (byte) ForgeDirection.UNKNOWN.ordinal();
 
@@ -72,48 +76,52 @@ public class TilePump extends APacketTile implements ITankContainer {
 	}
 
 	boolean working() {
-		return this.currentHeight >= this.cy;
+		return this.currentHeight >= 0;
 	}
 
 	private void searchLiquid(int x, int y, int z, int range) {
-		this.currentHeight = 255;
+		int chunk_side = (1 + range * 2);
+		int block_side = chunk_side * CHUNK_SCALE;
 		this.cx = x;
 		this.cy = y;
 		this.cz = z;
-		int blocks_l = CHUNK_SCALE * (1 + range * 2);
-		int[][][] list = new int[Y_SIZE][blocks_l][blocks_l];
-		this.blocks = new boolean[Y_SIZE][blocks_l][blocks_l];
-		this.Xoffset = ((x >> 4) - range) << 4;
-		this.Zoffset = ((z >> 4) - range) << 4;
-		int bid, tx, ty, tz;
-		int depth = 1;
-		boolean checked = false;
-		list[y][x - this.Xoffset][z - this.Zoffset] = depth;
-		this.blocks[y][x - this.Xoffset][z - this.Zoffset] = true;
-		while (true) {
-			depth++;
-			for (ty = 0; ty < Y_SIZE; ty++) {
-				for (tx = 0; tx < blocks_l; tx++) {
-					for (tz = 0; tz < blocks_l; tz++) {
-						if (list[ty][tx][tz] == depth - 1) {
-							bid = this.worldObj.getBlockId(tx + this.Xoffset, ty, tz + this.Zoffset);
-							if (Block.blocksList[bid] instanceof ILiquid || bid == Block.waterStill.blockID || bid == Block.lavaStill.blockID
-									|| bid == Block.waterMoving.blockID || bid == Block.lavaMoving.blockID) {
-								if (tx > 0 && list[ty][tx - 1][tz] == 0) list[ty][tx - 1][tz] = depth;
-								if (tx + 1 < blocks_l && list[ty][tx + 1][tz] == 0) list[ty][tx + 1][tz] = depth;
-								if (tz > 0 && list[ty][tx][tz - 1] == 0) list[ty][tx][tz - 1] = depth;
-								if (tz + 1 < blocks_l && list[ty][tx][tz + 1] == 0) list[ty][tx][tz + 1] = depth;
-								if (ty > 0 && list[ty - 1][tx][tz] == 0) list[ty - 1][tx][tz] = depth;
-								if (ty + 1 < Y_SIZE && list[ty + 1][tx][tz] == 0) list[ty + 1][tx][tz] = depth;
-								if (ty >= y) this.blocks[ty][tx][tz] = true;
-								checked = true;
+		this.cXoffset = (x >> 4) - range;
+		this.cYoffset = y >> 4;
+		this.cZoffset = (z >> 4) - range;
+		this.currentHeight = Y_SIZE - (this.cYoffset << 4) - 1;
+		if (this.blocks == null ? true : this.blocks.length != Y_SIZE - (this.cYoffset << 4)) {
+			this.blocks = new boolean[Y_SIZE - (this.cYoffset << 4)][block_side][block_side];
+			this.bidl = new int[Y_SIZE - (this.cYoffset << 4)][block_side][block_side];
+			this.metal = new int[Y_SIZE - (this.cYoffset << 4)][block_side][block_side];
+		}
+		ExtendedBlockStorage[] ebsa;
+		ExtendedBlockStorage ebs;
+		int kx, ky, kz, bx, by, bz, bid;
+		Block bb;
+		for (kx = 0; kx < chunk_side; kx++) {
+			for (kz = 0; kz < chunk_side; kz++) {
+				ebsa = this.worldObj.getChunkFromChunkCoords(kx + this.cXoffset, kz + this.cZoffset).getBlockStorageArray();
+				for (ky = 0; ky < (Y_SIZE >> 4) - this.cYoffset; ky++) {
+					ebs = ebsa[ky + this.cYoffset];
+					if (ebs == null) continue;
+					for (by = 0; by < CHUNK_SCALE; by++) {
+						for (bx = 0; bx < CHUNK_SCALE; bx++) {
+							for (bz = 0; bz < CHUNK_SCALE; bz++) {
+								bid = ebs.getExtBlockID(bx, by, bz);
+								bb = Block.blocksList[bid];
+								this.bidl[by | (ky << 4)][bx | (kx << 4)][bz | (kz << 4)] = bid;
+								this.metal[by | (ky << 4)][bx | (kx << 4)][bz | (kz << 4)] = ebs.getExtBlockMetadata(bx, by, bz);
+								if (bb instanceof ILiquid || (bb != null ? bb.blockMaterial.isLiquid() : false)) {
+									this.blocks[by | (ky << 4)][bx | (kx << 4)][bz | (kz << 4)] = true;
+								} else {
+									this.blocks[by | (ky << 4)][bx | (kx << 4)][bz | (kz << 4)] = false;
+								}
+
 							}
 						}
 					}
 				}
 			}
-			if (!checked) break;
-			checked = false;
 		}
 	}
 
@@ -121,14 +129,23 @@ public class TilePump extends APacketTile implements ITankContainer {
 		if (!this.worldObj.getBlockMaterial(x, y, z).isLiquid()) return true;
 		sendNowPacket();
 		if (this.cx != x || this.cy != y || this.cz != z || this.currentHeight < 0) searchLiquid(x, y, z, RANGE);
-		int tx, tz, block_count = 0;
-		int blocks_l = CHUNK_SCALE * (1 + RANGE * 2);
+		int block_count = 0;
+		int chunk_side = (1 + RANGE * 2);
+		int block_side = CHUNK_SCALE * chunk_side;
+		Block bb;
+		int bx, bz, meta, bid;
 		for (; block_count == 0; this.currentHeight--) {
 			if (this.currentHeight < 0) return false;
-			for (tx = 0; tx < blocks_l; tx++) {
-				for (tz = 0; tz < blocks_l; tz++) {
-					if (this.blocks[this.currentHeight][tx][tz]) {
-						block_count++;
+			for (bx = 0; bx < block_side; bx++) {
+				for (bz = 0; bz < block_side; bz++) {
+					if (this.blocks[this.currentHeight][bx][bz]) {
+						bid = this.bidl[this.currentHeight][bx][bz];
+						bb = Block.blocksList[bid];
+						meta = this.metal[this.currentHeight][bx][bz];
+						if ((bb instanceof ILiquid && ((ILiquid) bb).stillLiquidId() == bid && ((ILiquid) bb).stillLiquidMeta() == meta)
+								|| bb instanceof BlockStationary) {
+							block_count++;
+						}
 					}
 				}
 			}
@@ -136,37 +153,35 @@ public class TilePump extends APacketTile implements ITankContainer {
 		this.currentHeight++;
 		float p = (float) (block_count * BP / Math.pow(CE, this.efficiency));
 		if (pp.useEnergy(p, p, true) == p) {
-			int bid;
-			Block bb;
-			for (tx = 0; tx < blocks_l; tx++) {
-				for (tz = 0; tz < blocks_l; tz++) {
-					if (this.blocks[this.currentHeight][tx][tz]) {
-						bid = this.worldObj.getBlockId(tx + this.Xoffset, this.currentHeight, tz + this.Zoffset);
+			for (bx = 0; bx < block_side; bx++) {
+				for (bz = 0; bz < block_side; bz++) {
+					if (this.blocks[this.currentHeight][bx][bz]) {
+						bid = this.bidl[this.currentHeight][bx][bz];
 						bb = Block.blocksList[bid];
-						if ((bb instanceof ILiquid && ((ILiquid) bb).stillLiquidId() == bid && ((ILiquid) bb).stillLiquidMeta() == this.worldObj
-								.getBlockMetadata(tx + this.Xoffset, this.currentHeight, tz + this.Zoffset))
-								|| bid == Block.waterStill.blockID
-								|| bid == Block.lavaStill.blockID) {
+						meta = this.metal[this.currentHeight][bx][bz];
+						if ((bb instanceof ILiquid && ((ILiquid) bb).stillLiquidId() == bid && ((ILiquid) bb).stillLiquidMeta() == meta)
+								|| bb instanceof BlockStationary) {
 							if (!this.liquids.containsKey(bid)) this.liquids.put(bid, 0);
 							this.liquids.put(bid, this.liquids.get(bid) + LiquidContainerRegistry.BUCKET_VOLUME);
 						}
 					}
 				}
 			}
-			for (tx = 0; tx < blocks_l; tx++) {
-				for (tz = 0; tz < blocks_l; tz++) {
-					if (this.blocks[this.currentHeight][tx][tz]) {
-						if (this.worldObj.getBlockMaterial(tx + this.Xoffset, this.currentHeight, tz + this.Zoffset).isLiquid()) {
-							this.worldObj.setBlockToAir(tx + this.Xoffset, this.currentHeight, tz + this.Zoffset);
+			for (bx = 0; bx < block_side; bx++) {
+				for (bz = 0; bz < block_side; bz++) {
+					if (this.blocks[this.currentHeight][bx][bz]) {
+						bid = this.bidl[this.currentHeight][bx][bz];
+						bb = Block.blocksList[bid];
+						if ((bb != null ? bb.blockMaterial.isLiquid() : false) || bb instanceof ILiquid) {
+							this.worldObj.setBlockToAir(bx + (this.cXoffset << 4), this.currentHeight + (this.cYoffset << 4), bz + (this.cZoffset << 4));
 						}
-						this.blocks[this.currentHeight][tx][tz] = false;
 					}
 				}
 			}
 			this.currentHeight--;
 		}
 		sendNowPacket();
-		return this.currentHeight < y;
+		return this.currentHeight < 0;
 	}
 
 	@Override
@@ -204,7 +219,7 @@ public class TilePump extends APacketTile implements ITankContainer {
 		super.readFromNBT(nbttc);
 		this.efficiency = nbttc.getByte("efficiency");
 		this.connectTo = ForgeDirection.values()[nbttc.getByte("connectTo")];
-		if (!this.worldObj.isRemote) sendNowPacket();
+		this.prev = (byte) (this.connectTo.ordinal() | (working() ? 0x80 : 0));
 	}
 
 	@Override
@@ -249,7 +264,7 @@ public class TilePump extends APacketTile implements ITankContainer {
 			if (te instanceof TileBasic && ((TileBasic) te).connect(this.connectTo.getOpposite())) {
 				sendNowPacket();
 				this.initialized = true;
-			} else if (this.worldObj.isAirBlock(pX, pY, pZ)) {
+			} else if (this.worldObj.isAirBlock(pX, pY, pZ) || this.connectTo == ForgeDirection.UNKNOWN) {
 				this.connectTo = ForgeDirection.UNKNOWN;
 				sendNowPacket();
 				this.initialized = true;
