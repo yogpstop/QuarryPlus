@@ -75,8 +75,10 @@ public class QuarryPlus implements ITriggerProvider {
 			TileMiningWell.BP = cfg.get(Configuration.CATEGORY_GENERAL + ".MiningWell", "BasePower", 40D).getDouble(40D);
 			TileMiningWell.CF = cfg.get(Configuration.CATEGORY_GENERAL + ".MiningWell", "PowerCoefficientWithFortune", 1.3D).getDouble(1.3D);
 			TileMiningWell.CS = cfg.get(Configuration.CATEGORY_GENERAL + ".MiningWell", "PowerCoefficientWithSilktouch", 2D).getDouble(2D);
-			TilePump.CE = cfg.get(Configuration.CATEGORY_GENERAL + ".Pump", "PowerCoefficientWithEfficiency", 1.3D).getDouble(1.3D);
-			TilePump.BP = cfg.get(Configuration.CATEGORY_GENERAL + ".Pump", "BasePower", 10D).getDouble(10D);
+			TilePump.CE_R = cfg.get(Configuration.CATEGORY_GENERAL + ".Pump.RemoveLiquid", "PowerCoefficientWithEfficiency", 1.3D).getDouble(1.3D);
+			TilePump.BP_R = cfg.get(Configuration.CATEGORY_GENERAL + ".Pump.RemoveLiquid", "BasePower", 10D).getDouble(10D);
+			TilePump.CE_F = cfg.get(Configuration.CATEGORY_GENERAL + ".Pump.MakeFrame", "PowerCoefficientWithEfficiency", 1.3D).getDouble(1.3D);
+			TilePump.BP_F = cfg.get(Configuration.CATEGORY_GENERAL + ".Pump.MakeFrame", "BasePower", 25D).getDouble(25D);
 			cfg.getCategory(Configuration.CATEGORY_GENERAL)
 					.setComment(
 							"PowerCoefficientWith(EnchantName) is Coefficient with correspond enchant.\nWithEfficiency value comes reciprocal number.\nBasePower is basical using power with no enchants.");

@@ -7,7 +7,7 @@ import net.minecraftforge.liquids.LiquidStack;
 
 public class InfVolatLiquidTank implements ILiquidTank {
 	private final Map<Integer, Integer> list;
-	private int id;
+	private final int id;
 
 	InfVolatLiquidTank(int vid, Map<Integer, Integer> vlist) {
 		this.id = vid;
