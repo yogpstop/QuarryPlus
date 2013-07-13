@@ -71,36 +71,6 @@ public class TilePump extends APacketTile implements ITankContainer {
 	}
 
 	@Override
-	public int fill(ForgeDirection from, LiquidStack resource, boolean doFill) {
-		return 0;
-	}
-
-	@Override
-	public int fill(int tankIndex, LiquidStack resource, boolean doFill) {
-		return 0;
-	}
-
-	@Override
-	public LiquidStack drain(ForgeDirection from, int maxDrain, boolean doDrain) {
-		return InfVolatLiquidTank.get(from).drain(maxDrain, doDrain);
-	}
-
-	@Override
-	public LiquidStack drain(int tankIndex, int maxDrain, boolean doDrain) {
-		return null;
-	}
-
-	@Override
-	public ILiquidTank[] getTanks(ForgeDirection fd) {
-		return new ILiquidTank[] { InfVolatLiquidTank.get(fd) };
-	}
-
-	@Override
-	public ILiquidTank getTank(ForgeDirection fd, LiquidStack type) {
-		return InfVolatLiquidTank.get(fd);
-	}
-
-	@Override
 	public void readFromNBT(NBTTagCompound nbttc) {
 		super.readFromNBT(nbttc);
 		this.efficiency = nbttc.getByte("efficiency");
@@ -312,8 +282,10 @@ public class TilePump extends APacketTile implements ITankContainer {
 		this.currentHeight++;
 		float p = (float) (block_count * BP / Math.pow(CE, this.efficiency));
 		if (pp.useEnergy(p, p, true) == p) {
-			for (Integer key : cacheLiquids.keySet())
-				InfVolatLiquidTank.fill(key, cacheLiquids.get(key));
+			for (Integer key : cacheLiquids.keySet()) {
+				if (!liquids.containsKey(key)) liquids.put(key, 0);
+				liquids.put(key, liquids.get(key) + cacheLiquids.get(key));
+			}
 			for (bx = 0; bx < this.block_side; bx++) {
 				for (bz = 0; bz < this.block_side; bz++) {
 					if (this.blocks[this.currentHeight - this.yOffset][bx][bz]) {
@@ -329,5 +301,41 @@ public class TilePump extends APacketTile implements ITankContainer {
 		}
 		sendNowPacket();
 		return this.currentHeight < this.cy;
+	}
+
+	// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	private static final HashMap<Integer, Integer> liquids = new HashMap<Integer, Integer>();
+	static final int[] mapping = new int[ForgeDirection.VALID_DIRECTIONS.length];
+
+	@Override
+	public int fill(ForgeDirection from, LiquidStack resource, boolean doFill) {
+		return 0;
+	}
+
+	@Override
+	public int fill(int tankIndex, LiquidStack resource, boolean doFill) {
+		return 0;
+	}
+
+	@Override
+	public LiquidStack drain(ForgeDirection from, int maxDrain, boolean doDrain) {
+		return getTank(from, null).drain(maxDrain, doDrain);
+	}
+
+	@Override
+	public LiquidStack drain(int tankIndex, int maxDrain, boolean doDrain) {
+		return null;
+	}
+
+	@Override
+	public ILiquidTank[] getTanks(ForgeDirection fd) {
+		return new ILiquidTank[] { getTank(fd, null) };
+	}
+
+	@Override
+	public ILiquidTank getTank(ForgeDirection fd, LiquidStack type) {
+		if (fd.ordinal() < 0 || fd.ordinal() > ForgeDirection.VALID_DIRECTIONS.length || !liquids.containsKey(mapping[fd.ordinal()])) return null;
+		return new InfVolatLiquidTank(liquids.get(mapping[fd.ordinal()]), liquids);
 	}
 }
