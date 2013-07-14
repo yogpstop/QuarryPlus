@@ -187,7 +187,7 @@ public class PacketHandler implements IPacketHandler {
 		PacketDispatcher.sendPacketToPlayer(composeTilePacket(bos), (Player) ep);
 	}
 
-	static void sendPacketToPlayer(APacketTile te, EntityPlayer ep, byte id, int[] value, Map<Integer, Integer> map) {
+	static void sendPacketToPlayer(APacketTile te, EntityPlayer ep, byte id, long[] value, Map<Long, InfVolatLiquidTank> map) {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		DataOutputStream dos = new DataOutputStream(bos);
 		try {
@@ -196,12 +196,12 @@ public class PacketHandler implements IPacketHandler {
 			dos.writeInt(te.zCoord);
 			dos.writeByte(id);
 			dos.writeInt(value.length);
-			for (int l : value)
-				dos.writeInt(l);
+			for (long l : value)
+				dos.writeLong(l);
 			dos.writeInt(map.size());
-			for (Integer key : map.keySet()) {
-				dos.writeInt(key);
-				dos.writeInt(map.get(key));
+			for (Long key : map.keySet()) {
+				dos.writeLong(key);
+				dos.writeInt(map.get(key).ls.amount);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

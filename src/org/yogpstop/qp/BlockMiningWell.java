@@ -111,7 +111,6 @@ public class BlockMiningWell extends BlockContainer {
 
 	@Override
 	public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer ep, int side, float par7, float par8, float par9) {
-		if (ep.isSneaking()) return false;
 		Item equipped = ep.getCurrentEquippedItem() != null ? ep.getCurrentEquippedItem().getItem() : null;
 		if (equipped instanceof IToolWrench && ((IToolWrench) equipped).canWrench(ep, x, y, z)) {
 			((TileMiningWell) world.getBlockTileEntity(x, y, z)).reinit();

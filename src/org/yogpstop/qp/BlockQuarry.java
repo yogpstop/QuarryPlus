@@ -131,7 +131,6 @@ public class BlockQuarry extends BlockContainer {
 
 	@Override
 	public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer ep, int par6, float par7, float par8, float par9) {
-		if (ep.isSneaking()) return false;
 		Item equipped = ep.getCurrentEquippedItem() != null ? ep.getCurrentEquippedItem().getItem() : null;
 		if (equipped instanceof IToolWrench && ((IToolWrench) equipped).canWrench(ep, x, y, z)) {
 			((TileQuarry) world.getBlockTileEntity(x, y, z)).reinit();

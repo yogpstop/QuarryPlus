@@ -102,7 +102,6 @@ public class BlockPump extends BlockContainer {
 
 	@Override
 	public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer ep, int par6, float par7, float par8, float par9) {
-		if (ep.isSneaking()) return false;
 		if (world.isRemote) return true;
 		PacketHandler.sendTilePacketToServer((APacketTile) world.getBlockTileEntity(x, y, z), PacketHandler.Liquid_l);
 		ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdPump, world, x, y, z);

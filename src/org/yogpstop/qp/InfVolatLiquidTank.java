@@ -1,22 +1,18 @@
 package org.yogpstop.qp;
 
-import java.util.Map;
-
 import net.minecraftforge.liquids.ILiquidTank;
 import net.minecraftforge.liquids.LiquidStack;
 
 public class InfVolatLiquidTank implements ILiquidTank {
-	private final Map<Integer, Integer> list;
-	private final int id;
+	final LiquidStack ls;
 
-	InfVolatLiquidTank(int vid, Map<Integer, Integer> vlist) {
-		this.id = vid;
-		this.list = vlist;
+	InfVolatLiquidTank(LiquidStack vls) {
+		this.ls = vls;
 	}
 
 	@Override
 	public LiquidStack getLiquid() {
-		return new LiquidStack(this.id, this.list.containsKey(this.id) ? this.list.get(this.id) : 0);
+		return this.ls;
 	}
 
 	@Override
@@ -31,10 +27,10 @@ public class InfVolatLiquidTank implements ILiquidTank {
 
 	@Override
 	public LiquidStack drain(int maxDrain, boolean doDrain) {
-		int amount = Math.min(maxDrain, this.list.containsKey(this.id) ? this.list.get(this.id) : 0);
+		int amount = Math.min(maxDrain, this.ls.amount);
 		if (amount == 0) return null;
-		if (doDrain) this.list.put(this.id, this.list.get(this.id) - amount);
-		return new LiquidStack(this.id, amount);
+		if (doDrain) this.ls.amount -= amount;
+		return new LiquidStack(this.ls.itemID, amount, this.ls.itemMeta, this.ls.extra);
 	}
 
 	@Override

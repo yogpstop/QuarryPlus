@@ -3,64 +3,109 @@ package org.yogpstop.qp;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-import buildcraft.BuildCraftCore;
-import buildcraft.builders.BuildersProxy;
+import static buildcraft.BuildCraftCore.markerModel;
 import static buildcraft.core.CreativeTabBuildCraft.tabBuildCraft;
-import buildcraft.core.utils.Utils;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockContainer;
+import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IconRegister;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.util.Vec3;
+import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
-public class BlockMarker extends BlockContainer {
+import net.minecraftforge.common.ForgeDirection;
+
+public class BlockMarker extends Block implements ITileEntityProvider {
 
 	public BlockMarker(int i) {
 		super(i, Material.circuits);
-
 		setLightValue(0.5F);
 		setCreativeTab(tabBuildCraft);
 		setUnlocalizedName("MarkerPlus");
-	}
-
-	@Override
-	@SideOnly(Side.CLIENT)
-	public AxisAlignedBB getSelectedBoundingBoxFromPool(World world, int i, int j, int k) {
-		int meta = world.getBlockMetadata(i, j, k);
-
-		double w = 0.15;
-		double h = 0.65;
-
-		switch (meta) {
-		case 0:
-			return AxisAlignedBB.getBoundingBox(i + 0.5 - w, j + 1 - h, k + 0.5 - w, i + 0.5 + w, j + 1, k + 0.5 + w);
-		case 5:
-			return AxisAlignedBB.getBoundingBox(i + 0.5 - w, j, k + 0.5 - w, i + 0.5 + w, j + h, k + 0.5 + w);
-		case 3:
-			return AxisAlignedBB.getBoundingBox(i + 0.5 - w, j + 0.5 - w, k, i + 0.5 + w, j + 0.5 + w, k + h);
-		case 4:
-			return AxisAlignedBB.getBoundingBox(i + 0.5 - w, j + 0.5 - w, k + 1 - h, i + 0.5 + w, j + 0.5 + w, k + 1);
-		case 1:
-			return AxisAlignedBB.getBoundingBox(i, j + 0.5 - w, k + 0.5 - w, i + h, j + 0.5 + w, k + 0.5 + w);
-		default:
-			return AxisAlignedBB.getBoundingBox(i + 1 - h, j + 0.5 - w, k + 0.5 - w, i + 1, j + 0.5 + w, k + 0.5 + w);
-		}
+		this.isBlockContainer = true;
 	}
 
 	@Override
 	public int getRenderType() {
-		return BuildCraftCore.markerModel;
+		return markerModel;
 	}
 
-	/*
-	 * public boolean isACube() { return false; }
-	 */
+	private static AxisAlignedBB getBoundingBox(int meta) {
+		double w = 0.15;
+		double h = 0.65;
+
+		ForgeDirection dir = ForgeDirection.getOrientation(meta);
+		switch (dir) {
+		case DOWN:
+			return AxisAlignedBB.getAABBPool().getAABB(0.5F - w, 1F - h, 0.5F - w, 0.5F + w, 1F, 0.5F + w);
+		case UP:
+			return AxisAlignedBB.getAABBPool().getAABB(0.5F - w, 0F, 0.5F - w, 0.5F + w, h, 0.5F + w);
+		case SOUTH:
+			return AxisAlignedBB.getAABBPool().getAABB(0.5F - w, 0.5F - w, 0F, 0.5F + w, 0.5F + w, h);
+		case NORTH:
+			return AxisAlignedBB.getAABBPool().getAABB(0.5F - w, 0.5F - w, 1 - h, 0.5F + w, 0.5F + w, 1);
+		case EAST:
+			return AxisAlignedBB.getAABBPool().getAABB(0F, 0.5F - w, 0.5F - w, h, 0.5F + w, 0.5F + w);
+		default:
+			return AxisAlignedBB.getAABBPool().getAABB(1 - h, 0.5F - w, 0.5F - w, 1F, 0.5F + w, 0.5F + w);
+		}
+	}
+
+	@Override
+	public void setBlockBoundsBasedOnState(IBlockAccess world, int x, int y, int z) {
+		int meta = world.getBlockMetadata(x, y, z);
+		AxisAlignedBB bb = getBoundingBox(meta);
+		setBlockBounds((float) bb.minX, (float) bb.minY, (float) bb.minZ, (float) bb.maxX, (float) bb.maxY, (float) bb.maxZ);
+	}
+
+	@Override
+	public AxisAlignedBB getCollisionBoundingBoxFromPool(World world, int i, int j, int k) {
+		return null;
+	}
+
+	@Override
+	public boolean isOpaqueCube() {
+		return false;
+	}
+
+	@Override
+	public boolean renderAsNormalBlock() {
+		return false;
+	}
+
+	@Override
+	public void onNeighborBlockChange(World world, int x, int y, int z, int blockId) {
+		((TileMarker) world.getBlockTileEntity(x, y, z)).updateSignals();
+		dropTorchIfCantStay(world, x, y, z);
+	}
+
+	@Override
+	public boolean canPlaceBlockOnSide(World world, int x, int y, int z, int side) {
+		ForgeDirection dir = ForgeDirection.getOrientation(side);
+		return world.isBlockSolidOnSide(x - dir.offsetX, y - dir.offsetY, z - dir.offsetZ, dir.getOpposite());
+	}
+
+	@Override
+	public int onBlockPlaced(World world, int x, int y, int z, int side, float par6, float par7, float par8, int meta) {
+		return side;
+	}
+
+	@Override
+	public void onBlockAdded(World world, int x, int y, int z) {
+		super.onBlockAdded(world, x, y, z);
+		dropTorchIfCantStay(world, x, y, z);
+	}
+
+	private void dropTorchIfCantStay(World world, int x, int y, int z) {
+		int meta = world.getBlockMetadata(x, y, z);
+		if (!canPlaceBlockOnSide(world, x, y, z, meta)) {
+			dropBlockAsItem(world, x, y, z, this.blockID, 0);
+			world.setBlock(x, y, z, 0);
+		}
+	}
 
 	@Override
 	public TileEntity createNewTileEntity(World var1) {
@@ -75,132 +120,21 @@ public class BlockMarker extends BlockContainer {
 
 	@Override
 	public void breakBlock(World world, int x, int y, int z, int par5, int par6) {
-		Utils.preDestroyBlock(world, x, y, z);
+		((TileMarker) world.getBlockTileEntity(x, y, z)).destroy();
+		world.removeBlockTileEntity(x, y, z);
 		super.breakBlock(world, x, y, z, par5, par6);
-	}
-
-	@Override
-	public AxisAlignedBB getCollisionBoundingBoxFromPool(World world, int i, int j, int k) {
-		return null;
-	}
-
-	@Override
-	public boolean isOpaqueCube() {
-		return Block.torchWood.isOpaqueCube();
-	}
-
-	@Override
-	public boolean renderAsNormalBlock() {
-		return false;
-	}
-
-	@Override
-	public void onNeighborBlockChange(World world, int i, int j, int k, int l) {
-		((TileMarker) world.getBlockTileEntity(i, j, k)).updateSignals();
-
-		if (dropTorchIfCantStay(world, i, j, k)) {
-			int i1 = world.getBlockMetadata(i, j, k);
-			boolean flag = false;
-			if (!BuildersProxy.canPlaceTorch(world, i - 1, j, k) && i1 == 1) {
-				flag = true;
-			}
-			if (!BuildersProxy.canPlaceTorch(world, i + 1, j, k) && i1 == 2) {
-				flag = true;
-			}
-			if (!BuildersProxy.canPlaceTorch(world, i, j, k - 1) && i1 == 3) {
-				flag = true;
-			}
-			if (!BuildersProxy.canPlaceTorch(world, i, j, k + 1) && i1 == 4) {
-				flag = true;
-			}
-			if (!BuildersProxy.canPlaceTorch(world, i, j - 1, k) && i1 == 5) {
-				flag = true;
-			}
-			if (!BuildersProxy.canPlaceTorch(world, i, j + 1, k) && i1 == 0) {
-				flag = true;
-			}
-			if (flag) {
-				dropBlockAsItem(world, i, j, k, QuarryPlus.blockMarker.blockID, 0);
-				world.setBlock(i, j, k, 0);
-			}
-		}
-	}
-
-	@Override
-	public MovingObjectPosition collisionRayTrace(World world, int i, int j, int k, Vec3 vec3d, Vec3 vec3d1) {
-		return Block.torchWood.collisionRayTrace(world, i, j, k, vec3d, vec3d1);
-	}
-
-	@Override
-	public boolean canPlaceBlockAt(World world, int i, int j, int k) {
-		if (BuildersProxy.canPlaceTorch(world, i - 1, j, k)) return true;
-		if (BuildersProxy.canPlaceTorch(world, i + 1, j, k)) return true;
-		if (BuildersProxy.canPlaceTorch(world, i, j, k - 1)) return true;
-		if (BuildersProxy.canPlaceTorch(world, i, j, k + 1)) return true;
-		if (BuildersProxy.canPlaceTorch(world, i, j - 1, k)) return true;
-
-		return BuildersProxy.canPlaceTorch(world, i, j + 1, k);
-	}
-
-	@Override
-	public int onBlockPlaced(World world, int x, int y, int z, int side, float par6, float par7, float par8, int meta) {
-		super.onBlockPlaced(world, x, y, z, side, par6, par7, par8, meta);
-
-		if (side == 1 && BuildersProxy.canPlaceTorch(world, x, y - 1, z)) {
-			meta = 5;
-		}
-		if (side == 2 && BuildersProxy.canPlaceTorch(world, x, y, z + 1)) {
-			meta = 4;
-		}
-		if (side == 3 && BuildersProxy.canPlaceTorch(world, x, y, z - 1)) {
-			meta = 3;
-		}
-		if (side == 4 && BuildersProxy.canPlaceTorch(world, x + 1, y, z)) {
-			meta = 2;
-		}
-		if (side == 5 && BuildersProxy.canPlaceTorch(world, x - 1, y, z)) {
-			meta = 1;
-		}
-		if (side == 0 && BuildersProxy.canPlaceTorch(world, x, y + 1, z)) {
-			meta = 0;
-		}
-
-		return meta;
-	}
-
-	@Override
-	public void onBlockAdded(World world, int i, int j, int k) {
-		super.onBlockAdded(world, i, j, k);
-
-		if (BuildersProxy.canPlaceTorch(world, i - 1, j, k)) {
-			world.setBlockMetadataWithNotify(i, j, k, 1, 1);
-		} else if (BuildersProxy.canPlaceTorch(world, i + 1, j, k)) {
-			world.setBlockMetadataWithNotify(i, j, k, 2, 1);
-		} else if (BuildersProxy.canPlaceTorch(world, i, j, k - 1)) {
-			world.setBlockMetadataWithNotify(i, j, k, 3, 1);
-		} else if (BuildersProxy.canPlaceTorch(world, i, j, k + 1)) {
-			world.setBlockMetadataWithNotify(i, j, k, 4, 1);
-		} else if (BuildersProxy.canPlaceTorch(world, i, j - 1, k)) {
-			world.setBlockMetadataWithNotify(i, j, k, 5, 1);
-		} else if (BuildersProxy.canPlaceTorch(world, i, j + 1, k)) {
-			world.setBlockMetadataWithNotify(i, j, k, 0, 1);
-		}
-
-		dropTorchIfCantStay(world, i, j, k);
-	}
-
-	private boolean dropTorchIfCantStay(World world, int i, int j, int k) {
-		if (!canPlaceBlockAt(world, i, j, k)) {
-			dropBlockAsItem(world, i, j, k, QuarryPlus.blockMarker.blockID, 0);
-			world.setBlock(i, j, k, 0);
-			return false;
-		}
-		return true;
 	}
 
 	@Override
 	@SideOnly(Side.CLIENT)
 	public void registerIcons(IconRegister par1IconRegister) {
 		this.blockIcon = par1IconRegister.registerIcon("yogpstop/quarryplus:marker");
+	}
+
+	@Override
+	public boolean onBlockEventReceived(World par1World, int par2, int par3, int par4, int par5, int par6) {
+		super.onBlockEventReceived(par1World, par2, par3, par4, par5, par6);
+		TileEntity tileentity = par1World.getBlockTileEntity(par2, par3, par4);
+		return tileentity != null ? tileentity.receiveClientEvent(par5, par6) : false;
 	}
 }

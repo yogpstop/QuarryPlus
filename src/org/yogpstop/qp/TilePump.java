@@ -5,13 +5,14 @@ import java.util.Map;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 
+import org.yogpstop.Inline;
+
 import com.google.common.io.ByteArrayDataInput;
 
 import buildcraft.BuildCraftFactory;
 import buildcraft.api.power.IPowerProvider;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockStationary;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -82,8 +83,12 @@ public class TilePump extends APacketTile implements ITankContainer {
 		super.readFromNBT(nbttc);
 		this.efficiency = nbttc.getByte("efficiency");
 		this.connectTo = ForgeDirection.values()[nbttc.getByte("connectTo")];
-		this.mapping = nbttc.getIntArray("mapping");
-		if (this.mapping.length == 0) this.mapping = new int[ForgeDirection.VALID_DIRECTIONS.length];
+		this.mapping[0] = nbttc.getLong("mapping0");
+		this.mapping[1] = nbttc.getLong("mapping1");
+		this.mapping[2] = nbttc.getLong("mapping2");
+		this.mapping[3] = nbttc.getLong("mapping3");
+		this.mapping[4] = nbttc.getLong("mapping4");
+		this.mapping[5] = nbttc.getLong("mapping5");
 		this.prev = (byte) (this.connectTo.ordinal() | (working() ? 0x80 : 0));
 	}
 
@@ -92,7 +97,12 @@ public class TilePump extends APacketTile implements ITankContainer {
 		super.writeToNBT(nbttc);
 		nbttc.setByte("efficiency", this.efficiency);
 		nbttc.setByte("connectTo", (byte) this.connectTo.ordinal());
-		nbttc.setIntArray("mapping", this.mapping);
+		nbttc.setLong("mapping0", this.mapping[0]);
+		nbttc.setLong("mapping1", this.mapping[1]);
+		nbttc.setLong("mapping2", this.mapping[2]);
+		nbttc.setLong("mapping3", this.mapping[3]);
+		nbttc.setLong("mapping4", this.mapping[4]);
+		nbttc.setLong("mapping5", this.mapping[5]);
 	}
 
 	@Override
@@ -233,12 +243,15 @@ public class TilePump extends APacketTile implements ITankContainer {
 		case PacketHandler.Liquid_l:
 			if (this.mapping.length != data.readInt()) break;
 			for (int i = 0; i < this.mapping.length; i++)
-				this.mapping[i] = data.readInt();
+				this.mapping[i] = data.readLong();
 			this.liquids.clear();
 			{
 				int length = data.readInt();
-				for (int i = 0; i < length; i++)
-					this.liquids.put(data.readInt(), data.readInt());
+				long dat;
+				for (int i = 0; i < length; i++) {
+					dat = data.readLong();
+					this.liquids.put(dat, new InfVolatLiquidTank(new LiquidStack((int) (dat & 0xFFFFFFFF), data.readInt(), (int) (dat >> 32))));
+				}
 			}
 		}
 	}
@@ -253,59 +266,32 @@ public class TilePump extends APacketTile implements ITankContainer {
 	private int xOffset, yOffset, zOffset, currentHeight = Integer.MIN_VALUE;
 	private int cx, cy = -1, cz;
 
-	private Block b_c;
-	private ExtendedBlockStorage ebs_c;
 	private int block_side;
 
 	private static final int ARRAY_MAX = 0x1FFFF;
 	private static final int[] xb = new int[ARRAY_MAX];
 	private static final int[] yb = new int[ARRAY_MAX];
 	private static final int[] zb = new int[ARRAY_MAX];
-	private static int currentPut = 0, currentGet = 0;
+	private static int cp = 0, cg = 0;
 	private int count;
 
 	private static void put(int x, int y, int z) {
-		xb[currentPut] = x;
-		yb[currentPut] = y;
-		zb[currentPut] = z;
-		currentPut++;
-		if (currentPut == ARRAY_MAX) currentPut = 0;
-	}
-
-	private void setTargetRepeating() {
-		while (currentPut != currentGet) {
-			this.ebs_c = this.ebses[xb[currentGet] >> 4][zb[currentGet] >> 4][yb[currentGet] >> 4];
-			if (this.ebs_c == null) return;
-			this.b_c = Block.blocksList[this.ebs_c.getExtBlockID(xb[currentGet] & 0xF, yb[currentGet] & 0xF, zb[currentGet] & 0xF)];
-			if (this.blocks[yb[currentGet] - this.yOffset][xb[currentGet]][zb[currentGet]] == 0
-					&& (this.b_c instanceof ILiquid || (this.b_c != null ? this.b_c.blockMaterial.isLiquid() : false))) {
-				this.blocks[yb[currentGet] - this.yOffset][xb[currentGet]][zb[currentGet]] = 0x3F;
-				if (0 < xb[currentGet]) put(xb[currentGet] - 1, yb[currentGet], zb[currentGet]);
-				else this.blocks[yb[currentGet] - this.yOffset][xb[currentGet]][zb[currentGet]] = 0x7F;
-				if (xb[currentGet] < this.block_side - 1) put(xb[currentGet] + 1, yb[currentGet], zb[currentGet]);
-				else this.blocks[yb[currentGet] - this.yOffset][xb[currentGet]][zb[currentGet]] = 0x7F;
-				if (0 < zb[currentGet]) put(xb[currentGet], yb[currentGet], zb[currentGet] - 1);
-				else this.blocks[yb[currentGet] - this.yOffset][xb[currentGet]][zb[currentGet]] = 0x7F;
-				if (zb[currentGet] < this.block_side - 1) put(xb[currentGet], yb[currentGet], zb[currentGet] + 1);
-				else this.blocks[yb[currentGet] - this.yOffset][xb[currentGet]][zb[currentGet]] = 0x7F;
-				if (yb[currentGet] + 1 < Y_SIZE) put(xb[currentGet], yb[currentGet] + 1, zb[currentGet]);
-			}
-			currentGet++;
-			if (currentGet == ARRAY_MAX) currentGet = 0;
-		}
-		currentPut = 0;
-		currentGet = 0;
+		xb[cp] = x;
+		yb[cp] = y;
+		zb[cp] = z;
+		cp++;
+		if (cp == ARRAY_MAX) cp = 0;
 	}
 
 	private void searchLiquid(int x, int y, int z, int rg) {
-		this.count = 0;
+		this.count = cp = cg = 0;
 		int chunk_side = (1 + rg * 2);
 		this.block_side = chunk_side * CHUNK_SCALE;
 		this.cx = x;
 		this.cy = y;
 		this.cz = z;
 		this.xOffset = ((x >> 4) - rg) << 4;
-		this.yOffset = (y >> 4) << 4;
+		this.yOffset = y & 0xFFFFFFF0;
 		this.zOffset = ((z >> 4) - rg) << 4;
 		this.currentHeight = Y_SIZE - 1;
 		this.blocks = new byte[Y_SIZE - this.yOffset][this.block_side][this.block_side];
@@ -317,19 +303,39 @@ public class TilePump extends APacketTile implements ITankContainer {
 			}
 		}
 		put(x - this.xOffset, y, z - this.zOffset);
-		setTargetRepeating();
+		Block b_c;
+		ExtendedBlockStorage ebs_c;
+		while (cp != cg) {
+			ebs_c = this.ebses[xb[cg] >> 4][zb[cg] >> 4][yb[cg] >> 4];
+			if (ebs_c == null) return;
+			b_c = Block.blocksList[ebs_c.getExtBlockID(xb[cg] & 0xF, yb[cg] & 0xF, zb[cg] & 0xF)];
+			if (this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] == 0 && Inline.isLiquid(b_c)) {
+				this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] = 0x3F;
+				if (0 < xb[cg]) put(xb[cg] - 1, yb[cg], zb[cg]);
+				else this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] = 0x7F;
+				if (xb[cg] < this.block_side - 1) put(xb[cg] + 1, yb[cg], zb[cg]);
+				else this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] = 0x7F;
+				if (0 < zb[cg]) put(xb[cg], yb[cg], zb[cg] - 1);
+				else this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] = 0x7F;
+				if (zb[cg] < this.block_side - 1) put(xb[cg], yb[cg], zb[cg] + 1);
+				else this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] = 0x7F;
+				if (yb[cg] + 1 < Y_SIZE) put(xb[cg], yb[cg] + 1, zb[cg]);
+			}
+			cg++;
+			if (cg == ARRAY_MAX) cg = 0;
+		}
 	}
 
 	boolean removeLiquids(IPowerProvider pp, int x, int y, int z) {
 		if (!this.worldObj.getBlockMaterial(x, y, z).isLiquid()) return true;
 		sendNowPacket();
 		this.count++;
-		if (this.cx != x || this.cy != y || this.cz != z || this.currentHeight < this.cy || this.count > 100) searchLiquid(x, y, z, RANGE);
+		if (this.cx != x || this.cy != y || this.cz != z || this.currentHeight < this.cy || this.count > 200) searchLiquid(x, y, z, RANGE);
 		int block_count = 0;
 		int frame_count = 0;
 		Block bb;
 		int bx, bz, meta, bid;
-		Map<Integer, Integer> cacheLiquids = new HashMap<Integer, Integer>();
+		Map<Long, Integer> cacheLiquids = new HashMap<Long, Integer>();
 		for (; block_count == 0; this.currentHeight--) {
 			if (this.currentHeight < this.cy) return false;
 			for (bx = 0; bx < this.block_side; bx++) {
@@ -341,13 +347,16 @@ public class TilePump extends APacketTile implements ITankContainer {
 						bid = this.ebses[bx >> 4][bz >> 4][this.currentHeight >> 4].getExtBlockID(bx & 0xF, this.currentHeight & 0xF, bz & 0xF);
 						bb = Block.blocksList[bid];
 						meta = this.ebses[bx >> 4][bz >> 4][this.currentHeight >> 4].getExtBlockMetadata(bx & 0xF, this.currentHeight & 0xF, bz & 0xF);
-						if ((bb != null ? bb.blockMaterial.isLiquid() : false) || bb instanceof ILiquid) {
+						if (Inline.isLiquid(bb)) {
 							block_count++;
-						}
-						if ((bb instanceof ILiquid && ((ILiquid) bb).stillLiquidId() == bid && ((ILiquid) bb).stillLiquidMeta() == meta)
-								|| bb instanceof BlockStationary) {
-							if (!cacheLiquids.containsKey(bid)) cacheLiquids.put(bid, 0);
-							cacheLiquids.put(bid, cacheLiquids.get(bid) + LiquidContainerRegistry.BUCKET_VOLUME);
+							if (bb instanceof ILiquid && ((ILiquid) bb).stillLiquidMeta() == meta) {
+								long key = bid | (meta << 32);
+								if (!cacheLiquids.containsKey(bid)) cacheLiquids.put(key, 0);
+								cacheLiquids.put((long) bid, cacheLiquids.get(bid) + LiquidContainerRegistry.BUCKET_VOLUME);
+							} else if (meta == 0) {
+								if (!cacheLiquids.containsKey(bid)) cacheLiquids.put((long) bid, 0);
+								cacheLiquids.put((long) bid, cacheLiquids.get(bid) + LiquidContainerRegistry.BUCKET_VOLUME);
+							}
 						}
 					}
 				}
@@ -356,16 +365,17 @@ public class TilePump extends APacketTile implements ITankContainer {
 		this.currentHeight++;
 		float p = (float) (block_count * BP_R / Math.pow(CE_R, this.efficiency) + frame_count * BP_F / Math.pow(CE_F, this.efficiency));
 		if (pp.useEnergy(p, p, true) == p) {
-			for (Integer key : cacheLiquids.keySet()) {
-				if (!this.liquids.containsKey(key)) this.liquids.put(key, 0);
-				this.liquids.put(key, this.liquids.get(key) + cacheLiquids.get(key));
+			for (Long key : cacheLiquids.keySet()) {
+				if (!this.liquids.containsKey(key)) this.liquids.put(key, new InfVolatLiquidTank(
+						new LiquidStack((int) (key & 0xFFFFFFFF), 0, (int) (key >> 32))));
+				this.liquids.get(key).ls.amount += cacheLiquids.get(key);
 			}
 			for (bx = 0; bx < this.block_side; bx++) {
 				for (bz = 0; bz < this.block_side; bz++) {
 					if (this.blocks[this.currentHeight - this.yOffset][bx][bz] != 0) {
 						bid = this.ebses[bx >> 4][bz >> 4][this.currentHeight >> 4].getExtBlockID(bx & 0xF, this.currentHeight & 0xF, bz & 0xF);
 						bb = Block.blocksList[bid];
-						if ((bb != null ? bb.blockMaterial.isLiquid() : false) || bb instanceof ILiquid) {
+						if (Inline.isLiquid(bb)) {
 							if ((this.blocks[this.currentHeight - this.yOffset][bx][bz] & 0x40) != 0) this.worldObj.setBlock(bx + this.xOffset,
 									this.currentHeight, bz + this.zOffset, BuildCraftFactory.frameBlock.blockID);
 							else this.worldObj.setBlockToAir(bx + this.xOffset, this.currentHeight, bz + this.zOffset);
@@ -381,16 +391,16 @@ public class TilePump extends APacketTile implements ITankContainer {
 
 	// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	private final NavigableMap<Integer, Integer> liquids = new TreeMap<Integer, Integer>();
-	private int[] mapping = new int[ForgeDirection.VALID_DIRECTIONS.length];
+	private final NavigableMap<Long, InfVolatLiquidTank> liquids = new TreeMap<Long, InfVolatLiquidTank>();
+	private final long[] mapping = new long[ForgeDirection.VALID_DIRECTIONS.length];
 
 	public String[] getNames() {
 		String[] ret = new String[this.mapping.length];
 		for (int i = 0; i < ret.length; i++) {
 			StringBuilder c = new StringBuilder();
-			c.append(LiquidDictionary.findLiquidName(new LiquidStack(this.mapping[i], 0)));
+			c.append(LiquidDictionary.findLiquidName(this.liquids.get(this.mapping[i]).ls));
 			c.append(" ");
-			c.append(this.liquids.get(this.mapping[i]));
+			c.append(this.liquids.get(this.mapping[i]).ls.amount);
 			ret[i] = c.toString();
 		}
 		return ret;
@@ -424,7 +434,7 @@ public class TilePump extends APacketTile implements ITankContainer {
 
 	@Override
 	public ILiquidTank getTank(ForgeDirection fd, LiquidStack type) {
-		if (fd.ordinal() < 0 || fd.ordinal() > this.mapping.length || !this.liquids.containsKey(this.mapping[fd.ordinal()])) return null;
-		return new InfVolatLiquidTank(this.mapping[fd.ordinal()], this.liquids);
+		if (fd.ordinal() < 0 || fd.ordinal() > this.mapping.length) return null;
+		return this.liquids.get(this.mapping[fd.ordinal()]);
 	}
 }
