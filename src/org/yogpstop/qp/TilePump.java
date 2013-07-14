@@ -257,25 +257,48 @@ public class TilePump extends APacketTile implements ITankContainer {
 	private ExtendedBlockStorage ebs_c;
 	private int block_side;
 
-	private void setTargetRepeating(int x, int y, int z) {
-		this.ebs_c = this.ebses[x >> 4][z >> 4][y >> 4];
-		if (this.ebs_c == null) { return; }
-		this.b_c = Block.blocksList[this.ebs_c.getExtBlockID(x & 0xF, y & 0xF, z & 0xF)];
-		if (this.blocks[y - this.yOffset][x][z] == 0 && (this.b_c instanceof ILiquid || (this.b_c != null ? this.b_c.blockMaterial.isLiquid() : false))) {
-			this.blocks[y - this.yOffset][x][z] = 0x3F;
-			if (0 < x) setTargetRepeating(x - 1, y, z);
-			else this.blocks[y - this.yOffset][x][z] = 0x7F;
-			if (x < this.block_side - 1) setTargetRepeating(x + 1, y, z);
-			else this.blocks[y - this.yOffset][x][z] = 0x7F;
-			if (0 < z) setTargetRepeating(x, y, z - 1);
-			else this.blocks[y - this.yOffset][x][z] = 0x7F;
-			if (z < this.block_side - 1) setTargetRepeating(x, y, z + 1);
-			else this.blocks[y - this.yOffset][x][z] = 0x7F;
-			if (y < Y_SIZE) setTargetRepeating(x, y + 1, z);
+	private static final int ARRAY_MAX = 0x1FFFF;
+	private static final int[] xb = new int[ARRAY_MAX];
+	private static final int[] yb = new int[ARRAY_MAX];
+	private static final int[] zb = new int[ARRAY_MAX];
+	private static int currentPut = 0, currentGet = 0;
+	private int count;
+
+	private static void put(int x, int y, int z) {
+		xb[currentPut] = x;
+		yb[currentPut] = y;
+		zb[currentPut] = z;
+		currentPut++;
+		if (currentPut == ARRAY_MAX) currentPut = 0;
+	}
+
+	private void setTargetRepeating() {
+		while (currentPut != currentGet) {
+			this.ebs_c = this.ebses[xb[currentGet] >> 4][zb[currentGet] >> 4][yb[currentGet] >> 4];
+			if (this.ebs_c == null) return;
+			this.b_c = Block.blocksList[this.ebs_c.getExtBlockID(xb[currentGet] & 0xF, yb[currentGet] & 0xF, zb[currentGet] & 0xF)];
+			if (this.blocks[yb[currentGet] - this.yOffset][xb[currentGet]][zb[currentGet]] == 0
+					&& (this.b_c instanceof ILiquid || (this.b_c != null ? this.b_c.blockMaterial.isLiquid() : false))) {
+				this.blocks[yb[currentGet] - this.yOffset][xb[currentGet]][zb[currentGet]] = 0x3F;
+				if (0 < xb[currentGet]) put(xb[currentGet] - 1, yb[currentGet], zb[currentGet]);
+				else this.blocks[yb[currentGet] - this.yOffset][xb[currentGet]][zb[currentGet]] = 0x7F;
+				if (xb[currentGet] < this.block_side - 1) put(xb[currentGet] + 1, yb[currentGet], zb[currentGet]);
+				else this.blocks[yb[currentGet] - this.yOffset][xb[currentGet]][zb[currentGet]] = 0x7F;
+				if (0 < zb[currentGet]) put(xb[currentGet], yb[currentGet], zb[currentGet] - 1);
+				else this.blocks[yb[currentGet] - this.yOffset][xb[currentGet]][zb[currentGet]] = 0x7F;
+				if (zb[currentGet] < this.block_side - 1) put(xb[currentGet], yb[currentGet], zb[currentGet] + 1);
+				else this.blocks[yb[currentGet] - this.yOffset][xb[currentGet]][zb[currentGet]] = 0x7F;
+				if (yb[currentGet] + 1 < Y_SIZE) put(xb[currentGet], yb[currentGet] + 1, zb[currentGet]);
+			}
+			currentGet++;
+			if (currentGet == ARRAY_MAX) currentGet = 0;
 		}
+		currentPut = 0;
+		currentGet = 0;
 	}
 
 	private void searchLiquid(int x, int y, int z, int rg) {
+		this.count = 0;
 		int chunk_side = (1 + rg * 2);
 		this.block_side = chunk_side * CHUNK_SCALE;
 		this.cx = x;
@@ -293,13 +316,15 @@ public class TilePump extends APacketTile implements ITankContainer {
 				this.ebses[kx][kz] = this.worldObj.getChunkFromChunkCoords(kx + (this.xOffset >> 4), kz + (this.zOffset >> 4)).getBlockStorageArray();
 			}
 		}
-		setTargetRepeating(x - this.xOffset, y, z - this.zOffset);
+		put(x - this.xOffset, y, z - this.zOffset);
+		setTargetRepeating();
 	}
 
 	boolean removeLiquids(IPowerProvider pp, int x, int y, int z) {
 		if (!this.worldObj.getBlockMaterial(x, y, z).isLiquid()) return true;
 		sendNowPacket();
-		if (this.cx != x || this.cy != y || this.cz != z || this.currentHeight < this.cy) searchLiquid(x, y, z, RANGE);
+		this.count++;
+		if (this.cx != x || this.cy != y || this.cz != z || this.currentHeight < this.cy || this.count > 100) searchLiquid(x, y, z, RANGE);
 		int block_count = 0;
 		int frame_count = 0;
 		Block bb;
@@ -316,9 +341,11 @@ public class TilePump extends APacketTile implements ITankContainer {
 						bid = this.ebses[bx >> 4][bz >> 4][this.currentHeight >> 4].getExtBlockID(bx & 0xF, this.currentHeight & 0xF, bz & 0xF);
 						bb = Block.blocksList[bid];
 						meta = this.ebses[bx >> 4][bz >> 4][this.currentHeight >> 4].getExtBlockMetadata(bx & 0xF, this.currentHeight & 0xF, bz & 0xF);
+						if ((bb != null ? bb.blockMaterial.isLiquid() : false) || bb instanceof ILiquid) {
+							block_count++;
+						}
 						if ((bb instanceof ILiquid && ((ILiquid) bb).stillLiquidId() == bid && ((ILiquid) bb).stillLiquidMeta() == meta)
 								|| bb instanceof BlockStationary) {
-							block_count++;
 							if (!cacheLiquids.containsKey(bid)) cacheLiquids.put(bid, 0);
 							cacheLiquids.put(bid, cacheLiquids.get(bid) + LiquidContainerRegistry.BUCKET_VOLUME);
 						}
