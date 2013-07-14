@@ -421,19 +421,6 @@ public class TileQuarry extends TileBasic {
 		return false;
 	}
 
-	private Ticket chunkTicket;
-
-	private void requestTicket() {
-		if (this.chunkTicket != null) return;
-		this.chunkTicket = ForgeChunkManager.requestTicket(QuarryPlus.instance, this.worldObj, Type.NORMAL);
-		if (this.chunkTicket == null) return;
-		NBTTagCompound tag = this.chunkTicket.getModData();
-		tag.setInteger("quarryX", this.xCoord);
-		tag.setInteger("quarryY", this.yCoord);
-		tag.setInteger("quarryZ", this.zCoord);
-		forceChunkLoading(this.chunkTicket);
-	}
-
 	private void initEntities() {
 		this.box.deleteLasers();
 		switch (this.now) {
@@ -490,6 +477,19 @@ public class TileQuarry extends TileBasic {
 		createBox();
 		requestTicket();
 		super.init(nbttl);
+	}
+
+	private Ticket chunkTicket;
+
+	private void requestTicket() {
+		if (this.chunkTicket != null) return;
+		this.chunkTicket = ForgeChunkManager.requestTicket(QuarryPlus.instance, this.worldObj, Type.NORMAL);
+		if (this.chunkTicket == null) return;
+		NBTTagCompound tag = this.chunkTicket.getModData();
+		tag.setInteger("quarryX", this.xCoord);
+		tag.setInteger("quarryY", this.yCoord);
+		tag.setInteger("quarryZ", this.zCoord);
+		forceChunkLoading(this.chunkTicket);
 	}
 
 	void forceChunkLoading(Ticket ticket) {

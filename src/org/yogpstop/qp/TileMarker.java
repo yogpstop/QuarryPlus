@@ -2,17 +2,25 @@ package org.yogpstop.qp;
 
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.Set;
 
 import org.yogpstop.Inline;
 
+import com.google.common.collect.Sets;
 import com.google.common.io.ByteArrayDataInput;
+
+import cpw.mods.fml.common.network.PacketDispatcher;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.World;
 import net.minecraft.client.multiplayer.WorldClient;
+import net.minecraftforge.common.ForgeChunkManager;
+import net.minecraftforge.common.ForgeChunkManager.Ticket;
+import net.minecraftforge.common.ForgeChunkManager.Type;
 
 import buildcraft.api.core.IAreaProvider;
 import buildcraft.api.core.LaserKind;
@@ -21,8 +29,9 @@ import buildcraft.core.proxy.CoreProxy;
 
 public class TileMarker extends APacketTile implements IAreaProvider {
 
-	private static int maxSize = 256;
+	private static final int MAX_SIZE = 256;
 	public Link obj;
+	private EntityBlock[] slasers;
 
 	public class Link {
 		int xx, xn, yx, yn, zx, zn;
@@ -173,7 +182,7 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 		int i;
 		TileEntity tx = null, ty = null, tz = null;
 		if (this.obj.xx == this.obj.xn) {
-			for (i = 1; i < maxSize; i++) {
+			for (i = 1; i < MAX_SIZE; i++) {
 				tx = this.worldObj.getBlockTileEntity(this.xCoord + i, this.yCoord, this.zCoord);
 				if (tx instanceof TileMarker && ((TileMarker) tx).obj == null) {
 					this.obj.xx = tx.xCoord;
@@ -190,7 +199,7 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 			}
 		}
 		if (this.obj.yx == this.obj.yn) {
-			for (i = 1; i < maxSize; i++) {
+			for (i = 1; i < MAX_SIZE; i++) {
 				ty = this.worldObj.getBlockTileEntity(this.xCoord, this.yCoord + i, this.zCoord);
 				if (ty instanceof TileMarker && ((TileMarker) ty).obj == null) {
 					this.obj.yx = ty.yCoord;
@@ -207,7 +216,7 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 			}
 		}
 		if (this.obj.zx == this.obj.zn) {
-			for (i = 1; i < maxSize; i++) {
+			for (i = 1; i < MAX_SIZE; i++) {
 				tz = this.worldObj.getBlockTileEntity(this.xCoord, this.yCoord, this.zCoord + i);
 				if (tz instanceof TileMarker && ((TileMarker) tz).obj == null) {
 					this.obj.zx = tz.zCoord;
@@ -234,6 +243,78 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 		if (this.obj.zx == this.obj.zn) {
 			if (tx != null) ((TileMarker) tx).renewConnection();
 			if (ty != null) ((TileMarker) ty).renewConnection();
+		}
+	}
+
+	private boolean init = false, powered;
+
+	@Override
+	public void updateEntity() {
+		super.updateEntity();
+		if (!this.init) updateSignal();
+	}
+
+	@Override
+	public void onChunkUnload() {
+		System.out.println("Wtf");
+		destroy();
+	}
+
+	private void removeSignal() {
+		if (this.slasers != null) for (EntityBlock eb : this.slasers)
+			if (eb != null) {
+				this.worldObj.removeEntity(eb);
+				if (this.worldObj.isRemote) ((WorldClient) this.worldObj).removeEntityFromWorld(eb.entityId);
+			}
+	}
+
+	void updateSignal() {
+		this.init = true;
+		removeSignal();
+		if (this.worldObj.isRemote) {
+			if (this.powered) {
+				this.slasers = new EntityBlock[3];
+				if (this.obj == null) {
+					this.slasers[0] = CoreProxy.proxy.newEntityBlock(this.worldObj, this.xCoord - MAX_SIZE + 0.5D, this.yCoord + 0.45D, this.zCoord + 0.45D,
+							MAX_SIZE * 2 + 0.5D, 0.1, 0.1, LaserKind.Blue);
+					this.slasers[1] = CoreProxy.proxy.newEntityBlock(this.worldObj, this.xCoord + 0.45D, Math.max(0, this.yCoord - MAX_SIZE) + 0.5D,
+							this.zCoord + 0.45D, 0.1, 256, 0.1, LaserKind.Blue);
+					this.slasers[2] = CoreProxy.proxy.newEntityBlock(this.worldObj, this.xCoord + 0.45D, this.yCoord + 0.45D, this.zCoord - MAX_SIZE + 0.5D,
+							0.1, 0.1, MAX_SIZE * 2 + 0.5D, LaserKind.Blue);
+				} else {
+					if (this.obj.xn == this.obj.xx) this.slasers[0] = CoreProxy.proxy.newEntityBlock(this.worldObj, this.xCoord - MAX_SIZE + 0.5D,
+							this.yCoord + 0.45D, this.zCoord + 0.45D, MAX_SIZE * 2 + 0.5D, 0.1, 0.1, LaserKind.Blue);
+					if (this.obj.yn == this.obj.yx) this.slasers[1] = CoreProxy.proxy.newEntityBlock(this.worldObj, this.xCoord + 0.45D,
+							Math.max(0, this.yCoord - MAX_SIZE) + 0.5D, this.zCoord + 0.45D, 0.1, 256, 0.1, LaserKind.Blue);
+					if (this.obj.zn == this.obj.zx) this.slasers[2] = CoreProxy.proxy.newEntityBlock(this.worldObj, this.xCoord + 0.45D, this.yCoord + 0.45D,
+							this.zCoord - MAX_SIZE + 0.5D, 0.1, 0.1, MAX_SIZE * 2 + 0.5D, LaserKind.Blue);
+				}
+				for (EntityBlock eb : this.slasers)
+					if (eb != null) this.worldObj.spawnEntityInWorld(eb);
+			}
+		} else {
+			if (this.worldObj.isBlockIndirectlyGettingPowered(this.xCoord, this.yCoord, this.zCoord)) {
+				this.powered = true;
+				this.slasers = new EntityBlock[3];
+				if (this.obj == null) {
+					this.slasers[0] = CoreProxy.proxy.newEntityBlock(this.worldObj, this.xCoord - MAX_SIZE + 0.5D, this.yCoord + 0.45D, this.zCoord + 0.45D,
+							MAX_SIZE * 2 + 0.5D, 0.1, 0.1, LaserKind.Blue);
+					this.slasers[1] = CoreProxy.proxy.newEntityBlock(this.worldObj, this.xCoord + 0.45D, Math.max(0, this.yCoord - MAX_SIZE) + 0.5D,
+							this.zCoord + 0.45D, 0.1, 256, 0.1, LaserKind.Blue);
+					this.slasers[2] = CoreProxy.proxy.newEntityBlock(this.worldObj, this.xCoord + 0.45D, this.yCoord + 0.45D, this.zCoord - MAX_SIZE + 0.5D,
+							0.1, 0.1, MAX_SIZE * 2 + 0.5D, LaserKind.Blue);
+				} else {
+					if (this.obj.xn == this.obj.xx) this.slasers[0] = CoreProxy.proxy.newEntityBlock(this.worldObj, this.xCoord - MAX_SIZE + 0.5D,
+							this.yCoord + 0.45D, this.zCoord + 0.45D, MAX_SIZE * 2 + 0.5D, 0.1, 0.1, LaserKind.Blue);
+					if (this.obj.yn == this.obj.yx) this.slasers[1] = CoreProxy.proxy.newEntityBlock(this.worldObj, this.xCoord + 0.45D,
+							Math.max(0, this.yCoord - MAX_SIZE) + 0.5D, this.zCoord + 0.45D, 0.1, 256, 0.1, LaserKind.Blue);
+					if (this.obj.zn == this.obj.zx) this.slasers[2] = CoreProxy.proxy.newEntityBlock(this.worldObj, this.xCoord + 0.45D, this.yCoord + 0.45D,
+							this.zCoord - MAX_SIZE + 0.5D, 0.1, 0.1, MAX_SIZE * 2 + 0.5D, LaserKind.Blue);
+				}
+				for (EntityBlock eb : this.slasers)
+					if (eb != null) this.worldObj.spawnEntityInWorld(eb);
+			} else this.powered = false;
+			PacketHandler.sendMarkerPacket(this, PacketHandler.signal, this.powered);
 		}
 	}
 
@@ -266,27 +347,67 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 		tx = this.worldObj.getBlockTileEntity(this.obj.xx, this.obj.yx, this.obj.zx);
 		if (tx instanceof TileMarker && ((TileMarker) tx).obj == null) ((TileMarker) tx).obj = this.obj;
 		this.obj.makeLaser(this.worldObj);
+		updateSignal();
 	}
 
 	void destroy() {
 		if (this.obj != null) this.obj.removeConnectionIfCannotHold(this.worldObj);
+		removeSignal();
+		ForgeChunkManager.releaseTicket(this.chunkTicket);
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound par1NBTTagCompound) {
-		super.readFromNBT(par1NBTTagCompound);
+	public void readFromNBT(NBTTagCompound nbttc) {
+		super.readFromNBT(nbttc);
+		this.powered = nbttc.getBoolean("powered");
+		this.init = false;
 	}
 
 	@Override
-	public void writeToNBT(NBTTagCompound par1NBTTagCompound) {
-		super.writeToNBT(par1NBTTagCompound);
+	public void writeToNBT(NBTTagCompound nbttc) {
+		super.writeToNBT(nbttc);
+		nbttc.setBoolean("powered", this.powered);
 	}
 
 	@Override
 	void recievePacketOnServer(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {}
 
 	@Override
-	void recievePacketOnClient(byte pattern, ByteArrayDataInput data) {}
+	void recievePacketOnClient(byte pattern, ByteArrayDataInput data) {
+		switch (pattern) {
+		case PacketHandler.signal:
+			this.powered = data.readBoolean();
+			this.init = false;
+		}
+	}
+
+	void init() {
+		requestTicket();
+	}
+
+	private Ticket chunkTicket;
+
+	private void requestTicket() {
+		if (this.chunkTicket != null) return;
+		this.chunkTicket = ForgeChunkManager.requestTicket(QuarryPlus.instance, this.worldObj, Type.NORMAL);
+		if (this.chunkTicket == null) return;
+		NBTTagCompound tag = this.chunkTicket.getModData();
+		tag.setInteger("quarryX", this.xCoord);
+		tag.setInteger("quarryY", this.yCoord);
+		tag.setInteger("quarryZ", this.zCoord);
+		forceChunkLoading(this.chunkTicket);
+	}
+
+	void forceChunkLoading(Ticket ticket) {
+		if (this.chunkTicket == null) {
+			this.chunkTicket = ticket;
+		}
+		Set<ChunkCoordIntPair> chunks = Sets.newHashSet();
+		ChunkCoordIntPair quarryChunk = new ChunkCoordIntPair(this.xCoord >> 4, this.zCoord >> 4);
+		chunks.add(quarryChunk);
+		ForgeChunkManager.forceChunk(ticket, quarryChunk);
+		PacketDispatcher.sendPacketToAllPlayers(PacketHandler.getPacketFromNBT(this));
+	}
 
 	@Override
 	public void invalidate() {

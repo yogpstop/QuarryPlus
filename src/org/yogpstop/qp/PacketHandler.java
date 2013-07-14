@@ -43,6 +43,7 @@ public class PacketHandler implements IPacketHandler {
 	public static final byte packetSilktouchList = 13;
 	public static final byte toggleLiquid_0 = 14;
 	public static final byte Liquid_l = 20;
+	public static final byte signal = 21;
 
 	@Override
 	public void onPacketData(INetworkManager network, Packet250CustomPayload packet, Player player) {
@@ -218,6 +219,21 @@ public class PacketHandler implements IPacketHandler {
 			dos.writeInt(te.zCoord);
 			dos.writeByte(packetNow);
 			dos.writeByte(data);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		PacketDispatcher.sendPacketToAllPlayers(composeTilePacket(bos));
+	}
+
+	static void sendMarkerPacket(APacketTile te, byte id, boolean data) {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		DataOutputStream dos = new DataOutputStream(bos);
+		try {
+			dos.writeInt(te.xCoord);
+			dos.writeInt(te.yCoord);
+			dos.writeInt(te.zCoord);
+			dos.writeByte(id);
+			dos.writeBoolean(data);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
