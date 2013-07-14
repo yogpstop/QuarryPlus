@@ -3,22 +3,101 @@ package org.yogpstop.qp;
 import java.util.Collection;
 import java.util.LinkedList;
 
+import org.yogpstop.Inline;
+
 import com.google.common.io.ByteArrayDataInput;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.world.World;
+import net.minecraft.client.multiplayer.WorldClient;
 
 import buildcraft.api.core.IAreaProvider;
+import buildcraft.api.core.LaserKind;
+import buildcraft.core.EntityBlock;
+import buildcraft.core.proxy.CoreProxy;
 
 public class TileMarker extends APacketTile implements IAreaProvider {
 
 	private static int maxSize = 256;
-	private Link obj;
+	public Link obj;
 
-	class Link {
+	public class Link {
 		int xx, xn, yx, yn, zx, zn;
+		EntityBlock[] lasers;
+
+		void removeConnectionIfCannotHold(World w) {
+			boolean xi = true, xa = true, yi = true, ya = true, zi = true, za = true;
+			if (Inline.isMine(this, w.getBlockTileEntity(this.xn, this.yn, this.zn))) xi = yi = zi = false;
+			if (Inline.isMine(this, w.getBlockTileEntity(this.xn, this.yn, this.zx))) xi = yi = za = false;
+			if (Inline.isMine(this, w.getBlockTileEntity(this.xn, this.yx, this.zn))) xi = ya = zi = false;
+			if (Inline.isMine(this, w.getBlockTileEntity(this.xn, this.yx, this.zx))) xi = ya = za = false;
+			if (Inline.isMine(this, w.getBlockTileEntity(this.xx, this.yn, this.zn))) xa = yi = zi = false;
+			if (Inline.isMine(this, w.getBlockTileEntity(this.xx, this.yn, this.zx))) xa = yi = za = false;
+			if (Inline.isMine(this, w.getBlockTileEntity(this.xx, this.yx, this.zn))) xa = ya = zi = false;
+			if (Inline.isMine(this, w.getBlockTileEntity(this.xx, this.yx, this.zx))) xa = ya = za = false;
+			if (xi || xa || yi || ya || zi || za) removeConnection(w);
+		}
+
+		void removeConnection(World w) {
+			deleteLaser(w);
+			Inline.removeConnection(this, w.getBlockTileEntity(this.xn, this.yn, this.zn));
+			Inline.removeConnection(this, w.getBlockTileEntity(this.xn, this.yn, this.zx));
+			Inline.removeConnection(this, w.getBlockTileEntity(this.xn, this.yx, this.zn));
+			Inline.removeConnection(this, w.getBlockTileEntity(this.xn, this.yx, this.zx));
+			Inline.removeConnection(this, w.getBlockTileEntity(this.xx, this.yn, this.zn));
+			Inline.removeConnection(this, w.getBlockTileEntity(this.xx, this.yn, this.zx));
+			Inline.removeConnection(this, w.getBlockTileEntity(this.xx, this.yx, this.zn));
+			Inline.removeConnection(this, w.getBlockTileEntity(this.xx, this.yx, this.zx));
+		}
+
+		void makeLaser(World w) {
+			deleteLaser(w);
+			this.lasers = new EntityBlock[12];
+			if (this.xn != this.xx) {
+				this.lasers[0] = CoreProxy.proxy
+						.newEntityBlock(w, this.xn + 0.5D, this.yn + 0.45D, this.zn + 0.45D, this.xx - this.xn, 0.1, 0.1, LaserKind.Red);
+				this.lasers[1] = CoreProxy.proxy
+						.newEntityBlock(w, this.xn + 0.5D, this.yn + 0.45D, this.zx + 0.45D, this.xx - this.xn, 0.1, 0.1, LaserKind.Red);
+				this.lasers[2] = CoreProxy.proxy
+						.newEntityBlock(w, this.xn + 0.5D, this.yx + 0.45D, this.zn + 0.45D, this.xx - this.xn, 0.1, 0.1, LaserKind.Red);
+				this.lasers[3] = CoreProxy.proxy
+						.newEntityBlock(w, this.xn + 0.5D, this.yx + 0.45D, this.zx + 0.45D, this.xx - this.xn, 0.1, 0.1, LaserKind.Red);
+			}
+			if (this.yn != this.yx) {
+				this.lasers[4] = CoreProxy.proxy
+						.newEntityBlock(w, this.xn + 0.45D, this.yn + 0.5D, this.zn + 0.45D, 0.1, this.yx - this.yn, 0.1, LaserKind.Red);
+				this.lasers[5] = CoreProxy.proxy
+						.newEntityBlock(w, this.xn + 0.45D, this.yn + 0.5D, this.zx + 0.45D, 0.1, this.yx - this.yn, 0.1, LaserKind.Red);
+				this.lasers[6] = CoreProxy.proxy
+						.newEntityBlock(w, this.xx + 0.45D, this.yn + 0.5D, this.zn + 0.45D, 0.1, this.yx - this.yn, 0.1, LaserKind.Red);
+				this.lasers[7] = CoreProxy.proxy
+						.newEntityBlock(w, this.xx + 0.45D, this.yn + 0.5D, this.zx + 0.45D, 0.1, this.yx - this.yn, 0.1, LaserKind.Red);
+			}
+			if (this.zn != this.zx) {
+				this.lasers[8] = CoreProxy.proxy
+						.newEntityBlock(w, this.xn + 0.45D, this.yn + 0.45D, this.zn + 0.5D, 0.1, 0.1, this.zx - this.zn, LaserKind.Red);
+				this.lasers[9] = CoreProxy.proxy
+						.newEntityBlock(w, this.xx + 0.45D, this.yn + 0.45D, this.zn + 0.5D, 0.1, 0.1, this.zx - this.zn, LaserKind.Red);
+				this.lasers[10] = CoreProxy.proxy.newEntityBlock(w, this.xn + 0.45D, this.yx + 0.45D, this.zn + 0.5D, 0.1, 0.1, this.zx - this.zn,
+						LaserKind.Red);
+				this.lasers[11] = CoreProxy.proxy.newEntityBlock(w, this.xx + 0.45D, this.yx + 0.45D, this.zn + 0.5D, 0.1, 0.1, this.zx - this.zn,
+						LaserKind.Red);
+			}
+			for (EntityBlock eb : this.lasers)
+				if (eb != null) w.spawnEntityInWorld(eb);
+		}
+
+		void deleteLaser(World w) {
+			if (this.lasers != null) for (EntityBlock eb : this.lasers) {
+				if (eb != null) {
+					w.removeEntity(eb);
+					if (w.isRemote) ((WorldClient) w).removeEntityFromWorld(eb.entityId);
+				}
+			}
+		}
 	}
 
 	@Override
@@ -58,29 +137,43 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 			this.worldObj.setBlockToAir(this.xCoord, this.yCoord, this.zCoord);
 			return;
 		}
+		Link l = this.obj;
+		l.deleteLaser(this.worldObj);
+		Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xn, l.yn, l.zn));
+		Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xn, l.yn, l.zx));
+		Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xn, l.yx, l.zn));
+		Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xn, l.yx, l.zx));
+		Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xx, l.yn, l.zn));
+		Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xx, l.yn, l.zx));
+		Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xx, l.yx, l.zn));
+		Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xx, l.yx, l.zx));
 	}
 
 	public Collection<ItemStack> removeFromWorldWithItem() {
 		Collection<ItemStack> ret = new LinkedList<ItemStack>();
-		if (this.obj == null) {
-			QuarryPlus.blockMarker.dropBlockAsItem(this.worldObj, this.xCoord, this.yCoord, this.zCoord, QuarryPlus.blockMarker.blockID, 0);
-			this.worldObj.setBlockToAir(this.xCoord, this.yCoord, this.zCoord);
+		if (this.obj != null) {
+			Link l = this.obj;
+			l.deleteLaser(this.worldObj);
+			Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xn, l.yn, l.zn), ret);
+			Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xn, l.yn, l.zx), ret);
+			Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xn, l.yx, l.zn), ret);
+			Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xn, l.yx, l.zx), ret);
+			Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xx, l.yn, l.zn), ret);
+			Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xx, l.yn, l.zx), ret);
+			Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xx, l.yx, l.zn), ret);
+			Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xx, l.yx, l.zx), ret);
 		} else {
-
+			ret.addAll(QuarryPlus.blockMarker.getBlockDropped(this.worldObj, this.xCoord, this.yCoord, this.zCoord, 0, 0));
+			this.worldObj.setBlockToAir(this.xCoord, this.yCoord, this.zCoord);
 		}
 		return ret;
-	}
-
-	void updateSignals() {
-		// TODO 自動生成されたメソッド・スタブ
-
 	}
 
 	private void renewConnection() {
 		int i;
 		TileEntity tx = null, ty = null, tz = null;
 		if (this.obj.xx == this.obj.xn) {
-			for (i = 0; i < maxSize; i++) {
+			for (i = 1; i < maxSize; i++) {
 				tx = this.worldObj.getBlockTileEntity(this.xCoord + i, this.yCoord, this.zCoord);
 				if (tx instanceof TileMarker && ((TileMarker) tx).obj == null) {
 					this.obj.xx = tx.xCoord;
@@ -97,7 +190,7 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 			}
 		}
 		if (this.obj.yx == this.obj.yn) {
-			for (i = 0; i < maxSize; i++) {
+			for (i = 1; i < maxSize; i++) {
 				ty = this.worldObj.getBlockTileEntity(this.xCoord, this.yCoord + i, this.zCoord);
 				if (ty instanceof TileMarker && ((TileMarker) ty).obj == null) {
 					this.obj.yx = ty.yCoord;
@@ -114,7 +207,7 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 			}
 		}
 		if (this.obj.zx == this.obj.zn) {
-			for (i = 0; i < maxSize; i++) {
+			for (i = 1; i < maxSize; i++) {
 				tz = this.worldObj.getBlockTileEntity(this.xCoord, this.yCoord, this.zCoord + i);
 				if (tz instanceof TileMarker && ((TileMarker) tz).obj == null) {
 					this.obj.zx = tz.zCoord;
@@ -145,13 +238,17 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 	}
 
 	void tryConnection() {
-		if (this.worldObj.isRemote) return;
 		TileEntity tx;
+		if (this.obj != null) this.obj.removeConnection(this.worldObj);
 		this.obj = new Link();
 		this.obj.xx = this.obj.xn = this.xCoord;
 		this.obj.yx = this.obj.yn = this.yCoord;
 		this.obj.zx = this.obj.zn = this.zCoord;
 		renewConnection();
+		if (this.obj.xx == this.obj.xn && this.obj.yx == this.obj.yn && this.obj.zx == this.obj.zn) {
+			this.obj = null;
+			return;
+		}
 		tx = this.worldObj.getBlockTileEntity(this.obj.xn, this.obj.yn, this.obj.zn);
 		if (tx instanceof TileMarker && ((TileMarker) tx).obj == null) ((TileMarker) tx).obj = this.obj;
 		tx = this.worldObj.getBlockTileEntity(this.obj.xn, this.obj.yn, this.obj.zx);
@@ -168,10 +265,11 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 		if (tx instanceof TileMarker && ((TileMarker) tx).obj == null) ((TileMarker) tx).obj = this.obj;
 		tx = this.worldObj.getBlockTileEntity(this.obj.xx, this.obj.yx, this.obj.zx);
 		if (tx instanceof TileMarker && ((TileMarker) tx).obj == null) ((TileMarker) tx).obj = this.obj;
+		this.obj.makeLaser(this.worldObj);
 	}
 
 	void destroy() {
-
+		if (this.obj != null) this.obj.removeConnectionIfCannotHold(this.worldObj);
 	}
 
 	@Override
@@ -185,20 +283,15 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 	}
 
 	@Override
-	void recievePacketOnServer(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {
-		// TODO 自動生成されたメソッド・スタブ
-
-	}
+	void recievePacketOnServer(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {}
 
 	@Override
-	void recievePacketOnClient(byte pattern, ByteArrayDataInput data) {
-		// TODO 自動生成されたメソッド・スタブ
-
-	}
+	void recievePacketOnClient(byte pattern, ByteArrayDataInput data) {}
 
 	@Override
 	public void invalidate() {
 		super.invalidate();
+		destroy();
 	}
 
 }

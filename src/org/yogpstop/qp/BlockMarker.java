@@ -78,7 +78,6 @@ public class BlockMarker extends Block implements ITileEntityProvider {
 
 	@Override
 	public void onNeighborBlockChange(World world, int x, int y, int z, int blockId) {
-		((TileMarker) world.getBlockTileEntity(x, y, z)).updateSignals();
 		dropTorchIfCantStay(world, x, y, z);
 	}
 

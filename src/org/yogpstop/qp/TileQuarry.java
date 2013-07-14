@@ -24,6 +24,7 @@ import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.ChunkCoordIntPair;
 
@@ -333,8 +334,9 @@ public class TileQuarry extends TileBasic {
 	}
 
 	private boolean checkIAreaProvider(int x, int y, int z) {
-		if (this.worldObj.getBlockTileEntity(x, y, z) instanceof IAreaProvider) {
-			this.box.initialize(((IAreaProvider) this.worldObj.getBlockTileEntity(x, y, z)));
+		TileEntity te = this.worldObj.getBlockTileEntity(x, y, z);
+		if (te instanceof IAreaProvider) {
+			this.box.initialize(((IAreaProvider) te));
 			this.box.reorder();
 			if (this.box.contains(this.xCoord, this.yCoord, this.zCoord)) {
 				this.box.reset();
@@ -345,7 +347,8 @@ public class TileQuarry extends TileBasic {
 				return false;
 			}
 			if (this.box.sizeY() <= 1) this.box.yMax = this.box.yMin + 3;
-			((IAreaProvider) this.worldObj.getBlockTileEntity(x, y, z)).removeFromWorld();
+			if (te instanceof TileMarker) this.cacheItems.addAll(((TileMarker) te).removeFromWorldWithItem());
+			else ((IAreaProvider) te).removeFromWorld();
 			return true;
 		}
 		return false;

@@ -13,6 +13,7 @@ import buildcraft.BuildCraftFactory;
 import buildcraft.api.power.IPowerProvider;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockFlowing;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -350,10 +351,11 @@ public class TilePump extends APacketTile implements ITankContainer {
 						if (Inline.isLiquid(bb)) {
 							block_count++;
 							if (bb instanceof ILiquid && ((ILiquid) bb).stillLiquidMeta() == meta) {
-								long key = bid | (meta << 32);
+								long key = ((ILiquid) bb).stillLiquidId() | (meta << 32);
 								if (!cacheLiquids.containsKey(bid)) cacheLiquids.put(key, 0);
 								cacheLiquids.put((long) bid, cacheLiquids.get(bid) + LiquidContainerRegistry.BUCKET_VOLUME);
 							} else if (meta == 0) {
+								if (bb instanceof BlockFlowing) bid--;
 								if (!cacheLiquids.containsKey(bid)) cacheLiquids.put((long) bid, 0);
 								cacheLiquids.put((long) bid, cacheLiquids.get(bid) + LiquidContainerRegistry.BUCKET_VOLUME);
 							}
