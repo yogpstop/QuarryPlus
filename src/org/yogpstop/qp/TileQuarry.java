@@ -34,15 +34,7 @@ import net.minecraftforge.common.ForgeChunkManager.Type;
 import net.minecraftforge.common.ForgeDirection;
 
 public class TileQuarry extends TileBasic {
-	private double headPosX, headPosY, headPosZ;
 	private int targetX, targetY, targetZ;
-
-	private final Box box = new Box();
-	private EntityMechanicalArm heads;
-
-	private boolean initialized = true;
-
-	private byte now = NONE;
 
 	static double CE_BB;
 	static double BP_BB;
@@ -52,35 +44,6 @@ public class TileQuarry extends TileBasic {
 	static double BP_MH;
 	static double CF;
 	static double CS;
-
-	static final byte NONE = 0;
-	static final byte NOTNEEDBREAK = 1;
-	static final byte MAKEFRAME = 2;
-	static final byte WAITLIQUID = 3;
-	static final byte MOVEHEAD = 4;
-	static final byte BREAKBLOCK = 5;
-
-	byte getNow() {
-		return this.now;
-	}
-
-	@Override
-	protected void recievePacketOnClient(byte pattern, ByteArrayDataInput data) {
-		super.recievePacketOnClient(pattern, data);
-		switch (pattern) {
-		case packetNow:
-			this.now = data.readByte();
-			this.worldObj.markBlockForRenderUpdate(this.xCoord, this.yCoord, this.zCoord);
-			initEntities();
-			break;
-		case packetHeadPos:
-			this.headPosX = data.readDouble();
-			this.headPosY = data.readDouble();
-			this.headPosZ = data.readDouble();
-			if (this.heads != null) this.heads.setHead(this.headPosX, this.headPosY, this.headPosZ);
-			break;
-		}
-	}
 
 	private void updateServerEntity() {
 		switch (this.now) {
@@ -421,29 +384,8 @@ public class TileQuarry extends TileBasic {
 		return false;
 	}
 
-	private void initEntities() {
-		this.box.deleteLasers();
-		switch (this.now) {
-		case NOTNEEDBREAK:
-		case MAKEFRAME:
-			this.box.createLasers(this.worldObj, LaserKind.Stripes);
-			break;
-		case MOVEHEAD:
-		case BREAKBLOCK:
-			if (this.heads == null) this.worldObj.spawnEntityInWorld(new EntityMechanicalArm(this.worldObj, this.box.xMin + 0.75D, this.box.yMax,
-					this.box.zMin + 0.75D, this.box.sizeX() - 1.5D, this.box.sizeZ() - 1.5D, this));
-			break;
-		}
-
-		if (this.heads != null) {
-			if (this.now != BREAKBLOCK && this.now != MOVEHEAD) {
-				this.heads.setDead();
-				this.heads = null;
-			} else {
-				this.heads.setHead(this.headPosX, this.headPosY, this.headPosZ);
-				this.heads.updatePosition();
-			}
-		}
+	byte getNow() {
+		return this.now;
 	}
 
 	@Override
@@ -559,5 +501,70 @@ public class TileQuarry extends TileBasic {
 		nbttc.setDouble("headPosX", this.headPosX);
 		nbttc.setDouble("headPosY", this.headPosY);
 		nbttc.setDouble("headPosZ", this.headPosZ);
+	}
+
+	static final byte NONE = 0;
+	static final byte NOTNEEDBREAK = 1;
+	static final byte MAKEFRAME = 2;
+	static final byte WAITLIQUID = 3;
+	static final byte MOVEHEAD = 4;
+	static final byte BREAKBLOCK = 5;
+
+	private double headPosX, headPosY, headPosZ;
+	private final Box box = new Box();
+	private EntityMechanicalArm heads;
+	private boolean initialized = true;
+	private byte now = NONE;
+
+	@Override
+	protected void recievePacketOnClient(byte pattern, ByteArrayDataInput data) {
+		super.recievePacketOnClient(pattern, data);
+		switch (pattern) {
+		case packetNow:
+			this.now = data.readByte();
+			this.worldObj.markBlockForRenderUpdate(this.xCoord, this.yCoord, this.zCoord);
+			initEntities();
+			break;
+		case packetHeadPos:
+			this.headPosX = data.readDouble();
+			this.headPosY = data.readDouble();
+			this.headPosZ = data.readDouble();
+			if (this.heads != null) this.heads.setHead(this.headPosX, this.headPosY, this.headPosZ);
+			break;
+		}
+	}
+
+	private void initEntities() {
+		this.box.deleteLasers();
+		switch (this.now) {
+		case NOTNEEDBREAK:
+		case MAKEFRAME:
+			this.box.createLasers(this.worldObj, LaserKind.Stripes);
+			break;
+		case MOVEHEAD:
+		case BREAKBLOCK:
+			if (this.heads == null) this.worldObj.spawnEntityInWorld(new EntityMechanicalArm(this.worldObj, this.box.xMin + 0.75D, this.box.yMax,
+					this.box.zMin + 0.75D, this.box.sizeX() - 1.5D, this.box.sizeZ() - 1.5D, this));
+			break;
+		}
+
+		if (this.heads != null) {
+			if (this.now != BREAKBLOCK && this.now != MOVEHEAD) {
+				this.heads.setDead();
+				this.heads = null;
+			} else {
+				this.heads.setHead(this.headPosX, this.headPosY, this.headPosZ);
+				this.heads.updatePosition();
+			}
+		}
+	}
+
+	@Override
+	public void onChunkUnload() {
+		this.box.deleteLasers();
+		if (this.heads != null) {
+			this.heads.setDead();
+			this.heads = null;
+		}
 	}
 }

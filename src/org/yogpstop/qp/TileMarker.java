@@ -256,7 +256,6 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 
 	@Override
 	public void onChunkUnload() {
-		System.out.println("Wtf");
 		destroy();
 	}
 
@@ -399,9 +398,7 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 	}
 
 	void forceChunkLoading(Ticket ticket) {
-		if (this.chunkTicket == null) {
-			this.chunkTicket = ticket;
-		}
+		if (this.chunkTicket == null) this.chunkTicket = ticket;
 		Set<ChunkCoordIntPair> chunks = Sets.newHashSet();
 		ChunkCoordIntPair quarryChunk = new ChunkCoordIntPair(this.xCoord >> 4, this.zCoord >> 4);
 		chunks.add(quarryChunk);
