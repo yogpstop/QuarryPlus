@@ -2,7 +2,8 @@ package org.yogpstop.qp;
 
 import static org.yogpstop.qp.PacketHandler.*;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.google.common.io.ByteArrayDataInput;
 
@@ -49,7 +50,7 @@ public class TileMiningWell extends TileBasic {
 			depth--;
 		}
 		if (this.working) breakBlock(depth);
-		ArrayList<ItemStack> cache = new ArrayList<ItemStack>();
+		List<ItemStack> cache = new LinkedList<ItemStack>();
 		for (ItemStack is : this.cacheItems) {
 			ItemStack added = addToRandomInventory(is);
 			is.stackSize -= added.stackSize;

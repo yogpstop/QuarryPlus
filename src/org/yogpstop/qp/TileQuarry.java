@@ -2,7 +2,7 @@ package org.yogpstop.qp;
 
 import static org.yogpstop.qp.PacketHandler.*;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -43,23 +43,23 @@ public class TileQuarry extends TileBasic {
 
 	private byte now = NONE;
 
-	public static double CE_BB;
-	public static double BP_BB;
-	public static double CE_MF;
-	public static double BP_MF;
-	public static double CE_MH;
-	public static double BP_MH;
-	public static double CF;
-	public static double CS;
+	static double CE_BB;
+	static double BP_BB;
+	static double CE_MF;
+	static double BP_MF;
+	static double CE_MH;
+	static double BP_MH;
+	static double CF;
+	static double CS;
 
-	public static final byte NONE = 0;
-	public static final byte NOTNEEDBREAK = 1;
-	public static final byte MAKEFRAME = 2;
-	public static final byte WAITLIQUID = 3;
-	public static final byte MOVEHEAD = 4;
-	public static final byte BREAKBLOCK = 5;
+	static final byte NONE = 0;
+	static final byte NOTNEEDBREAK = 1;
+	static final byte MAKEFRAME = 2;
+	static final byte WAITLIQUID = 3;
+	static final byte MOVEHEAD = 4;
+	static final byte BREAKBLOCK = 5;
 
-	public byte getNow() {
+	byte getNow() {
 		return this.now;
 	}
 
@@ -102,7 +102,7 @@ public class TileQuarry extends TileBasic {
 				setNextTarget();
 			break;
 		}
-		ArrayList<ItemStack> cache = new ArrayList<ItemStack>();
+		List<ItemStack> cache = new LinkedList<ItemStack>();
 		for (ItemStack is : this.cacheItems) {
 			ItemStack added = addToRandomInventory(is);
 			is.stackSize -= added.stackSize;

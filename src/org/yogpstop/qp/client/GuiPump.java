@@ -1,28 +1,22 @@
 package org.yogpstop.qp.client;
 
-import java.util.ArrayList;
+import static net.minecraft.util.StatCollector.translateToLocal;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.entity.player.EntityPlayer;
-import static net.minecraft.util.StatCollector.translateToLocal;
 import net.minecraft.world.World;
 
 import org.lwjgl.opengl.GL11;
-import org.yogpstop.qp.ContainerPlayer;
+import org.yogpstop.qp.ContainerDummy;
 import org.yogpstop.qp.PacketHandler;
-import org.yogpstop.qp.TileQuarry;
+import org.yogpstop.qp.TilePump;
 
-import cpw.mods.fml.relauncher.SideOnly;
-import cpw.mods.fml.relauncher.Side;
+public class GuiPump extends GuiContainer {
+	private TilePump tilePump;
 
-@SideOnly(Side.CLIENT)
-public class GuiQuarry extends GuiContainer {
-	private TileQuarry tileQuarry;
-
-	public GuiQuarry(EntityPlayer player, World world, int x, int y, int z) {
-		super(new ContainerPlayer(player, world, x, y, z));
-		this.tileQuarry = (TileQuarry) world.getBlockTileEntity(x, y, z);
+	public GuiPump(World world, int x, int y, int z) {
+		super(new ContainerDummy(x, y, z));
+		this.tilePump = (TilePump) world.getBlockTileEntity(x, y, z);
 		this.ySize = 238;
 		this.xSize = 256;
 	}
@@ -30,10 +24,6 @@ public class GuiQuarry extends GuiContainer {
 	@Override
 	protected void drawGuiContainerForegroundLayer(int par1, int par2) {
 		drawString(translateToLocal("tile.QuarryPlus.name"), 0);
-		ArrayList<String> enchants = this.tileQuarry.getEnchantments();
-		for (int i = 0; i < enchants.size(); i++) {
-			drawString(enchants.get(i), i + 1);
-		}
 		this.fontRenderer.drawString(translateToLocal("container.inventory"), 6, 146, 0x404040);
 	}
 
@@ -50,6 +40,8 @@ public class GuiQuarry extends GuiContainer {
 		drawTexturedModalRect(l, i1, 0, 0, this.xSize, this.ySize);
 	}
 
+	private GuiButton b[] = new GuiButton[6];
+
 	@Override
 	public void initGui() {
 		super.initGui();
@@ -57,17 +49,20 @@ public class GuiQuarry extends GuiContainer {
 		int i2 = i + (this.xSize >> 1);
 		int j = this.height - this.ySize >> 1;
 		final int offset = 6;
-		int half = (this.xSize - (offset << 2)) >> 1;
-		int full = (this.xSize - (offset << 1));
+		for (int k = 0; k < 6; k++)
+			this.buttonList.add(this.b[k] = new GuiButton(PacketHandler.toggleLiquid_0 + k, i2 + offset, j + 24 * k, 200, 20, ""));
+		setValue();
+	}
 
-		this.buttonList.add(new GuiButton(PacketHandler.openFortuneGui, i + offset, j + 46, half, 20, translateToLocal("gui.fortuneList")));
-		this.buttonList.add(new GuiButton(PacketHandler.openSilktouchGui, i2 + offset, j + 46, half, 20, translateToLocal("gui.silktouchList")));
-		this.buttonList.add(new GuiButton(PacketHandler.reinit, i + offset, j + 121, full, 20, translateToLocal("gui.quarryReset")));
+	private void setValue() {
+		String[] str = this.tilePump.getNames();
+		for (int i = 0; i < 6; i++)
+			this.b[i].displayString = str[i] == null ? "" : str[i];
 	}
 
 	@Override
 	protected void actionPerformed(GuiButton par1GuiButton) {
 		if (!par1GuiButton.enabled) { return; }
-		PacketHandler.sendTilePacketToServer(this.tileQuarry, (byte) par1GuiButton.id);
+		PacketHandler.sendTilePacketToServer(this.tilePump, (byte) par1GuiButton.id);
 	}
 }

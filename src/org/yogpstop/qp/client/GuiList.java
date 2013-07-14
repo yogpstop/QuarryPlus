@@ -1,7 +1,6 @@
 package org.yogpstop.qp.client;
 
 import org.yogpstop.qp.PacketHandler;
-import org.yogpstop.qp.QuarryPlus;
 import org.yogpstop.qp.TileBasic;
 
 import net.minecraft.client.gui.GuiButton;
@@ -27,8 +26,6 @@ public class GuiList extends GuiScreen {
 
 	@Override
 	public void initGui() {
-		this.buttonList.add(new GuiButton(PacketHandler.openMainGui, this.width / 2 - 125, this.height - 26, 250, 20, StatCollector
-				.translateToLocal("gui.done")));
 		this.buttonList.add(new GuiButton(PacketHandler.fortuneTInc + this.targetid - 1, this.width * 2 / 3 + 10, 50, 100, 20, StatCollector
 				.translateToLocal(include() ? "tof.include" : "tof.exclude")));
 		this.buttonList.add(new GuiButton(-1, this.width * 2 / 3 + 10, 80, 100, 20, StatCollector.translateToLocal("tof.addnewore") + "("
@@ -54,19 +51,9 @@ public class GuiList extends GuiScreen {
 		case PacketHandler.silktouchRemove:
 			PacketHandler.sendTilePacketToServer(this.tile, (byte) par1.id, this.oreslot.target.get(this.oreslot.currentore));
 			break;
-		case PacketHandler.openMainGui:
-			PacketHandler.sendOpenGUIPacket(QuarryPlus.guiIdContainerMiner, this.tile.xCoord, this.tile.yCoord, this.tile.zCoord);
-			break;
 		default:
 			PacketHandler.sendTilePacketToServer(this.tile, (byte) par1.id);
 			break;
-		}
-	}
-
-	@Override
-	protected void keyTyped(char par1, int par2) {
-		if (par2 == 1 || par1 == 'e') {
-			PacketHandler.sendOpenGUIPacket(QuarryPlus.guiIdContainerMiner, this.tile.xCoord, this.tile.yCoord, this.tile.zCoord);
 		}
 	}
 

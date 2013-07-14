@@ -6,6 +6,9 @@ import static org.yogpstop.qp.PacketHandler.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.google.common.io.ByteArrayDataInput;
 
@@ -17,7 +20,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagLong;
-import net.minecraft.network.packet.Packet;
 import net.minecraft.tileentity.TileEntity;
 
 import net.minecraftforge.common.ForgeDirection;
@@ -37,15 +39,15 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 
 	protected IPowerProvider pp;
 
-	public final ArrayList<Long> fortuneList = new ArrayList<Long>();
-	public final ArrayList<Long> silktouchList = new ArrayList<Long>();
+	public final List<Long> fortuneList = new ArrayList<Long>();
+	public final List<Long> silktouchList = new ArrayList<Long>();
 	public boolean fortuneInclude, silktouchInclude;
 
 	protected byte fortune;
 	protected boolean silktouch;
 	protected byte efficiency;
 
-	protected ArrayList<ItemStack> cacheItems = new ArrayList<ItemStack>();
+	protected List<ItemStack> cacheItems = new LinkedList<ItemStack>();
 
 	public TileBasic() {
 		super();
@@ -63,41 +65,41 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		case fortuneAdd:
 			this.fortuneList.add(data.readLong());
 			sendPacketToPlayer(this, ep, packetFortuneList, this.fortuneList);
-			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdGuiQuarryFortuneList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
+			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdFortuneList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
 			break;
 		case fortuneRemove:
 			this.fortuneList.remove(data.readLong());
 			sendPacketToPlayer(this, ep, packetFortuneList, this.fortuneList);
-			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdGuiQuarryFortuneList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
+			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdFortuneList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
 			break;
 		case silktouchAdd:
 			this.silktouchList.add(data.readLong());
 			sendPacketToPlayer(this, ep, packetSilktouchList, this.silktouchList);
-			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdGuiQuarrySilktouchList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
+			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdSilktouchList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
 			break;
 		case silktouchRemove:
 			this.silktouchList.remove(data.readLong());
 			sendPacketToPlayer(this, ep, packetSilktouchList, this.silktouchList);
-			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdGuiQuarrySilktouchList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
+			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdSilktouchList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
 			break;
 		case fortuneTInc:
 			this.fortuneInclude = !this.fortuneInclude;
 			sendPacketToPlayer(this, ep, fortuneTInc, this.fortuneInclude);
-			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdGuiQuarryFortuneList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
+			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdFortuneList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
 			break;
 		case silktouchTInc:
 			this.silktouchInclude = !this.silktouchInclude;
 			sendPacketToPlayer(this, ep, silktouchTInc, this.silktouchInclude);
-			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdGuiQuarrySilktouchList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
+			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdSilktouchList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
 			break;
 		case reinit:
 			reinit();
 			break;
 		case openFortuneGui:
-			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdGuiQuarryFortuneList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
+			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdFortuneList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
 			break;
 		case openSilktouchGui:
-			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdGuiQuarrySilktouchList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
+			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdSilktouchList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
 			break;
 		}
 	}
@@ -150,7 +152,7 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 	}
 
 	protected boolean breakBlock(int x, int y, int z, double BP, double CE, double CS, double CF) {
-		ArrayList<ItemStack> dropped = new ArrayList<ItemStack>();
+		Collection<ItemStack> dropped = new LinkedList<ItemStack>();
 		if (this.worldObj.getBlockMaterial(x, y, z).isLiquid()) {
 			int pX = this.xCoord, pY = this.yCoord, pZ = this.zCoord;
 			switch (this.pump) {
@@ -230,7 +232,7 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		return 0;
 	}
 
-	protected double addDroppedItems(ArrayList<ItemStack> list, int x, int y, int z, double CS, double CF) {
+	protected double addDroppedItems(Collection<ItemStack> list, int x, int y, int z, double CS, double CF) {
 		Block b = Block.blocksList[this.worldObj.getBlockId(x, y, z)];
 		int meta = this.worldObj.getBlockMetadata(x, y, z);
 		if (b == null) return 1;
@@ -319,7 +321,7 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		try {
 			createStackedBlockMethod = getMethodRepeating(cls);
 		} catch (NoClassDefFoundError e) {
-			throw new NoClassDefFoundError(String.format("yogpstop: %d:%d %s %s", b.blockID, meta, b.getUnlocalizedName(), e.getMessage()));
+			throw new NoClassDefFoundError(String.format("yogpstop:-%d:%d-%s-%s", b.blockID, meta, b.getUnlocalizedName(), e.getMessage()));
 		}
 		createStackedBlockMethod.setAccessible(true);
 		return (ItemStack) createStackedBlockMethod.invoke(b, meta);
@@ -337,7 +339,7 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		return cache;
 	}
 
-	public ArrayList<String> getEnchantments() {
+	public Collection<String> getEnchantments() {
 		ArrayList<String> als = new ArrayList<String>();
 		if (this.silktouch) als.add(Enchantment.enchantmentsList[33].getTranslatedName(1));
 		if (this.fortune > 0) als.add(Enchantment.enchantmentsList[35].getTranslatedName(this.fortune));
@@ -364,7 +366,7 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		PowerFramework.currentFramework.loadPowerProvider(this, nbttc);
 	}
 
-	private static void readArrayList(NBTTagList nbttl, ArrayList<Long> target) {
+	private static void readArrayList(NBTTagList nbttl, Collection<Long> target) {
 		target.clear();
 		for (int i = 0; i < nbttl.tagCount(); i++)
 			target.add(((NBTTagLong) nbttl.tagAt(i)).data);
@@ -383,7 +385,7 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		PowerFramework.currentFramework.savePowerProvider(this, nbttc);
 	}
 
-	private static NBTTagList writeArrayList(ArrayList<Long> target) {
+	private static NBTTagList writeArrayList(Collection<Long> target) {
 		NBTTagList nbttl = new NBTTagList();
 		for (Long l : target)
 			nbttl.appendTag(new NBTTagLong("", l));
@@ -392,9 +394,4 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 
 	@Override
 	public final void doWork() {}
-
-	@Override
-	public final Packet getDescriptionPacket() {
-		return PacketHandler.getPacketFromNBT(this);
-	}
 }

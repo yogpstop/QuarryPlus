@@ -44,10 +44,10 @@ public class QuarryPlus implements ITriggerProvider {
 
 	public static int RecipeDifficulty;
 
-	public static final int guiIdContainerMiner = 1;
-	public static final int guiIdContainerMover = 2;
-	public static final int guiIdGuiQuarryFortuneList = 3;
-	public static final int guiIdGuiQuarrySilktouchList = 4;
+	public static final int guiIdPump = 1;
+	public static final int guiIdMover = 2;
+	public static final int guiIdFortuneList = 3;
+	public static final int guiIdSilktouchList = 4;
 
 	@Mod.PreInit
 	public static void preInit(FMLPreInitializationEvent event) {

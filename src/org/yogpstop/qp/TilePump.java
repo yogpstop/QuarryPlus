@@ -1,6 +1,9 @@
 package org.yogpstop.qp;
 
 import java.util.HashMap;
+import java.util.Map;
+import java.util.NavigableMap;
+import java.util.TreeMap;
 
 import com.google.common.io.ByteArrayDataInput;
 
@@ -22,6 +25,7 @@ import net.minecraftforge.liquids.ILiquid;
 import net.minecraftforge.liquids.ILiquidTank;
 import net.minecraftforge.liquids.ITankContainer;
 import net.minecraftforge.liquids.LiquidContainerRegistry;
+import net.minecraftforge.liquids.LiquidDictionary;
 import net.minecraftforge.liquids.LiquidStack;
 
 public class TilePump extends APacketTile implements ITankContainer {
@@ -30,10 +34,10 @@ public class TilePump extends APacketTile implements ITankContainer {
 
 	private byte prev = (byte) ForgeDirection.UNKNOWN.ordinal();
 
-	public static double CE_R;
-	public static double BP_R;
-	public static double CE_F;
-	public static double BP_F;
+	static double CE_R;
+	static double BP_R;
+	static double CE_F;
+	static double BP_F;
 
 	protected byte efficiency;
 
@@ -78,6 +82,8 @@ public class TilePump extends APacketTile implements ITankContainer {
 		super.readFromNBT(nbttc);
 		this.efficiency = nbttc.getByte("efficiency");
 		this.connectTo = ForgeDirection.values()[nbttc.getByte("connectTo")];
+		this.mapping = nbttc.getIntArray("mapping");
+		if (this.mapping.length == 0) this.mapping = new int[ForgeDirection.VALID_DIRECTIONS.length];
 		this.prev = (byte) (this.connectTo.ordinal() | (working() ? 0x80 : 0));
 	}
 
@@ -86,6 +92,7 @@ public class TilePump extends APacketTile implements ITankContainer {
 		super.writeToNBT(nbttc);
 		nbttc.setByte("efficiency", this.efficiency);
 		nbttc.setByte("connectTo", (byte) this.connectTo.ordinal());
+		nbttc.setIntArray("mapping", this.mapping);
 	}
 
 	@Override
@@ -193,7 +200,25 @@ public class TilePump extends APacketTile implements ITankContainer {
 	}
 
 	@Override
-	void recievePacketOnServer(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {}
+	void recievePacketOnServer(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {
+		switch (pattern) {
+		case PacketHandler.toggleLiquid_0:
+		case PacketHandler.toggleLiquid_0 + 1:
+		case PacketHandler.toggleLiquid_0 + 2:
+		case PacketHandler.toggleLiquid_0 + 3:
+		case PacketHandler.toggleLiquid_0 + 4:
+		case PacketHandler.toggleLiquid_0 + 5:
+			if (this.liquids.containsKey(this.mapping[pattern - PacketHandler.toggleLiquid_0])
+					&& this.liquids.higherKey(this.mapping[pattern - PacketHandler.toggleLiquid_0]) != null) this.mapping[pattern
+					- PacketHandler.toggleLiquid_0] = this.liquids.higherKey(this.mapping[pattern - PacketHandler.toggleLiquid_0]);
+			else if (!this.liquids.isEmpty()) this.mapping[pattern - PacketHandler.toggleLiquid_0] = this.liquids.firstKey();
+			else this.mapping[pattern - PacketHandler.toggleLiquid_0] = 0;
+		case PacketHandler.Liquid_l:
+			PacketHandler.sendPacketToPlayer(this, ep, PacketHandler.Liquid_l, this.mapping, this.liquids);
+			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdPump, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
+			break;
+		}
+	}
 
 	@Override
 	void recievePacketOnClient(byte pattern, ByteArrayDataInput data) {
@@ -204,6 +229,17 @@ public class TilePump extends APacketTile implements ITankContainer {
 			else this.currentHeight = Integer.MIN_VALUE;
 			this.connectTo = ForgeDirection.getOrientation(flag & 0x7F);
 			this.worldObj.markBlockForRenderUpdate(this.xCoord, this.yCoord, this.zCoord);
+			break;
+		case PacketHandler.Liquid_l:
+			if (this.mapping.length != data.readInt()) break;
+			for (int i = 0; i < this.mapping.length; i++)
+				this.mapping[i] = data.readInt();
+			this.liquids.clear();
+			{
+				int length = data.readInt();
+				for (int i = 0; i < length; i++)
+					this.liquids.put(data.readInt(), data.readInt());
+			}
 		}
 	}
 
@@ -268,7 +304,7 @@ public class TilePump extends APacketTile implements ITankContainer {
 		int frame_count = 0;
 		Block bb;
 		int bx, bz, meta, bid;
-		HashMap<Integer, Integer> cacheLiquids = new HashMap<Integer, Integer>();
+		Map<Integer, Integer> cacheLiquids = new HashMap<Integer, Integer>();
 		for (; block_count == 0; this.currentHeight--) {
 			if (this.currentHeight < this.cy) return false;
 			for (bx = 0; bx < this.block_side; bx++) {
@@ -294,8 +330,8 @@ public class TilePump extends APacketTile implements ITankContainer {
 		float p = (float) (block_count * BP_R / Math.pow(CE_R, this.efficiency) + frame_count * BP_F / Math.pow(CE_F, this.efficiency));
 		if (pp.useEnergy(p, p, true) == p) {
 			for (Integer key : cacheLiquids.keySet()) {
-				if (!liquids.containsKey(key)) liquids.put(key, 0);
-				liquids.put(key, liquids.get(key) + cacheLiquids.get(key));
+				if (!this.liquids.containsKey(key)) this.liquids.put(key, 0);
+				this.liquids.put(key, this.liquids.get(key) + cacheLiquids.get(key));
 			}
 			for (bx = 0; bx < this.block_side; bx++) {
 				for (bz = 0; bz < this.block_side; bz++) {
@@ -318,8 +354,20 @@ public class TilePump extends APacketTile implements ITankContainer {
 
 	// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	private static final HashMap<Integer, Integer> liquids = new HashMap<Integer, Integer>();
-	private static final int[] mapping = new int[ForgeDirection.VALID_DIRECTIONS.length];
+	private final NavigableMap<Integer, Integer> liquids = new TreeMap<Integer, Integer>();
+	private int[] mapping = new int[ForgeDirection.VALID_DIRECTIONS.length];
+
+	public String[] getNames() {
+		String[] ret = new String[this.mapping.length];
+		for (int i = 0; i < ret.length; i++) {
+			StringBuilder c = new StringBuilder();
+			c.append(LiquidDictionary.findLiquidName(new LiquidStack(this.mapping[i], 0)));
+			c.append(" ");
+			c.append(this.liquids.get(this.mapping[i]));
+			ret[i] = c.toString();
+		}
+		return ret;
+	}
 
 	@Override
 	public int fill(ForgeDirection from, LiquidStack resource, boolean doFill) {
@@ -333,7 +381,8 @@ public class TilePump extends APacketTile implements ITankContainer {
 
 	@Override
 	public LiquidStack drain(ForgeDirection from, int maxDrain, boolean doDrain) {
-		return getTank(from, null).drain(maxDrain, doDrain);
+		ILiquidTank lt = getTank(from, null);
+		return lt == null ? null : lt.drain(maxDrain, doDrain);
 	}
 
 	@Override
@@ -348,7 +397,7 @@ public class TilePump extends APacketTile implements ITankContainer {
 
 	@Override
 	public ILiquidTank getTank(ForgeDirection fd, LiquidStack type) {
-		if (fd.ordinal() < 0 || fd.ordinal() > ForgeDirection.VALID_DIRECTIONS.length || !liquids.containsKey(mapping[fd.ordinal()])) return null;
-		return new InfVolatLiquidTank(liquids.get(mapping[fd.ordinal()]), liquids);
+		if (fd.ordinal() < 0 || fd.ordinal() > this.mapping.length || !this.liquids.containsKey(this.mapping[fd.ordinal()])) return null;
+		return new InfVolatLiquidTank(this.mapping[fd.ordinal()], this.liquids);
 	}
 }

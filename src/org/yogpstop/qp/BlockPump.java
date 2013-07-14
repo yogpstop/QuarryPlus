@@ -11,6 +11,7 @@ import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IconRegister;
 import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Icon;
@@ -99,4 +100,11 @@ public class BlockPump extends BlockContainer {
 		((TilePump) w.getBlockTileEntity(x, y, z)).reinit();
 	}
 
+	@Override
+	public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer ep, int par6, float par7, float par8, float par9) {
+		if (ep.isSneaking()) return false;
+		PacketHandler.sendTilePacketToServer((APacketTile) world.getBlockTileEntity(x, y, z), PacketHandler.Liquid_l);
+		ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdPump, world, x, y, z);
+		return true;
+	}
 }

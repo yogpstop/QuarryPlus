@@ -3,7 +3,8 @@ package org.yogpstop.qp;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
 
 import net.minecraft.inventory.Container;
 import net.minecraft.nbt.CompressedStreamTools;
@@ -36,11 +37,12 @@ public class PacketHandler implements IPacketHandler {
 	public static final byte fortuneTInc = 7;
 	public static final byte silktouchTInc = 8;
 	public static final byte reinit = 9;
-	public static final byte openFortuneGui = 14;
-	public static final byte openSilktouchGui = 15;
-	public static final byte openMainGui = 16;
-	public static final byte packetFortuneList = 17;
-	public static final byte packetSilktouchList = 18;
+	public static final byte openFortuneGui = 10;
+	public static final byte openSilktouchGui = 11;
+	public static final byte packetFortuneList = 12;
+	public static final byte packetSilktouchList = 13;
+	public static final byte toggleLiquid_0 = 14;
+	public static final byte Liquid_l = 20;
 
 	@Override
 	public void onPacketData(INetworkManager network, Packet250CustomPayload packet, Player player) {
@@ -168,7 +170,7 @@ public class PacketHandler implements IPacketHandler {
 		PacketDispatcher.sendPacketToPlayer(composeTilePacket(bos), (Player) ep);
 	}
 
-	static void sendPacketToPlayer(APacketTile te, EntityPlayer ep, byte id, ArrayList<Long> value) {
+	static void sendPacketToPlayer(APacketTile te, EntityPlayer ep, byte id, Collection<Long> value) {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		DataOutputStream dos = new DataOutputStream(bos);
 		try {
@@ -179,6 +181,28 @@ public class PacketHandler implements IPacketHandler {
 			dos.writeInt(value.size());
 			for (Long l : value)
 				dos.writeLong(l);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		PacketDispatcher.sendPacketToPlayer(composeTilePacket(bos), (Player) ep);
+	}
+
+	static void sendPacketToPlayer(APacketTile te, EntityPlayer ep, byte id, int[] value, Map<Integer, Integer> map) {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		DataOutputStream dos = new DataOutputStream(bos);
+		try {
+			dos.writeInt(te.xCoord);
+			dos.writeInt(te.yCoord);
+			dos.writeInt(te.zCoord);
+			dos.writeByte(id);
+			dos.writeInt(value.length);
+			for (int l : value)
+				dos.writeInt(l);
+			dos.writeInt(map.size());
+			for (Integer key : map.keySet()) {
+				dos.writeInt(key);
+				dos.writeInt(map.get(key));
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

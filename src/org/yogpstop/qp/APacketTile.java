@@ -12,7 +12,7 @@ public abstract class APacketTile extends TileEntity {
 	abstract void recievePacketOnClient(byte pattern, ByteArrayDataInput data);
 
 	@Override
-	public Packet getDescriptionPacket() {
+	public final Packet getDescriptionPacket() {
 		return PacketHandler.getPacketFromNBT(this);
 	}
 }

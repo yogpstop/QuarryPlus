@@ -2,6 +2,8 @@ package org.yogpstop.qp;
 
 import java.util.ArrayList;
 
+import buildcraft.api.tools.IToolWrench;
+
 import static buildcraft.core.CreativeTabBuildCraft.tabBuildCraft;
 
 import cpw.mods.fml.relauncher.Side;
@@ -12,6 +14,7 @@ import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IconRegister;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Icon;
@@ -107,9 +110,14 @@ public class BlockMiningWell extends BlockContainer {
 	}
 
 	@Override
-	public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer ep, int par6, float par7, float par8, float par9) {
+	public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer ep, int side, float par7, float par8, float par9) {
 		if (ep.isSneaking()) return false;
-		ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdContainerMiner, world, x, y, z);
-		return true;
+		Item equipped = ep.getCurrentEquippedItem() != null ? ep.getCurrentEquippedItem().getItem() : null;
+		if (equipped instanceof IToolWrench && ((IToolWrench) equipped).canWrench(ep, x, y, z)) {
+			((TileMiningWell) world.getBlockTileEntity(x, y, z)).reinit();
+			((IToolWrench) equipped).wrenchUsed(ep, x, y, z);
+			return true;
+		}
+		return false;
 	}
 }
