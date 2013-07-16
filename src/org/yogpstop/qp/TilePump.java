@@ -22,6 +22,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.StatCollector;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 import net.minecraftforge.common.ForgeDirection;
@@ -219,8 +220,7 @@ public class TilePump extends APacketTile implements ITankContainer {
 	}
 
 	@Override
-	void S_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {
-	}
+	void S_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {}
 
 	@Override
 	void C_recievePacket(byte pattern, ByteArrayDataInput data) {
@@ -377,33 +377,29 @@ public class TilePump extends APacketTile implements ITankContainer {
 	public String[] C_getNames() {
 		String[] ret = new String[this.mapping.length];
 		for (int i = 0; i < ret.length; i++) {
-			StringBuilder c = new StringBuilder();
-			c.append(fdToString(ForgeDirection.getOrientation(i)));
-			c.append(": ");
-			c.append(LiquidDictionary.findLiquidName(this.liquids.containsKey(this.mapping[i]) ? this.liquids.get(this.mapping[i]).ls : null));
-			c.append(" ");
-			c.append(this.liquids.containsKey(this.mapping[i]) ? this.liquids.get(this.mapping[i]).ls.amount : null);
-			ret[i] = c.toString();
+			ret[i] = StatCollector.translateToLocalFormatted("chat.pumpitem", fdToString(ForgeDirection.getOrientation(i)),
+					LiquidDictionary.findLiquidName(this.liquids.containsKey(this.mapping[i]) ? this.liquids.get(this.mapping[i]).ls : null),
+					this.liquids.containsKey(this.mapping[i]) ? this.liquids.get(this.mapping[i]).ls.amount : 0);
 		}
 		return ret;
 	}
-	
-	private static String fdToString(ForgeDirection fd) {
+
+	static String fdToString(ForgeDirection fd) {
 		switch (fd) {
 		case UP:
-			return "UP";
+			return StatCollector.translateToLocal("up");
 		case DOWN:
-			return "DOWN";
+			return StatCollector.translateToLocal("down");
 		case EAST:
-			return "EAST";
+			return StatCollector.translateToLocal("east");
 		case WEST:
-			return "WEST";
+			return StatCollector.translateToLocal("west");
 		case NORTH:
-			return "NORTH";
+			return StatCollector.translateToLocal("north");
 		case SOUTH:
-			return "SOUTH";
+			return StatCollector.translateToLocal("south");
 		default:
-			return "UNKNOWN";
+			return StatCollector.translateToLocal("unknown_direction");
 		}
 	}
 

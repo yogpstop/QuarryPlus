@@ -16,6 +16,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Icon;
+import net.minecraft.util.StatCollector;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeDirection;
@@ -107,45 +108,25 @@ public class BlockPump extends BlockContainer {
 
 	@Override
 	public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer ep, int side, float par7, float par8, float par9) {
-		if (world.isRemote) return true;
 		Item equipped = ep.getCurrentEquippedItem() != null ? ep.getCurrentEquippedItem().getItem() : null;
 		if (equipped instanceof ItemTool) {
 			if (ep.getCurrentEquippedItem().getItemDamage() == 0) {
 				if (world.isRemote) return true;
-				ep.sendChatToPlayer("You can extract above liquid from this pump.");
+				ep.sendChatToPlayer(StatCollector.translateToLocal("chat.pumplist"));
 				for (String s : ((TilePump) world.getBlockTileEntity(x, y, z)).C_getNames())
 					ep.sendChatToPlayer(s);
-				ep.sendChatToPlayer("This PlusMachine has above Enchantments:");
+				ep.sendChatToPlayer(StatCollector.translateToLocal("chat.plusenchant"));
 				for (String s : ((TilePump) world.getBlockTileEntity(x, y, z)).C_getEnchantments())
 					ep.sendChatToPlayer(s);
 				return true;
 			}
 			if (ep.getCurrentEquippedItem().getItemDamage() == 2) {
 				if (world.isRemote) return true;
-				ep.sendChatToPlayer(String.format("Now, You can extract %s liquid from this pump's %s side.",
-						((TilePump) world.getBlockTileEntity(x, y, z)).incl(side), fdToString(ForgeDirection.getOrientation(side))));
+				ep.sendChatToPlayer(StatCollector.translateToLocalFormatted("chat.pumptoggle", ((TilePump) world.getBlockTileEntity(x, y, z)).incl(side),
+						TilePump.fdToString(ForgeDirection.getOrientation(side))));
 				return true;
 			}
 		}
 		return false;
-	}
-
-	private static String fdToString(ForgeDirection fd) {
-		switch (fd) {
-		case UP:
-			return "UP";
-		case DOWN:
-			return "DOWN";
-		case EAST:
-			return "EAST";
-		case WEST:
-			return "WEST";
-		case NORTH:
-			return "NORTH";
-		case SOUTH:
-			return "SOUTH";
-		default:
-			return "UNKNOWN";
-		}
 	}
 }

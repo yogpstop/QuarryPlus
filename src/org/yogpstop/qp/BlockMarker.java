@@ -14,6 +14,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.StatCollector;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
@@ -120,7 +121,7 @@ public class BlockMarker extends Block implements ITileEntityProvider {
 			if (equipped instanceof ItemTool && ep.getCurrentEquippedItem().getItemDamage() == 0) {
 				TileMarker.Link l = ((TileMarker) world.getBlockTileEntity(x, y, z)).obj;
 				if (l == null) return true;
-				ep.sendChatToPlayer("This Marker's Area is:");
+				ep.sendChatToPlayer(StatCollector.translateToLocal("chat.markerarea"));
 				ep.sendChatToPlayer(String.format("x:%d y:%d z:%d - x:%d y:%d z:%d", l.xn, l.yn, l.zn, l.xx, l.yn, l.zn));
 				return true;
 			}

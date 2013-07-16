@@ -4,6 +4,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.StatCollector;
 
 import net.minecraftforge.common.ForgeDirection;
 
@@ -30,8 +31,8 @@ public class TriggerPlusMachine implements ITrigger {
 
 	@Override
 	public String getDescription() {
-		if (this.active) return "PlusMachine is working";
-		return "PlusMachine's work is done";
+		if (this.active) return StatCollector.translateToLocal("trigger.plus_working");
+		return StatCollector.translateToLocal("trigger.plus_done");
 	}
 
 	@Override

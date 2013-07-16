@@ -180,14 +180,20 @@ public class ContainerMover extends Container {
 
 	private boolean checkTo(short id) {
 		ItemStack quarryIs = this.craftMatrix.getStackInSlot(1);
+		boolean list = false;
+		short qid;
 		if (quarryIs != null) {
+			if (quarryIs.itemID == QuarryPlus.blockPump.blockID && (id == 33 || id == 35)) return false;
+			if (quarryIs.itemID == QuarryPlus.itemTool.itemID) list = true;
 			NBTTagList quarryE = quarryIs.getEnchantmentTagList();
 			if (quarryE != null) {
 				for (int i = 0; i < quarryE.tagCount(); i++) {
-					if (id == ((NBTTagCompound) quarryE.tagAt(i)).getShort("id")) {
+					qid = ((NBTTagCompound) quarryE.tagAt(i)).getShort("id");
+					if (id == qid) {
+						if (list && qid == 32) return false;
 						if (Enchantment.enchantmentsList[id].getMaxLevel() > ((NBTTagCompound) quarryE.tagAt(i)).getShort("lvl")) return true;
 						return false;
-					}
+					} else if (list && ((id == 33 && qid == 35) || (id == 35 && qid == 33))) return false;
 				}
 			}
 		}
