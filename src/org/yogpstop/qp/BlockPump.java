@@ -35,6 +35,7 @@ public class BlockPump extends BlockContainer {
 	}
 
 	@Override
+	@SideOnly(Side.CLIENT)
 	public Icon getIcon(int i, int j) {
 		switch (i) {
 		case 0:
@@ -47,11 +48,12 @@ public class BlockPump extends BlockContainer {
 	}
 
 	@Override
+	@SideOnly(Side.CLIENT)
 	public Icon getBlockTexture(IBlockAccess ba, int x, int y, int z, int side) {
 		TileEntity tile = ba.getBlockTileEntity(x, y, z);
 		if (tile instanceof TilePump && side == 1) {
-			if (((TilePump) tile).working()) return this.texW;
-			if (((TilePump) tile).connected()) return this.texC;
+			if (((TilePump) tile).G_working()) return this.texW;
+			if (((TilePump) tile).C_connected()) return this.texC;
 		}
 		return super.getBlockTexture(ba, x, y, z, side);
 	}
@@ -71,13 +73,14 @@ public class BlockPump extends BlockContainer {
 	@Override
 	public void breakBlock(World world, int x, int y, int z, int id, int meta) {
 		this.drop.clear();
+		if (world.isRemote) return;
 		TilePump tp = (TilePump) world.getBlockTileEntity(x, y, z);
 		int count = quantityDropped(meta, 0, world.rand);
 		int id1 = idDropped(meta, world.rand, 0);
 		if (id1 > 0) {
 			for (int i = 0; i < count; i++) {
 				ItemStack is = new ItemStack(id1, 1, damageDropped(meta));
-				tp.setEnchantment(is);
+				tp.S_setEnchantment(is);
 				this.drop.add(is);
 			}
 		}
@@ -92,12 +95,12 @@ public class BlockPump extends BlockContainer {
 	@Override
 	public void onBlockPlacedBy(World w, int x, int y, int z, EntityLiving el, ItemStack stack) {
 		super.onBlockPlacedBy(w, x, y, z, el, stack);
-		((TilePump) w.getBlockTileEntity(x, y, z)).init(stack.getEnchantmentTagList());
+		if (!w.isRemote) ((TilePump) w.getBlockTileEntity(x, y, z)).S_init(stack.getEnchantmentTagList());
 	}
 
 	@Override
 	public void onNeighborBlockChange(World w, int x, int y, int z, int bid) {
-		((TilePump) w.getBlockTileEntity(x, y, z)).reinit();
+		if (!w.isRemote) ((TilePump) w.getBlockTileEntity(x, y, z)).S_reinit();
 	}
 
 	@Override

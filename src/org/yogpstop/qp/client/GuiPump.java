@@ -55,7 +55,7 @@ public class GuiPump extends GuiContainer {
 	}
 
 	private void setValue() {
-		String[] str = this.tilePump.getNames();
+		String[] str = this.tilePump.C_getNames();
 		for (int i = 0; i < 6; i++)
 			this.b[i].displayString = str[i] == null ? "" : str[i];
 	}

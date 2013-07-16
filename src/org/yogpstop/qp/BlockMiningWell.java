@@ -51,13 +51,15 @@ public class BlockMiningWell extends BlockContainer {
 	}
 
 	@Override
+	@SideOnly(Side.CLIENT)
 	public Icon getBlockTexture(IBlockAccess ba, int x, int y, int z, int side) {
 		TileEntity tile = ba.getBlockTileEntity(x, y, z);
-		if (tile instanceof TileMiningWell && side == 1 && ((TileMiningWell) tile).isWorking()) return this.texW;
+		if (tile instanceof TileMiningWell && side == 1 && ((TileMiningWell) tile).G_isWorking()) return this.texW;
 		return super.getBlockTexture(ba, x, y, z, side);
 	}
 
 	@Override
+	@SideOnly(Side.CLIENT)
 	public Icon getIcon(int i, int j) {
 		if (j == 0 && i == 3) return this.textureFront;
 		if (i == 1) return this.textureTop;
@@ -72,7 +74,7 @@ public class BlockMiningWell extends BlockContainer {
 		super.onBlockPlacedBy(w, x, y, z, el, stack);
 		ForgeDirection orientation = get2dOrientation(el.posX, el.posZ, x, z);
 		w.setBlockMetadataWithNotify(x, y, z, orientation.getOpposite().ordinal(), 1);
-		((TileMiningWell) w.getBlockTileEntity(x, y, z)).init(stack.getEnchantmentTagList());
+		((TileMiningWell) w.getBlockTileEntity(x, y, z)).G_init(stack.getEnchantmentTagList());
 	}
 
 	private static ForgeDirection get2dOrientation(double x1, double z1, double x2, double z2) {
@@ -91,13 +93,14 @@ public class BlockMiningWell extends BlockContainer {
 	@Override
 	public void breakBlock(World world, int x, int y, int z, int id, int meta) {
 		this.drop.clear();
+		if (world.isRemote) return;
 		TileMiningWell tmw = (TileMiningWell) world.getBlockTileEntity(x, y, z);
 		int count = quantityDropped(meta, 0, world.rand);
 		int id1 = idDropped(meta, world.rand, 0);
 		if (id1 > 0) {
 			for (int i = 0; i < count; i++) {
 				ItemStack is = new ItemStack(id1, 1, damageDropped(meta));
-				tmw.setEnchantment(is);
+				tmw.S_setEnchantment(is);
 				this.drop.add(is);
 			}
 		}
@@ -113,7 +116,7 @@ public class BlockMiningWell extends BlockContainer {
 	public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer ep, int side, float par7, float par8, float par9) {
 		Item equipped = ep.getCurrentEquippedItem() != null ? ep.getCurrentEquippedItem().getItem() : null;
 		if (equipped instanceof IToolWrench && ((IToolWrench) equipped).canWrench(ep, x, y, z)) {
-			((TileMiningWell) world.getBlockTileEntity(x, y, z)).reinit();
+			((TileMiningWell) world.getBlockTileEntity(x, y, z)).G_reinit();
 			((IToolWrench) equipped).wrenchUsed(ep, x, y, z);
 			return true;
 		}

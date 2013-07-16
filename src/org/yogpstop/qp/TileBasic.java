@@ -51,7 +51,7 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 
 	public TileBasic() {
 		super();
-		initPowerProvider();
+		S_initPowerProvider();
 	}
 
 	@Override
@@ -88,7 +88,7 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdSilktouchList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
 			break;
 		case reinit:
-			reinit();
+			G_reinit();
 			break;
 		case openFortuneGui:
 			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdFortuneList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
@@ -99,13 +99,13 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		}
 	}
 
-	protected abstract void reinit();
+	protected abstract void G_reinit();
 
-	protected abstract void destroy();
+	protected abstract void G_destroy();
 
 	@Override
 	public final void invalidate() {
-		destroy();
+		G_destroy();
 		super.invalidate();
 	}
 
@@ -135,7 +135,7 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		}
 	}
 
-	void init(NBTTagList nbttl) {
+	void G_init(NBTTagList nbttl) {
 		if (nbttl != null) for (int i = 0; i < nbttl.tagCount(); i++) {
 			short id = ((NBTTagCompound) nbttl.tagAt(i)).getShort("id");
 			short lvl = ((NBTTagCompound) nbttl.tagAt(i)).getShort("lvl");
@@ -143,10 +143,10 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 			if (id == 35) this.fortune = (byte) lvl;
 			if (id == 32) this.efficiency = (byte) lvl;
 		}
-		reinit();
+		G_reinit();
 	}
 
-	protected boolean breakBlock(int x, int y, int z, double BP, double CE, double CS, double CF) {
+	protected boolean S_breakBlock(int x, int y, int z, double BP, double CE, double CS, double CF) {
 		Collection<ItemStack> dropped = new LinkedList<ItemStack>();
 		if (this.worldObj.getBlockMaterial(x, y, z).isLiquid()) {
 			int pX = this.xCoord, pY = this.yCoord, pZ = this.zCoord;
@@ -176,9 +176,9 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 				this.pump = ForgeDirection.UNKNOWN;
 				return true;
 			}
-			return ((TilePump) te).removeLiquids(this.pp, x, y, z);
+			return ((TilePump) te).S_removeLiquids(this.pp, x, y, z);
 		}
-		float pw = (float) Math.max(BP * blockHardness(x, y, z) * addDroppedItems(dropped, x, y, z, CS, CF) / Math.pow(CE, this.efficiency), 0D);
+		float pw = (float) Math.max(BP * S_blockHardness(x, y, z) * S_addDroppedItems(dropped, x, y, z, CS, CF) / Math.pow(CE, this.efficiency), 0D);
 		if (this.pp.useEnergy(pw, pw, true) != pw) return false;
 		this.cacheItems.addAll(dropped);
 		this.worldObj.playAuxSFXAtEntity(null, 2001, x, y, z, this.worldObj.getBlockId(x, y, z) | (this.worldObj.getBlockMetadata(x, y, z) << 12));
@@ -187,7 +187,7 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		return true;
 	}
 
-	boolean connect(ForgeDirection fd) {
+	boolean S_connect(ForgeDirection fd) {
 		int pX = this.xCoord;
 		int pY = this.yCoord;
 		int pZ = this.zCoord;
@@ -218,7 +218,7 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		return true;
 	}
 
-	protected float blockHardness(int x, int y, int z) {
+	protected float S_blockHardness(int x, int y, int z) {
 		Block b = Block.blocksList[this.worldObj.getBlockId(x, y, z)];
 		if (b != null) {
 			if (this.worldObj.getBlockMaterial(x, y, z).isLiquid()) return 0;
@@ -227,14 +227,14 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		return 0;
 	}
 
-	protected double addDroppedItems(Collection<ItemStack> list, int x, int y, int z, double CS, double CF) {
+	protected double S_addDroppedItems(Collection<ItemStack> list, int x, int y, int z, double CS, double CF) {
 		Block b = Block.blocksList[this.worldObj.getBlockId(x, y, z)];
 		int meta = this.worldObj.getBlockMetadata(x, y, z);
 		if (b == null) return 1;
 		if (b.canSilkHarvest(this.worldObj, null, x, y, z, meta) && this.silktouch
 				&& (this.silktouchList.contains(data((short) b.blockID, meta)) == this.silktouchInclude)) {
 			try {
-				list.add(createStackedBlock(b, meta));
+				list.add(S_createStackedBlock(b, meta));
 				return CS;
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -277,7 +277,7 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 				- getPowerProvider().getEnergyStored()));
 	}
 
-	protected void initPowerProvider() {
+	protected void S_initPowerProvider() {
 		this.pp = PowerFramework.currentFramework.createPowerProvider();
 		this.pp.configure(0, 0, 100, 0, 30000);
 	}
@@ -295,7 +295,7 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		}
 	}
 
-	protected ItemStack addToRandomInventory(ItemStack is) {
+	protected ItemStack S_addToRandomInventory(ItemStack is) {
 		try {
 			if (aTRIargc == 5) return (ItemStack) aTRI.invoke(null, is, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
 			else if (aTRIargc == 6) return (ItemStack) aTRI.invoke(null, is, this.worldObj, this.xCoord, this.yCoord, this.zCoord, ForgeDirection.UNKNOWN);
@@ -309,12 +309,12 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		return isc;
 	}
 
-	protected static ItemStack createStackedBlock(Block b, int meta) throws SecurityException, NoClassDefFoundError, IllegalAccessException,
+	protected static ItemStack S_createStackedBlock(Block b, int meta) throws SecurityException, NoClassDefFoundError, IllegalAccessException,
 			IllegalArgumentException, InvocationTargetException {
 		Class<? extends Block> cls = b.getClass();
 		Method createStackedBlockMethod;
 		try {
-			createStackedBlockMethod = getMethodRepeating(cls);
+			createStackedBlockMethod = S_getMethodRepeating(cls);
 		} catch (NoClassDefFoundError e) {
 			throw new NoClassDefFoundError(String.format("yogpstop:-%d:%d-%s-%s", b.blockID, meta, b.getUnlocalizedName(), e.getMessage()));
 		}
@@ -324,17 +324,17 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 
 	private static final String createStackedBlock = "func_71880_c_";
 
-	private static Method getMethodRepeating(Class<?> cls) throws SecurityException, NoClassDefFoundError {
+	private static Method S_getMethodRepeating(Class<?> cls) throws SecurityException, NoClassDefFoundError {
 		Method cache = null;
 		try {
 			cache = cls.getDeclaredMethod(createStackedBlock, int.class);
 		} catch (NoSuchMethodException e) {
-			cache = getMethodRepeating(cls.getSuperclass());
+			cache = S_getMethodRepeating(cls.getSuperclass());
 		}
 		return cache;
 	}
 
-	public Collection<String> getEnchantments() {
+	public Collection<String> C_getEnchantments() {
 		ArrayList<String> als = new ArrayList<String>();
 		if (this.silktouch) als.add(Enchantment.enchantmentsList[33].getTranslatedName(1));
 		if (this.fortune > 0) als.add(Enchantment.enchantmentsList[35].getTranslatedName(this.fortune));
@@ -342,7 +342,7 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		return als;
 	}
 
-	void setEnchantment(ItemStack is) {
+	void S_setEnchantment(ItemStack is) {
 		if (this.silktouch) is.addEnchantment(Enchantment.enchantmentsList[33], 1);
 		if (this.fortune > 0) is.addEnchantment(Enchantment.enchantmentsList[35], this.fortune);
 		if (this.efficiency > 0) is.addEnchantment(Enchantment.enchantmentsList[32], this.efficiency);

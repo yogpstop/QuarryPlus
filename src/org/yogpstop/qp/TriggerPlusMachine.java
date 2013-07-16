@@ -37,11 +37,11 @@ public class TriggerPlusMachine implements ITrigger {
 	@Override
 	public boolean isTriggerActive(ForgeDirection side, TileEntity tile, ITriggerParameter parameter) {
 		if (tile instanceof TileQuarry) {
-			if (this.active) return ((TileQuarry) tile).getNow() != TileQuarry.NONE;
-			return ((TileQuarry) tile).getNow() == TileQuarry.NONE;
+			if (this.active) return ((TileQuarry) tile).G_getNow() != TileQuarry.NONE;
+			return ((TileQuarry) tile).G_getNow() == TileQuarry.NONE;
 		} else if (tile instanceof TileMiningWell) {
-			if (this.active) return ((TileMiningWell) tile).isWorking();
-			return !((TileMiningWell) tile).isWorking();
+			if (this.active) return ((TileMiningWell) tile).G_isWorking();
+			return !((TileMiningWell) tile).G_isWorking();
 		}
 		return false;
 	}

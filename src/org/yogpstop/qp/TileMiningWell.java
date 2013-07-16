@@ -25,7 +25,7 @@ public class TileMiningWell extends TileBasic {
 	public static double CF;
 	public static double CS;
 
-	boolean isWorking() {
+	boolean G_isWorking() {
 		return this.working;
 	}
 
@@ -45,23 +45,23 @@ public class TileMiningWell extends TileBasic {
 		super.updateEntity();
 		if (this.worldObj.isRemote) return;
 		int depth = this.yCoord - 1;
-		while (!checkTarget(depth)) {
+		while (!S_checkTarget(depth)) {
 			if (this.working) this.worldObj.setBlock(this.xCoord, depth, this.zCoord, plainPipeBlock.blockID);
 			depth--;
 		}
-		if (this.working) breakBlock(depth);
+		if (this.working) S_breakBlock(depth);
 		List<ItemStack> cache = new LinkedList<ItemStack>();
 		for (ItemStack is : this.cacheItems) {
-			ItemStack added = addToRandomInventory(is);
+			ItemStack added = S_addToRandomInventory(is);
 			is.stackSize -= added.stackSize;
 			if (is.stackSize > 0) if (!addToRandomPipeEntry(this, ForgeDirection.UNKNOWN, is)) cache.add(is);
 		}
 		this.cacheItems = cache;
 	}
 
-	private boolean checkTarget(int depth) {
+	private boolean S_checkTarget(int depth) {
 		if (depth < 1) {
-			destroy();
+			G_destroy();
 			return true;
 		}
 		int bid = this.worldObj.getBlockId(this.xCoord, depth, this.zCoord);
@@ -74,8 +74,8 @@ public class TileMiningWell extends TileBasic {
 		return true;
 	}
 
-	private boolean breakBlock(int depth) {
-		return breakBlock(this.xCoord, depth, this.zCoord, BP, CE, CS, CF);
+	private boolean S_breakBlock(int depth) {
+		return S_breakBlock(this.xCoord, depth, this.zCoord, BP, CE, CS, CF);
 	}
 
 	@Override
@@ -91,13 +91,13 @@ public class TileMiningWell extends TileBasic {
 	}
 
 	@Override
-	protected void reinit() {
+	protected void G_reinit() {
 		this.working = true;
 		sendNowPacket(this, (byte) 1);
 	}
 
 	@Override
-	protected void destroy() {
+	protected void G_destroy() {
 		this.working = false;
 		sendNowPacket(this, (byte) 0);
 		for (int depth = this.yCoord - 1; depth > 0; depth--) {
