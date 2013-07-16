@@ -506,7 +506,6 @@ public class TileQuarry extends TileBasic {
 	static final byte NONE = 0;
 	static final byte NOTNEEDBREAK = 1;
 	static final byte MAKEFRAME = 2;
-	static final byte WAITLIQUID = 3;
 	static final byte MOVEHEAD = 4;
 	static final byte BREAKBLOCK = 5;
 

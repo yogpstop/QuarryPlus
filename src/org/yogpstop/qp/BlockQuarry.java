@@ -25,7 +25,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeDirection;
 
 public class BlockQuarry extends BlockContainer {
-	Icon textureTop, textureFront, texBB, texNNB, texMF, texF;
+	Icon textureTop, textureFront, texBB, texNNB, texMF;
 
 	public BlockQuarry(int i) {
 		super(i, Material.iron);
@@ -70,8 +70,6 @@ public class BlockQuarry extends BlockContainer {
 				case TileQuarry.BREAKBLOCK:
 				case TileQuarry.MOVEHEAD:
 					return this.texBB;
-				case TileQuarry.WAITLIQUID:
-					return this.texF;
 				case TileQuarry.MAKEFRAME:
 					return this.texMF;
 				case TileQuarry.NOTNEEDBREAK:
@@ -106,7 +104,6 @@ public class BlockQuarry extends BlockContainer {
 		this.texBB = par1IconRegister.registerIcon("yogpstop/quarryplus:quarry_top_bb");
 		this.texNNB = par1IconRegister.registerIcon("yogpstop/quarryplus:quarry_top_nnb");
 		this.texMF = par1IconRegister.registerIcon("yogpstop/quarryplus:quarry_top_mf");
-		this.texF = par1IconRegister.registerIcon("yogpstop/quarryplus:quarry_top_f");
 	}
 
 	@Override
