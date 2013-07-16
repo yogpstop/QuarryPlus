@@ -390,15 +390,15 @@ public class TileQuarry extends TileBasic {
 
 	@Override
 	protected void G_destroy() {
-		this.box.deleteLasers();
 		this.now = NONE;
-		sendNowPacket(this, this.now);
 		if (this.heads != null) {
 			this.heads.setDead();
 			this.heads = null;
 		}
+		this.box.deleteLasers();
 		if (!this.worldObj.isRemote) {
 			S_destroyFrames();
+			sendNowPacket(this, this.now);
 		}
 		ForgeChunkManager.releaseTicket(this.chunkTicket);
 	}
@@ -556,15 +556,6 @@ public class TileQuarry extends TileBasic {
 				this.heads.setHead(this.headPosX, this.headPosY, this.headPosZ);
 				this.heads.updatePosition();
 			}
-		}
-	}
-
-	@Override
-	public void onChunkUnload() {
-		this.box.deleteLasers();
-		if (this.heads != null) {
-			this.heads.setDead();
-			this.heads = null;
 		}
 	}
 }

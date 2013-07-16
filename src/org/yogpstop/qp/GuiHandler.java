@@ -5,7 +5,6 @@ import net.minecraft.world.World;
 
 import org.yogpstop.qp.client.GuiMover;
 import org.yogpstop.qp.client.GuiList;
-import org.yogpstop.qp.client.GuiPump;
 
 import static org.yogpstop.qp.QuarryPlus.*;
 
@@ -21,8 +20,6 @@ public class GuiHandler implements IGuiHandler {
 			return new GuiList((byte) 1, (TileBasic) world.getBlockTileEntity(x, y, z));
 		case guiIdSilktouchList:
 			return new GuiList((byte) 2, (TileBasic) world.getBlockTileEntity(x, y, z));
-		case guiIdPump:
-			return new GuiPump(world, x, y, z);
 		}
 
 		return null;

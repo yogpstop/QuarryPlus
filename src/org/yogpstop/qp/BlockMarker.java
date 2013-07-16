@@ -11,6 +11,7 @@ import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IconRegister;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.IBlockAccess;
@@ -113,8 +114,18 @@ public class BlockMarker extends Block implements ITileEntityProvider {
 	}
 
 	@Override
-	public boolean onBlockActivated(World world, int i, int j, int k, EntityPlayer entityplayer, int par6, float par7, float par8, float par9) {
-		if (!world.isRemote) ((TileMarker) world.getBlockTileEntity(i, j, k)).S_tryConnection();
+	public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer ep, int par6, float par7, float par8, float par9) {
+		if (!world.isRemote) {
+			Item equipped = ep.getCurrentEquippedItem() != null ? ep.getCurrentEquippedItem().getItem() : null;
+			if (equipped instanceof ItemTool && ep.getCurrentEquippedItem().getItemDamage() == 0) {
+				TileMarker.Link l = ((TileMarker) world.getBlockTileEntity(x, y, z)).obj;
+				if (l == null) return true;
+				ep.sendChatToPlayer("This Marker's Area is:");
+				ep.sendChatToPlayer(String.format("x:%d y:%d z:%d - x:%d y:%d z:%d", l.xn, l.yn, l.zn, l.xx, l.yn, l.zn));
+				return true;
+			}
+			((TileMarker) world.getBlockTileEntity(x, y, z)).S_tryConnection();
+		}
 		return true;
 	}
 

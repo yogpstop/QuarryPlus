@@ -36,15 +36,10 @@ public class PacketHandler implements IPacketHandler {
 	public static final byte packetHeadPos = 6;
 	public static final byte fortuneTInc = 7;
 	public static final byte silktouchTInc = 8;
-	public static final byte reinit = 9;
-	public static final byte openFortuneGui = 10;
-	public static final byte openSilktouchGui = 11;
-	public static final byte packetFortuneList = 12;
-	public static final byte packetSilktouchList = 13;
-	public static final byte toggleLiquid_0 = 14;
-	public static final byte Liquid_l = 20;
-	public static final byte signal = 21;
-	public static final byte link = 22;
+	public static final byte packetFortuneList = 9;
+	public static final byte packetSilktouchList = 10;
+	public static final byte signal = 11;
+	public static final byte link = 12;
 
 	@Override
 	public void onPacketData(INetworkManager network, Packet250CustomPayload packet, Player player) {

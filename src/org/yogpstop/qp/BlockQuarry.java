@@ -140,6 +140,13 @@ public class BlockQuarry extends BlockContainer {
 			((IToolWrench) equipped).wrenchUsed(ep, x, y, z);
 			return true;
 		}
+		if (equipped instanceof ItemTool && ep.getCurrentEquippedItem().getItemDamage() == 0) {
+			if (world.isRemote) return true;
+			ep.sendChatToPlayer("This PlusMachine has above Enchantments:");
+			for (String s : ((TileQuarry) world.getBlockTileEntity(x, y, z)).C_getEnchantments())
+				ep.sendChatToPlayer(s);
+			return true;
+		}
 		return false;
 	}
 

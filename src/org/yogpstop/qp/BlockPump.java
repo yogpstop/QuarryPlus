@@ -12,11 +12,13 @@ import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IconRegister;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Icon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraftforge.common.ForgeDirection;
 
 public class BlockPump extends BlockContainer {
 
@@ -95,19 +97,55 @@ public class BlockPump extends BlockContainer {
 	@Override
 	public void onBlockPlacedBy(World w, int x, int y, int z, EntityLiving el, ItemStack stack) {
 		super.onBlockPlacedBy(w, x, y, z, el, stack);
-		if (!w.isRemote) ((TilePump) w.getBlockTileEntity(x, y, z)).S_init(stack.getEnchantmentTagList());
+		((TilePump) w.getBlockTileEntity(x, y, z)).G_init(stack.getEnchantmentTagList());
 	}
 
 	@Override
 	public void onNeighborBlockChange(World w, int x, int y, int z, int bid) {
-		if (!w.isRemote) ((TilePump) w.getBlockTileEntity(x, y, z)).S_reinit();
+		((TilePump) w.getBlockTileEntity(x, y, z)).G_reinit();
 	}
 
 	@Override
-	public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer ep, int par6, float par7, float par8, float par9) {
+	public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer ep, int side, float par7, float par8, float par9) {
 		if (world.isRemote) return true;
-		PacketHandler.sendPacketToServer((APacketTile) world.getBlockTileEntity(x, y, z), PacketHandler.Liquid_l);
-		ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdPump, world, x, y, z);
-		return true;
+		Item equipped = ep.getCurrentEquippedItem() != null ? ep.getCurrentEquippedItem().getItem() : null;
+		if (equipped instanceof ItemTool) {
+			if (ep.getCurrentEquippedItem().getItemDamage() == 0) {
+				if (world.isRemote) return true;
+				ep.sendChatToPlayer("You can extract above liquid from this pump.");
+				for (String s : ((TilePump) world.getBlockTileEntity(x, y, z)).C_getNames())
+					ep.sendChatToPlayer(s);
+				ep.sendChatToPlayer("This PlusMachine has above Enchantments:");
+				for (String s : ((TilePump) world.getBlockTileEntity(x, y, z)).C_getEnchantments())
+					ep.sendChatToPlayer(s);
+				return true;
+			}
+			if (ep.getCurrentEquippedItem().getItemDamage() == 2) {
+				if (world.isRemote) return true;
+				ep.sendChatToPlayer(String.format("Now, You can extract %s liquid from this pump's %s side.",
+						((TilePump) world.getBlockTileEntity(x, y, z)).incl(side), fdToString(ForgeDirection.getOrientation(side))));
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static String fdToString(ForgeDirection fd) {
+		switch (fd) {
+		case UP:
+			return "UP";
+		case DOWN:
+			return "DOWN";
+		case EAST:
+			return "EAST";
+		case WEST:
+			return "WEST";
+		case NORTH:
+			return "NORTH";
+		case SOUTH:
+			return "SOUTH";
+		default:
+			return "UNKNOWN";
+		}
 	}
 }

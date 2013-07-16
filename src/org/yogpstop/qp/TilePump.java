@@ -1,6 +1,8 @@
 package org.yogpstop.qp;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.TreeMap;
@@ -109,43 +111,42 @@ public class TilePump extends APacketTile implements ITankContainer {
 	@Override
 	public void updateEntity() {
 		super.updateEntity();
-		if (!this.worldObj.isRemote && !this.initialized) {
-			int pX, pY, pZ;
-			TileEntity te;
+		if (this.worldObj.isRemote || this.initialized) return;
+		int pX, pY, pZ;
+		TileEntity te;
 
-			pX = this.xCoord;
-			pY = this.yCoord;
-			pZ = this.zCoord;
-			switch (this.connectTo) {
-			case UP:
-				pY++;
-				break;
-			case DOWN:
-				pY--;
-				break;
-			case SOUTH:
-				pZ++;
-				break;
-			case NORTH:
-				pZ--;
-				break;
-			case EAST:
-				pX++;
-				break;
-			case WEST:
-				pX--;
-				break;
-			default:
-			}
-			te = this.worldObj.getBlockTileEntity(pX, pY, pZ);
-			if (te instanceof TileBasic && ((TileBasic) te).S_connect(this.connectTo.getOpposite())) {
-				S_sendNowPacket();
-				this.initialized = true;
-			} else if (this.worldObj.isAirBlock(pX, pY, pZ) || this.connectTo == ForgeDirection.UNKNOWN) {
-				this.connectTo = ForgeDirection.UNKNOWN;
-				S_sendNowPacket();
-				this.initialized = true;
-			}
+		pX = this.xCoord;
+		pY = this.yCoord;
+		pZ = this.zCoord;
+		switch (this.connectTo) {
+		case UP:
+			pY++;
+			break;
+		case DOWN:
+			pY--;
+			break;
+		case SOUTH:
+			pZ++;
+			break;
+		case NORTH:
+			pZ--;
+			break;
+		case EAST:
+			pX++;
+			break;
+		case WEST:
+			pX--;
+			break;
+		default:
+		}
+		te = this.worldObj.getBlockTileEntity(pX, pY, pZ);
+		if (te instanceof TileBasic && ((TileBasic) te).S_connect(this.connectTo.getOpposite())) {
+			S_sendNowPacket();
+			this.initialized = true;
+		} else if (this.worldObj.isAirBlock(pX, pY, pZ) || this.connectTo == ForgeDirection.UNKNOWN) {
+			this.connectTo = ForgeDirection.UNKNOWN;
+			S_sendNowPacket();
+			this.initialized = true;
 		}
 	}
 
@@ -153,16 +154,23 @@ public class TilePump extends APacketTile implements ITankContainer {
 		if (this.efficiency > 0) is.addEnchantment(Enchantment.enchantmentsList[32], this.efficiency);
 	}
 
-	void S_init(NBTTagList nbttl) {
+	public List<String> C_getEnchantments() {
+		ArrayList<String> als = new ArrayList<String>();
+		if (this.efficiency > 0) als.add(Enchantment.enchantmentsList[32].getTranslatedName(this.efficiency));
+		return als;
+	}
+
+	void G_init(NBTTagList nbttl) {
 		if (nbttl != null) for (int i = 0; i < nbttl.tagCount(); i++) {
 			short id = ((NBTTagCompound) nbttl.tagAt(i)).getShort("id");
 			short lvl = ((NBTTagCompound) nbttl.tagAt(i)).getShort("lvl");
 			if (id == 32) this.efficiency = (byte) lvl;
 		}
-		S_reinit();
+		G_reinit();
 	}
 
-	void S_reinit() {
+	void G_reinit() {
+		if (this.worldObj.isRemote) return;
 		int pX, pY, pZ;
 		TileEntity te;
 		for (ForgeDirection fd : ForgeDirection.VALID_DIRECTIONS) {
@@ -212,23 +220,6 @@ public class TilePump extends APacketTile implements ITankContainer {
 
 	@Override
 	void S_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {
-		switch (pattern) {
-		case PacketHandler.toggleLiquid_0:
-		case PacketHandler.toggleLiquid_0 + 1:
-		case PacketHandler.toggleLiquid_0 + 2:
-		case PacketHandler.toggleLiquid_0 + 3:
-		case PacketHandler.toggleLiquid_0 + 4:
-		case PacketHandler.toggleLiquid_0 + 5:
-			if (this.liquids.containsKey(this.mapping[pattern - PacketHandler.toggleLiquid_0])
-					&& this.liquids.higherKey(this.mapping[pattern - PacketHandler.toggleLiquid_0]) != null) this.mapping[pattern
-					- PacketHandler.toggleLiquid_0] = this.liquids.higherKey(this.mapping[pattern - PacketHandler.toggleLiquid_0]);
-			else if (!this.liquids.isEmpty()) this.mapping[pattern - PacketHandler.toggleLiquid_0] = this.liquids.firstKey();
-			else this.mapping[pattern - PacketHandler.toggleLiquid_0] = 0;
-		case PacketHandler.Liquid_l:
-			PacketHandler.sendPacketToPlayer(this, ep, PacketHandler.Liquid_l, this.mapping, this.liquids);
-			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdPump, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
-			break;
-		}
 	}
 
 	@Override
@@ -241,19 +232,6 @@ public class TilePump extends APacketTile implements ITankContainer {
 			this.connectTo = ForgeDirection.getOrientation(flag & 0x7F);
 			this.worldObj.markBlockForRenderUpdate(this.xCoord, this.yCoord, this.zCoord);
 			break;
-		case PacketHandler.Liquid_l:
-			if (this.mapping.length != data.readInt()) break;
-			for (int i = 0; i < this.mapping.length; i++)
-				this.mapping[i] = data.readLong();
-			this.liquids.clear();
-			{
-				int length = data.readInt();
-				long dat;
-				for (int i = 0; i < length; i++) {
-					dat = data.readLong();
-					this.liquids.put(dat, new InfVolatLiquidTank(new LiquidStack((int) (dat & 0xFFFFFFFF), data.readInt(), (int) (dat >> 32))));
-				}
-			}
 		}
 	}
 
@@ -400,12 +378,41 @@ public class TilePump extends APacketTile implements ITankContainer {
 		String[] ret = new String[this.mapping.length];
 		for (int i = 0; i < ret.length; i++) {
 			StringBuilder c = new StringBuilder();
+			c.append(fdToString(ForgeDirection.getOrientation(i)));
+			c.append(": ");
 			c.append(LiquidDictionary.findLiquidName(this.liquids.containsKey(this.mapping[i]) ? this.liquids.get(this.mapping[i]).ls : null));
 			c.append(" ");
 			c.append(this.liquids.containsKey(this.mapping[i]) ? this.liquids.get(this.mapping[i]).ls.amount : null);
 			ret[i] = c.toString();
 		}
 		return ret;
+	}
+	
+	private static String fdToString(ForgeDirection fd) {
+		switch (fd) {
+		case UP:
+			return "UP";
+		case DOWN:
+			return "DOWN";
+		case EAST:
+			return "EAST";
+		case WEST:
+			return "WEST";
+		case NORTH:
+			return "NORTH";
+		case SOUTH:
+			return "SOUTH";
+		default:
+			return "UNKNOWN";
+		}
+	}
+
+	String incl(int side) {
+		if (this.liquids.containsKey(this.mapping[side]) && this.liquids.higherKey(this.mapping[side]) != null) this.mapping[side] = this.liquids
+				.higherKey(this.mapping[side]);
+		else if (!this.liquids.isEmpty()) this.mapping[side] = this.liquids.firstKey();
+		else this.mapping[side] = 0;
+		return LiquidDictionary.findLiquidName(this.liquids.containsKey(this.mapping[side]) ? this.liquids.get(this.mapping[side]).ls : null);
 	}
 
 	@Override

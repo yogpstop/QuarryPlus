@@ -98,6 +98,7 @@ public class TileMiningWell extends TileBasic {
 
 	@Override
 	protected void G_destroy() {
+		if (this.worldObj.isRemote) return;
 		this.working = false;
 		sendNowPacket(this, (byte) 0);
 		for (int depth = this.yCoord - 1; depth > 0; depth--) {

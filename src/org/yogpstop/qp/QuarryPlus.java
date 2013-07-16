@@ -41,10 +41,10 @@ public class QuarryPlus implements ITriggerProvider {
 	public static QuarryPlus instance;
 
 	public static Block blockQuarry, blockMarker, blockMover, blockMiningWell, blockPump;
+	public static Item itemTool;
 
 	public static int RecipeDifficulty;
 
-	public static final int guiIdPump = 1;
 	public static final int guiIdMover = 2;
 	public static final int guiIdFortuneList = 3;
 	public static final int guiIdSilktouchList = 4;
@@ -59,6 +59,7 @@ public class QuarryPlus implements ITriggerProvider {
 			blockMover = (new BlockMover(cfg.getBlock("EnchantMover", 4003).getInt()));
 			blockMiningWell = (new BlockMiningWell(cfg.getBlock("MiningWell", 4004).getInt()));
 			blockPump = (new BlockPump(cfg.getBlock("Pump", 4005).getInt()));
+			itemTool = (new ItemTool(cfg.getItem("Tools", 18463).getInt()));
 
 			Property RD = cfg.get(Configuration.CATEGORY_GENERAL, "RecipeDifficulty", 2);
 			RD.comment = "0:AsCheatRecipe,1:EasyRecipe,2:NormalRecipe(Default),3:HardRecipe,other:NormalRecipe";

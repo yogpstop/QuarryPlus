@@ -87,15 +87,6 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 			sendPacketToPlayer(this, ep, silktouchTInc, this.silktouchInclude);
 			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdSilktouchList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
 			break;
-		case reinit:
-			G_reinit();
-			break;
-		case openFortuneGui:
-			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdFortuneList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
-			break;
-		case openSilktouchGui:
-			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdSilktouchList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
-			break;
 		}
 	}
 
@@ -107,6 +98,12 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 	public final void invalidate() {
 		G_destroy();
 		super.invalidate();
+	}
+
+	@Override
+	public final void onChunkUnload() {
+		G_destroy();
+		super.onChunkUnload();
 	}
 
 	@Override

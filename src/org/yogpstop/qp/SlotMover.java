@@ -16,13 +16,14 @@ public class SlotMover extends Slot {
 	}
 
 	@Override
-	public boolean isItemValid(ItemStack par1ItemStack) {
+	public boolean isItemValid(ItemStack is) {
 		switch (this.slotNumber) {
 		case 0:
-			if (par1ItemStack.itemID == Item.pickaxeDiamond.itemID) { return true; }
+			if (is.itemID == Item.pickaxeDiamond.itemID) { return true; }
 			return false;
 		case 1:
-			if (par1ItemStack.itemID == QuarryPlus.blockQuarry.blockID || par1ItemStack.itemID == QuarryPlus.blockMiningWell.blockID) { return true; }
+			if (is.itemID == QuarryPlus.blockQuarry.blockID || is.itemID == QuarryPlus.blockMiningWell.blockID || is.itemID == QuarryPlus.blockPump.blockID
+					|| (is.itemID == QuarryPlus.itemTool.itemID && is.getItemDamage() == 1)) { return true; }
 		}
 		return false;
 	}

@@ -21,3 +21,6 @@ tof.manualinput=ManualInput
 tof.setting=Setting of QuarryPlus
 tof.include=Include
 tof.exclude=Exclude
+item.listEditor.name=ListEditor
+item.liquidSelector.name=LiquidSelector
+item.statusChecker.name=StatusChecker
