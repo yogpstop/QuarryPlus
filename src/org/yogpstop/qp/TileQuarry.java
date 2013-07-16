@@ -517,8 +517,8 @@ public class TileQuarry extends TileBasic {
 	private byte now = NONE;
 
 	@Override
-	protected void recievePacketOnClient(byte pattern, ByteArrayDataInput data) {
-		super.recievePacketOnClient(pattern, data);
+	protected void C_recievePacket(byte pattern, ByteArrayDataInput data) {
+		super.C_recievePacket(pattern, data);
 		switch (pattern) {
 		case packetNow:
 			this.now = data.readByte();

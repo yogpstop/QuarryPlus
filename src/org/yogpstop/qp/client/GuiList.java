@@ -49,10 +49,10 @@ public class GuiList extends GuiScreen {
 			break;
 		case PacketHandler.fortuneRemove:
 		case PacketHandler.silktouchRemove:
-			PacketHandler.sendTilePacketToServer(this.tile, (byte) par1.id, this.oreslot.target.get(this.oreslot.currentore));
+			PacketHandler.sendPacketToServer(this.tile, (byte) par1.id, this.oreslot.target.get(this.oreslot.currentore));
 			break;
 		default:
-			PacketHandler.sendTilePacketToServer(this.tile, (byte) par1.id);
+			PacketHandler.sendPacketToServer(this.tile, (byte) par1.id);
 			break;
 		}
 	}

@@ -54,13 +54,8 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		initPowerProvider();
 	}
 
-	void recievePacket(ByteArrayDataInput data, EntityPlayer ep) {
-		if (this.worldObj.isRemote) recievePacketOnClient(data.readByte(), data);
-		else recievePacketOnServer(data.readByte(), data, ep);
-	}
-
 	@Override
-	protected void recievePacketOnServer(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {
+	protected void S_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {
 		switch (pattern) {
 		case fortuneAdd:
 			this.fortuneList.add(data.readLong());
@@ -115,7 +110,7 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 	}
 
 	@Override
-	protected void recievePacketOnClient(byte pattern, ByteArrayDataInput data) {
+	protected void C_recievePacket(byte pattern, ByteArrayDataInput data) {
 		switch (pattern) {
 		case packetFortuneList:
 			this.fortuneList.clear();

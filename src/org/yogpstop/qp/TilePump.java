@@ -211,7 +211,7 @@ public class TilePump extends APacketTile implements ITankContainer {
 	}
 
 	@Override
-	void recievePacketOnServer(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {
+	void S_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {
 		switch (pattern) {
 		case PacketHandler.toggleLiquid_0:
 		case PacketHandler.toggleLiquid_0 + 1:
@@ -232,7 +232,7 @@ public class TilePump extends APacketTile implements ITankContainer {
 	}
 
 	@Override
-	void recievePacketOnClient(byte pattern, ByteArrayDataInput data) {
+	void C_recievePacket(byte pattern, ByteArrayDataInput data) {
 		switch (pattern) {
 		case PacketHandler.packetNow:
 			byte flag = data.readByte();
@@ -352,12 +352,12 @@ public class TilePump extends APacketTile implements ITankContainer {
 							block_count++;
 							if (bb instanceof ILiquid && ((ILiquid) bb).stillLiquidMeta() == meta) {
 								long key = ((ILiquid) bb).stillLiquidId() | (meta << 32);
-								if (!cacheLiquids.containsKey(bid)) cacheLiquids.put(key, 0);
-								cacheLiquids.put((long) bid, cacheLiquids.get(bid) + LiquidContainerRegistry.BUCKET_VOLUME);
+								if (!cacheLiquids.containsKey(key)) cacheLiquids.put(key, 0);
+								cacheLiquids.put(key, cacheLiquids.get(key) + LiquidContainerRegistry.BUCKET_VOLUME);
 							} else if (meta == 0) {
 								if (bb instanceof BlockFlowing) bid--;
-								if (!cacheLiquids.containsKey(bid)) cacheLiquids.put((long) bid, 0);
-								cacheLiquids.put((long) bid, cacheLiquids.get(bid) + LiquidContainerRegistry.BUCKET_VOLUME);
+								if (!cacheLiquids.containsKey((long) bid)) cacheLiquids.put((long) bid, 0);
+								cacheLiquids.put((long) bid, cacheLiquids.get((long) bid) + LiquidContainerRegistry.BUCKET_VOLUME);
 							}
 						}
 					}
@@ -400,9 +400,9 @@ public class TilePump extends APacketTile implements ITankContainer {
 		String[] ret = new String[this.mapping.length];
 		for (int i = 0; i < ret.length; i++) {
 			StringBuilder c = new StringBuilder();
-			c.append(LiquidDictionary.findLiquidName(this.liquids.get(this.mapping[i]).ls));
+			c.append(LiquidDictionary.findLiquidName(this.liquids.containsKey(this.mapping[i]) ? this.liquids.get(this.mapping[i]).ls : null));
 			c.append(" ");
-			c.append(this.liquids.get(this.mapping[i]).ls.amount);
+			c.append(this.liquids.containsKey(this.mapping[i]) ? this.liquids.get(this.mapping[i]).ls.amount : null);
 			ret[i] = c.toString();
 		}
 		return ret;

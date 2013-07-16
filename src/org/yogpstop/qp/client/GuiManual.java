@@ -62,7 +62,7 @@ public class GuiManual extends GuiScreen {
 				this.mc.displayGuiScreen(new GuiError(this, StatCollector.translateToLocal("tof.alreadyerror"), getname(bid, metaid)));
 				return;
 			}
-			PacketHandler.sendTilePacketToServer(this.tile, (byte) (PacketHandler.fortuneAdd + this.targetid - 1), QuarryPlus.data(bid, metaid));
+			PacketHandler.sendPacketToServer(this.tile, (byte) (PacketHandler.fortuneAdd + this.targetid - 1), QuarryPlus.data(bid, metaid));
 			break;
 		case -2:
 			this.mc.displayGuiScreen(this.parent);

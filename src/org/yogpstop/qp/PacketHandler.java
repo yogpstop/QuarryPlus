@@ -44,6 +44,7 @@ public class PacketHandler implements IPacketHandler {
 	public static final byte toggleLiquid_0 = 14;
 	public static final byte Liquid_l = 20;
 	public static final byte signal = 21;
+	public static final byte link = 22;
 
 	@Override
 	public void onPacketData(INetworkManager network, Packet250CustomPayload packet, Player player) {
@@ -61,8 +62,8 @@ public class PacketHandler implements IPacketHandler {
 			ByteArrayDataInput data = ByteStreams.newDataInput(packet.data);
 			APacketTile tb = (APacketTile) ((EntityPlayer) player).worldObj.getBlockTileEntity(data.readInt(), data.readInt(), data.readInt());
 			if (tb != null) {
-				if (tb.worldObj.isRemote) tb.recievePacketOnClient(data.readByte(), data);
-				else tb.recievePacketOnServer(data.readByte(), data, (EntityPlayer) player);
+				if (tb.worldObj.isRemote) tb.C_recievePacket(data.readByte(), data);
+				else tb.S_recievePacket(data.readByte(), data, (EntityPlayer) player);
 			}
 		} else if (packet.channel.equals(OGUI)) {
 			openGuiFromPacket(ByteStreams.newDataInput(packet.data), (EntityPlayer) player);
@@ -127,7 +128,7 @@ public class PacketHandler implements IPacketHandler {
 		return packet;
 	}
 
-	public static void sendTilePacketToServer(APacketTile te, byte id) {
+	public static void sendPacketToServer(APacketTile te, byte id) {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		DataOutputStream dos = new DataOutputStream(bos);
 		try {
@@ -141,7 +142,7 @@ public class PacketHandler implements IPacketHandler {
 		PacketDispatcher.sendPacketToServer(composeTilePacket(bos));
 	}
 
-	public static void sendTilePacketToServer(APacketTile te, byte id, long data) {
+	public static void sendPacketToServer(APacketTile te, byte id, long data) {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		DataOutputStream dos = new DataOutputStream(bos);
 		try {
@@ -257,4 +258,43 @@ public class PacketHandler implements IPacketHandler {
 		PacketDispatcher.sendPacketToAllPlayers(composeTilePacket(bos));
 	}
 
+	static void sendLinkPacket(APacketTile te, TileMarker.Link l) {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		DataOutputStream dos = new DataOutputStream(bos);
+		try {
+			dos.writeInt(te.xCoord);
+			dos.writeInt(te.yCoord);
+			dos.writeInt(te.zCoord);
+			dos.writeByte(link);
+			dos.writeInt(l.xx);
+			dos.writeInt(l.xn);
+			dos.writeInt(l.yx);
+			dos.writeInt(l.yn);
+			dos.writeInt(l.zx);
+			dos.writeInt(l.zn);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		PacketDispatcher.sendPacketToAllPlayers(composeTilePacket(bos));
+	}
+
+	static void sendLinkPacket(APacketTile te, TileMarker.Link l, EntityPlayer ep) {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		DataOutputStream dos = new DataOutputStream(bos);
+		try {
+			dos.writeInt(te.xCoord);
+			dos.writeInt(te.yCoord);
+			dos.writeInt(te.zCoord);
+			dos.writeByte(link);
+			dos.writeInt(l.xx);
+			dos.writeInt(l.xn);
+			dos.writeInt(l.yx);
+			dos.writeInt(l.yn);
+			dos.writeInt(l.zx);
+			dos.writeInt(l.zn);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		PacketDispatcher.sendPacketToPlayer(composeTilePacket(bos), (Player) ep);
+	}
 }

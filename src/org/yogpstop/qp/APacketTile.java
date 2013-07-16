@@ -7,9 +7,9 @@ import net.minecraft.tileentity.TileEntity;
 import com.google.common.io.ByteArrayDataInput;
 
 public abstract class APacketTile extends TileEntity {
-	abstract void recievePacketOnServer(byte pattern, ByteArrayDataInput data, EntityPlayer ep);
+	abstract void S_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep);
 
-	abstract void recievePacketOnClient(byte pattern, ByteArrayDataInput data);
+	abstract void C_recievePacket(byte pattern, ByteArrayDataInput data);
 
 	@Override
 	public final Packet getDescriptionPacket() {

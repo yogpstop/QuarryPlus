@@ -63,6 +63,6 @@ public class GuiPump extends GuiContainer {
 	@Override
 	protected void actionPerformed(GuiButton par1GuiButton) {
 		if (!par1GuiButton.enabled) { return; }
-		PacketHandler.sendTilePacketToServer(this.tilePump, (byte) par1GuiButton.id);
+		PacketHandler.sendPacketToServer(this.tilePump, (byte) par1GuiButton.id);
 	}
 }

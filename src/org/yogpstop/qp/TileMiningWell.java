@@ -30,8 +30,8 @@ public class TileMiningWell extends TileBasic {
 	}
 
 	@Override
-	protected void recievePacketOnClient(byte pattern, ByteArrayDataInput data) {
-		super.recievePacketOnClient(pattern, data);
+	protected void C_recievePacket(byte pattern, ByteArrayDataInput data) {
+		super.C_recievePacket(pattern, data);
 		switch (pattern) {
 		case packetNow:
 			this.working = data.readBoolean();

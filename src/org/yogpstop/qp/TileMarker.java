@@ -9,8 +9,6 @@ import org.yogpstop.Inline;
 import com.google.common.collect.Sets;
 import com.google.common.io.ByteArrayDataInput;
 
-import cpw.mods.fml.common.network.PacketDispatcher;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -37,17 +35,88 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 		int xx, xn, yx, yn, zx, zn;
 		EntityBlock[] lasers;
 
+		Link() {}
+
+		Link(World w, int vxx, int vxn, int vyx, int vyn, int vzx, int vzn) {
+			this.xx = vxx;
+			this.xn = vxn;
+			this.yx = vyx;
+			this.yn = vyn;
+			this.zx = vzx;
+			this.zn = vzn;
+			TileEntity te = w.getBlockTileEntity(this.xn, this.yn, this.zn);
+			if (te instanceof TileMarker) if (((TileMarker) te).obj == null) ((TileMarker) te).obj = this;
+			else if (((TileMarker) te).obj.equals(this)) {
+				((TileMarker) te).obj.removeConnection(w);
+				((TileMarker) te).obj = this;
+			}
+			te = w.getBlockTileEntity(this.xn, this.yn, this.zx);
+			if (te instanceof TileMarker) if (((TileMarker) te).obj == null) ((TileMarker) te).obj = this;
+			else if (((TileMarker) te).obj.equals(this)) {
+				((TileMarker) te).obj.removeConnection(w);
+				((TileMarker) te).obj = this;
+			}
+			te = w.getBlockTileEntity(this.xn, this.yx, this.zn);
+			if (te instanceof TileMarker) if (((TileMarker) te).obj == null) ((TileMarker) te).obj = this;
+			else if (((TileMarker) te).obj.equals(this)) {
+				((TileMarker) te).obj.removeConnection(w);
+				((TileMarker) te).obj = this;
+			}
+			te = w.getBlockTileEntity(this.xn, this.yx, this.zx);
+			if (te instanceof TileMarker) if (((TileMarker) te).obj == null) ((TileMarker) te).obj = this;
+			else if (((TileMarker) te).obj.equals(this)) {
+				((TileMarker) te).obj.removeConnection(w);
+				((TileMarker) te).obj = this;
+			}
+			te = w.getBlockTileEntity(this.xx, this.yn, this.zn);
+			if (te instanceof TileMarker) if (((TileMarker) te).obj == null) ((TileMarker) te).obj = this;
+			else if (((TileMarker) te).obj.equals(this)) {
+				((TileMarker) te).obj.removeConnection(w);
+				((TileMarker) te).obj = this;
+			}
+			te = w.getBlockTileEntity(this.xx, this.yn, this.zx);
+			if (te instanceof TileMarker) if (((TileMarker) te).obj == null) ((TileMarker) te).obj = this;
+			else if (((TileMarker) te).obj.equals(this)) {
+				((TileMarker) te).obj.removeConnection(w);
+				((TileMarker) te).obj = this;
+			}
+			te = w.getBlockTileEntity(this.xx, this.yx, this.zn);
+			if (te instanceof TileMarker) if (((TileMarker) te).obj == null) ((TileMarker) te).obj = this;
+			else if (((TileMarker) te).obj.equals(this)) {
+				((TileMarker) te).obj.removeConnection(w);
+				((TileMarker) te).obj = this;
+			}
+			te = w.getBlockTileEntity(this.xx, this.yx, this.zx);
+			if (te instanceof TileMarker) if (((TileMarker) te).obj == null) ((TileMarker) te).obj = this;
+			else if (((TileMarker) te).obj.equals(this)) {
+				((TileMarker) te).obj.removeConnection(w);
+				((TileMarker) te).obj = this;
+			}
+		}
+
+		boolean equals(Link l) {
+			if (l == this) return false;
+			if (l.xn == this.xn && l.xx == this.xx && l.yn == this.yn && l.yx == this.yx && l.zx == this.zx && l.zn == this.zn) return true;
+			return false;
+		}
+
 		void removeConnectionIfCannotHold(World w) {
-			boolean xi = true, xa = true, yi = true, ya = true, zi = true, za = true;
-			if (Inline.isMine(this, w.getBlockTileEntity(this.xn, this.yn, this.zn))) xi = yi = zi = false;
-			if (Inline.isMine(this, w.getBlockTileEntity(this.xn, this.yn, this.zx))) xi = yi = za = false;
-			if (Inline.isMine(this, w.getBlockTileEntity(this.xn, this.yx, this.zn))) xi = ya = zi = false;
-			if (Inline.isMine(this, w.getBlockTileEntity(this.xn, this.yx, this.zx))) xi = ya = za = false;
-			if (Inline.isMine(this, w.getBlockTileEntity(this.xx, this.yn, this.zn))) xa = yi = zi = false;
-			if (Inline.isMine(this, w.getBlockTileEntity(this.xx, this.yn, this.zx))) xa = yi = za = false;
-			if (Inline.isMine(this, w.getBlockTileEntity(this.xx, this.yx, this.zn))) xa = ya = zi = false;
-			if (Inline.isMine(this, w.getBlockTileEntity(this.xx, this.yx, this.zx))) xa = ya = za = false;
-			if (xi || xa || yi || ya || zi || za) removeConnection(w);
+			boolean nnn = false, nnx = false, nxn = false, nxx = false, xnn = false, xnx = false, xxn = false, xxx = false;
+			nnn = Inline.isMine(this, w.getBlockTileEntity(this.xn, this.yn, this.zn));
+			nnx = Inline.isMine(this, w.getBlockTileEntity(this.xn, this.yn, this.zx));
+			nxn = Inline.isMine(this, w.getBlockTileEntity(this.xn, this.yx, this.zn));
+			nxx = Inline.isMine(this, w.getBlockTileEntity(this.xn, this.yx, this.zx));
+			xnn = Inline.isMine(this, w.getBlockTileEntity(this.xx, this.yn, this.zn));
+			xnx = Inline.isMine(this, w.getBlockTileEntity(this.xx, this.yn, this.zx));
+			xxn = Inline.isMine(this, w.getBlockTileEntity(this.xx, this.yx, this.zn));
+			xxx = Inline.isMine(this, w.getBlockTileEntity(this.xx, this.yx, this.zx));
+			boolean nnnnnx = nnn && nnx, nnnnxn = nnn && nxn, nnnxnn = nnn && xnn;
+			boolean xnnxxn = xnn && xxn, xnnxnx = xnn && xnx;
+			boolean nxnxxn = nxn && xxn, nxnnxx = nxn && nxx;
+			boolean nnxnxx = nnx && nxx, nnxxnx = nnx && xnx;
+			boolean xxnxxx = xxn && xxx, xnxxxx = xnx && xxx, nxxxxx = nxx && xxx;
+			if (!((nnnnnx && nnnnxn && nnnxnn) || (nnnnnx && nnxnxx && nnxxnx) || (nnnnxn && nxnxxn && nxnnxx) || (nnnxnn && xnnxxn && xnnxnx)
+					|| (nxxxxx && nnxnxx && nxnnxx) || (nnxxnx && xnxxxx && xnnxnx) || (nxnxxn && xnnxxn && xxnxxx) || (nxxxxx && xnxxxx && xxnxxx))) removeConnection(w);
 		}
 
 		void removeConnection(World w) {
@@ -99,7 +168,7 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 				if (eb != null) w.spawnEntityInWorld(eb);
 		}
 
-		void deleteLaser(World w) {
+		private void deleteLaser(World w) {
 			if (this.lasers != null) for (EntityBlock eb : this.lasers) {
 				if (eb != null) {
 					w.removeEntity(eb);
@@ -147,7 +216,6 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 			return;
 		}
 		Link l = this.obj;
-		l.deleteLaser(this.worldObj);
 		Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xn, l.yn, l.zn));
 		Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xn, l.yn, l.zx));
 		Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xn, l.yx, l.zn));
@@ -162,7 +230,6 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 		Collection<ItemStack> ret = new LinkedList<ItemStack>();
 		if (this.obj != null) {
 			Link l = this.obj;
-			l.deleteLaser(this.worldObj);
 			Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xn, l.yn, l.zn), ret);
 			Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xn, l.yn, l.zx), ret);
 			Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xn, l.yx, l.zn), ret);
@@ -178,7 +245,7 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 		return ret;
 	}
 
-	private void renewConnection() {
+	private void S_renewConnection() {
 		int i;
 		TileEntity tx = null, ty = null, tz = null;
 		if (this.obj.xx == this.obj.xn) {
@@ -233,98 +300,53 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 			}
 		}
 		if (this.obj.xx == this.obj.xn) {
-			if (ty != null) ((TileMarker) ty).renewConnection();
-			if (tz != null) ((TileMarker) tz).renewConnection();
+			if (ty != null) ((TileMarker) ty).S_renewConnection();
+			if (tz != null) ((TileMarker) tz).S_renewConnection();
 		}
 		if (this.obj.yx == this.obj.yn) {
-			if (tx != null) ((TileMarker) tx).renewConnection();
-			if (tz != null) ((TileMarker) tz).renewConnection();
+			if (tx != null) ((TileMarker) tx).S_renewConnection();
+			if (tz != null) ((TileMarker) tz).S_renewConnection();
 		}
 		if (this.obj.zx == this.obj.zn) {
-			if (tx != null) ((TileMarker) tx).renewConnection();
-			if (ty != null) ((TileMarker) ty).renewConnection();
+			if (tx != null) ((TileMarker) tx).S_renewConnection();
+			if (ty != null) ((TileMarker) ty).S_renewConnection();
 		}
 	}
 
-	private boolean init = false, powered;
-
-	@Override
-	public void updateEntity() {
-		super.updateEntity();
-		if (!this.init) updateSignal();
-	}
-
-	@Override
-	public void onChunkUnload() {
-		destroy();
-	}
-
-	private void removeSignal() {
-		if (this.slasers != null) for (EntityBlock eb : this.slasers)
-			if (eb != null) {
-				this.worldObj.removeEntity(eb);
-				if (this.worldObj.isRemote) ((WorldClient) this.worldObj).removeEntityFromWorld(eb.entityId);
+	void S_updateSignal() {// onNeighborBlockChange
+		boolean powered = this.worldObj.isBlockIndirectlyGettingPowered(this.xCoord, this.yCoord, this.zCoord);
+		G_removeSignal();
+		if (powered) {
+			this.slasers = new EntityBlock[3];
+			if (this.obj == null) {
+				this.slasers[0] = CoreProxy.proxy.newEntityBlock(this.worldObj, this.xCoord - MAX_SIZE + 0.5D, this.yCoord + 0.45D, this.zCoord + 0.45D,
+						MAX_SIZE * 2 + 0.5D, 0.1, 0.1, LaserKind.Blue);
+				this.slasers[1] = CoreProxy.proxy.newEntityBlock(this.worldObj, this.xCoord + 0.45D, Math.max(0, this.yCoord - MAX_SIZE) + 0.5D,
+						this.zCoord + 0.45D, 0.1, 256, 0.1, LaserKind.Blue);
+				this.slasers[2] = CoreProxy.proxy.newEntityBlock(this.worldObj, this.xCoord + 0.45D, this.yCoord + 0.45D, this.zCoord - MAX_SIZE + 0.5D, 0.1,
+						0.1, MAX_SIZE * 2 + 0.5D, LaserKind.Blue);
+			} else {
+				if (this.obj.xn == this.obj.xx) this.slasers[0] = CoreProxy.proxy.newEntityBlock(this.worldObj, this.xCoord - MAX_SIZE + 0.5D,
+						this.yCoord + 0.45D, this.zCoord + 0.45D, MAX_SIZE * 2 + 0.5D, 0.1, 0.1, LaserKind.Blue);
+				if (this.obj.yn == this.obj.yx) this.slasers[1] = CoreProxy.proxy.newEntityBlock(this.worldObj, this.xCoord + 0.45D,
+						Math.max(0, this.yCoord - MAX_SIZE) + 0.5D, this.zCoord + 0.45D, 0.1, 256, 0.1, LaserKind.Blue);
+				if (this.obj.zn == this.obj.zx) this.slasers[2] = CoreProxy.proxy.newEntityBlock(this.worldObj, this.xCoord + 0.45D, this.yCoord + 0.45D,
+						this.zCoord - MAX_SIZE + 0.5D, 0.1, 0.1, MAX_SIZE * 2 + 0.5D, LaserKind.Blue);
 			}
-	}
-
-	void updateSignal() {
-		this.init = true;
-		removeSignal();
-		if (this.worldObj.isRemote) {
-			if (this.powered) {
-				this.slasers = new EntityBlock[3];
-				if (this.obj == null) {
-					this.slasers[0] = CoreProxy.proxy.newEntityBlock(this.worldObj, this.xCoord - MAX_SIZE + 0.5D, this.yCoord + 0.45D, this.zCoord + 0.45D,
-							MAX_SIZE * 2 + 0.5D, 0.1, 0.1, LaserKind.Blue);
-					this.slasers[1] = CoreProxy.proxy.newEntityBlock(this.worldObj, this.xCoord + 0.45D, Math.max(0, this.yCoord - MAX_SIZE) + 0.5D,
-							this.zCoord + 0.45D, 0.1, 256, 0.1, LaserKind.Blue);
-					this.slasers[2] = CoreProxy.proxy.newEntityBlock(this.worldObj, this.xCoord + 0.45D, this.yCoord + 0.45D, this.zCoord - MAX_SIZE + 0.5D,
-							0.1, 0.1, MAX_SIZE * 2 + 0.5D, LaserKind.Blue);
-				} else {
-					if (this.obj.xn == this.obj.xx) this.slasers[0] = CoreProxy.proxy.newEntityBlock(this.worldObj, this.xCoord - MAX_SIZE + 0.5D,
-							this.yCoord + 0.45D, this.zCoord + 0.45D, MAX_SIZE * 2 + 0.5D, 0.1, 0.1, LaserKind.Blue);
-					if (this.obj.yn == this.obj.yx) this.slasers[1] = CoreProxy.proxy.newEntityBlock(this.worldObj, this.xCoord + 0.45D,
-							Math.max(0, this.yCoord - MAX_SIZE) + 0.5D, this.zCoord + 0.45D, 0.1, 256, 0.1, LaserKind.Blue);
-					if (this.obj.zn == this.obj.zx) this.slasers[2] = CoreProxy.proxy.newEntityBlock(this.worldObj, this.xCoord + 0.45D, this.yCoord + 0.45D,
-							this.zCoord - MAX_SIZE + 0.5D, 0.1, 0.1, MAX_SIZE * 2 + 0.5D, LaserKind.Blue);
-				}
-				for (EntityBlock eb : this.slasers)
-					if (eb != null) this.worldObj.spawnEntityInWorld(eb);
-			}
-		} else {
-			if (this.worldObj.isBlockIndirectlyGettingPowered(this.xCoord, this.yCoord, this.zCoord)) {
-				this.powered = true;
-				this.slasers = new EntityBlock[3];
-				if (this.obj == null) {
-					this.slasers[0] = CoreProxy.proxy.newEntityBlock(this.worldObj, this.xCoord - MAX_SIZE + 0.5D, this.yCoord + 0.45D, this.zCoord + 0.45D,
-							MAX_SIZE * 2 + 0.5D, 0.1, 0.1, LaserKind.Blue);
-					this.slasers[1] = CoreProxy.proxy.newEntityBlock(this.worldObj, this.xCoord + 0.45D, Math.max(0, this.yCoord - MAX_SIZE) + 0.5D,
-							this.zCoord + 0.45D, 0.1, 256, 0.1, LaserKind.Blue);
-					this.slasers[2] = CoreProxy.proxy.newEntityBlock(this.worldObj, this.xCoord + 0.45D, this.yCoord + 0.45D, this.zCoord - MAX_SIZE + 0.5D,
-							0.1, 0.1, MAX_SIZE * 2 + 0.5D, LaserKind.Blue);
-				} else {
-					if (this.obj.xn == this.obj.xx) this.slasers[0] = CoreProxy.proxy.newEntityBlock(this.worldObj, this.xCoord - MAX_SIZE + 0.5D,
-							this.yCoord + 0.45D, this.zCoord + 0.45D, MAX_SIZE * 2 + 0.5D, 0.1, 0.1, LaserKind.Blue);
-					if (this.obj.yn == this.obj.yx) this.slasers[1] = CoreProxy.proxy.newEntityBlock(this.worldObj, this.xCoord + 0.45D,
-							Math.max(0, this.yCoord - MAX_SIZE) + 0.5D, this.zCoord + 0.45D, 0.1, 256, 0.1, LaserKind.Blue);
-					if (this.obj.zn == this.obj.zx) this.slasers[2] = CoreProxy.proxy.newEntityBlock(this.worldObj, this.xCoord + 0.45D, this.yCoord + 0.45D,
-							this.zCoord - MAX_SIZE + 0.5D, 0.1, 0.1, MAX_SIZE * 2 + 0.5D, LaserKind.Blue);
-				}
-				for (EntityBlock eb : this.slasers)
-					if (eb != null) this.worldObj.spawnEntityInWorld(eb);
-			} else this.powered = false;
-			PacketHandler.sendMarkerPacket(this, PacketHandler.signal, this.powered);
+			for (EntityBlock eb : this.slasers)
+				if (eb != null) this.worldObj.spawnEntityInWorld(eb);
 		}
+		PacketHandler.sendMarkerPacket(this, PacketHandler.signal, powered);
 	}
 
-	void tryConnection() {
+	void S_tryConnection() {// onBlockActivated
 		TileEntity tx;
 		if (this.obj != null) this.obj.removeConnection(this.worldObj);
 		this.obj = new Link();
 		this.obj.xx = this.obj.xn = this.xCoord;
 		this.obj.yx = this.obj.yn = this.yCoord;
 		this.obj.zx = this.obj.zn = this.zCoord;
-		renewConnection();
+		S_renewConnection();
 		if (this.obj.xx == this.obj.xn && this.obj.yx == this.obj.yn && this.obj.zx == this.obj.zn) {
 			this.obj = null;
 			return;
@@ -346,47 +368,71 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 		tx = this.worldObj.getBlockTileEntity(this.obj.xx, this.obj.yx, this.obj.zx);
 		if (tx instanceof TileMarker && ((TileMarker) tx).obj == null) ((TileMarker) tx).obj = this.obj;
 		this.obj.makeLaser(this.worldObj);
-		updateSignal();
+		PacketHandler.sendLinkPacket(this, this.obj);
+		S_updateSignal();
 	}
 
-	void destroy() {
+	@Override
+	void S_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {// onPacketData
+		switch (pattern) {
+		case PacketHandler.link:
+			if (this.obj != null) PacketHandler.sendLinkPacket(this, this.obj, ep);
+		}
+	}
+
+	private void G_removeSignal() {
+		if (this.slasers != null) for (EntityBlock eb : this.slasers)
+			if (eb != null) {
+				this.worldObj.removeEntity(eb);
+				if (this.worldObj.isRemote) ((WorldClient) this.worldObj).removeEntityFromWorld(eb.entityId);
+			}
+	}
+
+	private void G_destroy() {
 		if (this.obj != null) this.obj.removeConnectionIfCannotHold(this.worldObj);
-		removeSignal();
+		G_removeSignal();
 		ForgeChunkManager.releaseTicket(this.chunkTicket);
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbttc) {
-		super.readFromNBT(nbttc);
-		this.powered = nbttc.getBoolean("powered");
-		this.init = false;
-	}
-
-	@Override
-	public void writeToNBT(NBTTagCompound nbttc) {
-		super.writeToNBT(nbttc);
-		nbttc.setBoolean("powered", this.powered);
-	}
-
-	@Override
-	void recievePacketOnServer(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {}
-
-	@Override
-	void recievePacketOnClient(byte pattern, ByteArrayDataInput data) {
+	void C_recievePacket(byte pattern, ByteArrayDataInput data) {// onPacketData
 		switch (pattern) {
 		case PacketHandler.signal:
-			this.powered = data.readBoolean();
-			this.init = false;
+			C_updateSignal(data.readBoolean());
+			break;
+		case PacketHandler.link:
+			if (this.obj != null) this.obj.removeConnection(this.worldObj);
+			this.obj = new Link(this.worldObj, data.readInt(), data.readInt(), data.readInt(), data.readInt(), data.readInt(), data.readInt());
+			this.obj.makeLaser(this.worldObj);
 		}
 	}
 
-	void init() {
-		requestTicket();
+	private void C_updateSignal(boolean powered) {
+		G_removeSignal();
+		if (!powered) return;
+		this.slasers = new EntityBlock[3];
+		if (this.obj == null) {
+			this.slasers[0] = CoreProxy.proxy.newEntityBlock(this.worldObj, this.xCoord - MAX_SIZE + 0.5D, this.yCoord + 0.45D, this.zCoord + 0.45D,
+					MAX_SIZE * 2 + 0.5D, 0.1, 0.1, LaserKind.Blue);
+			this.slasers[1] = CoreProxy.proxy.newEntityBlock(this.worldObj, this.xCoord + 0.45D, Math.max(0, this.yCoord - MAX_SIZE) + 0.5D,
+					this.zCoord + 0.45D, 0.1, 256, 0.1, LaserKind.Blue);
+			this.slasers[2] = CoreProxy.proxy.newEntityBlock(this.worldObj, this.xCoord + 0.45D, this.yCoord + 0.45D, this.zCoord - MAX_SIZE + 0.5D, 0.1, 0.1,
+					MAX_SIZE * 2 + 0.5D, LaserKind.Blue);
+		} else {
+			if (this.obj.xn == this.obj.xx) this.slasers[0] = CoreProxy.proxy.newEntityBlock(this.worldObj, this.xCoord - MAX_SIZE + 0.5D, this.yCoord + 0.45D,
+					this.zCoord + 0.45D, MAX_SIZE * 2 + 0.5D, 0.1, 0.1, LaserKind.Blue);
+			if (this.obj.yn == this.obj.yx) this.slasers[1] = CoreProxy.proxy.newEntityBlock(this.worldObj, this.xCoord + 0.45D,
+					Math.max(0, this.yCoord - MAX_SIZE) + 0.5D, this.zCoord + 0.45D, 0.1, 256, 0.1, LaserKind.Blue);
+			if (this.obj.zn == this.obj.zx) this.slasers[2] = CoreProxy.proxy.newEntityBlock(this.worldObj, this.xCoord + 0.45D, this.yCoord + 0.45D,
+					this.zCoord - MAX_SIZE + 0.5D, 0.1, 0.1, MAX_SIZE * 2 + 0.5D, LaserKind.Blue);
+		}
+		for (EntityBlock eb : this.slasers)
+			if (eb != null) this.worldObj.spawnEntityInWorld(eb);
 	}
 
 	private Ticket chunkTicket;
 
-	private void requestTicket() {
+	void requestTicket() {// onPostBlockPlaced
 		if (this.chunkTicket != null) return;
 		this.chunkTicket = ForgeChunkManager.requestTicket(QuarryPlus.instance, this.worldObj, Type.NORMAL);
 		if (this.chunkTicket == null) return;
@@ -397,19 +443,42 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 		forceChunkLoading(this.chunkTicket);
 	}
 
-	void forceChunkLoading(Ticket ticket) {
+	void forceChunkLoading(Ticket ticket) {// ticketsLoaded
 		if (this.chunkTicket == null) this.chunkTicket = ticket;
 		Set<ChunkCoordIntPair> chunks = Sets.newHashSet();
 		ChunkCoordIntPair quarryChunk = new ChunkCoordIntPair(this.xCoord >> 4, this.zCoord >> 4);
 		chunks.add(quarryChunk);
 		ForgeChunkManager.forceChunk(ticket, quarryChunk);
-		PacketDispatcher.sendPacketToAllPlayers(PacketHandler.getPacketFromNBT(this));
+	}
+
+	private boolean vlF;
+
+	@Override
+	public void updateEntity() {
+		super.updateEntity();
+		if (this.vlF) {
+			this.vlF = false;
+			if (!this.worldObj.isRemote) S_updateSignal();
+			else PacketHandler.sendPacketToServer(this, PacketHandler.link);
+		}
+	}
+
+	@Override
+	public void validate() {
+		super.validate();
+		this.vlF = true;
 	}
 
 	@Override
 	public void invalidate() {
 		super.invalidate();
-		destroy();
+		G_destroy();
+	}
+
+	@Override
+	public void onChunkUnload() {
+		super.onChunkUnload();
+		G_destroy();
 	}
 
 }

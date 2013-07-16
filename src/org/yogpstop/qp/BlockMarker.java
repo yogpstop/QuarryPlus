@@ -77,12 +77,6 @@ public class BlockMarker extends Block implements ITileEntityProvider {
 	}
 
 	@Override
-	public void onNeighborBlockChange(World world, int x, int y, int z, int blockId) {
-		((TileMarker) world.getBlockTileEntity(x, y, z)).updateSignal();
-		dropTorchIfCantStay(world, x, y, z);
-	}
-
-	@Override
 	public boolean canPlaceBlockOnSide(World world, int x, int y, int z, int side) {
 		ForgeDirection dir = ForgeDirection.getOrientation(side);
 		return world.isBlockSolidOnSide(x - dir.offsetX, y - dir.offsetY, z - dir.offsetZ, dir.getOpposite());
@@ -99,12 +93,6 @@ public class BlockMarker extends Block implements ITileEntityProvider {
 		dropTorchIfCantStay(world, x, y, z);
 	}
 
-	@Override
-	public void onPostBlockPlaced(World world, int par2, int par3, int par4, int par5) {
-		super.onPostBlockPlaced(world, par2, par3, par4, par5);
-		((TileMarker) world.getBlockTileEntity(par2, par3, par4)).init();
-	}
-
 	private void dropTorchIfCantStay(World world, int x, int y, int z) {
 		int meta = world.getBlockMetadata(x, y, z);
 		if (!canPlaceBlockOnSide(world, x, y, z, meta)) {
@@ -119,14 +107,25 @@ public class BlockMarker extends Block implements ITileEntityProvider {
 	}
 
 	@Override
+	public void onNeighborBlockChange(World world, int x, int y, int z, int blockId) {
+		if (!world.isRemote) ((TileMarker) world.getBlockTileEntity(x, y, z)).S_updateSignal();
+		dropTorchIfCantStay(world, x, y, z);
+	}
+
+	@Override
 	public boolean onBlockActivated(World world, int i, int j, int k, EntityPlayer entityplayer, int par6, float par7, float par8, float par9) {
-		((TileMarker) world.getBlockTileEntity(i, j, k)).tryConnection();
+		if (!world.isRemote) ((TileMarker) world.getBlockTileEntity(i, j, k)).S_tryConnection();
 		return true;
 	}
 
 	@Override
+	public void onPostBlockPlaced(World world, int x, int y, int z, int meta) {
+		((TileMarker) world.getBlockTileEntity(x, y, z)).requestTicket();
+		super.onPostBlockPlaced(world, x, y, z, meta);
+	}
+
+	@Override
 	public void breakBlock(World world, int x, int y, int z, int par5, int par6) {
-		((TileMarker) world.getBlockTileEntity(x, y, z)).destroy();
 		world.removeBlockTileEntity(x, y, z);
 		super.breakBlock(world, x, y, z, par5, par6);
 	}
