@@ -435,23 +435,11 @@ public class TileQuarry extends TileBasic {
 	}
 
 	void forceChunkLoading(Ticket ticket) {
-		if (this.chunkTicket == null) {
-			this.chunkTicket = ticket;
-		}
-
+		if (this.chunkTicket == null)this.chunkTicket = ticket;
 		Set<ChunkCoordIntPair> chunks = Sets.newHashSet();
 		ChunkCoordIntPair quarryChunk = new ChunkCoordIntPair(this.xCoord >> 4, this.zCoord >> 4);
 		chunks.add(quarryChunk);
 		ForgeChunkManager.forceChunk(ticket, quarryChunk);
-
-		for (int chunkX = this.box.xMin >> 4; chunkX <= this.box.xMax >> 4; chunkX++) {
-			for (int chunkZ = this.box.zMin >> 4; chunkZ <= this.box.zMax >> 4; chunkZ++) {
-				ChunkCoordIntPair chunk = new ChunkCoordIntPair(chunkX, chunkZ);
-				ForgeChunkManager.forceChunk(ticket, chunk);
-				chunks.add(chunk);
-			}
-		}
-		PacketDispatcher.sendPacketToAllPlayers(PacketHandler.getPacketFromNBT(this));
 	}
 
 	void setArm(EntityMechanicalArm ema) {
