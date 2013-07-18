@@ -268,6 +268,7 @@ public class TileQuarry extends TileBasic {
 	}
 
 	private void S_createBox() {
+		if (this.box.isInitialized()) return;
 		if (!S_checkIAreaProvider(this.xCoord - 1, this.yCoord, this.zCoord)) if (!S_checkIAreaProvider(this.xCoord + 1, this.yCoord, this.zCoord)) if (!S_checkIAreaProvider(
 				this.xCoord, this.yCoord, this.zCoord - 1)) if (!S_checkIAreaProvider(this.xCoord, this.yCoord, this.zCoord + 1)) if (!S_checkIAreaProvider(
 				this.xCoord, this.yCoord - 1, this.zCoord)) if (!S_checkIAreaProvider(this.xCoord, this.yCoord + 1, this.zCoord)) {
@@ -406,17 +407,17 @@ public class TileQuarry extends TileBasic {
 	@Override
 	protected void G_reinit() {
 		this.now = NOTNEEDBREAK;
+		G_initEntities();
 		if (!this.worldObj.isRemote) {
 			S_setFirstPos();
+			PacketDispatcher.sendPacketToAllPlayers(PacketHandler.getPacketFromNBT(this));
 		}
-		G_initEntities();
-		PacketDispatcher.sendPacketToAllPlayers(PacketHandler.getPacketFromNBT(this));
 		sendNowPacket(this, this.now);
 	}
 
 	@Override
 	void G_init(NBTTagList nbttl) {
-		S_createBox();
+		if (!this.worldObj.isRemote) S_createBox();
 		requestTicket();
 		super.G_init(nbttl);
 	}
@@ -435,7 +436,7 @@ public class TileQuarry extends TileBasic {
 	}
 
 	void forceChunkLoading(Ticket ticket) {
-		if (this.chunkTicket == null)this.chunkTicket = ticket;
+		if (this.chunkTicket == null) this.chunkTicket = ticket;
 		Set<ChunkCoordIntPair> chunks = Sets.newHashSet();
 		ChunkCoordIntPair quarryChunk = new ChunkCoordIntPair(this.xCoord >> 4, this.zCoord >> 4);
 		chunks.add(quarryChunk);
