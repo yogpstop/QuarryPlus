@@ -168,7 +168,7 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 				if (eb != null) w.spawnEntityInWorld(eb);
 		}
 
-		private void deleteLaser(World w) {
+		void deleteLaser(World w) {
 			if (this.lasers != null) for (EntityBlock eb : this.lasers) {
 				if (eb != null) {
 					w.removeEntity(eb);
@@ -216,6 +216,7 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 			return;
 		}
 		Link l = this.obj;
+		l.deleteLaser(this.worldObj);
 		Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xn, l.yn, l.zn));
 		Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xn, l.yn, l.zx));
 		Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xn, l.yx, l.zn));
@@ -230,6 +231,7 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 		Collection<ItemStack> ret = new LinkedList<ItemStack>();
 		if (this.obj != null) {
 			Link l = this.obj;
+			l.deleteLaser(this.worldObj);
 			Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xn, l.yn, l.zn), ret);
 			Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xn, l.yn, l.zx), ret);
 			Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xn, l.yx, l.zn), ret);
@@ -377,6 +379,7 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 		switch (pattern) {
 		case PacketHandler.link:
 			if (this.obj != null) PacketHandler.sendLinkPacket(this, this.obj, ep);
+			S_updateSignal();
 		}
 	}
 
