@@ -45,7 +45,14 @@ public class TileQuarry extends TileBasic {
 	static double CF;
 	static double CS;
 
+	private IAreaProvider iap = null;
+
 	private void S_updateEntity() {
+		if (this.iap != null) {
+			if (this.iap instanceof TileMarker) this.cacheItems.addAll(((TileMarker) this.iap).removeFromWorldWithItem());
+			else this.iap.removeFromWorld();
+			this.iap = null;
+		}
 		switch (this.now) {
 		case MAKEFRAME:
 			if (S_makeFrame()) while (!S_checkTarget())
@@ -311,8 +318,7 @@ public class TileQuarry extends TileBasic {
 				return false;
 			}
 			if (this.box.sizeY() <= 1) this.box.yMax = this.box.yMin + 3;
-			if (te instanceof TileMarker) this.cacheItems.addAll(((TileMarker) te).removeFromWorldWithItem());
-			else ((IAreaProvider) te).removeFromWorld();
+			this.iap = (IAreaProvider) te;
 			return true;
 		}
 		return false;
@@ -411,8 +417,8 @@ public class TileQuarry extends TileBasic {
 		if (!this.worldObj.isRemote) {
 			S_setFirstPos();
 			PacketDispatcher.sendPacketToAllPlayers(PacketHandler.getPacketFromNBT(this));
+			sendNowPacket(this, this.now);
 		}
-		sendNowPacket(this, this.now);
 	}
 
 	@Override
