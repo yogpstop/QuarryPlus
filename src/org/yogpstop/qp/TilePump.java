@@ -93,6 +93,7 @@ public class TilePump extends APacketTile implements ITankContainer {
 		this.mapping[3] = nbttc.getLong("mapping3");
 		this.mapping[4] = nbttc.getLong("mapping4");
 		this.mapping[5] = nbttc.getLong("mapping5");
+		this.range = nbttc.getByte("range");
 		this.prev = (byte) (this.connectTo.ordinal() | (G_working() ? 0x80 : 0));
 	}
 
@@ -107,6 +108,7 @@ public class TilePump extends APacketTile implements ITankContainer {
 		nbttc.setLong("mapping3", this.mapping[3]);
 		nbttc.setLong("mapping4", this.mapping[4]);
 		nbttc.setLong("mapping5", this.mapping[5]);
+		nbttc.setByte("range", this.range);
 	}
 
 	@Override
@@ -238,12 +240,12 @@ public class TilePump extends APacketTile implements ITankContainer {
 	// /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	private static final int Y_SIZE = 256;
 	private static final int CHUNK_SCALE = 16;
-	private static final int RANGE = 4;
 
 	private byte[][][] blocks;
 	private ExtendedBlockStorage[][][] ebses;
 	private int xOffset, yOffset, zOffset, currentHeight = Integer.MIN_VALUE;
 	private int cx, cy = -1, cz;
+	private byte range = 4;
 
 	private int block_side;
 
@@ -254,6 +256,12 @@ public class TilePump extends APacketTile implements ITankContainer {
 	private static int cp = 0, cg = 0;
 	private int count;
 
+	void changeRange(EntityPlayer ep) {
+		if (this.range >= 4) this.range = 0;
+		else this.range++;
+		ep.sendChatToPlayer(StatCollector.translateToLocalFormatted("chat.pump_rtoggle", this.range * 2 + 1));
+	}
+
 	private static void S_put(int x, int y, int z) {
 		xb[cp] = x;
 		yb[cp] = y;
@@ -262,16 +270,16 @@ public class TilePump extends APacketTile implements ITankContainer {
 		if (cp == ARRAY_MAX) cp = 0;
 	}
 
-	private void S_searchLiquid(int x, int y, int z, int rg) {
+	private void S_searchLiquid(int x, int y, int z) {
 		this.count = cp = cg = 0;
-		int chunk_side = (1 + rg * 2);
+		int chunk_side = (1 + this.range * 2);
 		this.block_side = chunk_side * CHUNK_SCALE;
 		this.cx = x;
 		this.cy = y;
 		this.cz = z;
-		this.xOffset = ((x >> 4) - rg) << 4;
+		this.xOffset = ((x >> 4) - this.range) << 4;
 		this.yOffset = y & 0xFFFFFFF0;
-		this.zOffset = ((z >> 4) - rg) << 4;
+		this.zOffset = ((z >> 4) - this.range) << 4;
 		this.currentHeight = Y_SIZE - 1;
 		this.blocks = new byte[Y_SIZE - this.yOffset][this.block_side][this.block_side];
 		this.ebses = new ExtendedBlockStorage[chunk_side][chunk_side][];
@@ -309,7 +317,7 @@ public class TilePump extends APacketTile implements ITankContainer {
 		if (!this.worldObj.getBlockMaterial(x, y, z).isLiquid()) return true;
 		S_sendNowPacket();
 		this.count++;
-		if (this.cx != x || this.cy != y || this.cz != z || this.currentHeight < this.cy || this.count > 200) S_searchLiquid(x, y, z, RANGE);
+		if (this.cx != x || this.cy != y || this.cz != z || this.currentHeight < this.cy || this.count > 200) S_searchLiquid(x, y, z);
 		int block_count = 0;
 		int frame_count = 0;
 		Block bb;

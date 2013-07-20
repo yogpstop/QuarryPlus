@@ -4,6 +4,8 @@ import static buildcraft.core.CreativeTabBuildCraft.tabBuildCraft;
 
 import java.util.ArrayList;
 
+import buildcraft.api.tools.IToolWrench;
+
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
@@ -109,6 +111,11 @@ public class BlockPump extends BlockContainer {
 	@Override
 	public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer ep, int side, float par7, float par8, float par9) {
 		Item equipped = ep.getCurrentEquippedItem() != null ? ep.getCurrentEquippedItem().getItem() : null;
+		if (equipped instanceof IToolWrench && ((IToolWrench) equipped).canWrench(ep, x, y, z)) {
+			((TilePump) world.getBlockTileEntity(x, y, z)).changeRange(ep);
+			((IToolWrench) equipped).wrenchUsed(ep, x, y, z);
+			return true;
+		}
 		if (equipped instanceof ItemTool) {
 			if (ep.getCurrentEquippedItem().getItemDamage() == 0) {
 				if (world.isRemote) return true;
