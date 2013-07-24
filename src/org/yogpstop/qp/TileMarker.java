@@ -4,8 +4,6 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Set;
 
-import org.yogpstop.Inline;
-
 import com.google.common.collect.Sets;
 import com.google.common.io.ByteArrayDataInput;
 
@@ -31,7 +29,7 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 	public Link obj;
 	private EntityBlock[] slasers;
 
-	public class Link {
+	class Link {
 		int xx, xn, yx, yn, zx, zn;
 		EntityBlock[] lasers;
 
@@ -102,14 +100,14 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 
 		void removeConnectionIfCannotHold(World w) {
 			boolean nnn = false, nnx = false, nxn = false, nxx = false, xnn = false, xnx = false, xxn = false, xxx = false;
-			nnn = Inline.isMine(this, w.getBlockTileEntity(this.xn, this.yn, this.zn));
-			nnx = Inline.isMine(this, w.getBlockTileEntity(this.xn, this.yn, this.zx));
-			nxn = Inline.isMine(this, w.getBlockTileEntity(this.xn, this.yx, this.zn));
-			nxx = Inline.isMine(this, w.getBlockTileEntity(this.xn, this.yx, this.zx));
-			xnn = Inline.isMine(this, w.getBlockTileEntity(this.xx, this.yn, this.zn));
-			xnx = Inline.isMine(this, w.getBlockTileEntity(this.xx, this.yn, this.zx));
-			xxn = Inline.isMine(this, w.getBlockTileEntity(this.xx, this.yx, this.zn));
-			xxx = Inline.isMine(this, w.getBlockTileEntity(this.xx, this.yx, this.zx));
+			nnn = isMine(this, w.getBlockTileEntity(this.xn, this.yn, this.zn));
+			nnx = isMine(this, w.getBlockTileEntity(this.xn, this.yn, this.zx));
+			nxn = isMine(this, w.getBlockTileEntity(this.xn, this.yx, this.zn));
+			nxx = isMine(this, w.getBlockTileEntity(this.xn, this.yx, this.zx));
+			xnn = isMine(this, w.getBlockTileEntity(this.xx, this.yn, this.zn));
+			xnx = isMine(this, w.getBlockTileEntity(this.xx, this.yn, this.zx));
+			xxn = isMine(this, w.getBlockTileEntity(this.xx, this.yx, this.zn));
+			xxx = isMine(this, w.getBlockTileEntity(this.xx, this.yx, this.zx));
 			boolean nnnnnx = nnn && nnx, nnnnxn = nnn && nxn, nnnxnn = nnn && xnn;
 			boolean xnnxxn = xnn && xxn, xnnxnx = xnn && xnx;
 			boolean nxnxxn = nxn && xxn, nxnnxx = nxn && nxx;
@@ -121,14 +119,14 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 
 		void removeConnection(World w) {
 			deleteLaser(w);
-			Inline.removeConnection(this, w.getBlockTileEntity(this.xn, this.yn, this.zn));
-			Inline.removeConnection(this, w.getBlockTileEntity(this.xn, this.yn, this.zx));
-			Inline.removeConnection(this, w.getBlockTileEntity(this.xn, this.yx, this.zn));
-			Inline.removeConnection(this, w.getBlockTileEntity(this.xn, this.yx, this.zx));
-			Inline.removeConnection(this, w.getBlockTileEntity(this.xx, this.yn, this.zn));
-			Inline.removeConnection(this, w.getBlockTileEntity(this.xx, this.yn, this.zx));
-			Inline.removeConnection(this, w.getBlockTileEntity(this.xx, this.yx, this.zn));
-			Inline.removeConnection(this, w.getBlockTileEntity(this.xx, this.yx, this.zx));
+			removeLink(this, w.getBlockTileEntity(this.xn, this.yn, this.zn));
+			removeLink(this, w.getBlockTileEntity(this.xn, this.yn, this.zx));
+			removeLink(this, w.getBlockTileEntity(this.xn, this.yx, this.zn));
+			removeLink(this, w.getBlockTileEntity(this.xn, this.yx, this.zx));
+			removeLink(this, w.getBlockTileEntity(this.xx, this.yn, this.zn));
+			removeLink(this, w.getBlockTileEntity(this.xx, this.yn, this.zx));
+			removeLink(this, w.getBlockTileEntity(this.xx, this.yx, this.zn));
+			removeLink(this, w.getBlockTileEntity(this.xx, this.yx, this.zx));
 		}
 
 		void makeLaser(World w) {
@@ -217,14 +215,14 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 		}
 		Link l = this.obj;
 		l.deleteLaser(this.worldObj);
-		Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xn, l.yn, l.zn));
-		Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xn, l.yn, l.zx));
-		Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xn, l.yx, l.zn));
-		Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xn, l.yx, l.zx));
-		Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xx, l.yn, l.zn));
-		Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xx, l.yn, l.zx));
-		Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xx, l.yx, l.zn));
-		Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xx, l.yx, l.zx));
+		removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xn, l.yn, l.zn));
+		removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xn, l.yn, l.zx));
+		removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xn, l.yx, l.zn));
+		removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xn, l.yx, l.zx));
+		removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xx, l.yn, l.zn));
+		removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xx, l.yn, l.zx));
+		removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xx, l.yx, l.zn));
+		removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xx, l.yx, l.zx));
 	}
 
 	public Collection<ItemStack> removeFromWorldWithItem() {
@@ -232,14 +230,14 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 		if (this.obj != null) {
 			Link l = this.obj;
 			l.deleteLaser(this.worldObj);
-			Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xn, l.yn, l.zn), ret);
-			Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xn, l.yn, l.zx), ret);
-			Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xn, l.yx, l.zn), ret);
-			Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xn, l.yx, l.zx), ret);
-			Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xx, l.yn, l.zn), ret);
-			Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xx, l.yn, l.zx), ret);
-			Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xx, l.yx, l.zn), ret);
-			Inline.removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xx, l.yx, l.zx), ret);
+			removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xn, l.yn, l.zn), ret);
+			removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xn, l.yn, l.zx), ret);
+			removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xn, l.yx, l.zn), ret);
+			removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xn, l.yx, l.zx), ret);
+			removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xx, l.yn, l.zn), ret);
+			removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xx, l.yn, l.zx), ret);
+			removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xx, l.yx, l.zn), ret);
+			removeFromWorld(l, this.worldObj.getBlockTileEntity(l.xx, l.yx, l.zx), ret);
 		} else {
 			ret.addAll(QuarryPlus.blockMarker.getBlockDropped(this.worldObj, this.xCoord, this.yCoord, this.zCoord, 0, 0));
 			this.worldObj.setBlockToAir(this.xCoord, this.yCoord, this.zCoord);
@@ -484,4 +482,29 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 		G_destroy();
 	}
 
+	// //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	private static final void removeFromWorld(Link l, TileEntity tx) {
+		if (isMine(l, tx)) {
+			((TileMarker) tx).obj = null;
+			QuarryPlus.blockMarker.dropBlockAsItem(tx.worldObj, tx.xCoord, tx.yCoord, tx.zCoord, QuarryPlus.blockMarker.blockID, 0);
+			tx.worldObj.setBlockToAir(tx.xCoord, tx.yCoord, tx.zCoord);
+		}
+	}
+
+	private static final void removeFromWorld(Link l, TileEntity tx, Collection<ItemStack> c) {
+		if (isMine(l, tx)) {
+			((TileMarker) tx).obj = null;
+			c.addAll(QuarryPlus.blockMarker.getBlockDropped(tx.worldObj, tx.xCoord, tx.yCoord, tx.zCoord, 0, 0));
+			tx.worldObj.setBlockToAir(tx.xCoord, tx.yCoord, tx.zCoord);
+		}
+	}
+
+	static final boolean isMine(Link l, TileEntity tx) {
+		if (tx instanceof TileMarker && ((TileMarker) tx).obj == l) return true;
+		return false;
+	}
+
+	static final void removeLink(Link l, TileEntity tx) {
+		if (isMine(l, tx)) ((TileMarker) tx).obj = null;
+	}
 }

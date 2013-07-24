@@ -7,15 +7,13 @@ import java.util.Map;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 
-import org.yogpstop.Inline;
-
 import com.google.common.io.ByteArrayDataInput;
 
 import buildcraft.BuildCraftFactory;
 import buildcraft.api.power.IPowerProvider;
-
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockFlowing;
+import net.minecraft.block.BlockFluid;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -24,7 +22,6 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
-
 import net.minecraftforge.common.ForgeDirection;
 import net.minecraftforge.liquids.ILiquid;
 import net.minecraftforge.liquids.ILiquidTank;
@@ -296,7 +293,7 @@ public class TilePump extends APacketTile implements ITankContainer {
 			ebs_c = this.ebses[xb[cg] >> 4][zb[cg] >> 4][yb[cg] >> 4];
 			if (ebs_c == null) return;
 			b_c = Block.blocksList[ebs_c.getExtBlockID(xb[cg] & 0xF, yb[cg] & 0xF, zb[cg] & 0xF)];
-			if (this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] == 0 && Inline.isLiquid(b_c)) {
+			if (this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] == 0 && isLiquid(b_c)) {
 				this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] = 0x3F;
 				if (0 < xb[cg]) S_put(xb[cg] - 1, yb[cg], zb[cg]);
 				else this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] = 0x7F;
@@ -334,7 +331,7 @@ public class TilePump extends APacketTile implements ITankContainer {
 						bid = this.ebses[bx >> 4][bz >> 4][this.currentHeight >> 4].getExtBlockID(bx & 0xF, this.currentHeight & 0xF, bz & 0xF);
 						bb = Block.blocksList[bid];
 						meta = this.ebses[bx >> 4][bz >> 4][this.currentHeight >> 4].getExtBlockMetadata(bx & 0xF, this.currentHeight & 0xF, bz & 0xF);
-						if (Inline.isLiquid(bb)) {
+						if (isLiquid(bb)) {
 							block_count++;
 							if (bb instanceof ILiquid && ((ILiquid) bb).stillLiquidMeta() == meta) {
 								long key = ((ILiquid) bb).stillLiquidId() | (meta << 32);
@@ -363,7 +360,7 @@ public class TilePump extends APacketTile implements ITankContainer {
 					if (this.blocks[this.currentHeight - this.yOffset][bx][bz] != 0) {
 						bid = this.ebses[bx >> 4][bz >> 4][this.currentHeight >> 4].getExtBlockID(bx & 0xF, this.currentHeight & 0xF, bz & 0xF);
 						bb = Block.blocksList[bid];
-						if (Inline.isLiquid(bb)) {
+						if (isLiquid(bb)) {
 							if ((this.blocks[this.currentHeight - this.yOffset][bx][bz] & 0x40) != 0) this.worldObj.setBlock(bx + this.xOffset,
 									this.currentHeight, bz + this.zOffset, BuildCraftFactory.frameBlock.blockID);
 							else this.worldObj.setBlockToAir(bx + this.xOffset, this.currentHeight, bz + this.zOffset);
@@ -449,5 +446,10 @@ public class TilePump extends APacketTile implements ITankContainer {
 	public ILiquidTank getTank(ForgeDirection fd, LiquidStack type) {
 		if (fd.ordinal() < 0 || fd.ordinal() > this.mapping.length) return null;
 		return this.liquids.get(this.mapping[fd.ordinal()]);
+	}
+
+	// //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	private static final boolean isLiquid(Block b) {
+		return b == null ? false : (b instanceof ILiquid || b instanceof BlockFluid || b.blockMaterial.isLiquid());
 	}
 }
