@@ -61,7 +61,8 @@ public class GuiList extends GuiScreen {
 	public void drawScreen(int i, int j, float k) {
 		drawDefaultBackground();
 		this.oreslot.drawScreen(i, j, k);
-		String title = StatCollector.translateToLocal("qp.list.setting")+StatCollector.translateToLocal(this.targetid==1?"enchantment.lootBonusDigger":"enchantment.untouching");
+		String title = StatCollector.translateToLocal("qp.list.setting")
+				+ StatCollector.translateToLocal(this.targetid == 1 ? "enchantment.lootBonusDigger" : "enchantment.untouching");
 		this.fontRenderer.drawStringWithShadow(title, (this.width - this.fontRenderer.getStringWidth(title)) / 2, 8, 0xFFFFFF);
 		if ((this.targetid == 1 ? this.tile.fortuneList : this.tile.silktouchList).isEmpty()) {
 			this.delete.enabled = false;

@@ -83,7 +83,7 @@ public class QuarryPlus implements ITriggerProvider {
 					.setComment(
 							"PowerCoefficientWith(EnchantName) is Coefficient with correspond enchant.\nWithEfficiency value comes reciprocal number.\nBasePower is basical using power with no enchants.");
 		} catch (Exception e) {
-			throw new Exception("Your QuarryPlus's config file is broken!",e);
+			throw new Exception("Your QuarryPlus's config file is broken!", e);
 		} finally {
 			cfg.save();
 		}

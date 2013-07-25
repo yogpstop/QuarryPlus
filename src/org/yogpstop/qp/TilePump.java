@@ -444,7 +444,7 @@ public class TilePump extends APacketTile implements ITankContainer {
 
 	@Override
 	public ILiquidTank getTank(ForgeDirection fd, LiquidStack type) {
-		if (fd.ordinal() < 0 || fd.ordinal() > this.mapping.length) return null;
+		if (fd.ordinal() < 0 || fd.ordinal() >= this.mapping.length) return null;
 		return this.liquids.get(this.mapping[fd.ordinal()]);
 	}
 
