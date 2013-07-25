@@ -1,7 +1,6 @@
 package org.yogpstop.qp;
 
 import java.util.LinkedList;
-import java.util.logging.Level;
 
 import buildcraft.BuildCraftBuilders;
 import buildcraft.BuildCraftCore;
@@ -14,7 +13,6 @@ import buildcraft.api.gates.ITrigger;
 import buildcraft.api.gates.ITriggerProvider;
 import buildcraft.api.recipes.AssemblyRecipe;
 import buildcraft.api.transport.IPipe;
-
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -23,7 +21,6 @@ import net.minecraft.util.StatCollector;
 import net.minecraftforge.common.Configuration;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.Property;
-
 import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.network.NetworkMod;
@@ -32,7 +29,6 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.common.registry.LanguageRegistry;
 import cpw.mods.fml.common.network.NetworkRegistry;
-import cpw.mods.fml.common.FMLLog;
 
 @Mod(modid = "QuarryPlus", name = "QuarryPlus", version = "@VERSION@", dependencies = "required-after:BuildCraft|Factory")
 @NetworkMod(clientSideRequired = true, serverSideRequired = false, channels = { PacketHandler.BTN, PacketHandler.NBT, PacketHandler.OGUI, PacketHandler.Tile }, packetHandler = PacketHandler.class)
@@ -53,7 +49,7 @@ public class QuarryPlus implements ITriggerProvider {
 	public static final int guiIdSilktouchList = 4;
 
 	@Mod.PreInit
-	public static void preInit(FMLPreInitializationEvent event) {
+	public static void preInit(FMLPreInitializationEvent event) throws Exception {
 		Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
 		try {
 			cfg.load();
@@ -87,7 +83,7 @@ public class QuarryPlus implements ITriggerProvider {
 					.setComment(
 							"PowerCoefficientWith(EnchantName) is Coefficient with correspond enchant.\nWithEfficiency value comes reciprocal number.\nBasePower is basical using power with no enchants.");
 		} catch (Exception e) {
-			FMLLog.log(Level.SEVERE, e, "Error Massage");
+			throw new Exception("Your QuarryPlus's config file is broken!",e);
 		} finally {
 			cfg.save();
 		}
