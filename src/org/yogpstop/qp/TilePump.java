@@ -279,9 +279,8 @@ public class TilePump extends APacketTile implements ITankContainer {
 	private void S_searchLiquid(int x, int y, int z) {
 		this.count = cp = cg = 0;
 		int chunk_side_x = (1 + this.range * 2);
-		int chunk_side_z = (1 + this.range * 2);
-		this.block_side_x = chunk_side_x * CHUNK_SCALE;
-		this.block_side_z = chunk_side_z * CHUNK_SCALE;
+		int chunk_side_z = chunk_side_x;
+		this.block_side_x = this.block_side_z = chunk_side_x * CHUNK_SCALE;
 		this.cx = x;
 		this.cy = y;
 		this.cz = z;
