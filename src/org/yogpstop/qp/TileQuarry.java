@@ -334,6 +334,7 @@ public class TileQuarry extends TileBasic {
 	}
 
 	private void S_destroyFrames() {
+		if (!this.box.isInitialized()) return;
 		int xn = this.box.xMin;
 		int xx = this.box.xMax;
 		int yn = this.box.yMin;
