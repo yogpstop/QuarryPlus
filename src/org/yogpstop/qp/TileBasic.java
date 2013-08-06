@@ -313,7 +313,8 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		try {
 			createStackedBlockMethod = S_getMethodRepeating(cls);
 		} catch (NoClassDefFoundError e) {
-			throw new NoClassDefFoundError(String.format("yogpstop:-%d:%d-%s-%s", b.blockID, meta, b.getUnlocalizedName(), e.getMessage()));
+			throw new NoClassDefFoundError(String.format("yogpstop:%d:%d-%s-%s-%s", b.blockID, meta, cls.getName(), b.getUnlocalizedName(),
+					e.getMessage()));
 		}
 		createStackedBlockMethod.setAccessible(true);
 		return (ItemStack) createStackedBlockMethod.invoke(b, meta);
