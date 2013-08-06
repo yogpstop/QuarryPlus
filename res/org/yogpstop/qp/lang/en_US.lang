@@ -38,4 +38,4 @@ unknown_direction=UNKNOWN Direction
 trigger.plus_working=The PlusMachine is working.
 trigger.plus_done=The PlusMachine's work is done.
 chat.pumpitem=%s: %s (amount:%d)
-chat.pump_rtoggle=Now, PumpPlus search radius of %d chunks
+chat.pump_rtoggle=Now, PumpPlus search radius of %s chunks

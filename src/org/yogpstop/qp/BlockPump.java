@@ -58,7 +58,7 @@ public class BlockPump extends BlockContainer {
 		TileEntity tile = ba.getBlockTileEntity(x, y, z);
 		if (tile instanceof TilePump && side == 1) {
 			if (((TilePump) tile).G_working()) return this.texW;
-			if (((TilePump) tile).C_connected()) return this.texC;
+			if (((TilePump) tile).G_connected() != null) return this.texC;
 		}
 		return super.getBlockTexture(ba, x, y, z, side);
 	}
@@ -112,8 +112,9 @@ public class BlockPump extends BlockContainer {
 	public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer ep, int side, float par7, float par8, float par9) {
 		Item equipped = ep.getCurrentEquippedItem() != null ? ep.getCurrentEquippedItem().getItem() : null;
 		if (equipped instanceof IToolWrench && ((IToolWrench) equipped).canWrench(ep, x, y, z)) {
-			((TilePump) world.getBlockTileEntity(x, y, z)).changeRange(ep);
 			((IToolWrench) equipped).wrenchUsed(ep, x, y, z);
+			if (world.isRemote) return true;
+			((TilePump) world.getBlockTileEntity(x, y, z)).S_changeRange(ep);
 			return true;
 		}
 		if (equipped instanceof ItemTool) {

@@ -505,7 +505,7 @@ public class TileQuarry extends TileBasic {
 	static final byte BREAKBLOCK = 5;
 
 	private double headPosX, headPosY, headPosZ;
-	private final Box box = new Box();
+	final Box box = new Box();
 	private EntityMechanicalArm heads;
 	private boolean initialized = true;
 	private byte now = NONE;

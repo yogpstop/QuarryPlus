@@ -276,7 +276,7 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 
 	protected void S_initPowerProvider() {
 		this.pp = PowerFramework.currentFramework.createPowerProvider();
-		this.pp.configure(0, 0, 100, 0, 30000);
+		this.pp.configure(0, 0, 100, 0, 100000);
 	}
 
 	private static Method aTRI;
@@ -313,8 +313,7 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		try {
 			createStackedBlockMethod = S_getMethodRepeating(cls);
 		} catch (NoClassDefFoundError e) {
-			throw new NoClassDefFoundError(String.format("yogpstop:%d:%d-%s-%s-%s", b.blockID, meta, cls.getName(), b.getUnlocalizedName(),
-					e.getMessage()));
+			throw new NoClassDefFoundError(String.format("yogpstop:%d:%d-%s-%s-%s", b.blockID, meta, cls.getName(), b.getUnlocalizedName(), e.getMessage()));
 		}
 		createStackedBlockMethod.setAccessible(true);
 		return (ItemStack) createStackedBlockMethod.invoke(b, meta);

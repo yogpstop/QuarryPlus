@@ -70,10 +70,10 @@ public class GuiList extends GuiScreen {
 		super.drawScreen(i, j, k);
 	}
 
-    @Override
-    protected void keyTyped(char par1, int par2) {
-        if (par2 == 1 || par1 == 'e') {
-            this.mc.thePlayer.closeScreen();
-        }
-    }
+	@Override
+	protected void keyTyped(char par1, int par2) {
+		if (par2 == 1 || par1 == 'e') {
+			this.mc.thePlayer.closeScreen();
+		}
+	}
 }
