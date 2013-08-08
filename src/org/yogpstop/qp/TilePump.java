@@ -1,11 +1,8 @@
 package org.yogpstop.qp;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.NavigableMap;
-import java.util.TreeMap;
 
 import com.google.common.io.ByteArrayDataInput;
 
@@ -15,27 +12,28 @@ import buildcraft.BuildCraftFactory;
 import buildcraft.api.power.PowerHandler;
 import buildcraft.core.Box;
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockFlowing;
 import net.minecraft.block.BlockFluid;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.NBTTagString;
 import net.minecraft.network.packet.Packet3Chat;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatMessageComponent;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import net.minecraftforge.common.ForgeDirection;
-import net.minecraftforge.liquids.ILiquid;
-import net.minecraftforge.liquids.ILiquidTank;
-import net.minecraftforge.liquids.ITankContainer;
-import net.minecraftforge.liquids.LiquidContainerRegistry;
-import net.minecraftforge.liquids.LiquidDictionary;
-import net.minecraftforge.liquids.LiquidStack;
+import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidContainerRegistry;
+import net.minecraftforge.fluids.FluidRegistry;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.FluidTankInfo;
+import net.minecraftforge.fluids.IFluidBlock;
+import net.minecraftforge.fluids.IFluidHandler;
 
-public class TilePump extends APacketTile implements ITankContainer {
+public class TilePump extends APacketTile implements IFluidHandler {
 	private ForgeDirection connectTo = ForgeDirection.UNKNOWN;
 	private boolean initialized = false;
 
@@ -89,12 +87,14 @@ public class TilePump extends APacketTile implements ITankContainer {
 		super.readFromNBT(nbttc);
 		this.efficiency = nbttc.getByte("efficiency");
 		this.connectTo = ForgeDirection.values()[nbttc.getByte("connectTo")];
-		this.mapping[0] = nbttc.getLong("mapping0");
-		this.mapping[1] = nbttc.getLong("mapping1");
-		this.mapping[2] = nbttc.getLong("mapping2");
-		this.mapping[3] = nbttc.getLong("mapping3");
-		this.mapping[4] = nbttc.getLong("mapping4");
-		this.mapping[5] = nbttc.getLong("mapping5");
+		if (nbttc.getTag("mapping0") instanceof NBTTagString) {
+			this.mapping[0] = nbttc.getString("mapping0");
+			this.mapping[1] = nbttc.getString("mapping1");
+			this.mapping[2] = nbttc.getString("mapping2");
+			this.mapping[3] = nbttc.getString("mapping3");
+			this.mapping[4] = nbttc.getString("mapping4");
+			this.mapping[5] = nbttc.getString("mapping5");
+		}
 		this.range = nbttc.getByte("range");
 		this.quarryRange = nbttc.getBoolean("quarryRange");
 		this.prev = (byte) (this.connectTo.ordinal() | (G_working() ? 0x80 : 0));
@@ -105,12 +105,12 @@ public class TilePump extends APacketTile implements ITankContainer {
 		super.writeToNBT(nbttc);
 		nbttc.setByte("efficiency", this.efficiency);
 		nbttc.setByte("connectTo", (byte) this.connectTo.ordinal());
-		nbttc.setLong("mapping0", this.mapping[0]);
-		nbttc.setLong("mapping1", this.mapping[1]);
-		nbttc.setLong("mapping2", this.mapping[2]);
-		nbttc.setLong("mapping3", this.mapping[3]);
-		nbttc.setLong("mapping4", this.mapping[4]);
-		nbttc.setLong("mapping5", this.mapping[5]);
+		nbttc.setString("mapping0", this.mapping[0]);
+		nbttc.setString("mapping1", this.mapping[1]);
+		nbttc.setString("mapping2", this.mapping[2]);
+		nbttc.setString("mapping3", this.mapping[3]);
+		nbttc.setString("mapping4", this.mapping[4]);
+		nbttc.setString("mapping5", this.mapping[5]);
 		nbttc.setByte("range", this.range);
 		nbttc.setBoolean("quarryRange", this.quarryRange);
 	}
@@ -352,7 +352,7 @@ public class TilePump extends APacketTile implements ITankContainer {
 		int frame_count = 0;
 		Block bb;
 		int bx, bz, meta, bid;
-		Map<Long, Integer> cacheLiquids = new HashMap<Long, Integer>();
+		FluidStack fs = null;
 		for (; block_count == 0; this.currentHeight--) {
 			if (this.currentHeight < this.cy) return false;
 			for (bx = 0; bx < this.block_side_x; bx++) {
@@ -363,18 +363,8 @@ public class TilePump extends APacketTile implements ITankContainer {
 						}
 						bid = this.ebses[bx >> 4][bz >> 4][this.currentHeight >> 4].getExtBlockID(bx & 0xF, this.currentHeight & 0xF, bz & 0xF);
 						bb = Block.blocksList[bid];
-						meta = this.ebses[bx >> 4][bz >> 4][this.currentHeight >> 4].getExtBlockMetadata(bx & 0xF, this.currentHeight & 0xF, bz & 0xF);
 						if (isLiquid(bb)) {
 							block_count++;
-							if (bb instanceof ILiquid && ((ILiquid) bb).stillLiquidMeta() == meta) {
-								long key = ((ILiquid) bb).stillLiquidId() | (meta << 32);
-								if (!cacheLiquids.containsKey(key)) cacheLiquids.put(key, 0);
-								cacheLiquids.put(key, cacheLiquids.get(key) + LiquidContainerRegistry.BUCKET_VOLUME);
-							} else if (meta == 0) {
-								if (bb instanceof BlockFlowing) bid--;
-								if (!cacheLiquids.containsKey((long) bid)) cacheLiquids.put((long) bid, 0);
-								cacheLiquids.put((long) bid, cacheLiquids.get((long) bid) + LiquidContainerRegistry.BUCKET_VOLUME);
-							}
 						}
 					}
 				}
@@ -383,20 +373,30 @@ public class TilePump extends APacketTile implements ITankContainer {
 		this.currentHeight++;
 		float p = (float) (block_count * BP_R / Math.pow(CE_R, this.efficiency) + frame_count * BP_F / Math.pow(CE_F, this.efficiency));
 		if (pp.useEnergy(p, p, true) == p) {
-			for (Long key : cacheLiquids.keySet()) {
-				if (!this.liquids.containsKey(key)) this.liquids.put(key, new InfVolatLiquidTank(
-						new LiquidStack((int) (key & 0xFFFFFFFF), 0, (int) (key >> 32))));
-				this.liquids.get(key).ls.amount += cacheLiquids.get(key);
-			}
 			for (bx = 0; bx < this.block_side_x; bx++) {
 				for (bz = 0; bz < this.block_side_z; bz++) {
 					if (this.blocks[this.currentHeight - this.yOffset][bx][bz] != 0) {
 						bid = this.ebses[bx >> 4][bz >> 4][this.currentHeight >> 4].getExtBlockID(bx & 0xF, this.currentHeight & 0xF, bz & 0xF);
 						bb = Block.blocksList[bid];
+						meta = this.ebses[bx >> 4][bz >> 4][this.currentHeight >> 4].getExtBlockMetadata(bx & 0xF, this.currentHeight & 0xF, bz & 0xF);
 						if (isLiquid(bb)) {
+							if (bb instanceof IFluidBlock
+									&& ((IFluidBlock) bb).canDrain(this.worldObj, bx + this.xOffset, this.currentHeight, bz + this.zOffset)) {
+								fs = ((IFluidBlock) bb).drain(this.worldObj, bx + this.xOffset, this.currentHeight, bz + this.zOffset, true);
+							} else if ((bid == Block.waterStill.blockID || bid == Block.waterMoving.blockID) && meta == 0) {
+								this.worldObj.setBlockToAir(bx + this.xOffset, this.currentHeight, bz + this.zOffset);
+								fs = new FluidStack(FluidRegistry.WATER, FluidContainerRegistry.BUCKET_VOLUME);
+							} else if ((bid == Block.lavaStill.blockID || bid == Block.lavaMoving.blockID) && meta == 0) {
+								this.worldObj.setBlockToAir(bx + this.xOffset, this.currentHeight, bz + this.zOffset);
+								fs = new FluidStack(FluidRegistry.LAVA, FluidContainerRegistry.BUCKET_VOLUME);
+							}
+							if (fs != null) {
+								if (this.liquids.contains(fs)) this.liquids.get(this.liquids.indexOf(fs)).amount += fs.amount;
+								else this.liquids.add(fs);
+								fs = null;
+							} else this.worldObj.setBlockToAir(bx + this.xOffset, this.currentHeight, bz + this.zOffset);
 							if ((this.blocks[this.currentHeight - this.yOffset][bx][bz] & 0x40) != 0) this.worldObj.setBlock(bx + this.xOffset,
 									this.currentHeight, bz + this.zOffset, BuildCraftFactory.frameBlock.blockID);
-							else this.worldObj.setBlockToAir(bx + this.xOffset, this.currentHeight, bz + this.zOffset);
 						}
 					}
 				}
@@ -409,17 +409,22 @@ public class TilePump extends APacketTile implements ITankContainer {
 
 	// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	private final NavigableMap<Long, InfVolatLiquidTank> liquids = new TreeMap<Long, InfVolatLiquidTank>();
-	private final long[] mapping = new long[ForgeDirection.VALID_DIRECTIONS.length];
+	private final LinkedList<FluidStack> liquids = new LinkedList<FluidStack>();
+	private final String[] mapping = new String[ForgeDirection.VALID_DIRECTIONS.length];
 
 	public String[] C_getNames() {
 		String[] ret = new String[this.mapping.length];
 		for (int i = 0; i < ret.length; i++) {
-			ret[i] = StatCollector.translateToLocalFormatted("chat.pumpitem", fdToString(ForgeDirection.getOrientation(i)),
-					LiquidDictionary.findLiquidName(this.liquids.containsKey(this.mapping[i]) ? this.liquids.get(this.mapping[i]).ls : null),
-					this.liquids.containsKey(this.mapping[i]) ? this.liquids.get(this.mapping[i]).ls.amount : 0);
+			ret[i] = StatCollector.translateToLocalFormatted("chat.pumpitem", fdToString(ForgeDirection.getOrientation(i)), this.mapping[i],
+					getFluidAmount(this.mapping[i]));
 		}
 		return ret;
+	}
+
+	private int getFluidAmount(String key) {
+		for (FluidStack fs : this.liquids)
+			if (fs.fluidID == FluidRegistry.getFluidID(key)) return fs.amount;
+		return 0;
 	}
 
 	static String fdToString(ForgeDirection fd) {
@@ -442,47 +447,57 @@ public class TilePump extends APacketTile implements ITankContainer {
 	}
 
 	String incl(int side) {
-		if (this.liquids.containsKey(this.mapping[side]) && this.liquids.higherKey(this.mapping[side]) != null) this.mapping[side] = this.liquids
-				.higherKey(this.mapping[side]);
-		else if (!this.liquids.isEmpty()) this.mapping[side] = this.liquids.firstKey();
-		else this.mapping[side] = 0;
-		return LiquidDictionary.findLiquidName(this.liquids.containsKey(this.mapping[side]) ? this.liquids.get(this.mapping[side]).ls : null);
+		boolean match = false;
+		for (FluidStack fs : this.liquids)
+			if (fs.fluidID == FluidRegistry.getFluidID(this.mapping[side])) match = true;
+			else if (match) return this.mapping[side] = FluidRegistry.getFluidName(fs);
+		return this.mapping[side] = FluidRegistry.getFluidName(this.liquids.getFirst());
 	}
 
 	@Override
-	public int fill(ForgeDirection from, LiquidStack resource, boolean doFill) {
+	public int fill(ForgeDirection from, FluidStack resource, boolean doFill) {
 		return 0;
 	}
 
 	@Override
-	public int fill(int tankIndex, LiquidStack resource, boolean doFill) {
-		return 0;
+	public FluidStack drain(ForgeDirection fd, FluidStack resource, boolean doDrain) {
+		return drain(fd, resource == null ? 0 : resource.amount, doDrain);
 	}
 
 	@Override
-	public LiquidStack drain(ForgeDirection from, int maxDrain, boolean doDrain) {
-		ILiquidTank lt = getTank(from, null);
-		return lt == null ? null : lt.drain(maxDrain, doDrain);
+	public boolean canFill(ForgeDirection from, Fluid fluid) {
+		return false;
 	}
 
 	@Override
-	public LiquidStack drain(int tankIndex, int maxDrain, boolean doDrain) {
-		return null;
+	public boolean canDrain(ForgeDirection from, Fluid fluid) {
+		return true;
 	}
 
 	@Override
-	public ILiquidTank[] getTanks(ForgeDirection fd) {
-		return new ILiquidTank[] { getTank(fd, null) };
-	}
-
-	@Override
-	public ILiquidTank getTank(ForgeDirection fd, LiquidStack type) {
+	public FluidTankInfo[] getTankInfo(ForgeDirection fd) {
 		if (fd.ordinal() < 0 || fd.ordinal() >= this.mapping.length) return null;
-		return this.liquids.get(this.mapping[fd.ordinal()]);
+		int index = this.liquids.indexOf(this.mapping[fd.ordinal()]);
+		if (index < 0 || index >= this.liquids.size()) return null;
+		return new FluidTankInfo[] { new FluidTankInfo(this.liquids.get(index), Integer.MAX_VALUE) };
+	}
+
+	@Override
+	public FluidStack drain(ForgeDirection fd, int maxDrain, boolean doDrain) {
+		if (fd.ordinal() < 0 || fd.ordinal() >= this.mapping.length) return null;
+		int index = this.liquids.indexOf(fd);
+		if (index < 0 || index >= this.liquids.size()) return null;
+		FluidStack fs = this.liquids.get(index);
+		FluidStack ret = fs.copy();
+		ret.amount = Math.min(fs.amount, maxDrain);
+		if (doDrain) fs.amount -= ret.amount;
+		if (fs.amount <= 0) this.liquids.remove(fs);
+		if (ret.amount <= 0) return null;
+		return ret;
 	}
 
 	// //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	private static final boolean isLiquid(Block b) {
-		return b == null ? false : (b instanceof ILiquid || b instanceof BlockFluid || b.blockMaterial.isLiquid());
+		return b == null ? false : (b instanceof IFluidBlock || b instanceof BlockFluid || b.blockMaterial.isLiquid());
 	}
 }

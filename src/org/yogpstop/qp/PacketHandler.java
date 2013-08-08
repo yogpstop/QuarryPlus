@@ -4,7 +4,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Map;
 
 import net.minecraft.inventory.Container;
 import net.minecraft.nbt.CompressedStreamTools;
@@ -178,28 +177,6 @@ public class PacketHandler implements IPacketHandler {
 			dos.writeInt(value.size());
 			for (Long l : value)
 				dos.writeLong(l);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		PacketDispatcher.sendPacketToPlayer(composeTilePacket(bos), (Player) ep);
-	}
-
-	static void sendPacketToPlayer(APacketTile te, EntityPlayer ep, byte id, long[] value, Map<Long, InfVolatLiquidTank> map) {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		DataOutputStream dos = new DataOutputStream(bos);
-		try {
-			dos.writeInt(te.xCoord);
-			dos.writeInt(te.yCoord);
-			dos.writeInt(te.zCoord);
-			dos.writeByte(id);
-			dos.writeInt(value.length);
-			for (long l : value)
-				dos.writeLong(l);
-			dos.writeInt(map.size());
-			for (Long key : map.keySet()) {
-				dos.writeLong(key);
-				dos.writeInt(map.get(key).ls.amount);
-			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

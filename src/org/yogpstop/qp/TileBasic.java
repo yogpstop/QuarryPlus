@@ -265,7 +265,7 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		return this.pp.getPowerReceiver();
 	}
 
-	protected void S_initPowerProvider() {
+	private void S_initPowerProvider() {
 		this.pp = new PowerHandler(this, PowerHandler.Type.MACHINE);
 		this.pp.configure(0, 100, 0, 100000);
 	}
