@@ -48,7 +48,7 @@ public class QuarryPlus implements ITriggerProvider {
 	public static final int guiIdFortuneList = 3;
 	public static final int guiIdSilktouchList = 4;
 
-	@Mod.PreInit
+	@Mod.EventHandler
 	public static void preInit(FMLPreInitializationEvent event) throws Exception {
 		Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
 		try {
@@ -92,7 +92,7 @@ public class QuarryPlus implements ITriggerProvider {
 		ForgeChunkManager.setForcedChunkLoadingCallback(instance, new ChunkLoadingHandler());
 	}
 
-	@Mod.Init
+	@Mod.EventHandler
 	public void init(FMLInitializationEvent event) {
 		GameRegistry.registerBlock(blockQuarry, "QuarryPlus");
 		GameRegistry.registerBlock(blockMarker, "MarkerPlus");
@@ -134,9 +134,9 @@ public class QuarryPlus implements ITriggerProvider {
 					new ItemStack(BuildCraftSilicon.assemblyTableBlock, 1) }, 40000, new ItemStack(blockMover, 1)));
 			AssemblyRecipe.assemblyRecipes.add(new AssemblyRecipe(new ItemStack[] { new ItemStack(BuildCraftBuilders.markerBlock, 1),
 					new ItemStack(BuildCraftSilicon.redstoneChipset, 1, 2) }, 10000, new ItemStack(blockMarker, 1)));
-			AssemblyRecipe.assemblyRecipes.add(new AssemblyRecipe(new ItemStack[] { new ItemStack(BuildCraftFactory.pumpBlock, 1),
-					new ItemStack(BuildCraftFactory.tankBlock, 32), new ItemStack(BuildCraftTransport.pipeLiquidsGold, 2) }, 160000,
-					new ItemStack(blockPump, 1)));
+			AssemblyRecipe.assemblyRecipes
+					.add(new AssemblyRecipe(new ItemStack[] { new ItemStack(BuildCraftFactory.pumpBlock, 1), new ItemStack(BuildCraftFactory.tankBlock, 32),
+							new ItemStack(BuildCraftTransport.pipeFluidsGold, 2) }, 160000, new ItemStack(blockPump, 1)));
 			AssemblyRecipe.assemblyRecipes.add(new AssemblyRecipe(new ItemStack[] { new ItemStack(BuildCraftCore.wrenchItem, 2),
 					new ItemStack(BuildCraftCore.ironGearItem, 2), new ItemStack(BuildCraftSilicon.assemblyTableBlock, 1) }, 20000, new ItemStack(itemTool, 1,
 					0)));
@@ -161,7 +161,7 @@ public class QuarryPlus implements ITriggerProvider {
 					new ItemStack(BuildCraftSilicon.redstoneChipset, 4, 2), new ItemStack(BuildCraftSilicon.redstoneChipset, 4, 3) }, 160000, new ItemStack(
 					blockMarker, 1)));
 			AssemblyRecipe.assemblyRecipes.add(new AssemblyRecipe(new ItemStack[] { new ItemStack(BuildCraftFactory.pumpBlock, 2),
-					new ItemStack(BuildCraftFactory.tankBlock, 64), new ItemStack(BuildCraftTransport.pipeLiquidsGold, 32),
+					new ItemStack(BuildCraftFactory.tankBlock, 64), new ItemStack(BuildCraftTransport.pipeFluidsGold, 32),
 					new ItemStack(BuildCraftFactory.quarryBlock, 1) }, 640000, new ItemStack(blockPump, 1)));
 			AssemblyRecipe.assemblyRecipes
 					.add(new AssemblyRecipe(new ItemStack[] { new ItemStack(BuildCraftCore.wrenchItem, 4), new ItemStack(BuildCraftCore.diamondGearItem, 2),
@@ -191,8 +191,8 @@ public class QuarryPlus implements ITriggerProvider {
 							new ItemStack(BuildCraftSilicon.redstoneChipset, 4, 2), new ItemStack(BuildCraftCore.wrenchItem, 1) }, 20000, new ItemStack(
 							blockMarker, 1)));
 			AssemblyRecipe.assemblyRecipes.add(new AssemblyRecipe(new ItemStack[] { new ItemStack(BuildCraftFactory.pumpBlock, 2),
-					new ItemStack(BuildCraftFactory.tankBlock, 64), new ItemStack(BuildCraftTransport.pipeLiquidsGold, 8),
-					new ItemStack(BuildCraftTransport.pipeLiquidsStone, 32) }, 320000, new ItemStack(blockPump, 1)));
+					new ItemStack(BuildCraftFactory.tankBlock, 64), new ItemStack(BuildCraftTransport.pipeFluidsGold, 8),
+					new ItemStack(BuildCraftTransport.pipeFluidsStone, 32) }, 320000, new ItemStack(blockPump, 1)));
 			AssemblyRecipe.assemblyRecipes.add(new AssemblyRecipe(new ItemStack[] { new ItemStack(BuildCraftCore.wrenchItem, 2),
 					new ItemStack(BuildCraftCore.goldGearItem, 2), new ItemStack(BuildCraftSilicon.assemblyTableBlock, 1),
 					new ItemStack(BuildCraftBuilders.markerBlock, 2) }, 80000, new ItemStack(itemTool, 1, 0)));

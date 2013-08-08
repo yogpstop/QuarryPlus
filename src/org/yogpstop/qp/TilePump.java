@@ -9,8 +9,10 @@ import java.util.TreeMap;
 
 import com.google.common.io.ByteArrayDataInput;
 
+import cpw.mods.fml.common.network.PacketDispatcher;
+import cpw.mods.fml.common.network.Player;
 import buildcraft.BuildCraftFactory;
-import buildcraft.api.power.IPowerProvider;
+import buildcraft.api.power.PowerHandler;
 import buildcraft.core.Box;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockFlowing;
@@ -20,7 +22,9 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.network.packet.Packet3Chat;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.ChatMessageComponent;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import net.minecraftforge.common.ForgeDirection;
@@ -264,7 +268,9 @@ public class TilePump extends APacketTile implements ITankContainer {
 		} else if (this.quarryRange) {
 			this.quarryRange = false;
 		} else this.range++;
-		ep.sendChatToPlayer(StatCollector.translateToLocalFormatted("chat.pump_rtoggle", this.quarryRange ? "quarry" : Integer.toString(this.range * 2 + 1)));
+		PacketDispatcher.sendPacketToPlayer(
+				new Packet3Chat(ChatMessageComponent.func_111066_d(StatCollector.translateToLocalFormatted("chat.pump_rtoggle", this.quarryRange ? "quarry"
+						: Integer.toString(this.range * 2 + 1)))), (Player) ep);
 		this.count = Integer.MAX_VALUE;
 	}
 
@@ -337,7 +343,7 @@ public class TilePump extends APacketTile implements ITankContainer {
 		}
 	}
 
-	boolean S_removeLiquids(IPowerProvider pp, int x, int y, int z) {
+	boolean S_removeLiquids(PowerHandler pp, int x, int y, int z) {
 		if (!this.worldObj.getBlockMaterial(x, y, z).isLiquid()) return true;
 		S_sendNowPacket();
 		this.count++;

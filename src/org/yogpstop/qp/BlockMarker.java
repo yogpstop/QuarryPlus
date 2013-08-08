@@ -1,23 +1,24 @@
 package org.yogpstop.qp;
 
+import cpw.mods.fml.common.network.PacketDispatcher;
+import cpw.mods.fml.common.network.Player;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-
 import static buildcraft.BuildCraftCore.markerModel;
 import static buildcraft.core.CreativeTabBuildCraft.tabBuildCraft;
-
 import net.minecraft.block.Block;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IconRegister;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
+import net.minecraft.network.packet.Packet3Chat;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.ChatMessageComponent;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
-
 import net.minecraftforge.common.ForgeDirection;
 
 public class BlockMarker extends Block implements ITileEntityProvider {
@@ -121,8 +122,12 @@ public class BlockMarker extends Block implements ITileEntityProvider {
 			if (equipped instanceof ItemTool && ep.getCurrentEquippedItem().getItemDamage() == 0) {
 				TileMarker.Link l = ((TileMarker) world.getBlockTileEntity(x, y, z)).obj;
 				if (l == null) return true;
-				ep.sendChatToPlayer(StatCollector.translateToLocal("chat.markerarea"));
-				ep.sendChatToPlayer(String.format("x:%d y:%d z:%d - x:%d y:%d z:%d", l.xn, l.yn, l.zn, l.xx, l.yn, l.zn));
+				PacketDispatcher.sendPacketToPlayer(new Packet3Chat(ChatMessageComponent.func_111066_d(StatCollector.translateToLocal("chat.markerarea"))),
+						(Player) ep);
+				PacketDispatcher.sendPacketToPlayer(
+						new Packet3Chat(
+								ChatMessageComponent.func_111066_d(String.format("x:%d y:%d z:%d - x:%d y:%d z:%d", l.xn, l.yn, l.zn, l.xx, l.yn, l.zn))),
+						(Player) ep);
 				return true;
 			}
 			((TileMarker) world.getBlockTileEntity(x, y, z)).S_tryConnection();

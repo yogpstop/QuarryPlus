@@ -17,7 +17,8 @@ import buildcraft.api.core.LaserKind;
 import static buildcraft.BuildCraftFactory.frameBlock;
 import buildcraft.core.Box;
 import buildcraft.core.proxy.CoreProxy;
-import static buildcraft.core.utils.Utils.addToRandomPipeEntry;
+import static buildcraft.core.utils.Utils.addToRandomPipeAround;
+import static buildcraft.core.utils.Utils.addToRandomInventoryAround;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.item.EntityItem;
@@ -75,9 +76,13 @@ public class TileQuarry extends TileBasic {
 		}
 		List<ItemStack> cache = new LinkedList<ItemStack>();
 		for (ItemStack is : this.cacheItems) {
-			ItemStack added = S_addToRandomInventory(is);
-			is.stackSize -= added.stackSize;
-			if (is.stackSize > 0) if (!addToRandomPipeEntry(this, ForgeDirection.UNKNOWN, is)) cache.add(is);
+			int added = addToRandomInventoryAround(this.worldObj, this.xCoord, this.yCoord, this.zCoord, is);
+			is.stackSize -= added;
+			if (is.stackSize > 0) {
+				added = addToRandomPipeAround(this.worldObj, this.xCoord, this.yCoord, this.zCoord, ForgeDirection.UNKNOWN, is);
+				is.stackSize -= added;
+				if (is.stackSize > 0) cache.add(is);
+			}
 		}
 		this.cacheItems = cache;
 	}
@@ -552,5 +557,10 @@ public class TileQuarry extends TileBasic {
 				this.heads.updatePosition();
 			}
 		}
+	}
+
+	@Override
+	public boolean isActive() {
+		return G_getNow() != NONE;
 	}
 }

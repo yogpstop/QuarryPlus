@@ -3,25 +3,25 @@ package org.yogpstop.qp;
 import java.util.ArrayList;
 
 import buildcraft.api.tools.IToolWrench;
-
 import static buildcraft.core.CreativeTabBuildCraft.tabBuildCraft;
-
+import cpw.mods.fml.common.network.PacketDispatcher;
+import cpw.mods.fml.common.network.Player;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IconRegister;
-import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.packet.Packet3Chat;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.ChatMessageComponent;
 import net.minecraft.util.Icon;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
-
 import net.minecraftforge.common.ForgeDirection;
 
 public class BlockMiningWell extends BlockContainer {
@@ -71,7 +71,7 @@ public class BlockMiningWell extends BlockContainer {
 	}
 
 	@Override
-	public void onBlockPlacedBy(World w, int x, int y, int z, EntityLiving el, ItemStack stack) {
+	public void onBlockPlacedBy(World w, int x, int y, int z, EntityLivingBase el, ItemStack stack) {
 		super.onBlockPlacedBy(w, x, y, z, el, stack);
 		ForgeDirection orientation = get2dOrientation(el.posX, el.posZ, x, z);
 		w.setBlockMetadataWithNotify(x, y, z, orientation.getOpposite().ordinal(), 1);
@@ -123,9 +123,10 @@ public class BlockMiningWell extends BlockContainer {
 		}
 		if (equipped instanceof ItemTool && ep.getCurrentEquippedItem().getItemDamage() == 0) {
 			if (world.isRemote) return true;
-			ep.sendChatToPlayer(StatCollector.translateToLocal("chat.plusenchant"));
+			PacketDispatcher.sendPacketToPlayer(new Packet3Chat(ChatMessageComponent.func_111066_d(StatCollector.translateToLocal("chat.plusenchant"))),
+					(Player) ep);
 			for (String s : ((TileMiningWell) world.getBlockTileEntity(x, y, z)).C_getEnchantments())
-				ep.sendChatToPlayer(s);
+				PacketDispatcher.sendPacketToPlayer(new Packet3Chat(ChatMessageComponent.func_111066_d(s)), (Player) ep);
 			return true;
 		}
 		return false;

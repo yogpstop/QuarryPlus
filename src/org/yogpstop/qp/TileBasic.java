@@ -15,29 +15,27 @@ import com.google.common.io.ByteArrayDataInput;
 import net.minecraft.block.Block;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagLong;
 import net.minecraft.tileentity.TileEntity;
-
+import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeDirection;
-
+import buildcraft.api.gates.IAction;
 import buildcraft.api.gates.ITrigger;
-import buildcraft.api.power.IPowerProvider;
+import buildcraft.api.power.PowerHandler;
 import buildcraft.api.power.IPowerReceptor;
-import buildcraft.api.power.PowerFramework;
-import buildcraft.api.transport.IPipeEntry;
-import buildcraft.api.transport.IPipedItem;
+import buildcraft.api.power.PowerHandler.PowerReceiver;
+import buildcraft.core.IMachine;
 
-public abstract class TileBasic extends APacketTile implements IPowerReceptor, IPipeEntry {
+public abstract class TileBasic extends APacketTile implements IPowerReceptor, IMachine {
 	public static final ITrigger active = new TriggerPlusMachine(754, true);
 	public static final ITrigger deactive = new TriggerPlusMachine(755, false);
 
 	protected ForgeDirection pump = ForgeDirection.UNKNOWN;
 
-	protected IPowerProvider pp;
+	protected PowerHandler pp;
 
 	public final List<Long> fortuneList = new ArrayList<Long>();
 	public final List<Long> silktouchList = new ArrayList<Long>();
@@ -248,62 +246,28 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 	}
 
 	@Override
-	public void entityEntering(ItemStack payload, ForgeDirection orientation) {}
-
-	@Override
-	public void entityEntering(IPipedItem item, ForgeDirection orientation) {}
-
-	@Override
-	public boolean acceptItems() {
+	public final boolean manageFluids() {
 		return false;
 	}
 
 	@Override
-	public final void setPowerProvider(IPowerProvider provider) {
-		this.pp = provider;
+	public final boolean manageSolids() {
+		return true;
 	}
 
 	@Override
-	public final IPowerProvider getPowerProvider() {
-		return this.pp;
+	public final boolean allowAction(IAction action) {
+		return false;
 	}
 
 	@Override
-	public final int powerRequest(ForgeDirection from) {
-		return (int) Math.ceil(Math.min(getPowerProvider().getMaxEnergyReceived(), getPowerProvider().getMaxEnergyStored()
-				- getPowerProvider().getEnergyStored()));
+	public final PowerReceiver getPowerReceiver(ForgeDirection side) {
+		return this.pp.getPowerReceiver();
 	}
 
 	protected void S_initPowerProvider() {
-		this.pp = PowerFramework.currentFramework.createPowerProvider();
-		this.pp.configure(0, 0, 100, 0, 100000);
-	}
-
-	private static Method aTRI;
-	private static int aTRIargc;
-	static {
-		Method[] mtd = buildcraft.core.utils.Utils.class.getMethods();
-		for (Method m : mtd) {
-			if (m.getName().equals("addToRandomInventory")) {
-				aTRI = m;
-				aTRIargc = m.getParameterTypes().length;
-				break;
-			}
-		}
-	}
-
-	protected ItemStack S_addToRandomInventory(ItemStack is) {
-		try {
-			if (aTRIargc == 5) return (ItemStack) aTRI.invoke(null, is, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
-			else if (aTRIargc == 6) return (ItemStack) aTRI.invoke(null, is, this.worldObj, this.xCoord, this.yCoord, this.zCoord, ForgeDirection.UNKNOWN);
-		} catch (Exception e) {
-			e.printStackTrace();
-			System.err.println(String.format("yogpstop: error item %d:%d", is.itemID, is.getItemDamage()));
-			if (Item.itemsList[is.itemID] == null) return is;
-		}
-		ItemStack isc = is.copy();
-		isc.stackSize = 0;
-		return isc;
+		this.pp = new PowerHandler(this, PowerHandler.Type.MACHINE);
+		this.pp.configure(0, 100, 0, 100000);
 	}
 
 	protected static ItemStack S_createStackedBlock(Block b, int meta) throws SecurityException, NoClassDefFoundError, IllegalAccessException,
@@ -355,7 +319,7 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		this.silktouchInclude = nbttc.getBoolean("silktouchInclude");
 		readArrayList(nbttc.getTagList("fortuneList"), this.fortuneList);
 		readArrayList(nbttc.getTagList("silktouchList"), this.silktouchList);
-		PowerFramework.currentFramework.loadPowerProvider(this, nbttc);
+		this.pp.readFromNBT(nbttc);
 	}
 
 	private static void readArrayList(NBTTagList nbttl, Collection<Long> target) {
@@ -374,7 +338,7 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		nbttc.setBoolean("silktouchInclude", this.silktouchInclude);
 		nbttc.setTag("fortuneList", writeArrayList(this.fortuneList));
 		nbttc.setTag("silktouchList", writeArrayList(this.silktouchList));
-		PowerFramework.currentFramework.savePowerProvider(this, nbttc);
+		this.pp.writeToNBT(nbttc);
 	}
 
 	private static NBTTagList writeArrayList(Collection<Long> target) {
@@ -385,5 +349,10 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 	}
 
 	@Override
-	public final void doWork() {}
+	public final void doWork(PowerHandler workProvider) {}
+
+	@Override
+	public World getWorld() {
+		return this.worldObj;
+	}
 }
