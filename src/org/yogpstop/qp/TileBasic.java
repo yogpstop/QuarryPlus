@@ -174,7 +174,11 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 			return ((TilePump) te).S_removeLiquids(this.pp, x, y, z);
 		}
 		float pw = (float) Math.max(BP * S_blockHardness(x, y, z) * S_addDroppedItems(dropped, x, y, z, CS, CF) / Math.pow(CE, this.efficiency), 0D);
-		if (this.pp.useEnergy(pw, pw, true) != pw) return false;
+		float used = this.pp.useEnergy(pw, pw, true);
+		if (used != pw) {
+			this.pp.addEnergy(used);
+			return false;
+		}
 		this.cacheItems.addAll(dropped);
 		this.worldObj.playAuxSFXAtEntity(null, 2001, x, y, z, this.worldObj.getBlockId(x, y, z) | (this.worldObj.getBlockMetadata(x, y, z) << 12));
 		this.worldObj.setBlockToAir(x, y, z);
@@ -267,7 +271,7 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 
 	private void S_initPowerProvider() {
 		this.pp = new PowerHandler(this, PowerHandler.Type.MACHINE);
-		this.pp.configure(0, 100, 0, 100000);
+		this.pp.configure(1, 100, 0, 100000);
 	}
 
 	protected static ItemStack S_createStackedBlock(Block b, int meta) throws SecurityException, NoClassDefFoundError, IllegalAccessException,

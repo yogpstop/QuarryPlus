@@ -41,8 +41,8 @@ public class BlockQuarry extends BlockContainer {
 	@Override
 	public void breakBlock(World world, int x, int y, int z, int id, int meta) {
 		this.drop.clear();
-		if (world.isRemote) return;
 		TileQuarry tq = (TileQuarry) world.getBlockTileEntity(x, y, z);
+		if (world.isRemote || tq == null) return;
 		int count = quantityDropped(meta, 0, world.rand);
 		int id1 = idDropped(meta, world.rand, 0);
 		if (id1 > 0) {
@@ -98,12 +98,12 @@ public class BlockQuarry extends BlockContainer {
 	@Override
 	@SideOnly(Side.CLIENT)
 	public void registerIcons(IconRegister par1IconRegister) {
-		this.blockIcon = par1IconRegister.registerIcon("yogpstop/quarryplus:quarry");
-		this.textureTop = par1IconRegister.registerIcon("yogpstop/quarryplus:quarry_top");
-		this.textureFront = par1IconRegister.registerIcon("yogpstop/quarryplus:quarry_front");
-		this.texBB = par1IconRegister.registerIcon("yogpstop/quarryplus:quarry_top_bb");
-		this.texNNB = par1IconRegister.registerIcon("yogpstop/quarryplus:quarry_top_nnb");
-		this.texMF = par1IconRegister.registerIcon("yogpstop/quarryplus:quarry_top_mf");
+		this.blockIcon = par1IconRegister.registerIcon("yogpstop_qp:quarry");
+		this.textureTop = par1IconRegister.registerIcon("yogpstop_qp:quarry_top");
+		this.textureFront = par1IconRegister.registerIcon("yogpstop_qp:quarry_front");
+		this.texBB = par1IconRegister.registerIcon("yogpstop_qp:quarry_top_bb");
+		this.texNNB = par1IconRegister.registerIcon("yogpstop_qp:quarry_top_nnb");
+		this.texMF = par1IconRegister.registerIcon("yogpstop_qp:quarry_top_mf");
 	}
 
 	@Override

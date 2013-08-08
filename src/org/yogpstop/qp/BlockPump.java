@@ -68,11 +68,11 @@ public class BlockPump extends BlockContainer {
 	@Override
 	@SideOnly(Side.CLIENT)
 	public void registerIcons(IconRegister par1IconRegister) {
-		this.textureTop = par1IconRegister.registerIcon("yogpstop/quarryplus:pump_top");
-		this.textureBottom = par1IconRegister.registerIcon("yogpstop/quarryplus:pump_bottom");
-		this.textureSide = par1IconRegister.registerIcon("yogpstop/quarryplus:pump_side");
-		this.texW = par1IconRegister.registerIcon("yogpstop/quarryplus:pump_top_w");
-		this.texC = par1IconRegister.registerIcon("yogpstop/quarryplus:pump_top_c");
+		this.textureTop = par1IconRegister.registerIcon("yogpstop_qp:pump_top");
+		this.textureBottom = par1IconRegister.registerIcon("yogpstop_qp:pump_bottom");
+		this.textureSide = par1IconRegister.registerIcon("yogpstop_qp:pump_side");
+		this.texW = par1IconRegister.registerIcon("yogpstop_qp:pump_top_w");
+		this.texC = par1IconRegister.registerIcon("yogpstop_qp:pump_top_c");
 	}
 
 	private final ArrayList<ItemStack> drop = new ArrayList<ItemStack>();
@@ -80,8 +80,8 @@ public class BlockPump extends BlockContainer {
 	@Override
 	public void breakBlock(World world, int x, int y, int z, int id, int meta) {
 		this.drop.clear();
-		if (world.isRemote) return;
 		TilePump tp = (TilePump) world.getBlockTileEntity(x, y, z);
+		if (world.isRemote || tp == null) return;
 		int count = quantityDropped(meta, 0, world.rand);
 		int id1 = idDropped(meta, world.rand, 0);
 		if (id1 > 0) {

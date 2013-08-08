@@ -87,8 +87,8 @@ public class QuarryPlus implements ITriggerProvider {
 		} finally {
 			cfg.save();
 		}
-		LanguageRegistry.instance().loadLocalization("/org/yogpstop/qp/lang/en_US.lang", "en_US", false);
-		LanguageRegistry.instance().loadLocalization("/org/yogpstop/qp/lang/ja_JP.lang", "ja_JP", false);
+		LanguageRegistry.instance().loadLocalization("/lang/yogpstop/quarryplus/en_US.lang", "en_US", false);
+		LanguageRegistry.instance().loadLocalization("/lang/yogpstop/quarryplus/ja_JP.lang", "ja_JP", false);
 		ForgeChunkManager.setForcedChunkLoadingCallback(instance, new ChunkLoadingHandler());
 	}
 

@@ -44,11 +44,11 @@ public class BlockMiningWell extends BlockContainer {
 	@Override
 	@SideOnly(Side.CLIENT)
 	public void registerIcons(IconRegister par1IconRegister) {
-		this.textureFront = par1IconRegister.registerIcon("yogpstop/quarryplus:miningwell_front");
-		this.blockIcon = par1IconRegister.registerIcon("yogpstop/quarryplus:miningwell");
-		this.textureBack = par1IconRegister.registerIcon("yogpstop/quarryplus:miningwell_back");
-		this.textureTop = par1IconRegister.registerIcon("yogpstop/quarryplus:miningwell_top");
-		this.texW = par1IconRegister.registerIcon("yogpstop/quarryplus:miningwell_top_w");
+		this.textureFront = par1IconRegister.registerIcon("yogpstop_qp:miningwell_front");
+		this.blockIcon = par1IconRegister.registerIcon("yogpstop_qp:miningwell");
+		this.textureBack = par1IconRegister.registerIcon("yogpstop_qp:miningwell_back");
+		this.textureTop = par1IconRegister.registerIcon("yogpstop_qp:miningwell_top");
+		this.texW = par1IconRegister.registerIcon("yogpstop_qp:miningwell_top_w");
 	}
 
 	@Override
@@ -94,8 +94,8 @@ public class BlockMiningWell extends BlockContainer {
 	@Override
 	public void breakBlock(World world, int x, int y, int z, int id, int meta) {
 		this.drop.clear();
-		if (world.isRemote) return;
 		TileMiningWell tmw = (TileMiningWell) world.getBlockTileEntity(x, y, z);
+		if (world.isRemote || tmw == null) return;
 		int count = quantityDropped(meta, 0, world.rand);
 		int id1 = idDropped(meta, world.rand, 0);
 		if (id1 > 0) {

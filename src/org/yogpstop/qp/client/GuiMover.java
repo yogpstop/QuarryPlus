@@ -22,7 +22,7 @@ import cpw.mods.fml.relauncher.Side;
 @SideOnly(Side.CLIENT)
 public class GuiMover extends GuiContainer {
 	public GuiButton a1, a3, a5;
-	private static final ResourceLocation gui = new ResourceLocation("/org/yogpstop/qp/mover.png");
+	private static final ResourceLocation gui = new ResourceLocation("yogpstop_qp", "textures/gui/mover.png");
 
 	public GuiMover(EntityPlayer player, World world, int x, int y, int z) {
 		super(null);

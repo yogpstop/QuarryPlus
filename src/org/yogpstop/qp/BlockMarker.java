@@ -150,7 +150,7 @@ public class BlockMarker extends Block implements ITileEntityProvider {
 	@Override
 	@SideOnly(Side.CLIENT)
 	public void registerIcons(IconRegister par1IconRegister) {
-		this.blockIcon = par1IconRegister.registerIcon("yogpstop/quarryplus:marker");
+		this.blockIcon = par1IconRegister.registerIcon("yogpstop_qp:marker");
 	}
 
 	@Override

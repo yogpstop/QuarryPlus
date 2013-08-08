@@ -78,8 +78,8 @@ public class ItemTool extends Item {
 	@Override
 	@SideOnly(Side.CLIENT)
 	public void registerIcons(IconRegister ir) {
-		this.itemIcon = ir.registerIcon("yogpstop/quarryplus:statusChecker");
-		this.ile = ir.registerIcon("yogpstop/quarryplus:listEditor");
-		this.ils = ir.registerIcon("yogpstop/quarryplus:liquidSelector");
+		this.itemIcon = ir.registerIcon("yogpstop_qp:statusChecker");
+		this.ile = ir.registerIcon("yogpstop_qp:listEditor");
+		this.ils = ir.registerIcon("yogpstop_qp:liquidSelector");
 	}
 }

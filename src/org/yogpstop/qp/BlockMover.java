@@ -37,9 +37,9 @@ public class BlockMover extends Block {
 	@SideOnly(Side.CLIENT)
 	@Override
 	public void registerIcons(IconRegister par1IconRegister) {
-		this.blockIcon = par1IconRegister.registerIcon("yogpstop/quarryplus:mover");
-		this.textureTop = par1IconRegister.registerIcon("yogpstop/quarryplus:mover_top");
-		this.textureBottom = par1IconRegister.registerIcon("yogpstop/quarryplus:mover_bottom");
+		this.blockIcon = par1IconRegister.registerIcon("yogpstop_qp:mover");
+		this.textureTop = par1IconRegister.registerIcon("yogpstop_qp:mover_top");
+		this.textureBottom = par1IconRegister.registerIcon("yogpstop_qp:mover_bottom");
 	}
 
 	@Override
