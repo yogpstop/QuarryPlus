@@ -3,6 +3,7 @@ package org.yogpstop.qp;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import com.google.common.io.ByteArrayDataInput;
 
@@ -471,7 +472,12 @@ public class TilePump extends APacketTile implements IFluidHandler {
 		for (FluidStack fs : this.liquids)
 			if (fs.fluidID == FluidRegistry.getFluidID(this.mapping[side])) match = true;
 			else if (match) return this.mapping[side] = FluidRegistry.getFluidName(fs);
-		return this.mapping[side] = FluidRegistry.getFluidName(this.liquids.getFirst());
+		try {
+			this.mapping[side] = FluidRegistry.getFluidName(this.liquids.getFirst());
+		} catch (NoSuchElementException e) {
+			this.mapping[side] = null;
+		}
+		return this.mapping[side];
 	}
 
 	@Override
