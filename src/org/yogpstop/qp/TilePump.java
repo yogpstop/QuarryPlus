@@ -319,6 +319,7 @@ public class TilePump extends APacketTile implements IFluidHandler {
 			this.zOffset = ((z >> 4) - this.range) << 4;
 
 		}
+		if (!this.quarryRange) b = null;
 		this.block_side_x = chunk_side_x * CHUNK_SCALE;
 		this.block_side_z = chunk_side_z * CHUNK_SCALE;
 		this.blocks = new byte[Y_SIZE - this.yOffset][this.block_side_x][this.block_side_z];
@@ -339,16 +340,16 @@ public class TilePump extends APacketTile implements IFluidHandler {
 				if (this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] == 0 && isLiquid(b_c)) {
 					this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] = 0x3F;
 
-					if ((this.quarryRange ? b.xMin & 0xF : 0) < xb[cg]) S_put(xb[cg] - 1, yb[cg], zb[cg]);
+					if ((b != null ? b.xMin & 0xF : 0) < xb[cg]) S_put(xb[cg] - 1, yb[cg], zb[cg]);
 					else this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] = 0x7F;
 
-					if (xb[cg] < (this.quarryRange ? b.xMax - this.xOffset : this.block_side_x - 1)) S_put(xb[cg] + 1, yb[cg], zb[cg]);
+					if (xb[cg] < (b != null ? b.xMax - this.xOffset : this.block_side_x - 1)) S_put(xb[cg] + 1, yb[cg], zb[cg]);
 					else this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] = 0x7F;
 
-					if ((this.quarryRange ? b.zMin & 0xF : 0) < zb[cg]) S_put(xb[cg], yb[cg], zb[cg] - 1);
+					if ((b != null ? b.zMin & 0xF : 0) < zb[cg]) S_put(xb[cg], yb[cg], zb[cg] - 1);
 					else this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] = 0x7F;
 
-					if (zb[cg] < (this.quarryRange ? b.zMax - this.zOffset : this.block_side_z - 1)) S_put(xb[cg], yb[cg], zb[cg] + 1);
+					if (zb[cg] < (b != null ? b.zMax - this.zOffset : this.block_side_z - 1)) S_put(xb[cg], yb[cg], zb[cg] + 1);
 					else this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] = 0x7F;
 
 					if (yb[cg] + 1 < Y_SIZE) S_put(xb[cg], yb[cg] + 1, zb[cg]);
