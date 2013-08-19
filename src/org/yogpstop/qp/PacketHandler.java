@@ -54,8 +54,9 @@ public class PacketHandler implements IPacketHandler {
 			}
 		} else if (packet.channel.equals(Tile)) {
 			ByteArrayDataInput data = ByteStreams.newDataInput(packet.data);
-			APacketTile tb = (APacketTile) ((EntityPlayer) player).worldObj.getBlockTileEntity(data.readInt(), data.readInt(), data.readInt());
-			if (tb != null) {
+			TileEntity t = ((EntityPlayer) player).worldObj.getBlockTileEntity(data.readInt(), data.readInt(), data.readInt());
+			if (t instanceof APacketTile) {
+				APacketTile tb = (APacketTile) t;
 				if (tb.worldObj.isRemote) tb.C_recievePacket(data.readByte(), data);
 				else tb.S_recievePacket(data.readByte(), data, (EntityPlayer) player);
 			}
