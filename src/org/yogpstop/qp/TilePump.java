@@ -390,8 +390,9 @@ public class TilePump extends APacketTile implements IFluidHandler {
 		}
 		this.currentHeight++;
 		float p = (float) (block_count * BP_R / Math.pow(CE_R, this.efficiency) + frame_count * BP_F / Math.pow(CE_F, this.efficiency));
-		float used = pp.useEnergy(p, p, true);
+		float used = pp.useEnergy(p, p, false);
 		if (used == p) {
+			used = pp.useEnergy(p, p, true);
 			for (bx = 0; bx < this.block_side_x; bx++) {
 				for (bz = 0; bz < this.block_side_z; bz++) {
 					if (this.blocks[this.currentHeight - this.yOffset][bx][bz] != 0) {
@@ -421,8 +422,6 @@ public class TilePump extends APacketTile implements IFluidHandler {
 				}
 			}
 			this.currentHeight--;
-		} else {
-			pp.addEnergy(used);
 		}
 		S_sendNowPacket();
 		return this.currentHeight < this.cy;
@@ -444,7 +443,7 @@ public class TilePump extends APacketTile implements IFluidHandler {
 
 	private int getFluidAmount(String key) {
 		for (FluidStack fs : this.liquids)
-			if (fs.fluidID == FluidRegistry.getFluidID(key)) return fs.amount;
+			if (fs.equals(FluidRegistry.getFluidStack(key, 0))) return fs.amount;
 		return 0;
 	}
 
@@ -470,7 +469,7 @@ public class TilePump extends APacketTile implements IFluidHandler {
 	String incl(int side) {
 		boolean match = false;
 		for (FluidStack fs : this.liquids)
-			if (fs.fluidID == FluidRegistry.getFluidID(this.mapping[side])) match = true;
+			if (fs.equals(FluidRegistry.getFluidStack(this.mapping[side], 0))) match = true;
 			else if (match) return this.mapping[side] = FluidRegistry.getFluidName(fs);
 		try {
 			this.mapping[side] = FluidRegistry.getFluidName(this.liquids.getFirst());
@@ -495,6 +494,13 @@ public class TilePump extends APacketTile implements IFluidHandler {
 		return false;
 	}
 
+	private FluidStack getFluidStack(ForgeDirection fd) {
+		if (fd.ordinal() < 0 || fd.ordinal() >= this.mapping.length) return null;
+		int index = this.liquids.indexOf(FluidRegistry.getFluidStack(this.mapping[fd.ordinal()], 0));
+		if (index < 0 || index >= this.liquids.size()) return null;
+		return this.liquids.get(index);
+	}
+
 	@Override
 	public boolean canDrain(ForgeDirection from, Fluid fluid) {
 		return true;
@@ -502,18 +508,15 @@ public class TilePump extends APacketTile implements IFluidHandler {
 
 	@Override
 	public FluidTankInfo[] getTankInfo(ForgeDirection fd) {
-		if (fd.ordinal() < 0 || fd.ordinal() >= this.mapping.length) return null;
-		int index = this.liquids.indexOf(this.mapping[fd.ordinal()]);
-		if (index < 0 || index >= this.liquids.size()) return null;
-		return new FluidTankInfo[] { new FluidTankInfo(this.liquids.get(index), Integer.MAX_VALUE) };
+		FluidStack fs = getFluidStack(fd);
+		if (fs == null) return null;
+		return new FluidTankInfo[] { new FluidTankInfo(fs, Integer.MAX_VALUE) };
 	}
 
 	@Override
 	public FluidStack drain(ForgeDirection fd, int maxDrain, boolean doDrain) {
-		if (fd.ordinal() < 0 || fd.ordinal() >= this.mapping.length) return null;
-		int index = this.liquids.indexOf(fd);
-		if (index < 0 || index >= this.liquids.size()) return null;
-		FluidStack fs = this.liquids.get(index);
+		FluidStack fs = getFluidStack(fd);
+		if (fs == null) return null;
 		FluidStack ret = fs.copy();
 		ret.amount = Math.min(fs.amount, maxDrain);
 		if (doDrain) fs.amount -= ret.amount;

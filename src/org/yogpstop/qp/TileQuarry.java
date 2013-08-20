@@ -246,11 +246,9 @@ public class TileQuarry extends TileBasic {
 	private boolean S_makeFrame() {
 		this.digged = true;
 		float power = (float) Math.max(BP_MF / Math.pow(CE_MF, this.efficiency), 0D);
-		float used = this.pp.useEnergy(power, power, true);
-		if (used != power) {
-			this.pp.addEnergy(used);
-			return false;
-		}
+		float used = this.pp.useEnergy(power, power, false);
+		if (used != power) return false;
+		used = this.pp.useEnergy(power, power, true);
 		this.worldObj.setBlock(this.targetX, this.targetY, this.targetZ, frameBlock.blockID);
 		S_setNextTarget();
 		return true;

@@ -6,8 +6,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import static buildcraft.BuildCraftCore.markerModel;
 import static buildcraft.core.CreativeTabBuildCraft.tabBuildCraft;
-import net.minecraft.block.Block;
-import net.minecraft.block.ITileEntityProvider;
+import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IconRegister;
 import net.minecraft.entity.player.EntityPlayer;
@@ -21,14 +20,13 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeDirection;
 
-public class BlockMarker extends Block implements ITileEntityProvider {
+public class BlockMarker extends BlockContainer {
 
 	public BlockMarker(int i) {
 		super(i, Material.circuits);
 		setLightValue(0.5F);
 		setCreativeTab(tabBuildCraft);
 		setUnlocalizedName("MarkerPlus");
-		this.isBlockContainer = true;
 	}
 
 	@Override
@@ -142,21 +140,8 @@ public class BlockMarker extends Block implements ITileEntityProvider {
 	}
 
 	@Override
-	public void breakBlock(World world, int x, int y, int z, int par5, int par6) {
-		world.removeBlockTileEntity(x, y, z);
-		super.breakBlock(world, x, y, z, par5, par6);
-	}
-
-	@Override
 	@SideOnly(Side.CLIENT)
 	public void registerIcons(IconRegister par1IconRegister) {
 		this.blockIcon = par1IconRegister.registerIcon("yogpstop_qp:marker");
-	}
-
-	@Override
-	public boolean onBlockEventReceived(World par1World, int par2, int par3, int par4, int par5, int par6) {
-		super.onBlockEventReceived(par1World, par2, par3, par4, par5, par6);
-		TileEntity tileentity = par1World.getBlockTileEntity(par2, par3, par4);
-		return tileentity != null ? tileentity.receiveClientEvent(par5, par6) : false;
 	}
 }

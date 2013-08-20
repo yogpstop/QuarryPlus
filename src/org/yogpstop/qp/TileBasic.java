@@ -174,11 +174,9 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 			return ((TilePump) te).S_removeLiquids(this.pp, x, y, z);
 		}
 		float pw = (float) Math.max(BP * S_blockHardness(x, y, z) * S_addDroppedItems(dropped, x, y, z, CS, CF) / Math.pow(CE, this.efficiency), 0D);
-		float used = this.pp.useEnergy(pw, pw, true);
-		if (used != pw) {
-			this.pp.addEnergy(used);
-			return false;
-		}
+		float used = this.pp.useEnergy(pw, pw, false);
+		if (used != pw) return false;
+		used = this.pp.useEnergy(pw, pw, true);
 		this.cacheItems.addAll(dropped);
 		this.worldObj.playAuxSFXAtEntity(null, 2001, x, y, z, this.worldObj.getBlockId(x, y, z) | (this.worldObj.getBlockMetadata(x, y, z) << 12));
 		this.worldObj.setBlockToAir(x, y, z);
