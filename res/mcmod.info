@@ -8,6 +8,6 @@
     "mcversion": "@MCVERSION@",
     "url": "https://github.com/yogpstop/QuarryPlus",
     "authors": [ "yogpstop" ],
-    "dependencies": [ "BuildCraft|Core", "BuildCraft|Factory"]
+    "dependencies": [ "BuildCraft|Builders", "BuildCraft|Core", "BuildCraft|Energy",  "BuildCraft|Factory", "BuildCraft|Silicon", "BuildCraft|Transport"]
   }]
 }
