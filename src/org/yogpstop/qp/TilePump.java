@@ -443,7 +443,7 @@ public class TilePump extends APacketTile implements IFluidHandler {
 
 	private int getFluidAmount(String key) {
 		for (FluidStack fs : this.liquids)
-			if (fs.equals(FluidRegistry.getFluidStack(key, 0))) return fs.amount;
+			if (fs.isFluidEqual(FluidRegistry.getFluidStack(key, 0))) return fs.amount;
 		return 0;
 	}
 
@@ -469,7 +469,7 @@ public class TilePump extends APacketTile implements IFluidHandler {
 	String incl(int side) {
 		boolean match = false;
 		for (FluidStack fs : this.liquids)
-			if (fs.equals(FluidRegistry.getFluidStack(this.mapping[side], 0))) match = true;
+			if (fs.isFluidEqual(FluidRegistry.getFluidStack(this.mapping[side], 0))) match = true;
 			else if (match) return this.mapping[side] = FluidRegistry.getFluidName(fs);
 		try {
 			this.mapping[side] = FluidRegistry.getFluidName(this.liquids.getFirst());
