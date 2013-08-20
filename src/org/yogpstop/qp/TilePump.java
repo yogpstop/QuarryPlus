@@ -3,7 +3,6 @@ package org.yogpstop.qp;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 import com.google.common.io.ByteArrayDataInput;
 
@@ -411,7 +410,8 @@ public class TilePump extends APacketTile implements IFluidHandler {
 								fs = new FluidStack(FluidRegistry.LAVA, FluidContainerRegistry.BUCKET_VOLUME);
 							}
 							if (fs != null) {
-								if (this.liquids.contains(fs)) this.liquids.get(this.liquids.indexOf(fs)).amount += fs.amount;
+								int index = this.liquids.indexOf(fs);
+								if (index != -1) this.liquids.get(index).amount += fs.amount;
 								else this.liquids.add(fs);
 								fs = null;
 							} else this.worldObj.setBlockToAir(bx + this.xOffset, this.currentHeight, bz + this.zOffset);
@@ -434,17 +434,13 @@ public class TilePump extends APacketTile implements IFluidHandler {
 
 	public String[] C_getNames() {
 		String[] ret = new String[this.mapping.length];
+		int index;
 		for (int i = 0; i < ret.length; i++) {
-			ret[i] = StatCollector.translateToLocalFormatted("chat.pumpitem", fdToString(ForgeDirection.getOrientation(i)), this.mapping[i],
-					getFluidAmount(this.mapping[i]));
+			index = this.liquids.indexOf(FluidRegistry.getFluidStack(this.mapping[i], 0));
+			ret[i] = StatCollector.translateToLocalFormatted("chat.pumpitem", fdToString(ForgeDirection.getOrientation(i)), this.mapping[i], index == -1 ? 0
+					: this.liquids.get(index).amount);
 		}
 		return ret;
-	}
-
-	private int getFluidAmount(String key) {
-		for (FluidStack fs : this.liquids)
-			if (fs.isFluidEqual(FluidRegistry.getFluidStack(key, 0))) return fs.amount;
-		return 0;
 	}
 
 	static String fdToString(ForgeDirection fd) {
@@ -467,16 +463,10 @@ public class TilePump extends APacketTile implements IFluidHandler {
 	}
 
 	String incl(int side) {
-		boolean match = false;
-		for (FluidStack fs : this.liquids)
-			if (fs.isFluidEqual(FluidRegistry.getFluidStack(this.mapping[side], 0))) match = true;
-			else if (match) return this.mapping[side] = FluidRegistry.getFluidName(fs);
-		try {
-			this.mapping[side] = FluidRegistry.getFluidName(this.liquids.getFirst());
-		} catch (NoSuchElementException e) {
-			this.mapping[side] = null;
-		}
-		return this.mapping[side];
+		if (this.liquids.isEmpty()) return this.mapping[side] = null;
+		int index = this.liquids.indexOf(FluidRegistry.getFluidStack(this.mapping[side], 0)) + 1;
+		if (index == this.liquids.size()) index = 0;
+		return this.mapping[side] = FluidRegistry.getFluidName(this.liquids.get(index));
 	}
 
 	@Override
@@ -497,8 +487,8 @@ public class TilePump extends APacketTile implements IFluidHandler {
 	private FluidStack getFluidStack(ForgeDirection fd) {
 		if (fd.ordinal() < 0 || fd.ordinal() >= this.mapping.length) return null;
 		int index = this.liquids.indexOf(FluidRegistry.getFluidStack(this.mapping[fd.ordinal()], 0));
-		if (index < 0 || index >= this.liquids.size()) return null;
-		return this.liquids.get(index);
+		if (index != -1) return this.liquids.get(index);
+		return null;
 	}
 
 	@Override
