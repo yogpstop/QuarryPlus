@@ -12,6 +12,8 @@ import java.util.List;
 
 import com.google.common.io.ByteArrayDataInput;
 
+import cpw.mods.fml.common.network.PacketDispatcher;
+import cpw.mods.fml.common.network.Player;
 import net.minecraft.block.Block;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.player.EntityPlayer;
@@ -58,32 +60,32 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		case fortuneAdd:
 			this.fortuneList.add(data.readLong());
 			sendPacketToPlayer(this, ep, packetFortuneList, this.fortuneList);
-			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdFortuneList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
+			PacketDispatcher.sendPacketToPlayer(PacketHandler.G_makeOpenGUIPacket(QuarryPlus.guiIdFortuneList, this.xCoord, this.yCoord, this.zCoord), (Player) ep);
 			break;
 		case fortuneRemove:
 			this.fortuneList.remove(data.readLong());
 			sendPacketToPlayer(this, ep, packetFortuneList, this.fortuneList);
-			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdFortuneList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
+			PacketDispatcher.sendPacketToPlayer(PacketHandler.G_makeOpenGUIPacket(QuarryPlus.guiIdFortuneList, this.xCoord, this.yCoord, this.zCoord), (Player) ep);
 			break;
 		case silktouchAdd:
 			this.silktouchList.add(data.readLong());
 			sendPacketToPlayer(this, ep, packetSilktouchList, this.silktouchList);
-			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdSilktouchList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
+			PacketDispatcher.sendPacketToPlayer(PacketHandler.G_makeOpenGUIPacket(QuarryPlus.guiIdSilktouchList, this.xCoord, this.yCoord, this.zCoord), (Player) ep);
 			break;
 		case silktouchRemove:
 			this.silktouchList.remove(data.readLong());
 			sendPacketToPlayer(this, ep, packetSilktouchList, this.silktouchList);
-			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdSilktouchList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
+			PacketDispatcher.sendPacketToPlayer(PacketHandler.G_makeOpenGUIPacket(QuarryPlus.guiIdSilktouchList, this.xCoord, this.yCoord, this.zCoord), (Player) ep);
 			break;
 		case fortuneTInc:
 			this.fortuneInclude = !this.fortuneInclude;
 			sendPacketToPlayer(this, ep, fortuneTInc, this.fortuneInclude);
-			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdFortuneList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
+			PacketDispatcher.sendPacketToPlayer(PacketHandler.G_makeOpenGUIPacket(QuarryPlus.guiIdFortuneList, this.xCoord, this.yCoord, this.zCoord), (Player) ep);
 			break;
 		case silktouchTInc:
 			this.silktouchInclude = !this.silktouchInclude;
 			sendPacketToPlayer(this, ep, silktouchTInc, this.silktouchInclude);
-			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdSilktouchList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
+			PacketDispatcher.sendPacketToPlayer(PacketHandler.G_makeOpenGUIPacket(QuarryPlus.guiIdSilktouchList, this.xCoord, this.yCoord, this.zCoord), (Player) ep);
 			break;
 		}
 	}

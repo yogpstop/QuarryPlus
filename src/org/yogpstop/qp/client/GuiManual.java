@@ -4,11 +4,11 @@ import org.yogpstop.qp.PacketHandler;
 import org.yogpstop.qp.QuarryPlus;
 import org.yogpstop.qp.TileBasic;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.util.StatCollector;
-
 import static org.yogpstop.qp.QuarryPlus.getname;
 import static org.yogpstop.qp.QuarryPlus.data;
 
@@ -26,8 +26,10 @@ public class GuiManual extends GuiScreen {
 	}
 
 	@Override
-	public boolean doesGuiPauseGame() {
-		return false;
+	protected void mouseClicked(int par1, int par2, int par3) {
+		super.mouseClicked(par1, par2, par3);
+		this.blockid.mouseClicked(par1, par2, par3);
+		this.meta.mouseClicked(par1, par2, par3);
 	}
 
 	@Override
@@ -71,9 +73,17 @@ public class GuiManual extends GuiScreen {
 	}
 
 	@Override
-	public void updateScreen() {
-		this.meta.updateCursorCounter();
-		this.blockid.updateCursorCounter();
+	public void drawScreen(int i, int j, float k) {
+		this.drawDefaultBackground();
+		this.drawCenteredString(this.fontRenderer, StatCollector.translateToLocal("tof.selectblock"), this.width / 2, 8, 0xFFFFFF);
+		this.fontRenderer.drawStringWithShadow(StatCollector.translateToLocal("tof.blockid"),
+				this.width / 2 - 60 - this.fontRenderer.getStringWidth(StatCollector.translateToLocal("tof.blockid")), 50, 0xFFFFFF);
+		this.fontRenderer.drawStringWithShadow(StatCollector.translateToLocal("tof.meta"),
+				this.width / 2 - 60 - this.fontRenderer.getStringWidth(StatCollector.translateToLocal("tof.meta")), 80, 0xFFFFFF);
+		this.fontRenderer.drawString(StatCollector.translateToLocal("tof.tipsmeta"), 16, 110, 0xFFFFFF);
+		this.blockid.drawTextBox();
+		this.meta.drawTextBox();
+		super.drawScreen(i, j, k);
 	}
 
 	@Override
@@ -85,32 +95,23 @@ public class GuiManual extends GuiScreen {
 			this.meta.textboxKeyTyped(par1, par2);
 			return;
 		}
-		if (par2 == 1 || par1 == 'e') {
-			this.mc.displayGuiScreen(this.parent);
+		if (par2 == 1 || par1 == this.mc.gameSettings.keyBindInventory.keyCode) {
+			Minecraft.getMinecraft().displayGuiScreen(this.parent);
 		}
 	}
 
 	@Override
-	protected void mouseClicked(int par1, int par2, int par3) {
-		super.mouseClicked(par1, par2, par3);
-
-		this.blockid.mouseClicked(par1, par2, par3);
-		this.meta.mouseClicked(par1, par2, par3);
+	public boolean doesGuiPauseGame() {
+		return false;
 	}
 
 	@Override
-	public void drawScreen(int i, int j, float k) {
-		drawDefaultBackground();
-		String title = StatCollector.translateToLocal("tof.selectblock");
-		this.fontRenderer.drawStringWithShadow(title, (this.width - this.fontRenderer.getStringWidth(title)) / 2, 8, 0xFFFFFF);
-		this.fontRenderer.drawStringWithShadow(StatCollector.translateToLocal("tof.blockid"),
-				this.width / 2 - 60 - this.fontRenderer.getStringWidth(StatCollector.translateToLocal("tof.blockid")), 50, 0xFFFFFF);
-		this.fontRenderer.drawStringWithShadow(StatCollector.translateToLocal("tof.meta"),
-				this.width / 2 - 60 - this.fontRenderer.getStringWidth(StatCollector.translateToLocal("tof.meta")), 80, 0xFFFFFF);
-		this.fontRenderer.drawString(StatCollector.translateToLocal("tof.tipsmeta"), 16, 110, 0xFFFFFF);
-		this.blockid.drawTextBox();
-		this.meta.drawTextBox();
-		super.drawScreen(i, j, k);
+	public void updateScreen() {
+		super.updateScreen();
+		this.meta.updateCursorCounter();
+		this.blockid.updateCursorCounter();
+		if (!this.mc.thePlayer.isEntityAlive() || this.mc.thePlayer.isDead) {
+			this.mc.thePlayer.closeScreen();
+		}
 	}
-
 }

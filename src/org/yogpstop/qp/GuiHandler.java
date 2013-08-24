@@ -3,11 +3,11 @@ package org.yogpstop.qp;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.world.World;
 
+import org.yogpstop.qp.client.GuiInfMJSrc;
 import org.yogpstop.qp.client.GuiMover;
 import org.yogpstop.qp.client.GuiList;
 
 import static org.yogpstop.qp.QuarryPlus.*;
-
 import cpw.mods.fml.common.network.IGuiHandler;
 
 public class GuiHandler implements IGuiHandler {
@@ -20,6 +20,8 @@ public class GuiHandler implements IGuiHandler {
 			return new GuiList((byte) 1, (TileBasic) world.getBlockTileEntity(x, y, z));
 		case guiIdSilktouchList:
 			return new GuiList((byte) 2, (TileBasic) world.getBlockTileEntity(x, y, z));
+		case guiIdInfMJSrc:
+			return new GuiInfMJSrc(x, y, z, world);
 		}
 
 		return null;
@@ -31,7 +33,6 @@ public class GuiHandler implements IGuiHandler {
 		case guiIdMover:
 			return new ContainerMover(player, world, x, y, z, null);
 		}
-
-		return new ContainerDummy(x, y, z);
+		return null;
 	}
 }

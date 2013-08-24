@@ -39,11 +39,12 @@ public class QuarryPlus implements ITriggerProvider {
 	@Mod.Instance("QuarryPlus")
 	public static QuarryPlus instance;
 
-	public static Block blockQuarry, blockMarker, blockMover, blockMiningWell, blockPump;
+	public static Block blockQuarry, blockMarker, blockMover, blockMiningWell, blockPump, blockInfMJSrc;
 	public static Item itemTool;
 
 	public static int RecipeDifficulty;
 
+	public static final int guiIdInfMJSrc = 1;
 	public static final int guiIdMover = 2;
 	public static final int guiIdFortuneList = 3;
 	public static final int guiIdSilktouchList = 4;
@@ -58,6 +59,7 @@ public class QuarryPlus implements ITriggerProvider {
 			blockMover = (new BlockMover(cfg.getBlock("EnchantMover", 4003).getInt()));
 			blockMiningWell = (new BlockMiningWell(cfg.getBlock("MiningWell", 4004).getInt()));
 			blockPump = (new BlockPump(cfg.getBlock("Pump", 4005).getInt()));
+			blockInfMJSrc = (new BlockInfMJSrc(cfg.getBlock("InfMJSrc", 4006).getInt()));
 			itemTool = (new ItemTool(cfg.getItem("Tools", 18463).getInt()));
 
 			Property RD = cfg.get(Configuration.CATEGORY_GENERAL, "RecipeDifficulty", 2);
@@ -99,11 +101,13 @@ public class QuarryPlus implements ITriggerProvider {
 		GameRegistry.registerBlock(blockMover, "EnchantMover");
 		GameRegistry.registerBlock(blockMiningWell, "MiningWellPlus");
 		GameRegistry.registerBlock(blockPump, "PumpPlus");
+		GameRegistry.registerBlock(blockInfMJSrc, "InfMJSrc");
 
 		GameRegistry.registerTileEntity(TileQuarry.class, "QuarryPlus");
 		GameRegistry.registerTileEntity(TileMarker.class, "MarkerPlus");
 		GameRegistry.registerTileEntity(TileMiningWell.class, "MiningWellPlus");
 		GameRegistry.registerTileEntity(TilePump.class, "PumpPlus");
+		GameRegistry.registerTileEntity(TileInfMJSrc.class, "InfMJSrc");
 
 		ActionManager.registerTriggerProvider(this);
 
@@ -235,10 +239,6 @@ public class QuarryPlus implements ITriggerProvider {
 
 	public static long data(short id, int meta) {
 		return id | (meta << 12);
-	}
-
-	public static final boolean getBit(short value, byte pos) {
-		return (value << (16 - pos) >>> (15)) == 0 ? false : true;
 	}
 
 	@Override

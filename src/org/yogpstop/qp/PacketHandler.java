@@ -39,6 +39,8 @@ public class PacketHandler implements IPacketHandler {
 	public static final byte packetSilktouchList = 10;
 	public static final byte signal = 11;
 	public static final byte link = 12;
+	public static final byte infmjsrc = 13;
+	public static final byte infmjsrca = 14;
 
 	@Override
 	public void onPacketData(INetworkManager network, Packet250CustomPayload packet, Player player) {
@@ -47,11 +49,7 @@ public class PacketHandler implements IPacketHandler {
 		} else if (packet.channel.equals(BTN)) {
 			ByteArrayDataInput data = ByteStreams.newDataInput(packet.data);
 			Container container = ((EntityPlayer) player).openContainer;
-			if (container != null) {
-				if (container instanceof ContainerMover) {
-					((ContainerMover) container).readPacketData(data);
-				}
-			}
+			if (container instanceof ContainerMover) ((ContainerMover) container).readPacketData(data);
 		} else if (packet.channel.equals(Tile)) {
 			ByteArrayDataInput data = ByteStreams.newDataInput(packet.data);
 			TileEntity t = ((EntityPlayer) player).worldObj.getBlockTileEntity(data.readInt(), data.readInt(), data.readInt());
@@ -65,7 +63,7 @@ public class PacketHandler implements IPacketHandler {
 		}
 	}
 
-	public static void sendOpenGUIPacket(int guiId, int x, int y, int z) {
+	public static Packet G_makeOpenGUIPacket(int guiId, int x, int y, int z) {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		DataOutputStream dos = new DataOutputStream(bos);
 		try {
@@ -81,7 +79,7 @@ public class PacketHandler implements IPacketHandler {
 		packet.data = bos.toByteArray();
 		packet.length = bos.size();
 		packet.isChunkDataPacket = true;
-		PacketDispatcher.sendPacketToServer(packet);
+		return packet;
 	}
 
 	private static void openGuiFromPacket(ByteArrayDataInput badi, EntityPlayer ep) {
@@ -121,6 +119,37 @@ public class PacketHandler implements IPacketHandler {
 		packet.data = bos.toByteArray();
 		packet.length = bos.size();
 		return packet;
+	}
+
+	public static Packet makeInfMJSrcPacket(int x, int y, int z, float power, int itv) {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		DataOutputStream dos = new DataOutputStream(bos);
+		try {
+			dos.writeInt(x);
+			dos.writeInt(y);
+			dos.writeInt(z);
+			dos.writeByte(infmjsrc);
+			dos.writeFloat(power);
+			dos.writeInt(itv);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return composeTilePacket(bos);
+	}
+
+	public static Packet makeInfMJSrcAPacket(int x, int y, int z, boolean active) {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		DataOutputStream dos = new DataOutputStream(bos);
+		try {
+			dos.writeInt(x);
+			dos.writeInt(y);
+			dos.writeInt(z);
+			dos.writeByte(infmjsrca);
+			dos.writeBoolean(active);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return composeTilePacket(bos);
 	}
 
 	public static void sendPacketToServer(APacketTile te, byte id) {

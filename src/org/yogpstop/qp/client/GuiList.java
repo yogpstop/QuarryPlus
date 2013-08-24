@@ -19,9 +19,9 @@ public class GuiList extends GuiScreen {
 		this.tile = tq;
 	}
 
-	@Override
-	public boolean doesGuiPauseGame() {
-		return false;
+	public boolean include() {
+		if (this.targetid == 1) return this.tile.fortuneInclude;
+		return this.tile.silktouchInclude;
 	}
 
 	@Override
@@ -34,11 +34,6 @@ public class GuiList extends GuiScreen {
 				.translateToLocal("selectServer.delete")));
 		this.oreslot = new GuiSlotList(this.mc, this.width * 3 / 5, this.height, 30, this.height - 30, 18, this, this.targetid == 1 ? this.tile.fortuneList
 				: this.tile.silktouchList);
-	}
-
-	public boolean include() {
-		if (this.targetid == 1) return this.tile.fortuneInclude;
-		return this.tile.silktouchInclude;
 	}
 
 	@Override
@@ -59,11 +54,13 @@ public class GuiList extends GuiScreen {
 
 	@Override
 	public void drawScreen(int i, int j, float k) {
-		drawDefaultBackground();
+		this.drawDefaultBackground();
 		this.oreslot.drawScreen(i, j, k);
-		String title = StatCollector.translateToLocal("qp.list.setting")
-				+ StatCollector.translateToLocal(this.targetid == 1 ? "enchantment.lootBonusDigger" : "enchantment.untouching");
-		this.fontRenderer.drawStringWithShadow(title, (this.width - this.fontRenderer.getStringWidth(title)) / 2, 8, 0xFFFFFF);
+		this.drawCenteredString(
+				this.fontRenderer,
+				StatCollector.translateToLocal("qp.list.setting")
+						+ StatCollector.translateToLocal(this.targetid == 1 ? "enchantment.lootBonusDigger" : "enchantment.untouching"), this.width / 2, 8,
+				0xFFFFFF);
 		if ((this.targetid == 1 ? this.tile.fortuneList : this.tile.silktouchList).isEmpty()) {
 			this.delete.enabled = false;
 		}
@@ -72,7 +69,21 @@ public class GuiList extends GuiScreen {
 
 	@Override
 	protected void keyTyped(char par1, int par2) {
-		if (par2 == 1 || par1 == 'e') {
+		if (par2 == 1 || par1 == this.mc.gameSettings.keyBindInventory.keyCode) {
+			this.mc.displayGuiScreen((GuiScreen) null);
+			this.mc.setIngameFocus();
+		}
+	}
+
+	@Override
+	public boolean doesGuiPauseGame() {
+		return false;
+	}
+
+	@Override
+	public void updateScreen() {
+		super.updateScreen();
+		if (!this.mc.thePlayer.isEntityAlive() || this.mc.thePlayer.isDead) {
 			this.mc.thePlayer.closeScreen();
 		}
 	}
