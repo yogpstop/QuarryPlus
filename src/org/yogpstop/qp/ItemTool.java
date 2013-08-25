@@ -49,7 +49,7 @@ public class ItemTool extends Item {
 			if (id == 35) f = true;
 		}
 		if (w.getBlockTileEntity(x, y, z) instanceof TileBasic && s != f) {
-			if (w.isRemote) ep.openGui(QuarryPlus.instance, f ? QuarryPlus.guiIdFortuneList : QuarryPlus.guiIdSilktouchList, w, x, y, z);
+			if (w.isRemote) ep.openGui(QuarryPlus.instance, f ? QuarryPlus.guiIdFList : QuarryPlus.guiIdSList, w, x, y, z);
 			return true;
 		}
 		return false;

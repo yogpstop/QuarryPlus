@@ -25,16 +25,12 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeDirection;
 import buildcraft.api.gates.IAction;
-import buildcraft.api.gates.ITrigger;
 import buildcraft.api.power.PowerHandler;
 import buildcraft.api.power.IPowerReceptor;
 import buildcraft.api.power.PowerHandler.PowerReceiver;
 import buildcraft.core.IMachine;
 
 public abstract class TileBasic extends APacketTile implements IPowerReceptor, IMachine {
-	public static final ITrigger active = new TriggerPlusMachine(754, true);
-	public static final ITrigger deactive = new TriggerPlusMachine(755, false);
-
 	protected ForgeDirection pump = ForgeDirection.UNKNOWN;
 
 	protected PowerHandler pp;
@@ -43,6 +39,7 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 	public final List<Long> silktouchList = new ArrayList<Long>();
 	public boolean fortuneInclude, silktouchInclude;
 
+	protected byte unbreaking;
 	protected byte fortune;
 	protected boolean silktouch;
 	protected byte efficiency;
@@ -51,7 +48,7 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 
 	public TileBasic() {
 		super();
-		S_initPowerProvider();
+		this.pp = new PowerHandler(this, PowerHandler.Type.MACHINE);
 	}
 
 	@Override
@@ -60,32 +57,32 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		case fortuneAdd:
 			this.fortuneList.add(data.readLong());
 			sendPacketToPlayer(this, ep, packetFortuneList, this.fortuneList);
-			PacketDispatcher.sendPacketToPlayer(PacketHandler.G_makeOpenGUIPacket(QuarryPlus.guiIdFortuneList, this.xCoord, this.yCoord, this.zCoord), (Player) ep);
+			PacketDispatcher.sendPacketToPlayer(PacketHandler.G_makeOpenGUIPacket(QuarryPlus.guiIdFList, this.xCoord, this.yCoord, this.zCoord), (Player) ep);
 			break;
 		case fortuneRemove:
 			this.fortuneList.remove(data.readLong());
 			sendPacketToPlayer(this, ep, packetFortuneList, this.fortuneList);
-			PacketDispatcher.sendPacketToPlayer(PacketHandler.G_makeOpenGUIPacket(QuarryPlus.guiIdFortuneList, this.xCoord, this.yCoord, this.zCoord), (Player) ep);
+			PacketDispatcher.sendPacketToPlayer(PacketHandler.G_makeOpenGUIPacket(QuarryPlus.guiIdFList, this.xCoord, this.yCoord, this.zCoord), (Player) ep);
 			break;
 		case silktouchAdd:
 			this.silktouchList.add(data.readLong());
 			sendPacketToPlayer(this, ep, packetSilktouchList, this.silktouchList);
-			PacketDispatcher.sendPacketToPlayer(PacketHandler.G_makeOpenGUIPacket(QuarryPlus.guiIdSilktouchList, this.xCoord, this.yCoord, this.zCoord), (Player) ep);
+			PacketDispatcher.sendPacketToPlayer(PacketHandler.G_makeOpenGUIPacket(QuarryPlus.guiIdSList, this.xCoord, this.yCoord, this.zCoord), (Player) ep);
 			break;
 		case silktouchRemove:
 			this.silktouchList.remove(data.readLong());
 			sendPacketToPlayer(this, ep, packetSilktouchList, this.silktouchList);
-			PacketDispatcher.sendPacketToPlayer(PacketHandler.G_makeOpenGUIPacket(QuarryPlus.guiIdSilktouchList, this.xCoord, this.yCoord, this.zCoord), (Player) ep);
+			PacketDispatcher.sendPacketToPlayer(PacketHandler.G_makeOpenGUIPacket(QuarryPlus.guiIdSList, this.xCoord, this.yCoord, this.zCoord), (Player) ep);
 			break;
 		case fortuneTInc:
 			this.fortuneInclude = !this.fortuneInclude;
 			sendPacketToPlayer(this, ep, fortuneTInc, this.fortuneInclude);
-			PacketDispatcher.sendPacketToPlayer(PacketHandler.G_makeOpenGUIPacket(QuarryPlus.guiIdFortuneList, this.xCoord, this.yCoord, this.zCoord), (Player) ep);
+			PacketDispatcher.sendPacketToPlayer(PacketHandler.G_makeOpenGUIPacket(QuarryPlus.guiIdFList, this.xCoord, this.yCoord, this.zCoord), (Player) ep);
 			break;
 		case silktouchTInc:
 			this.silktouchInclude = !this.silktouchInclude;
 			sendPacketToPlayer(this, ep, silktouchTInc, this.silktouchInclude);
-			PacketDispatcher.sendPacketToPlayer(PacketHandler.G_makeOpenGUIPacket(QuarryPlus.guiIdSilktouchList, this.xCoord, this.yCoord, this.zCoord), (Player) ep);
+			PacketDispatcher.sendPacketToPlayer(PacketHandler.G_makeOpenGUIPacket(QuarryPlus.guiIdSList, this.xCoord, this.yCoord, this.zCoord), (Player) ep);
 			break;
 		}
 	}
@@ -136,38 +133,20 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		if (nbttl != null) for (int i = 0; i < nbttl.tagCount(); i++) {
 			short id = ((NBTTagCompound) nbttl.tagAt(i)).getShort("id");
 			short lvl = ((NBTTagCompound) nbttl.tagAt(i)).getShort("lvl");
-			if (id == 33) this.silktouch = true;
-			if (id == 35) this.fortune = (byte) lvl;
 			if (id == 32) this.efficiency = (byte) lvl;
+			if (id == 33) this.silktouch = true;
+			if (id == 34) this.unbreaking = (byte) lvl;
+			if (id == 35) this.fortune = (byte) lvl;
 		}
 		G_reinit();
 	}
 
-	protected boolean S_breakBlock(int x, int y, int z, double BP, double CE, double CS, double CF) {
+	protected boolean S_breakBlock(int x, int y, int z, double BP, double CS, double CF) {
 		Collection<ItemStack> dropped = new LinkedList<ItemStack>();
 		if (this.worldObj.getBlockMaterial(x, y, z).isLiquid()) {
-			int pX = this.xCoord, pY = this.yCoord, pZ = this.zCoord;
-			switch (this.pump) {
-			case UP:
-				pY++;
-				break;
-			case DOWN:
-				pY--;
-				break;
-			case SOUTH:
-				pZ++;
-				break;
-			case NORTH:
-				pZ--;
-				break;
-			case EAST:
-				pX++;
-				break;
-			case WEST:
-				pX--;
-				break;
-			default:
-			}
+			int pX = this.xCoord + this.pump.offsetX;
+			int pY = this.yCoord + this.pump.offsetY;
+			int pZ = this.zCoord + this.pump.offsetZ;
 			TileEntity te = this.worldObj.getBlockTileEntity(pX, pY, pZ);
 			if (!(te instanceof TilePump)) {
 				this.pump = ForgeDirection.UNKNOWN;
@@ -175,7 +154,7 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 			}
 			return ((TilePump) te).S_removeLiquids(this.pp, x, y, z);
 		}
-		float pw = (float) Math.max(BP * S_blockHardness(x, y, z) * S_addDroppedItems(dropped, x, y, z, CS, CF) / Math.pow(CE, this.efficiency), 0D);
+		float pw = (float) Math.max(BP * S_blockHardness(x, y, z) * S_addDroppedItems(dropped, x, y, z, CS, CF) / (this.unbreaking + 1), 0D);
 		float used = this.pp.useEnergy(pw, pw, false);
 		if (used != pw) return false;
 		used = this.pp.useEnergy(pw, pw, true);
@@ -187,30 +166,9 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 	}
 
 	boolean S_connect(ForgeDirection fd) {
-		int pX = this.xCoord;
-		int pY = this.yCoord;
-		int pZ = this.zCoord;
-		switch (this.pump) {
-		case UP:
-			pY++;
-			break;
-		case DOWN:
-			pY--;
-			break;
-		case SOUTH:
-			pZ++;
-			break;
-		case NORTH:
-			pZ--;
-			break;
-		case EAST:
-			pX++;
-			break;
-		case WEST:
-			pX--;
-			break;
-		default:
-		}
+		int pX = this.xCoord + this.pump.offsetX;
+		int pY = this.yCoord + this.pump.offsetY;
+		int pZ = this.zCoord + this.pump.offsetZ;
 		TileEntity te = this.worldObj.getBlockTileEntity(pX, pY, pZ);
 		if (te instanceof TilePump && this.pump != fd) return false;
 		this.pump = fd;
@@ -226,7 +184,7 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		return 0;
 	}
 
-	protected double S_addDroppedItems(Collection<ItemStack> list, int x, int y, int z, double CS, double CF) {
+	private double S_addDroppedItems(Collection<ItemStack> list, int x, int y, int z, double CS, double CF) {
 		Block b = Block.blocksList[this.worldObj.getBlockId(x, y, z)];
 		int meta = this.worldObj.getBlockMetadata(x, y, z);
 		if (b == null) return 1;
@@ -269,11 +227,6 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		return this.pp.getPowerReceiver();
 	}
 
-	private void S_initPowerProvider() {
-		this.pp = new PowerHandler(this, PowerHandler.Type.MACHINE);
-		this.pp.configure(1, 100, 0, 100000);
-	}
-
 	protected static ItemStack S_createStackedBlock(Block b, int meta) throws SecurityException, NoClassDefFoundError, IllegalAccessException,
 			IllegalArgumentException, InvocationTargetException {
 		Class<? extends Block> cls = b.getClass();
@@ -301,16 +254,18 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 
 	public Collection<String> C_getEnchantments() {
 		ArrayList<String> als = new ArrayList<String>();
-		if (this.silktouch) als.add(Enchantment.enchantmentsList[33].getTranslatedName(1));
-		if (this.fortune > 0) als.add(Enchantment.enchantmentsList[35].getTranslatedName(this.fortune));
 		if (this.efficiency > 0) als.add(Enchantment.enchantmentsList[32].getTranslatedName(this.efficiency));
+		if (this.silktouch) als.add(Enchantment.enchantmentsList[33].getTranslatedName(1));
+		if (this.unbreaking > 0) als.add(Enchantment.enchantmentsList[34].getTranslatedName(this.unbreaking));
+		if (this.fortune > 0) als.add(Enchantment.enchantmentsList[35].getTranslatedName(this.fortune));
 		return als;
 	}
 
 	void S_setEnchantment(ItemStack is) {
-		if (this.silktouch) is.addEnchantment(Enchantment.enchantmentsList[33], 1);
-		if (this.fortune > 0) is.addEnchantment(Enchantment.enchantmentsList[35], this.fortune);
 		if (this.efficiency > 0) is.addEnchantment(Enchantment.enchantmentsList[32], this.efficiency);
+		if (this.silktouch) is.addEnchantment(Enchantment.enchantmentsList[33], 1);
+		if (this.unbreaking > 0) is.addEnchantment(Enchantment.enchantmentsList[34], this.unbreaking);
+		if (this.fortune > 0) is.addEnchantment(Enchantment.enchantmentsList[35], this.fortune);
 	}
 
 	@Override
@@ -319,6 +274,7 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		this.silktouch = nbttc.getBoolean("silktouch");
 		this.fortune = nbttc.getByte("fortune");
 		this.efficiency = nbttc.getByte("efficiency");
+		this.unbreaking = nbttc.getByte("unbreaking");
 		this.fortuneInclude = nbttc.getBoolean("fortuneInclude");
 		this.silktouchInclude = nbttc.getBoolean("silktouchInclude");
 		readArrayList(nbttc.getTagList("fortuneList"), this.fortuneList);
@@ -338,6 +294,7 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		nbttc.setBoolean("silktouch", this.silktouch);
 		nbttc.setByte("fortune", this.fortune);
 		nbttc.setByte("efficiency", this.efficiency);
+		nbttc.setByte("unbreaking", this.unbreaking);
 		nbttc.setBoolean("fortuneInclude", this.fortuneInclude);
 		nbttc.setBoolean("silktouchInclude", this.silktouchInclude);
 		nbttc.setTag("fortuneList", writeArrayList(this.fortuneList));

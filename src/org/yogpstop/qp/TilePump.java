@@ -9,7 +9,9 @@ import com.google.common.io.ByteArrayDataInput;
 import cpw.mods.fml.common.network.PacketDispatcher;
 import cpw.mods.fml.common.network.Player;
 import buildcraft.BuildCraftFactory;
+import buildcraft.api.power.IPowerReceptor;
 import buildcraft.api.power.PowerHandler;
+import buildcraft.api.power.PowerHandler.PowerReceiver;
 import buildcraft.core.Box;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockFluid;
@@ -23,6 +25,7 @@ import net.minecraft.network.packet.Packet3Chat;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatMessageComponent;
 import net.minecraft.util.StatCollector;
+import net.minecraft.world.World;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import net.minecraftforge.common.ForgeDirection;
 import net.minecraftforge.fluids.Fluid;
@@ -33,44 +36,27 @@ import net.minecraftforge.fluids.FluidTankInfo;
 import net.minecraftforge.fluids.IFluidBlock;
 import net.minecraftforge.fluids.IFluidHandler;
 
-public class TilePump extends APacketTile implements IFluidHandler {
+public class TilePump extends APacketTile implements IFluidHandler, IPowerReceptor {
 	private ForgeDirection connectTo = ForgeDirection.UNKNOWN;
+	private PowerHandler pp;
 	private boolean initialized = false;
 
 	private byte prev = (byte) ForgeDirection.UNKNOWN.ordinal();
 
-	static double CE_R;
-	static double BP_R;
-	static double CE_F;
-	static double BP_F;
-
+	protected byte unbreaking;
+	protected byte fortune;
+	protected boolean silktouch;
 	protected byte efficiency;
 
+	public TilePump() {
+		super();
+		this.pp = new PowerHandler(this, PowerHandler.Type.MACHINE);
+	}
+
 	TileBasic G_connected() {
-		int pX = this.xCoord;
-		int pY = this.yCoord;
-		int pZ = this.zCoord;
-		switch (this.connectTo) {
-		case UP:
-			pY++;
-			break;
-		case DOWN:
-			pY--;
-			break;
-		case SOUTH:
-			pZ++;
-			break;
-		case NORTH:
-			pZ--;
-			break;
-		case EAST:
-			pX++;
-			break;
-		case WEST:
-			pX--;
-			break;
-		default:
-		}
+		int pX = this.xCoord + this.connectTo.offsetX;
+		int pY = this.yCoord + this.connectTo.offsetY;
+		int pZ = this.zCoord + this.connectTo.offsetZ;
 		TileEntity te = this.worldObj.getBlockTileEntity(pX, pY, pZ);
 		if (te instanceof TileBasic) return (TileBasic) te;
 		this.connectTo = ForgeDirection.UNKNOWN;
@@ -85,7 +71,10 @@ public class TilePump extends APacketTile implements IFluidHandler {
 	@Override
 	public void readFromNBT(NBTTagCompound nbttc) {
 		super.readFromNBT(nbttc);
+		this.silktouch = nbttc.getBoolean("silktouch");
+		this.fortune = nbttc.getByte("fortune");
 		this.efficiency = nbttc.getByte("efficiency");
+		this.unbreaking = nbttc.getByte("unbreaking");
 		this.connectTo = ForgeDirection.values()[nbttc.getByte("connectTo")];
 		if (nbttc.getTag("mapping0") instanceof NBTTagString) {
 			this.mapping[0] = nbttc.getString("mapping0");
@@ -98,12 +87,16 @@ public class TilePump extends APacketTile implements IFluidHandler {
 		this.range = nbttc.getByte("range");
 		this.quarryRange = nbttc.getBoolean("quarryRange");
 		this.prev = (byte) (this.connectTo.ordinal() | (G_working() ? 0x80 : 0));
+		this.pp.readFromNBT(nbttc);
 	}
 
 	@Override
 	public void writeToNBT(NBTTagCompound nbttc) {
 		super.writeToNBT(nbttc);
+		nbttc.setBoolean("silktouch", this.silktouch);
+		nbttc.setByte("fortune", this.fortune);
 		nbttc.setByte("efficiency", this.efficiency);
+		nbttc.setByte("unbreaking", this.unbreaking);
 		nbttc.setByte("connectTo", (byte) this.connectTo.ordinal());
 		nbttc.setString("mapping0", this.mapping[0] == null ? "null" : this.mapping[0]);
 		nbttc.setString("mapping1", this.mapping[1] == null ? "null" : this.mapping[1]);
@@ -113,40 +106,17 @@ public class TilePump extends APacketTile implements IFluidHandler {
 		nbttc.setString("mapping5", this.mapping[5] == null ? "null" : this.mapping[5]);
 		nbttc.setByte("range", this.range);
 		nbttc.setBoolean("quarryRange", this.quarryRange);
+		this.pp.writeToNBT(nbttc);
 	}
 
 	@Override
 	public void updateEntity() {
 		super.updateEntity();
 		if (this.worldObj.isRemote || this.initialized) return;
-		int pX, pY, pZ;
-		TileEntity te;
-
-		pX = this.xCoord;
-		pY = this.yCoord;
-		pZ = this.zCoord;
-		switch (this.connectTo) {
-		case UP:
-			pY++;
-			break;
-		case DOWN:
-			pY--;
-			break;
-		case SOUTH:
-			pZ++;
-			break;
-		case NORTH:
-			pZ--;
-			break;
-		case EAST:
-			pX++;
-			break;
-		case WEST:
-			pX--;
-			break;
-		default:
-		}
-		te = this.worldObj.getBlockTileEntity(pX, pY, pZ);
+		int pX = this.xCoord + this.connectTo.offsetX;
+		int pY = this.yCoord + this.connectTo.offsetY;
+		int pZ = this.zCoord + this.connectTo.offsetZ;
+		TileEntity te = this.worldObj.getBlockTileEntity(pX, pY, pZ);
 		if (te instanceof TileBasic && ((TileBasic) te).S_connect(this.connectTo.getOpposite())) {
 			S_sendNowPacket();
 			this.initialized = true;
@@ -159,11 +129,17 @@ public class TilePump extends APacketTile implements IFluidHandler {
 
 	void S_setEnchantment(ItemStack is) {
 		if (this.efficiency > 0) is.addEnchantment(Enchantment.enchantmentsList[32], this.efficiency);
+		if (this.silktouch) is.addEnchantment(Enchantment.enchantmentsList[33], 1);
+		if (this.unbreaking > 0) is.addEnchantment(Enchantment.enchantmentsList[34], this.unbreaking);
+		if (this.fortune > 0) is.addEnchantment(Enchantment.enchantmentsList[35], this.fortune);
 	}
 
 	public List<String> C_getEnchantments() {
 		ArrayList<String> als = new ArrayList<String>();
 		if (this.efficiency > 0) als.add(Enchantment.enchantmentsList[32].getTranslatedName(this.efficiency));
+		if (this.silktouch) als.add(Enchantment.enchantmentsList[33].getTranslatedName(1));
+		if (this.unbreaking > 0) als.add(Enchantment.enchantmentsList[34].getTranslatedName(this.unbreaking));
+		if (this.fortune > 0) als.add(Enchantment.enchantmentsList[35].getTranslatedName(this.fortune));
 		return als;
 	}
 
@@ -172,39 +148,22 @@ public class TilePump extends APacketTile implements IFluidHandler {
 			short id = ((NBTTagCompound) nbttl.tagAt(i)).getShort("id");
 			short lvl = ((NBTTagCompound) nbttl.tagAt(i)).getShort("lvl");
 			if (id == 32) this.efficiency = (byte) lvl;
+			if (id == 33) this.silktouch = true;
+			if (id == 34) this.unbreaking = (byte) lvl;
+			if (id == 35) this.fortune = (byte) lvl;
 		}
 		G_reinit();
 	}
 
 	void G_reinit() {
+		this.pp.configure(1, 15, 10, 100);
 		if (this.worldObj.isRemote) return;
 		int pX, pY, pZ;
 		TileEntity te;
 		for (ForgeDirection fd : ForgeDirection.VALID_DIRECTIONS) {
-			pX = this.xCoord;
-			pY = this.yCoord;
-			pZ = this.zCoord;
-			switch (fd) {
-			case UP:
-				pY++;
-				break;
-			case DOWN:
-				pY--;
-				break;
-			case SOUTH:
-				pZ++;
-				break;
-			case NORTH:
-				pZ--;
-				break;
-			case EAST:
-				pX++;
-				break;
-			case WEST:
-				pX--;
-				break;
-			default:
-			}
+			pX = this.xCoord + this.connectTo.offsetX;
+			pY = this.yCoord + this.connectTo.offsetY;
+			pZ = this.zCoord + this.connectTo.offsetZ;
 			te = this.worldObj.getBlockTileEntity(pX, pY, pZ);
 			if (te instanceof TileBasic && ((TileBasic) te).S_connect(fd.getOpposite())) {
 				this.connectTo = fd;
@@ -360,7 +319,7 @@ public class TilePump extends APacketTile implements IFluidHandler {
 		}
 	}
 
-	boolean S_removeLiquids(PowerHandler pp, int x, int y, int z) {
+	boolean S_removeLiquids(PowerHandler tbpp, int x, int y, int z) {
 		if (!this.worldObj.getBlockMaterial(x, y, z).isLiquid()) return true;
 		S_sendNowPacket();
 		this.count++;
@@ -388,10 +347,10 @@ public class TilePump extends APacketTile implements IFluidHandler {
 			}
 		}
 		this.currentHeight++;
-		float p = (float) (block_count * BP_R / Math.pow(CE_R, this.efficiency) + frame_count * BP_F / Math.pow(CE_F, this.efficiency));
-		float used = pp.useEnergy(p, p, false);
+		float p = (float) (block_count * 10D / (this.unbreaking + 1) + frame_count * 25D / (this.unbreaking + 1));
+		float used = tbpp.useEnergy(p, p, false);
 		if (used == p) {
-			used = pp.useEnergy(p, p, true);
+			used = tbpp.useEnergy(p, p, true);
 			for (bx = 0; bx < this.block_side_x; bx++) {
 				for (bz = 0; bz < this.block_side_z; bz++) {
 					if (this.blocks[this.currentHeight - this.yOffset][bx][bz] != 0) {
@@ -518,5 +477,19 @@ public class TilePump extends APacketTile implements IFluidHandler {
 	// //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	private static final boolean isLiquid(Block b) {
 		return b == null ? false : (b instanceof IFluidBlock || b instanceof BlockFluid || b.blockMaterial.isLiquid());
+	}
+
+	@Override
+	public PowerReceiver getPowerReceiver(ForgeDirection side) {
+		TileBasic tb = G_connected();
+		return tb == null ? this.pp.getPowerReceiver() : tb.getPowerReceiver(side);
+	}
+
+	@Override
+	public void doWork(PowerHandler workProvider) {}
+
+	@Override
+	public World getWorld() {
+		return this.worldObj;
 	}
 }

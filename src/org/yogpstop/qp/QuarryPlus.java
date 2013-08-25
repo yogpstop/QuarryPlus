@@ -1,22 +1,15 @@
 package org.yogpstop.qp;
 
-import java.util.LinkedList;
-
 import buildcraft.BuildCraftBuilders;
 import buildcraft.BuildCraftCore;
 import buildcraft.BuildCraftEnergy;
 import buildcraft.BuildCraftFactory;
 import buildcraft.BuildCraftSilicon;
 import buildcraft.BuildCraftTransport;
-import buildcraft.api.gates.ActionManager;
-import buildcraft.api.gates.ITrigger;
-import buildcraft.api.gates.ITriggerProvider;
 import buildcraft.api.recipes.AssemblyRecipe;
-import buildcraft.api.transport.IPipe;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.StatCollector;
 import net.minecraftforge.common.Configuration;
 import net.minecraftforge.common.ForgeChunkManager;
@@ -32,7 +25,7 @@ import cpw.mods.fml.common.network.NetworkRegistry;
 
 @Mod(modid = "QuarryPlus", name = "QuarryPlus", version = "@VERSION@", dependencies = "required-after:BuildCraft|Builders;required-after:BuildCraft|Core;required-after:BuildCraft|Energy;required-after:BuildCraft|Factory;required-after:BuildCraft|Silicon;required-after:BuildCraft|Transport")
 @NetworkMod(clientSideRequired = true, serverSideRequired = false, channels = { PacketHandler.BTN, PacketHandler.NBT, PacketHandler.OGUI, PacketHandler.Tile }, packetHandler = PacketHandler.class)
-public class QuarryPlus implements ITriggerProvider {
+public class QuarryPlus {
 	@SidedProxy(clientSide = "org.yogpstop.qp.client.ClientProxy", serverSide = "org.yogpstop.qp.CommonProxy")
 	public static CommonProxy proxy;
 
@@ -46,8 +39,8 @@ public class QuarryPlus implements ITriggerProvider {
 
 	public static final int guiIdInfMJSrc = 1;
 	public static final int guiIdMover = 2;
-	public static final int guiIdFortuneList = 3;
-	public static final int guiIdSilktouchList = 4;
+	public static final int guiIdFList = 3;
+	public static final int guiIdSList = 4;
 
 	@Mod.EventHandler
 	public static void preInit(FMLPreInitializationEvent event) throws Exception {
@@ -65,25 +58,6 @@ public class QuarryPlus implements ITriggerProvider {
 			Property RD = cfg.get(Configuration.CATEGORY_GENERAL, "RecipeDifficulty", 2);
 			RD.comment = "0:AsCheatRecipe,1:EasyRecipe,2:NormalRecipe(Default),3:HardRecipe,other:NormalRecipe";
 			RecipeDifficulty = RD.getInt(2);
-			TileQuarry.CE_BB = cfg.get(Configuration.CATEGORY_GENERAL + ".BreakBlock", "PowerCoefficientWithEfficiency", 1.3D).getDouble(1.3D);
-			TileQuarry.BP_BB = cfg.get(Configuration.CATEGORY_GENERAL + ".BreakBlock", "BasePower", 40D).getDouble(40D);
-			TileQuarry.CE_MF = cfg.get(Configuration.CATEGORY_GENERAL + ".MakeFrame", "PowerCoefficientWithEfficiency", 1.3D).getDouble(1.3D);
-			TileQuarry.BP_MF = cfg.get(Configuration.CATEGORY_GENERAL + ".MakeFrame", "BasePower", 25D).getDouble(25D);
-			TileQuarry.CE_MH = cfg.get(Configuration.CATEGORY_GENERAL + ".MoveHead", "PowerCoefficientWithEfficiency", 1.3D).getDouble(1.3D);
-			TileQuarry.BP_MH = cfg.get(Configuration.CATEGORY_GENERAL + ".MoveHead", "BasePower", 200D).getDouble(200D);
-			TileQuarry.CF = cfg.get(Configuration.CATEGORY_GENERAL + ".BreakBlock", "PowerCoefficientWithFortune", 1.3D).getDouble(1.3D);
-			TileQuarry.CS = cfg.get(Configuration.CATEGORY_GENERAL + ".BreakBlock", "PowerCoefficientWithSilktouch", 2D).getDouble(2D);
-			TileMiningWell.CE = cfg.get(Configuration.CATEGORY_GENERAL + ".MiningWell", "PowerCoefficientWithEfficiency", 1.3D).getDouble(1.3D);
-			TileMiningWell.BP = cfg.get(Configuration.CATEGORY_GENERAL + ".MiningWell", "BasePower", 40D).getDouble(40D);
-			TileMiningWell.CF = cfg.get(Configuration.CATEGORY_GENERAL + ".MiningWell", "PowerCoefficientWithFortune", 1.3D).getDouble(1.3D);
-			TileMiningWell.CS = cfg.get(Configuration.CATEGORY_GENERAL + ".MiningWell", "PowerCoefficientWithSilktouch", 2D).getDouble(2D);
-			TilePump.CE_R = cfg.get(Configuration.CATEGORY_GENERAL + ".Pump.RemoveLiquid", "PowerCoefficientWithEfficiency", 1.3D).getDouble(1.3D);
-			TilePump.BP_R = cfg.get(Configuration.CATEGORY_GENERAL + ".Pump.RemoveLiquid", "BasePower", 10D).getDouble(10D);
-			TilePump.CE_F = cfg.get(Configuration.CATEGORY_GENERAL + ".Pump.MakeFrame", "PowerCoefficientWithEfficiency", 1.3D).getDouble(1.3D);
-			TilePump.BP_F = cfg.get(Configuration.CATEGORY_GENERAL + ".Pump.MakeFrame", "BasePower", 25D).getDouble(25D);
-			cfg.getCategory(Configuration.CATEGORY_GENERAL)
-					.setComment(
-							"PowerCoefficientWith(EnchantName) is Coefficient with correspond enchant.\nWithEfficiency value comes reciprocal number.\nBasePower is basical using power with no enchants.");
 		} catch (Exception e) {
 			throw new Exception("Your QuarryPlus's config file is broken!", e);
 		} finally {
@@ -108,8 +82,6 @@ public class QuarryPlus implements ITriggerProvider {
 		GameRegistry.registerTileEntity(TileMiningWell.class, "MiningWellPlus");
 		GameRegistry.registerTileEntity(TilePump.class, "PumpPlus");
 		GameRegistry.registerTileEntity(TileInfMJSrc.class, "InfMJSrc");
-
-		ActionManager.registerTriggerProvider(this);
 
 		switch (RecipeDifficulty) {
 		case 0:
@@ -239,20 +211,5 @@ public class QuarryPlus implements ITriggerProvider {
 
 	public static long data(short id, int meta) {
 		return id | (meta << 12);
-	}
-
-	@Override
-	public LinkedList<ITrigger> getPipeTriggers(IPipe pipe) {
-		return null;
-	}
-
-	@Override
-	public LinkedList<ITrigger> getNeighborTriggers(Block block, TileEntity tile) {
-		LinkedList<ITrigger> res = new LinkedList<ITrigger>();
-		if (tile instanceof TileBasic) {
-			res.add(TileBasic.active);
-			res.add(TileBasic.deactive);
-		}
-		return res;
 	}
 }
