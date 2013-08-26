@@ -38,7 +38,6 @@ import net.minecraftforge.fluids.IFluidHandler;
 
 public class TilePump extends APacketTile implements IFluidHandler, IPowerReceptor {
 	private ForgeDirection connectTo = ForgeDirection.UNKNOWN;
-	private PowerHandler pp;
 	private boolean initialized = false;
 
 	private byte prev = (byte) ForgeDirection.UNKNOWN.ordinal();
@@ -47,11 +46,6 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 	protected byte fortune;
 	protected boolean silktouch;
 	protected byte efficiency;
-
-	public TilePump() {
-		super();
-		this.pp = new PowerHandler(this, PowerHandler.Type.MACHINE);
-	}
 
 	TileBasic G_connected() {
 		int pX = this.xCoord + this.connectTo.offsetX;
@@ -87,7 +81,13 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 		this.range = nbttc.getByte("range");
 		this.quarryRange = nbttc.getBoolean("quarryRange");
 		this.prev = (byte) (this.connectTo.ordinal() | (G_working() ? 0x80 : 0));
-		this.pp.readFromNBT(nbttc);
+		if (this.silktouch) {
+			this.liquids.clear();
+			NBTTagList nbttl = nbttc.getTagList("liquids");
+			for (int i = 0; i < nbttl.tagCount(); i++) {
+				this.liquids.add(FluidStack.loadFluidStackFromNBT((NBTTagCompound) nbttl.tagAt(i)));
+			}
+		}
 	}
 
 	@Override
@@ -106,17 +106,36 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 		nbttc.setString("mapping5", this.mapping[5] == null ? "null" : this.mapping[5]);
 		nbttc.setByte("range", this.range);
 		nbttc.setBoolean("quarryRange", this.quarryRange);
-		this.pp.writeToNBT(nbttc);
+		if (this.silktouch) {
+			NBTTagList nbttl = new NBTTagList();
+			for (FluidStack l : this.liquids)
+				nbttl.appendTag(l.writeToNBT(new NBTTagCompound()));
+			nbttc.setTag("liquids", nbttl);
+		}
 	}
 
 	@Override
 	public void updateEntity() {
 		super.updateEntity();
+		int pX, pY, pZ;
+		TileEntity te;
+		FluidStack fs;
+		for (ForgeDirection fd : ForgeDirection.VALID_DIRECTIONS) {
+			pZ = this.liquids.indexOf(FluidRegistry.getFluidStack(this.mapping[fd.ordinal()], 0));
+			if (pZ == -1) continue;
+			fs = this.liquids.get(pZ);
+			pX = this.xCoord + this.connectTo.offsetX;
+			pY = this.yCoord + this.connectTo.offsetY;
+			pZ = this.zCoord + this.connectTo.offsetZ;
+			te = this.worldObj.getBlockTileEntity(pX, pY, pZ);
+			if (te instanceof IFluidHandler && ((IFluidHandler) te).canFill(fd.getOpposite(), fs.getFluid())) fs.amount -= ((IFluidHandler) te).fill(
+					fd.getOpposite(), fs, true);
+		}
 		if (this.worldObj.isRemote || this.initialized) return;
-		int pX = this.xCoord + this.connectTo.offsetX;
-		int pY = this.yCoord + this.connectTo.offsetY;
-		int pZ = this.zCoord + this.connectTo.offsetZ;
-		TileEntity te = this.worldObj.getBlockTileEntity(pX, pY, pZ);
+		pX = this.xCoord + this.connectTo.offsetX;
+		pY = this.yCoord + this.connectTo.offsetY;
+		pZ = this.zCoord + this.connectTo.offsetZ;
+		te = this.worldObj.getBlockTileEntity(pX, pY, pZ);
 		if (te instanceof TileBasic && ((TileBasic) te).S_connect(this.connectTo.getOpposite())) {
 			S_sendNowPacket();
 			this.initialized = true;
@@ -156,7 +175,6 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 	}
 
 	void G_reinit() {
-		this.pp.configure(1, 15, 10, 100);
 		if (this.worldObj.isRemote) return;
 		int pX, pY, pZ;
 		TileEntity te;
@@ -208,8 +226,8 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 	private ExtendedBlockStorage[][][] ebses;
 	private int xOffset, yOffset, zOffset, currentHeight = Integer.MIN_VALUE;
 	private int cx, cy = -1, cz;
-	private byte range = 8;
-	private boolean quarryRange = false;
+	private byte range = 0;
+	private boolean quarryRange = true;
 
 	private int block_side_x, block_side_z;
 
@@ -227,7 +245,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 	}
 
 	void S_changeRange(EntityPlayer ep) {
-		if (this.range >= 8) {
+		if (this.range >= this.fortune * 2) {
 			if (G_connected() instanceof TileQuarry) this.quarryRange = true;
 			this.range = 0;
 		} else if (this.quarryRange) {
@@ -482,7 +500,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 	@Override
 	public PowerReceiver getPowerReceiver(ForgeDirection side) {
 		TileBasic tb = G_connected();
-		return tb == null ? this.pp.getPowerReceiver() : tb.getPowerReceiver(side);
+		return tb == null ? null : tb.getPowerReceiver(side);
 	}
 
 	@Override

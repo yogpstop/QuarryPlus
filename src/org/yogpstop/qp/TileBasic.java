@@ -33,7 +33,7 @@ import buildcraft.core.IMachine;
 public abstract class TileBasic extends APacketTile implements IPowerReceptor, IMachine {
 	protected ForgeDirection pump = ForgeDirection.UNKNOWN;
 
-	protected PowerHandler pp;
+	protected PowerHandler pp = new PowerHandler(this, PowerHandler.Type.MACHINE);
 
 	public final List<Long> fortuneList = new ArrayList<Long>();
 	public final List<Long> silktouchList = new ArrayList<Long>();
@@ -45,11 +45,6 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 	protected byte efficiency;
 
 	protected List<ItemStack> cacheItems = new LinkedList<ItemStack>();
-
-	public TileBasic() {
-		super();
-		this.pp = new PowerHandler(this, PowerHandler.Type.MACHINE);
-	}
 
 	@Override
 	protected void S_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {

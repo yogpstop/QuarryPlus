@@ -32,7 +32,7 @@ public class QuarryPlus {
 	@Mod.Instance("QuarryPlus")
 	public static QuarryPlus instance;
 
-	public static Block blockQuarry, blockMarker, blockMover, blockMiningWell, blockPump, blockInfMJSrc;
+	public static Block blockQuarry, blockMarker, blockMover, blockMiningWell, blockPump, blockInfMJSrc, blockRefinery;
 	public static Item itemTool;
 
 	public static int RecipeDifficulty;
@@ -53,6 +53,7 @@ public class QuarryPlus {
 			blockMiningWell = (new BlockMiningWell(cfg.getBlock("MiningWell", 4004).getInt()));
 			blockPump = (new BlockPump(cfg.getBlock("Pump", 4005).getInt()));
 			blockInfMJSrc = (new BlockInfMJSrc(cfg.getBlock("InfMJSrc", 4006).getInt()));
+			blockRefinery = (new BlockRefinery(cfg.getBlock("Refinery", 4007).getInt()));
 			itemTool = (new ItemTool(cfg.getItem("Tools", 18463).getInt()));
 
 			Property RD = cfg.get(Configuration.CATEGORY_GENERAL, "RecipeDifficulty", 2);
@@ -76,12 +77,14 @@ public class QuarryPlus {
 		GameRegistry.registerBlock(blockMiningWell, "MiningWellPlus");
 		GameRegistry.registerBlock(blockPump, "PumpPlus");
 		GameRegistry.registerBlock(blockInfMJSrc, "InfMJSrc");
+		GameRegistry.registerBlock(blockRefinery, "RefineryPlus");
 
 		GameRegistry.registerTileEntity(TileQuarry.class, "QuarryPlus");
 		GameRegistry.registerTileEntity(TileMarker.class, "MarkerPlus");
 		GameRegistry.registerTileEntity(TileMiningWell.class, "MiningWellPlus");
 		GameRegistry.registerTileEntity(TilePump.class, "PumpPlus");
 		GameRegistry.registerTileEntity(TileInfMJSrc.class, "InfMJSrc");
+		GameRegistry.registerTileEntity(TileRefinery.class, "RefineryPlus");
 
 		switch (RecipeDifficulty) {
 		case 0:
