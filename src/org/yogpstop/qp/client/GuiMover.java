@@ -21,7 +21,7 @@ import cpw.mods.fml.relauncher.Side;
 
 @SideOnly(Side.CLIENT)
 public class GuiMover extends GuiContainer {
-	public GuiButton a1, a3, a5;
+	public GuiButton b32, b33, b34, b35;
 	private static final ResourceLocation gui = new ResourceLocation("yogpstop_qp", "textures/gui/mover.png");
 
 	public GuiMover(EntityPlayer player, World world, int x, int y, int z) {
@@ -34,25 +34,15 @@ public class GuiMover extends GuiContainer {
 		super.initGui();
 		int i = this.width - this.xSize >> 1;
 		int j = this.height - this.ySize >> 1;
-		this.a1 = new GuiButton(1, i + 126, j + 20, 20, 15, ">>");
-		this.a3 = new GuiButton(3, i + 126, j + 36, 20, 15, ">>");
-		this.a5 = new GuiButton(5, i + 126, j + 52, 20, 15, ">>");
-		this.buttonList.add(this.a1);
-		this.buttonList.add(this.a3);
-		this.buttonList.add(this.a5);
+		this.buttonList.add(this.b32 = new GuiButton(32, i + 27, j + 20, 60, 20, StatCollector.translateToLocal("enchantment.digging") + ">"));
+		this.buttonList.add(this.b33 = new GuiButton(33, i + 27, j + 50, 60, 20, StatCollector.translateToLocal("enchantment.untouching") + ">"));
+		this.buttonList.add(this.b34 = new GuiButton(34, i + 89, j + 20, 60, 20, StatCollector.translateToLocal("enchantment.durability") + ">"));
+		this.buttonList.add(this.b35 = new GuiButton(35, i + 89, j + 50, 60, 20, StatCollector.translateToLocal("enchantment.lootBonusDigger") + ">"));
 	}
 
 	@Override
 	protected void drawGuiContainerForegroundLayer(int par1, int par2) {
-		drawString(StatCollector.translateToLocal("tile.EnchantMover.name"), 0);
-		drawString(StatCollector.translateToLocal("enchantment.untouching"), 1);
-		drawString(StatCollector.translateToLocal("enchantment.lootBonusDigger"), 2);
-		drawString(StatCollector.translateToLocal("enchantment.digging"), 3);
-		drawString(StatCollector.translateToLocal("container.inventory"), 4);
-	}
-
-	private void drawString(String s, int i) {
-		this.fontRenderer.drawString(s, (this.xSize - this.fontRenderer.getStringWidth(s)) / 2, (int) (6F + 16.5F * i), 0x404040);
+		this.fontRenderer.drawString(StatCollector.translateToLocal("container.inventory"), 8, 72, 0x404040);
 	}
 
 	@Override

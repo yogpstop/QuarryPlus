@@ -139,10 +139,7 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 	protected boolean S_breakBlock(int x, int y, int z, double BP, double CS, double CF) {
 		Collection<ItemStack> dropped = new LinkedList<ItemStack>();
 		if (this.worldObj.getBlockMaterial(x, y, z).isLiquid()) {
-			int pX = this.xCoord + this.pump.offsetX;
-			int pY = this.yCoord + this.pump.offsetY;
-			int pZ = this.zCoord + this.pump.offsetZ;
-			TileEntity te = this.worldObj.getBlockTileEntity(pX, pY, pZ);
+			TileEntity te = this.worldObj.getBlockTileEntity(this.xCoord + this.pump.offsetX, this.yCoord + this.pump.offsetY, this.zCoord + this.pump.offsetZ);
 			if (!(te instanceof TilePump)) {
 				this.pump = ForgeDirection.UNKNOWN;
 				return true;
@@ -161,10 +158,7 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 	}
 
 	boolean S_connect(ForgeDirection fd) {
-		int pX = this.xCoord + this.pump.offsetX;
-		int pY = this.yCoord + this.pump.offsetY;
-		int pZ = this.zCoord + this.pump.offsetZ;
-		TileEntity te = this.worldObj.getBlockTileEntity(pX, pY, pZ);
+		TileEntity te = this.worldObj.getBlockTileEntity(this.xCoord + this.pump.offsetX, this.yCoord + this.pump.offsetY, this.zCoord + this.pump.offsetZ);
 		if (te instanceof TilePump && this.pump != fd) return false;
 		this.pump = fd;
 		return true;

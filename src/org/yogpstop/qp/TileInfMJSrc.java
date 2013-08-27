@@ -24,11 +24,9 @@ public class TileInfMJSrc extends APacketTile {
 	public void updateEntity() {
 		if (!this.active) return;
 		if (--this.cInterval > 0) return;
+		TileEntity te;
 		for (ForgeDirection d : ForgeDirection.VALID_DIRECTIONS) {
-			int x = this.xCoord + d.offsetX;
-			int y = this.yCoord + d.offsetY;
-			int z = this.zCoord + d.offsetZ;
-			TileEntity te = this.worldObj.getBlockTileEntity(x, y, z);
+			te = this.worldObj.getBlockTileEntity(this.xCoord + d.offsetX, this.yCoord + d.offsetY, this.zCoord + d.offsetZ);
 			if (te instanceof IPowerReceptor) {
 				PowerReceiver pr = ((IPowerReceptor) te).getPowerReceiver(d.getOpposite());
 				if (pr != null) pr.receiveEnergy(Type.ENGINE, this.power, d.getOpposite());

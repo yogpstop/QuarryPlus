@@ -9,11 +9,14 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.world.World;
+
 import net.minecraftforge.common.ForgeDirection;
 import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidContainerRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidTankInfo;
 import net.minecraftforge.fluids.IFluidHandler;
+
 import buildcraft.api.power.IPowerReceptor;
 import buildcraft.api.power.PowerHandler;
 import buildcraft.api.power.PowerHandler.PowerReceiver;
@@ -33,6 +36,8 @@ public class TileRefinery extends APacketTile implements IFluidHandler, IPowerRe
 	protected boolean silktouch;
 	protected byte efficiency;
 
+	private int buf;
+
 	void G_init(NBTTagList nbttl) {
 		if (nbttl != null) for (int i = 0; i < nbttl.tagCount(); i++) {
 			short id = ((NBTTagCompound) nbttl.tagAt(i)).getShort("id");
@@ -49,6 +54,7 @@ public class TileRefinery extends APacketTile implements IFluidHandler, IPowerRe
 		this.pp.configure((float) (25 * Math.pow(1.3, this.efficiency) / (this.unbreaking + 1)),
 				(float) (100 * Math.pow(1.3, this.efficiency) / (this.unbreaking + 1)), (float) (25 * Math.pow(1.3, this.efficiency) / (this.unbreaking + 1)),
 				(float) (1000 * Math.pow(1.3, this.efficiency) / (this.unbreaking + 1)));
+		this.buf = (int) (FluidContainerRegistry.BUCKET_VOLUME * 4 * Math.pow(1.3, this.fortune));
 	}
 
 	public Collection<String> C_getEnchantments() {
@@ -97,18 +103,18 @@ public class TileRefinery extends APacketTile implements IFluidHandler, IPowerRe
 	public void updateEntity() {
 		if (this.worldObj.isRemote) return;
 		this.ticks++;
-		for (int i = this.unbreaking + 1; i > 0; i--) {
+		for (int i = this.efficiency + 1; i > 0; i--) {
 			Recipe r = RefineryRecipes.findRefineryRecipe(this.src1, this.src2);
 			if (r == null) {
 				this.ticks = 0;
 				return;
 			}
+			if (this.res != null && !r.result.isFluidEqual(this.res)) return;
 			if (r.delay > this.ticks) return;
 			if (i == 1) this.ticks = 0;
-			if (this.res != null && !r.result.isFluidEqual(this.res)) return;
-			float pw = this.pp.useEnergy(r.energy, r.energy, false);
-			if (pw != r.energy) return;
-			if (i == 1) this.pp.useEnergy(pw, pw, true);
+			float pw = (float) (r.energy / (double) (this.unbreaking + 1));
+			if (pw != this.pp.useEnergy(pw, pw, false)) return;
+			this.pp.useEnergy(pw, pw, true);
 			if (r.ingredient1.isFluidEqual(this.src1)) this.src1.amount -= r.ingredient1.amount;
 			else this.src2.amount -= r.ingredient1.amount;
 			if (r.ingredient2 != null) {
@@ -148,17 +154,23 @@ public class TileRefinery extends APacketTile implements IFluidHandler, IPowerRe
 	@Override
 	public int fill(ForgeDirection from, FluidStack resource, boolean doFill) {
 		if (resource.isFluidEqual(this.src1)) {
-			this.src1.amount += resource.amount;
-			return resource.amount;
+			int ret = Math.min(this.buf - this.src1.amount, resource.amount);
+			this.src1.amount += ret;
+			return ret;
 		} else if (resource.isFluidEqual(this.src2)) {
-			this.src2.amount += resource.amount;
-			return resource.amount;
+			int ret = Math.min(this.buf - this.src2.amount, resource.amount);
+			this.src2.amount += ret;
+			return ret;
 		} else if (this.src1 == null) {
+			int ret = Math.min(this.buf, resource.amount);
 			this.src1 = resource.copy();
-			return resource.amount;
+			this.src1.amount = ret;
+			return ret;
 		} else if (this.src2 == null) {
+			int ret = Math.min(this.buf, resource.amount);
 			this.src2 = resource.copy();
-			return resource.amount;
+			this.src2.amount = ret;
+			return ret;
 		}
 		return 0;
 	}
@@ -206,7 +218,6 @@ public class TileRefinery extends APacketTile implements IFluidHandler, IPowerRe
 
 	@Override
 	public FluidTankInfo[] getTankInfo(ForgeDirection from) {
-		return new FluidTankInfo[] { new FluidTankInfo(this.src1, Integer.MAX_VALUE), new FluidTankInfo(this.src2, Integer.MAX_VALUE),
-				new FluidTankInfo(this.res, Integer.MAX_VALUE) };
+		return new FluidTankInfo[] { new FluidTankInfo(this.src1, this.buf), new FluidTankInfo(this.src2, this.buf), new FluidTankInfo(this.res, this.buf) };
 	}
 }

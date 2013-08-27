@@ -48,10 +48,8 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 	protected byte efficiency;
 
 	TileBasic G_connected() {
-		int pX = this.xCoord + this.connectTo.offsetX;
-		int pY = this.yCoord + this.connectTo.offsetY;
-		int pZ = this.zCoord + this.connectTo.offsetZ;
-		TileEntity te = this.worldObj.getBlockTileEntity(pX, pY, pZ);
+		TileEntity te = this.worldObj.getBlockTileEntity(this.xCoord + this.connectTo.offsetX, this.yCoord + this.connectTo.offsetY, this.zCoord
+				+ this.connectTo.offsetZ);
 		if (te instanceof TileBasic) return (TileBasic) te;
 		this.connectTo = ForgeDirection.UNKNOWN;
 		S_sendNowPacket();
@@ -124,10 +122,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 			pZ = this.liquids.indexOf(FluidRegistry.getFluidStack(this.mapping[fd.ordinal()], 0));
 			if (pZ == -1) continue;
 			fs = this.liquids.get(pZ);
-			pX = this.xCoord + this.connectTo.offsetX;
-			pY = this.yCoord + this.connectTo.offsetY;
-			pZ = this.zCoord + this.connectTo.offsetZ;
-			te = this.worldObj.getBlockTileEntity(pX, pY, pZ);
+			te = this.worldObj.getBlockTileEntity(this.xCoord + this.connectTo.offsetX,this.yCoord + this.connectTo.offsetY,this.zCoord + this.connectTo.offsetZ);
 			if (te instanceof IFluidHandler && ((IFluidHandler) te).canFill(fd.getOpposite(), fs.getFluid())) fs.amount -= ((IFluidHandler) te).fill(
 					fd.getOpposite(), fs, true);
 		}
@@ -176,13 +171,10 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 
 	void G_reinit() {
 		if (this.worldObj.isRemote) return;
-		int pX, pY, pZ;
 		TileEntity te;
 		for (ForgeDirection fd : ForgeDirection.VALID_DIRECTIONS) {
-			pX = this.xCoord + this.connectTo.offsetX;
-			pY = this.yCoord + this.connectTo.offsetY;
-			pZ = this.zCoord + this.connectTo.offsetZ;
-			te = this.worldObj.getBlockTileEntity(pX, pY, pZ);
+			te = this.worldObj.getBlockTileEntity(this.xCoord + this.connectTo.offsetX, this.yCoord + this.connectTo.offsetY, this.zCoord
+					+ this.connectTo.offsetZ);
 			if (te instanceof TileBasic && ((TileBasic) te).S_connect(fd.getOpposite())) {
 				this.connectTo = fd;
 				S_sendNowPacket();

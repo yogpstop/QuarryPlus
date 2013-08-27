@@ -49,7 +49,7 @@ public class PacketHandler implements IPacketHandler {
 		} else if (packet.channel.equals(BTN)) {
 			ByteArrayDataInput data = ByteStreams.newDataInput(packet.data);
 			Container container = ((EntityPlayer) player).openContainer;
-			if (container instanceof ContainerMover) ((ContainerMover) container).readPacketData(data);
+			if (container instanceof ContainerMover) ((ContainerMover) container).moveEnchant(data.readByte());
 		} else if (packet.channel.equals(Tile)) {
 			ByteArrayDataInput data = ByteStreams.newDataInput(packet.data);
 			TileEntity t = ((EntityPlayer) player).worldObj.getBlockTileEntity(data.readInt(), data.readInt(), data.readInt());

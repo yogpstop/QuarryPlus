@@ -13,8 +13,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.world.World;
 
-import com.google.common.io.ByteArrayDataInput;
-
 public class ContainerMover extends Container {
 	public IInventory craftMatrix = new InventoryBasic("Matrix", false, 2);
 	private World worldObj;
@@ -80,7 +78,7 @@ public class ContainerMover extends Container {
 		return null;
 	}
 
-	private void moveEnchant(short eid) {
+	void moveEnchant(short eid) {
 		if (!checkTo(eid)) return;
 		ItemStack is = this.craftMatrix.getStackInSlot(0);
 		NBTTagList list = is.getEnchantmentTagList();
@@ -150,9 +148,7 @@ public class ContainerMover extends Container {
 	}
 
 	private void checkInventory() {
-		this.gui.a1.enabled = false;
-		this.gui.a3.enabled = false;
-		this.gui.a5.enabled = false;
+		this.gui.b32.enabled = this.gui.b33.enabled = this.gui.b34.enabled = this.gui.b35.enabled = false;
 		if (this.craftMatrix.getStackInSlot(1) == null) return;
 		ItemStack pickaxeIs = this.craftMatrix.getStackInSlot(0);
 		if (pickaxeIs != null) {
@@ -164,13 +160,16 @@ public class ContainerMover extends Container {
 				if (lvl < 1) continue;
 				switch (id) {
 				case 32:
-					this.gui.a5.enabled = true;
+					this.gui.b32.enabled = true;
 					break;
 				case 33:
-					this.gui.a1.enabled = true;
+					this.gui.b33.enabled = true;
+					break;
+				case 34:
+					this.gui.b34.enabled = true;
 					break;
 				case 35:
-					this.gui.a3.enabled = true;
+					this.gui.b35.enabled = true;
 					break;
 				}
 
@@ -178,39 +177,19 @@ public class ContainerMover extends Container {
 		}
 	}
 
-	private boolean checkTo(short id) {
+	private boolean checkTo(final short id) {
 		ItemStack quarryIs = this.craftMatrix.getStackInSlot(1);
-		boolean list = false;
-		short qid;
 		if (quarryIs != null) {
-			if (quarryIs.itemID == QuarryPlus.blockPump.blockID && (id == 33 || id == 35)) return false;
-			if (quarryIs.itemID == QuarryPlus.itemTool.itemID) list = true;
+			if (quarryIs.itemID == QuarryPlus.blockRefinery.blockID && id == 33) return false;
+			if (quarryIs.itemID == QuarryPlus.itemTool.itemID && id != 33 && id != 35) return false;
 			NBTTagList quarryE = quarryIs.getEnchantmentTagList();
-			if (quarryE != null) {
-				for (int i = 0; i < quarryE.tagCount(); i++) {
-					qid = ((NBTTagCompound) quarryE.tagAt(i)).getShort("id");
-					if (id == qid) {
-						if (list && qid == 32) return false;
-						if (Enchantment.enchantmentsList[id].getMaxLevel() > ((NBTTagCompound) quarryE.tagAt(i)).getShort("lvl")) return true;
-						return false;
-					} else if (list && ((id == 33 && qid == 35) || (id == 35 && qid == 33))) return false;
+			if (quarryE != null) for (int i = 0; i < quarryE.tagCount(); i++) {
+				if (id == ((NBTTagCompound) quarryE.tagAt(i)).getShort("id")) {
+					if (Enchantment.enchantmentsList[id].getMaxLevel() > ((NBTTagCompound) quarryE.tagAt(i)).getShort("lvl")) return true;
+					return false;
 				}
 			}
 		}
 		return true;
-	}
-
-	public void readPacketData(ByteArrayDataInput data) {
-		switch (data.readByte()) {
-		case 1:
-			moveEnchant((short) 33);
-			break;
-		case 3:
-			moveEnchant((short) 35);
-			break;
-		case 5:
-			moveEnchant((short) 32);
-			break;
-		}
 	}
 }

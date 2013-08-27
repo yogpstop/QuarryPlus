@@ -23,7 +23,7 @@ public class SlotMover extends Slot {
 			return false;
 		case 1:
 			if (is.itemID == QuarryPlus.blockQuarry.blockID || is.itemID == QuarryPlus.blockMiningWell.blockID || is.itemID == QuarryPlus.blockPump.blockID
-					|| (is.itemID == QuarryPlus.itemTool.itemID && is.getItemDamage() == 1)) { return true; }
+					|| is.itemID == QuarryPlus.blockRefinery.blockID || (is.itemID == QuarryPlus.itemTool.itemID && is.getItemDamage() == 1)) return true;
 		}
 		return false;
 	}
