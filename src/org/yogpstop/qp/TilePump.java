@@ -45,7 +45,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 	protected byte unbreaking;
 	protected byte fortune;
 	protected boolean silktouch;
-	protected byte efficiency;
+	protected byte efficiency;//No advantage
 
 	TileBasic G_connected() {
 		TileEntity te = this.worldObj.getBlockTileEntity(this.xCoord + this.connectTo.offsetX, this.yCoord + this.connectTo.offsetY, this.zCoord

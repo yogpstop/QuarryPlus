@@ -112,7 +112,7 @@ public class TileRefinery extends APacketTile implements IFluidHandler, IPowerRe
 			if (this.res != null && !r.result.isFluidEqual(this.res)) return;
 			if (r.delay > this.ticks) return;
 			if (i == 1) this.ticks = 0;
-			float pw = (float) (r.energy / (double) (this.unbreaking + 1));
+			float pw = (float) ((double) r.energy / (this.unbreaking + 1));
 			if (pw != this.pp.useEnergy(pw, pw, false)) return;
 			this.pp.useEnergy(pw, pw, true);
 			if (r.ingredient1.isFluidEqual(this.src1)) this.src1.amount -= r.ingredient1.amount;
