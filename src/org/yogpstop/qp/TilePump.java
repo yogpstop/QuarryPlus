@@ -352,10 +352,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 			}
 		}
 		this.currentHeight++;
-		float p = (float) (block_count * 10D / (this.unbreaking + 1) + frame_count * 25D / (this.unbreaking + 1));
-		float used = tbpp.useEnergy(p, p, false);
-		if (used == p) {
-			used = tbpp.useEnergy(p, p, true);
+		if (PowerManager.useEnergyP(tbpp, this.unbreaking, block_count, frame_count)) {
 			for (bx = 0; bx < this.block_side_x; bx++) {
 				for (bz = 0; bz < this.block_side_z; bz++) {
 					if (this.blocks[this.currentHeight - this.yOffset][bx][bz] != 0) {

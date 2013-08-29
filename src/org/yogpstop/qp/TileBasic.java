@@ -136,7 +136,7 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		G_reinit();
 	}
 
-	protected boolean S_breakBlock(int x, int y, int z, double BP, double CS, double CF) {
+	protected boolean S_breakBlock(int x, int y, int z, PowerManager.BreakType t) {
 		Collection<ItemStack> dropped = new LinkedList<ItemStack>();
 		if (this.worldObj.getBlockMaterial(x, y, z).isLiquid()) {
 			TileEntity te = this.worldObj.getBlockTileEntity(this.xCoord + this.pump.offsetX, this.yCoord + this.pump.offsetY, this.zCoord + this.pump.offsetZ);
@@ -146,10 +146,11 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 			}
 			return ((TilePump) te).S_removeLiquids(this.pp, x, y, z);
 		}
-		float pw = (float) Math.max(BP * S_blockHardness(x, y, z) * S_addDroppedItems(dropped, x, y, z, CS, CF) / (this.unbreaking + 1), 0D);
-		float used = this.pp.useEnergy(pw, pw, false);
-		if (used != pw) return false;
-		used = this.pp.useEnergy(pw, pw, true);
+		if (!PowerManager.useEnergyB(
+				this.pp,
+				S_blockHardness(x, y, z),
+				S_addDroppedItems(dropped, x, y, z, t == PowerManager.BreakType.Quarry ? PowerManager.B_CS : PowerManager.W_CS,
+						t == PowerManager.BreakType.Quarry ? PowerManager.B_CF : PowerManager.W_CF), this.unbreaking, t)) return false;
 		this.cacheItems.addAll(dropped);
 		this.worldObj.playAuxSFXAtEntity(null, 2001, x, y, z, this.worldObj.getBlockId(x, y, z) | (this.worldObj.getBlockMetadata(x, y, z) << 12));
 		this.worldObj.setBlockToAir(x, y, z);

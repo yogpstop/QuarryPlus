@@ -56,6 +56,7 @@ public class QuarryPlus {
 			Property RD = cfg.get(Configuration.CATEGORY_GENERAL, "RecipeDifficulty", 2);
 			RD.comment = "0:AsCheatRecipe,1:EasyRecipe,2:NormalRecipe(Default),3:HardRecipe,other:NormalRecipe";
 			RecipeDifficulty = RD.getInt(2);
+			PowerManager.loadConfiguration(cfg);
 		} catch (Exception e) {
 			throw new Exception("Your QuarryPlus's config file is broken. your setting is bad!", e);
 		} finally {

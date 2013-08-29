@@ -56,9 +56,7 @@ public class TileRefinery extends APacketTile implements IFluidHandler, IPowerRe
 	}
 
 	protected void G_reinit() {
-		this.pp.configure((float) (25 * Math.pow(1.3, this.efficiency) / (this.unbreaking + 1)),
-				(float) (100 * Math.pow(1.3, this.efficiency) / (this.unbreaking + 1)), (float) (25 * Math.pow(1.3, this.efficiency) / (this.unbreaking + 1)),
-				(float) (1000 * Math.pow(1.3, this.efficiency) / (this.unbreaking + 1)));
+		PowerManager.configureR(this.pp, this.efficiency, this.unbreaking);
 		this.buf = (int) (FluidContainerRegistry.BUCKET_VOLUME * 4 * Math.pow(1.3, this.fortune));
 	}
 
@@ -131,13 +129,11 @@ public class TileRefinery extends APacketTile implements IFluidHandler, IPowerRe
 			}
 			if (r.delay > this.ticks) return;
 			if (i == 1) this.ticks = 0;
-			float pw = (float) ((double) r.energy / (this.unbreaking + 1));
-			if (pw != this.pp.useEnergy(pw, pw, false)) {
+			if (!PowerManager.useEnergyR(this.pp, r.energy, this.unbreaking)) {
 				decreaseAnimation();
 				return;
 			}
 			increaseAnimation();
-			this.pp.useEnergy(pw, pw, true);
 			if (r.ingredient1.isFluidEqual(this.src1)) this.src1.amount -= r.ingredient1.amount;
 			else this.src2.amount -= r.ingredient1.amount;
 			if (r.ingredient2 != null) {
