@@ -170,6 +170,7 @@ public class ContainerMover extends Container {
 		if (quarryIs != null) {
 			if (quarryIs.itemID == QuarryPlus.blockRefinery.blockID && id == 33) return false;
 			if (quarryIs.itemID == QuarryPlus.itemTool.itemID && id != 33 && id != 35) return false;
+			if (quarryIs.itemID == QuarryPlus.blockPump.blockID && id == 32) return false;
 			NBTTagList quarryE = quarryIs.getEnchantmentTagList();
 			if (quarryE != null) for (int i = 0; i < quarryE.tagCount(); i++) {
 				if (id == ((NBTTagCompound) quarryE.tagAt(i)).getShort("id")) {

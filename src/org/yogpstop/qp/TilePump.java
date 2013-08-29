@@ -8,7 +8,7 @@ import com.google.common.io.ByteArrayDataInput;
 
 import cpw.mods.fml.common.network.PacketDispatcher;
 import cpw.mods.fml.common.network.Player;
-import buildcraft.BuildCraftFactory;
+import static buildcraft.BuildCraftFactory.frameBlock;
 import buildcraft.api.power.IPowerReceptor;
 import buildcraft.api.power.PowerHandler;
 import buildcraft.api.power.PowerHandler.PowerReceiver;
@@ -45,7 +45,6 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 	protected byte unbreaking;
 	protected byte fortune;
 	protected boolean silktouch;
-	protected byte efficiency;//No advantage
 
 	TileBasic G_connected() {
 		TileEntity te = this.worldObj.getBlockTileEntity(this.xCoord + this.connectTo.offsetX, this.yCoord + this.connectTo.offsetY, this.zCoord
@@ -65,7 +64,6 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 		super.readFromNBT(nbttc);
 		this.silktouch = nbttc.getBoolean("silktouch");
 		this.fortune = nbttc.getByte("fortune");
-		this.efficiency = nbttc.getByte("efficiency");
 		this.unbreaking = nbttc.getByte("unbreaking");
 		this.connectTo = ForgeDirection.values()[nbttc.getByte("connectTo")];
 		if (nbttc.getTag("mapping0") instanceof NBTTagString) {
@@ -93,7 +91,6 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 		super.writeToNBT(nbttc);
 		nbttc.setBoolean("silktouch", this.silktouch);
 		nbttc.setByte("fortune", this.fortune);
-		nbttc.setByte("efficiency", this.efficiency);
 		nbttc.setByte("unbreaking", this.unbreaking);
 		nbttc.setByte("connectTo", (byte) this.connectTo.ordinal());
 		nbttc.setString("mapping0", this.mapping[0] == null ? "null" : this.mapping[0]);
@@ -122,7 +119,8 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 			pZ = this.liquids.indexOf(FluidRegistry.getFluidStack(this.mapping[fd.ordinal()], 0));
 			if (pZ == -1) continue;
 			fs = this.liquids.get(pZ);
-			te = this.worldObj.getBlockTileEntity(this.xCoord + this.connectTo.offsetX,this.yCoord + this.connectTo.offsetY,this.zCoord + this.connectTo.offsetZ);
+			te = this.worldObj.getBlockTileEntity(this.xCoord + this.connectTo.offsetX, this.yCoord + this.connectTo.offsetY, this.zCoord
+					+ this.connectTo.offsetZ);
 			if (te instanceof IFluidHandler && ((IFluidHandler) te).canFill(fd.getOpposite(), fs.getFluid())) fs.amount -= ((IFluidHandler) te).fill(
 					fd.getOpposite(), fs, true);
 		}
@@ -142,7 +140,6 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 	}
 
 	void S_setEnchantment(ItemStack is) {
-		if (this.efficiency > 0) is.addEnchantment(Enchantment.enchantmentsList[32], this.efficiency);
 		if (this.silktouch) is.addEnchantment(Enchantment.enchantmentsList[33], 1);
 		if (this.unbreaking > 0) is.addEnchantment(Enchantment.enchantmentsList[34], this.unbreaking);
 		if (this.fortune > 0) is.addEnchantment(Enchantment.enchantmentsList[35], this.fortune);
@@ -150,7 +147,6 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 
 	public List<String> C_getEnchantments() {
 		ArrayList<String> als = new ArrayList<String>();
-		if (this.efficiency > 0) als.add(Enchantment.enchantmentsList[32].getTranslatedName(this.efficiency));
 		if (this.silktouch) als.add(Enchantment.enchantmentsList[33].getTranslatedName(1));
 		if (this.unbreaking > 0) als.add(Enchantment.enchantmentsList[34].getTranslatedName(this.unbreaking));
 		if (this.fortune > 0) als.add(Enchantment.enchantmentsList[35].getTranslatedName(this.fortune));
@@ -161,7 +157,6 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 		if (nbttl != null) for (int i = 0; i < nbttl.tagCount(); i++) {
 			short id = ((NBTTagCompound) nbttl.tagAt(i)).getShort("id");
 			short lvl = ((NBTTagCompound) nbttl.tagAt(i)).getShort("lvl");
-			if (id == 32) this.efficiency = (byte) lvl;
 			if (id == 33) this.silktouch = true;
 			if (id == 34) this.unbreaking = (byte) lvl;
 			if (id == 35) this.fortune = (byte) lvl;
@@ -385,7 +380,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 								fs = null;
 							} else this.worldObj.setBlockToAir(bx + this.xOffset, this.currentHeight, bz + this.zOffset);
 							if ((this.blocks[this.currentHeight - this.yOffset][bx][bz] & 0x40) != 0) this.worldObj.setBlock(bx + this.xOffset,
-									this.currentHeight, bz + this.zOffset, BuildCraftFactory.frameBlock.blockID);
+									this.currentHeight, bz + this.zOffset, frameBlock.blockID);
 						}
 					}
 				}

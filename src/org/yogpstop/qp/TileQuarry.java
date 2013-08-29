@@ -10,6 +10,7 @@ import com.google.common.collect.Sets;
 import com.google.common.io.ByteArrayDataInput;
 
 import cpw.mods.fml.common.network.PacketDispatcher;
+
 import buildcraft.api.core.IAreaProvider;
 import buildcraft.api.core.LaserKind;
 import static buildcraft.BuildCraftFactory.frameBlock;
@@ -17,6 +18,7 @@ import buildcraft.core.Box;
 import buildcraft.core.proxy.CoreProxy;
 import static buildcraft.core.utils.Utils.addToRandomPipeAround;
 import static buildcraft.core.utils.Utils.addToRandomInventoryAround;
+
 import net.minecraft.block.Block;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.ItemStack;
@@ -25,6 +27,7 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.ChunkCoordIntPair;
+
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.ForgeChunkManager.Ticket;
 import net.minecraftforge.common.ForgeChunkManager.Type;

@@ -45,24 +45,33 @@ public class QuarryPlus {
 	@Mod.EventHandler
 	public static void preInit(FMLPreInitializationEvent event) throws Exception {
 		Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
+		int[] bid = null;
+		int iid = Integer.MIN_VALUE;
 		try {
 			cfg.load();
-			blockQuarry = (new BlockQuarry(cfg.getBlock("Quarry", 4001).getInt()));
-			blockMarker = (new BlockMarker(cfg.getBlock("Marker", 4002).getInt()));
-			blockMover = (new BlockMover(cfg.getBlock("EnchantMover", 4003).getInt()));
-			blockMiningWell = (new BlockMiningWell(cfg.getBlock("MiningWell", 4004).getInt()));
-			blockPump = (new BlockPump(cfg.getBlock("Pump", 4005).getInt()));
-			blockInfMJSrc = (new BlockInfMJSrc(cfg.getBlock("InfMJSrc", 4006).getInt()));
-			blockRefinery = (new BlockRefinery(cfg.getBlock("Refinery", 4007).getInt()));
-			itemTool = (new ItemTool(cfg.getItem("Tools", 18463).getInt()));
-
+			bid = new int[] { cfg.getBlock("Quarry", 4001).getInt(), cfg.getBlock("Marker", 4002).getInt(), cfg.getBlock("EnchantMover", 4003).getInt(),
+					cfg.getBlock("MiningWell", 4004).getInt(), cfg.getBlock("Pump", 4005).getInt(), cfg.getBlock("InfMJSrc", 4006).getInt(),
+					cfg.getBlock("Refinery", 4007).getInt() };
+			iid = cfg.getItem("Tools", 18463).getInt();
 			Property RD = cfg.get(Configuration.CATEGORY_GENERAL, "RecipeDifficulty", 2);
 			RD.comment = "0:AsCheatRecipe,1:EasyRecipe,2:NormalRecipe(Default),3:HardRecipe,other:NormalRecipe";
 			RecipeDifficulty = RD.getInt(2);
 		} catch (Exception e) {
-			throw new Exception("Your QuarryPlus's config file is broken!", e);
+			throw new Exception("Your QuarryPlus's config file is broken. your setting is bad!", e);
 		} finally {
 			cfg.save();
+		}
+		try {
+			blockQuarry = (new BlockQuarry(bid[0]));
+			blockMarker = (new BlockMarker(bid[1]));
+			blockMover = (new BlockMover(bid[2]));
+			blockMiningWell = (new BlockMiningWell(bid[3]));
+			blockPump = (new BlockPump(bid[4]));
+			blockInfMJSrc = (new BlockInfMJSrc(bid[5]));
+			blockRefinery = (new BlockRefinery(bid[6]));
+			itemTool = (new ItemTool(iid));
+		} catch (Exception e) {
+			throw new Exception("Your BlockID or ItemID is invalid. your setting is bad!", e);
 		}
 		LanguageRegistry.instance().loadLocalization("/lang/yogpstop/quarryplus/en_US.lang", "en_US", false);
 		LanguageRegistry.instance().loadLocalization("/lang/yogpstop/quarryplus/ja_JP.lang", "ja_JP", false);
