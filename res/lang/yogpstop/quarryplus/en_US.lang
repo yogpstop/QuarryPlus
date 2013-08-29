@@ -4,6 +4,7 @@ tile.QuarryPlus.name=QuarryPlus
 tile.PumpPlus.name=PumpPlus
 tile.MiningWellPlus.name=MiningWellPlus
 tile.InfMJSrc.name=InfinityMJSource
+tile.RefineryPlus.name=RefineryPlus
 gui.removeWater=RemoveWater
 gui.removeLava=RemoveLava
 gui.removeLiquid=RemoveLiquid
