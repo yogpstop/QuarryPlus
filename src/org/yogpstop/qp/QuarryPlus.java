@@ -107,6 +107,8 @@ public class QuarryPlus {
 					Character.valueOf('X'), Item.redstone });
 			GameRegistry.addRecipe(new ItemStack(blockPump, 1),
 					new Object[] { "X", "Y", Character.valueOf('Y'), BuildCraftFactory.pumpBlock, Character.valueOf('X'), Item.redstone });
+			GameRegistry.addRecipe(new ItemStack(blockRefinery, 1),
+					new Object[] { "X", "Y", Character.valueOf('Y'), BuildCraftFactory.refineryBlock, Character.valueOf('X'), Item.redstone });
 			GameRegistry.addRecipe(new ItemStack(itemTool, 1, 0),
 					new Object[] { "X", "Y", Character.valueOf('Y'), BuildCraftCore.wrenchItem, Character.valueOf('X'), Item.sign });
 			GameRegistry.addRecipe(new ItemStack(itemTool, 1, 1),
@@ -116,7 +118,8 @@ public class QuarryPlus {
 			break;
 		case 1:
 			AssemblyRecipe.assemblyRecipes.add(new AssemblyRecipe(new ItemStack[] { new ItemStack(BuildCraftFactory.quarryBlock, 1),
-					new ItemStack(Item.diamond, 1), new ItemStack(BuildCraftTransport.yellowPipeWire, 8) }, 160000, new ItemStack(blockQuarry, 1)));
+					new ItemStack(BuildCraftSilicon.redstoneChipset, 1, 3), new ItemStack(BuildCraftTransport.yellowPipeWire, 8) }, 160000, new ItemStack(
+					blockQuarry, 1)));
 			AssemblyRecipe.assemblyRecipes.add(new AssemblyRecipe(new ItemStack[] { new ItemStack(Block.enchantmentTable, 1),
 					new ItemStack(BuildCraftFactory.autoWorkbenchBlock, 1), new ItemStack(Block.anvil, 1), new ItemStack(BuildCraftSilicon.laserBlock, 2),
 					new ItemStack(BuildCraftSilicon.assemblyTableBlock, 1) }, 40000, new ItemStack(blockMover, 1)));
@@ -125,6 +128,9 @@ public class QuarryPlus {
 			AssemblyRecipe.assemblyRecipes
 					.add(new AssemblyRecipe(new ItemStack[] { new ItemStack(BuildCraftFactory.pumpBlock, 1), new ItemStack(BuildCraftFactory.tankBlock, 32),
 							new ItemStack(BuildCraftTransport.pipeFluidsGold, 2) }, 160000, new ItemStack(blockPump, 1)));
+			AssemblyRecipe.assemblyRecipes.add(new AssemblyRecipe(new ItemStack[] { new ItemStack(BuildCraftFactory.refineryBlock, 1),
+					new ItemStack(BuildCraftSilicon.redstoneChipset, 1, 3), new ItemStack(BuildCraftFactory.hopperBlock, 2) }, 80000, new ItemStack(
+					blockRefinery, 1)));
 			AssemblyRecipe.assemblyRecipes.add(new AssemblyRecipe(new ItemStack[] { new ItemStack(BuildCraftCore.wrenchItem, 2),
 					new ItemStack(BuildCraftCore.ironGearItem, 2), new ItemStack(BuildCraftSilicon.assemblyTableBlock, 1) }, 20000, new ItemStack(itemTool, 1,
 					0)));
@@ -151,6 +157,10 @@ public class QuarryPlus {
 			AssemblyRecipe.assemblyRecipes.add(new AssemblyRecipe(new ItemStack[] { new ItemStack(BuildCraftFactory.pumpBlock, 2),
 					new ItemStack(BuildCraftFactory.tankBlock, 64), new ItemStack(BuildCraftTransport.pipeFluidsGold, 32),
 					new ItemStack(BuildCraftFactory.quarryBlock, 1) }, 640000, new ItemStack(blockPump, 1)));
+			AssemblyRecipe.assemblyRecipes.add(new AssemblyRecipe(new ItemStack[] { new ItemStack(BuildCraftFactory.refineryBlock, 2),
+					new ItemStack(BuildCraftFactory.tankBlock, 16), new ItemStack(Block.anvil, 2), new ItemStack(BuildCraftSilicon.laserBlock, 4),
+					new ItemStack(BuildCraftSilicon.assemblyTableBlock, 1), new ItemStack(BuildCraftSilicon.redstoneChipset, 2, 3),
+					new ItemStack(BuildCraftCore.diamondGearItem, 2) }, 640000, new ItemStack(blockRefinery, 1)));
 			AssemblyRecipe.assemblyRecipes
 					.add(new AssemblyRecipe(new ItemStack[] { new ItemStack(BuildCraftCore.wrenchItem, 4), new ItemStack(BuildCraftCore.diamondGearItem, 2),
 							new ItemStack(BuildCraftSilicon.assemblyTableBlock, 1), new ItemStack(BuildCraftBuilders.fillerBlock, 1),
@@ -181,6 +191,10 @@ public class QuarryPlus {
 			AssemblyRecipe.assemblyRecipes.add(new AssemblyRecipe(new ItemStack[] { new ItemStack(BuildCraftFactory.pumpBlock, 2),
 					new ItemStack(BuildCraftFactory.tankBlock, 64), new ItemStack(BuildCraftTransport.pipeFluidsGold, 8),
 					new ItemStack(BuildCraftTransport.pipeFluidsStone, 32) }, 320000, new ItemStack(blockPump, 1)));
+			AssemblyRecipe.assemblyRecipes.add(new AssemblyRecipe(new ItemStack[] { new ItemStack(BuildCraftFactory.refineryBlock, 1),
+					new ItemStack(BuildCraftFactory.tankBlock, 8), new ItemStack(Block.anvil, 1), new ItemStack(BuildCraftSilicon.laserBlock, 2),
+					new ItemStack(BuildCraftSilicon.assemblyTableBlock, 1), new ItemStack(BuildCraftSilicon.redstoneChipset, 1, 3),
+					new ItemStack(BuildCraftCore.diamondGearItem, 1) }, 640000, new ItemStack(blockRefinery, 1)));
 			AssemblyRecipe.assemblyRecipes.add(new AssemblyRecipe(new ItemStack[] { new ItemStack(BuildCraftCore.wrenchItem, 2),
 					new ItemStack(BuildCraftCore.goldGearItem, 2), new ItemStack(BuildCraftSilicon.assemblyTableBlock, 1),
 					new ItemStack(BuildCraftBuilders.markerBlock, 2) }, 80000, new ItemStack(itemTool, 1, 0)));
