@@ -12,12 +12,15 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraftforge.fluids.FluidStack;
 
 import org.lwjgl.opengl.GL11;
+import org.yogpstop.qp.QuarryPlus;
 import org.yogpstop.qp.TileRefinery;
 
 import cpw.mods.fml.client.registry.ISimpleBlockRenderingHandler;
-import cpw.mods.fml.client.registry.RenderingRegistry;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import buildcraft.core.render.FluidRenderer;
 
+@SideOnly(Side.CLIENT)
 public class RenderRefinery extends TileEntitySpecialRenderer implements ISimpleBlockRenderingHandler {
 	public static final RenderRefinery INSTANCE = new RenderRefinery();
 	private static final ResourceLocation TEXTURE = new ResourceLocation("yogpstop_qp", "textures/blocks/refinery.png");
@@ -209,10 +212,8 @@ public class RenderRefinery extends TileEntitySpecialRenderer implements ISimple
 		return true;
 	}
 
-	private final int renderID = RenderingRegistry.getNextAvailableRenderId();
-
 	@Override
 	public int getRenderId() {
-		return this.renderID;
+		return QuarryPlus.refineryRenderID;
 	}
 }

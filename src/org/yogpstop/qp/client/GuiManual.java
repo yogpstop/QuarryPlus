@@ -4,6 +4,8 @@ import org.yogpstop.qp.PacketHandler;
 import org.yogpstop.qp.QuarryPlus;
 import org.yogpstop.qp.TileBasic;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
@@ -12,6 +14,7 @@ import net.minecraft.util.StatCollector;
 import static org.yogpstop.qp.QuarryPlus.getname;
 import static org.yogpstop.qp.QuarryPlus.data;
 
+@SideOnly(Side.CLIENT)
 public class GuiManual extends GuiScreen {
 	private GuiScreen parent;
 	private GuiTextField blockid;

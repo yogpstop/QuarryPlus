@@ -4,8 +4,6 @@ import static buildcraft.core.CreativeTabBuildCraft.tabBuildCraft;
 
 import java.util.ArrayList;
 
-import org.yogpstop.qp.client.RenderRefinery;
-
 import buildcraft.api.core.Position;
 import buildcraft.api.tools.IToolWrench;
 import buildcraft.core.utils.Utils;
@@ -120,7 +118,7 @@ public class BlockRefinery extends BlockContainer {
 
 	@Override
 	public int getRenderType() {
-		return RenderRefinery.INSTANCE.getRenderId();
+		return QuarryPlus.refineryRenderID;
 	}
 
 	@Override

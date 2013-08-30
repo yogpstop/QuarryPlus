@@ -14,6 +14,7 @@ import net.minecraft.util.StatCollector;
 import net.minecraftforge.common.Configuration;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.Property;
+import cpw.mods.fml.client.registry.RenderingRegistry;
 import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.network.NetworkMod;
@@ -31,6 +32,8 @@ public class QuarryPlus {
 
 	@Mod.Instance("QuarryPlus")
 	public static QuarryPlus instance;
+
+	public static final int refineryRenderID = RenderingRegistry.getNextAvailableRenderId();
 
 	public static Block blockQuarry, blockMarker, blockMover, blockMiningWell, blockPump, blockInfMJSrc, blockRefinery;
 	public static Item itemTool;
