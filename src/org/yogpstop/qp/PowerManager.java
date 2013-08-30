@@ -132,13 +132,13 @@ public class PowerManager {
 	}
 
 	private static void configure(PowerHandler pp, double CE, byte E, byte U, double CU, double NR, double XR, double BP, double MS) {
-		pp.configure((float) (NR * Math.pow(CE, E) / (U * CU + 1)), (float) (XR * Math.pow(CE, E) / (U * CU + 1)),
-				(float) (BP * Math.pow(CE, E) / (U * CU + 1)), (float) (MS * Math.pow(CE, E) / (U * CU + 1)));
+		pp.configure((float) (NR / (U * CU + 1)), (float) (XR * Math.pow(CE, E) / (U * CU + 1)), (float) (BP * Math.pow(CE, E) / (U * CU + 1)), (float) (MS
+				* Math.pow(CE, E) / (U * CU + 1)));
 	}
 
 	private static void configure15(PowerHandler pp, double CE, byte E, byte U, double CU, double NR, double XR, double BP, double MS) {
-		pp.configure((float) (NR * Math.pow(CE, E) / (U * CU + 1)), (float) (XR * Math.pow(CE, E) / (U * CU + 1)), (float) (BP * 1.5 * Math.pow(CE, E) / (U
-				* CU + 1)), (float) (MS * Math.pow(CE, E) / (U * CU + 1)));
+		pp.configure((float) (NR / (U * CU + 1)), (float) (XR * Math.pow(CE, E) / (U * CU + 1)), (float) (BP * 1.5 * Math.pow(CE, E) / (U * CU + 1)),
+				(float) (MS * Math.pow(CE, E) / (U * CU + 1)));
 	}
 
 	static void configureB(PowerHandler pp, byte E, byte U) {
