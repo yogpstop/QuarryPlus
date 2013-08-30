@@ -120,8 +120,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 			if (pZ == -1) continue;
 			fs = this.liquids.get(pZ);
 			te = this.worldObj.getBlockTileEntity(this.xCoord + fd.offsetX, this.yCoord + fd.offsetY, this.zCoord + fd.offsetZ);
-			if (te instanceof IFluidHandler && ((IFluidHandler) te).canFill(fd.getOpposite(), fs.getFluid())) fs.amount -= ((IFluidHandler) te).fill(
-					fd.getOpposite(), fs, true);
+			if (te instanceof IFluidHandler) fs.amount -= ((IFluidHandler) te).fill(fd.getOpposite(), fs, true);
 		}
 		if (this.worldObj.isRemote || this.initialized) return;
 		pX = this.xCoord + this.connectTo.offsetX;
