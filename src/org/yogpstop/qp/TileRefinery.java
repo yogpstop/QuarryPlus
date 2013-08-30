@@ -89,6 +89,7 @@ public class TileRefinery extends APacketTile implements IFluidHandler, IPowerRe
 		this.res = FluidStack.loadFluidStackFromNBT(nbttc.getCompoundTag("res"));
 		this.animationSpeed = nbttc.getFloat("animationSpeed");
 		this.animationStage = nbttc.getInteger("animationStage");
+		this.buf = (int) (FluidContainerRegistry.BUCKET_VOLUME * 4 * Math.pow(1.3, this.fortune));
 	}
 
 	@Override
