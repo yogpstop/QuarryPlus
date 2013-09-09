@@ -180,9 +180,9 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 				list.add(S_createStackedBlock(b, meta));
 				return t == PowerManager.BreakType.Quarry ? PowerManager.B_CS : PowerManager.W_CS;
 			} catch (Exception e) {
-				e.printStackTrace();
+				//e.printStackTrace();
 			} catch (Error e) {
-				e.printStackTrace();
+				//e.printStackTrace();
 			}
 		}
 		if (this.fortuneList.contains(data((short) b.blockID, meta)) == this.fortuneInclude) {
