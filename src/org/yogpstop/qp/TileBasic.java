@@ -3,7 +3,6 @@ package org.yogpstop.qp;
 import static org.yogpstop.qp.QuarryPlus.data;
 import static org.yogpstop.qp.PacketHandler.*;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -177,12 +176,12 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		if (b.canSilkHarvest(this.worldObj, null, x, y, z, meta) && this.silktouch
 				&& (this.silktouchList.contains(data((short) b.blockID, meta)) == this.silktouchInclude)) {
 			try {
-				list.add(S_createStackedBlock(b, meta));
+				list.add((ItemStack) createStackedBlock.invoke(b, meta));
 				return t == PowerManager.BreakType.Quarry ? PowerManager.B_CS : PowerManager.W_CS;
 			} catch (Exception e) {
-				//e.printStackTrace();
+				e.printStackTrace();
 			} catch (Error e) {
-				//e.printStackTrace();
+				e.printStackTrace();
 			}
 		}
 		if (this.fortuneList.contains(data((short) b.blockID, meta)) == this.fortuneInclude) {
@@ -213,29 +212,18 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		return this.pp.getPowerReceiver();
 	}
 
-	protected static ItemStack S_createStackedBlock(Block b, int meta) throws SecurityException, NoClassDefFoundError, IllegalAccessException,
-			IllegalArgumentException, InvocationTargetException {
-		Class<? extends Block> cls = b.getClass();
-		Method createStackedBlockMethod;
-		try {
-			createStackedBlockMethod = S_getMethodRepeating(cls);
-		} catch (NoClassDefFoundError e) {
-			throw new NoClassDefFoundError(String.format("yogpstop:%d:%d-%s-%s-%s", b.blockID, meta, cls.getName(), b.getUnlocalizedName(), e.getMessage()));
-		}
-		createStackedBlockMethod.setAccessible(true);
-		return (ItemStack) createStackedBlockMethod.invoke(b, meta);
-	}
+	private static final Method createStackedBlock;
 
-	private static final String createStackedBlock = "func_71880_c_";
-
-	private static Method S_getMethodRepeating(Class<?> cls) throws SecurityException, NoClassDefFoundError {
-		Method cache = null;
+	static {
+		Method buf = null;
 		try {
-			cache = cls.getDeclaredMethod(createStackedBlock, int.class);
-		} catch (NoSuchMethodException e) {
-			cache = S_getMethodRepeating(cls.getSuperclass());
+			buf = Block.class.getDeclaredMethod("func_71880_c_", int.class);
+			buf.setAccessible(true);
+		} catch (Exception e) {
+			e.printStackTrace();
+			buf = null;
 		}
-		return cache;
+		createStackedBlock = buf;
 	}
 
 	public Collection<String> C_getEnchantments() {
