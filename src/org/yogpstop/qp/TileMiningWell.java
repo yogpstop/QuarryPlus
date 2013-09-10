@@ -79,6 +79,8 @@ public class TileMiningWell extends TileBasic {
 	public void readFromNBT(NBTTagCompound nbttc) {
 		super.readFromNBT(nbttc);
 		this.working = nbttc.getBoolean("working");
+		if (this.working) PowerManager.configureW(this.pp, this.efficiency, this.unbreaking);
+		else PowerManager.configure0(this.pp);
 	}
 
 	@Override

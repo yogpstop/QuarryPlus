@@ -475,6 +475,9 @@ public class TileQuarry extends TileBasic {
 		this.headPosY = nbttc.getDouble("headPosY");
 		this.headPosZ = nbttc.getDouble("headPosZ");
 		this.initialized = false;
+		if (this.now == NONE) PowerManager.configure0(this.pp);
+		else if (this.now == MAKEFRAME) PowerManager.configureF(this.pp, this.efficiency, this.unbreaking);
+		else PowerManager.configureB(this.pp, this.efficiency, this.unbreaking);
 	}
 
 	@Override

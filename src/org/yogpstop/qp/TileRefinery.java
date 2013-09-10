@@ -90,6 +90,7 @@ public class TileRefinery extends APacketTile implements IFluidHandler, IPowerRe
 		this.animationSpeed = nbttc.getFloat("animationSpeed");
 		this.animationStage = nbttc.getInteger("animationStage");
 		this.buf = (int) (FluidContainerRegistry.BUCKET_VOLUME * 4 * Math.pow(1.3, this.fortune));
+		PowerManager.configureR(this.pp, this.efficiency, this.unbreaking);
 	}
 
 	@Override

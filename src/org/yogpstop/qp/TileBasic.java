@@ -219,9 +219,15 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		try {
 			buf = Block.class.getDeclaredMethod("func_71880_c_", int.class);
 			buf.setAccessible(true);
-		} catch (Exception e) {
-			e.printStackTrace();
-			buf = null;
+		} catch (Exception e1) {
+			try {
+				buf = Block.class.getDeclaredMethod("createStackedBlock", int.class);
+				buf.setAccessible(true);
+			} catch (Exception e2) {
+				e1.printStackTrace();
+				e2.printStackTrace();
+				buf = null;
+			}
 		}
 		createStackedBlock = buf;
 	}
