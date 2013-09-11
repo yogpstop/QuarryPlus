@@ -46,7 +46,7 @@ public class QuarryPlus {
 	public static final int guiIdSList = 4;
 
 	@Mod.EventHandler
-	public static void preInit(FMLPreInitializationEvent event) throws Exception {
+	public void preInit(FMLPreInitializationEvent event) throws Exception {
 		Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
 		int[] bid = null;
 		int iid = Integer.MIN_VALUE;
