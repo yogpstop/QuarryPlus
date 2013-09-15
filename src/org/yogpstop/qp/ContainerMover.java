@@ -93,7 +93,14 @@ public class ContainerMover extends Container {
 				if (lvl < 1) continue;
 				if (((NBTTagCompound) list.tagAt(i)).getShort("id") == eid) {
 					if (lvl > 1) ((NBTTagCompound) list.tagAt(i)).setShort("lvl", --lvl);
-					else list.removeTag(i);
+					else {
+						NBTTagList nlist = new NBTTagList();
+						for (int j = 0; j < list.tagCount(); j++) {
+							if (i != j) nlist.appendTag(list.tagAt(j));
+						}
+						is.getTagCompound().setTag("ench", nlist);
+						list = is.getEnchantmentTagList();
+					}
 					break;
 				}
 			}
