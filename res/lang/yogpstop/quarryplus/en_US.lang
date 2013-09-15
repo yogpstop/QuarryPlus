@@ -19,6 +19,7 @@ tof.blockid=BlockID
 tof.meta=Meta
 tof.tipsmeta=Tips: Meta is 0 in most cases
 tof.addnewore=Add
+tof.fromlist=FromList
 tof.manualinput=ManualInput
 qp.list.setting=PlusMachine's enable block list of 
 tof.include=Include

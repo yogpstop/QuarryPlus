@@ -46,7 +46,7 @@ public class QuarryPlus {
 	public static final int guiIdSList = 4;
 
 	@Mod.EventHandler
-	public void preInit(FMLPreInitializationEvent event) throws Exception {
+	public void preInit(FMLPreInitializationEvent event) {
 		Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
 		int[] bid = null;
 		int iid = Integer.MIN_VALUE;
@@ -61,7 +61,9 @@ public class QuarryPlus {
 			RecipeDifficulty = RD.getInt(2);
 			PowerManager.loadConfiguration(cfg);
 		} catch (Exception e) {
-			throw new Exception("Your QuarryPlus's config file is broken. your setting is bad!", e);
+			// throw new
+			// Exception("Your QuarryPlus's config file is broken. your setting is bad!",
+			// e);
 		} finally {
 			cfg.save();
 		}
@@ -75,7 +77,9 @@ public class QuarryPlus {
 			blockRefinery = (new BlockRefinery(bid[6]));
 			itemTool = (new ItemTool(iid));
 		} catch (Exception e) {
-			throw new Exception("Your BlockID or ItemID is invalid. your setting is bad!", e);
+			// throw new
+			// Exception("Your BlockID or ItemID is invalid. your setting is bad!",
+			// e);
 		}
 		LanguageRegistry.instance().loadLocalization("/lang/yogpstop/quarryplus/en_US.lang", "en_US", false);
 		LanguageRegistry.instance().loadLocalization("/lang/yogpstop/quarryplus/ja_JP.lang", "ja_JP", false);

@@ -40,13 +40,6 @@ public class GuiError extends GuiScreen {
 	}
 
 	@Override
-	protected void keyTyped(char par1, int par2) {
-		if (par2 == 1 || par1 == this.mc.gameSettings.keyBindInventory.keyCode) {
-			Minecraft.getMinecraft().displayGuiScreen(this.parent);
-		}
-	}
-
-	@Override
 	public boolean doesGuiPauseGame() {
 		return false;
 	}

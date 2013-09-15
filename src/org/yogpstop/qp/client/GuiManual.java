@@ -1,12 +1,10 @@
 package org.yogpstop.qp.client;
 
 import org.yogpstop.qp.PacketHandler;
-import org.yogpstop.qp.QuarryPlus;
 import org.yogpstop.qp.TileBasic;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
@@ -21,18 +19,13 @@ public class GuiManual extends GuiScreen {
 	private GuiTextField meta;
 	private byte targetid;
 	private TileBasic tile;
+	private short bid;
+	private int metaid;
 
 	public GuiManual(GuiScreen parents, byte id, TileBasic tq) {
 		this.parent = parents;
 		this.targetid = id;
 		this.tile = tq;
-	}
-
-	@Override
-	protected void mouseClicked(int par1, int par2, int par3) {
-		super.mouseClicked(par1, par2, par3);
-		this.blockid.mouseClicked(par1, par2, par3);
-		this.meta.mouseClicked(par1, par2, par3);
 	}
 
 	@Override
@@ -48,31 +41,56 @@ public class GuiManual extends GuiScreen {
 	public void actionPerformed(GuiButton par1) {
 		switch (par1.id) {
 		case -1:
-			short bid;
-			int metaid;
 			try {
-				bid = Short.parseShort(this.blockid.getText());
+				this.bid = Short.parseShort(this.blockid.getText());
 			} catch (Exception e) {
 				this.blockid.setText(StatCollector.translateToLocal("tof.error"));
 				return;
 			}
 			try {
-				if (this.meta.getText().equals("")) metaid = 0;
-				else metaid = Integer.parseInt(this.meta.getText());
+				if (this.meta.getText().equals("")) this.metaid = 0;
+				else this.metaid = Integer.parseInt(this.meta.getText());
 			} catch (Exception e) {
 				this.meta.setText(StatCollector.translateToLocal("tof.error"));
 				return;
 			}
-			if ((this.targetid == 1 ? this.tile.fortuneList : this.tile.silktouchList).contains(data(bid, metaid))) {
-				this.mc.displayGuiScreen(new GuiError(this, StatCollector.translateToLocal("tof.alreadyerror"), getname(bid, metaid)));
+			if ((this.targetid == 0 ? this.tile.fortuneList : this.tile.silktouchList).contains(data(this.bid, this.metaid))) {
+				this.mc.displayGuiScreen(new GuiError(this, StatCollector.translateToLocal("tof.alreadyerror"), getname(this.bid, this.metaid)));
 				return;
 			}
-			PacketHandler.sendPacketToServer(this.tile, (byte) (PacketHandler.fortuneAdd + this.targetid - 1), QuarryPlus.data(bid, metaid));
+			this.mc.displayGuiScreen(new GuiYesNo(this, StatCollector.translateToLocal("tof.addblocksure"), getname(this.bid, this.metaid), -1));
 			break;
 		case -2:
 			this.mc.displayGuiScreen(this.parent);
 			break;
 		}
+	}
+
+	@Override
+	public void confirmClicked(boolean par1, int par2) {
+		if (par1) {
+			PacketHandler.sendPacketToServer(this.tile, (byte) (PacketHandler.fortuneAdd + this.targetid), data(this.bid, this.metaid));
+		}
+		this.mc.displayGuiScreen(this.parent);
+	}
+
+	@Override
+	protected void keyTyped(char par1, int par2) {
+		if (this.blockid.isFocused()) {
+			this.blockid.textboxKeyTyped(par1, par2);
+		} else if (this.meta.isFocused()) {
+			this.meta.textboxKeyTyped(par1, par2);
+		}
+		if (par2 == 1 || par1 == this.mc.gameSettings.keyBindInventory.keyCode) {
+			this.mc.displayGuiScreen(this.parent);
+		}
+	}
+
+	@Override
+	protected void mouseClicked(int par1, int par2, int par3) {
+		super.mouseClicked(par1, par2, par3);
+		this.blockid.mouseClicked(par1, par2, par3);
+		this.meta.mouseClicked(par1, par2, par3);
 	}
 
 	@Override
@@ -87,20 +105,6 @@ public class GuiManual extends GuiScreen {
 		this.blockid.drawTextBox();
 		this.meta.drawTextBox();
 		super.drawScreen(i, j, k);
-	}
-
-	@Override
-	protected void keyTyped(char par1, int par2) {
-		if (this.blockid.isFocused()) {
-			this.blockid.textboxKeyTyped(par1, par2);
-			return;
-		} else if (this.meta.isFocused()) {
-			this.meta.textboxKeyTyped(par1, par2);
-			return;
-		}
-		if (par2 == 1 || par1 == this.mc.gameSettings.keyBindInventory.keyCode) {
-			Minecraft.getMinecraft().displayGuiScreen(this.parent);
-		}
 	}
 
 	@Override

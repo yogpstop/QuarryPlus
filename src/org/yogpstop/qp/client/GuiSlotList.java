@@ -7,16 +7,17 @@ import java.util.List;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiSlot;
 import net.minecraft.client.renderer.Tessellator;
 
 @SideOnly(Side.CLIENT)
 public class GuiSlotList extends GuiSlot {
-	private GuiList parent;
+	private GuiScreen parent;
 	public int currentore = 0;
 	protected List<Long> target;
 
-	public GuiSlotList(Minecraft par1Minecraft, int par2, int par3, int par4, int par5, int par6, GuiList parents, List<Long> ali) {
+	public GuiSlotList(Minecraft par1Minecraft, int par2, int par3, int par4, int par5, int par6, GuiScreen parents, List<Long> ali) {
 		super(par1Minecraft, par2, par3, par4, par5, par6);
 		this.parent = parents;
 		this.target = ali;
