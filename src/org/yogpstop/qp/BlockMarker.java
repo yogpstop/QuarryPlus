@@ -137,11 +137,11 @@ public class BlockMarker extends BlockContainer {
 			if (equipped instanceof ItemTool && ep.getCurrentEquippedItem().getItemDamage() == 0) {
 				TileMarker.Link l = ((TileMarker) world.getBlockTileEntity(x, y, z)).obj;
 				if (l == null) return true;
-				PacketDispatcher.sendPacketToPlayer(new Packet3Chat(ChatMessageComponent.func_111066_d(StatCollector.translateToLocal("chat.markerarea"))),
+				PacketDispatcher.sendPacketToPlayer(new Packet3Chat(ChatMessageComponent.createFromText(StatCollector.translateToLocal("chat.markerarea"))),
 						(Player) ep);
 				PacketDispatcher.sendPacketToPlayer(
 						new Packet3Chat(
-								ChatMessageComponent.func_111066_d(String.format("x:%d y:%d z:%d - x:%d y:%d z:%d", l.xn, l.yn, l.zn, l.xx, l.yn, l.zn))),
+								ChatMessageComponent.createFromText(String.format("x:%d y:%d z:%d - x:%d y:%d z:%d", l.xn, l.yn, l.zn, l.xx, l.yn, l.zn))),
 						(Player) ep);
 				return true;
 			}

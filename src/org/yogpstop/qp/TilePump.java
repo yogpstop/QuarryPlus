@@ -253,7 +253,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 			this.quarryRange = false;
 		} else this.range++;
 		PacketDispatcher.sendPacketToPlayer(
-				new Packet3Chat(ChatMessageComponent.func_111066_d(StatCollector.translateToLocalFormatted("chat.pump_rtoggle", this.quarryRange ? "quarry"
+				new Packet3Chat(ChatMessageComponent.createFromText(StatCollector.translateToLocalFormatted("chat.pump_rtoggle", this.quarryRange ? "quarry"
 						: Integer.toString(this.range * 2 + 1)))), (Player) ep);
 		this.count = Integer.MAX_VALUE - 1;
 	}

@@ -139,20 +139,20 @@ public class BlockPump extends BlockContainer {
 		if (equipped instanceof ItemTool) {
 			if (ep.getCurrentEquippedItem().getItemDamage() == 0) {
 				if (world.isRemote) return true;
-				PacketDispatcher.sendPacketToPlayer(new Packet3Chat(ChatMessageComponent.func_111066_d(StatCollector.translateToLocal("chat.pumplist"))),
+				PacketDispatcher.sendPacketToPlayer(new Packet3Chat(ChatMessageComponent.createFromText(StatCollector.translateToLocal("chat.pumplist"))),
 						(Player) ep);
 				for (String s : ((TilePump) world.getBlockTileEntity(x, y, z)).C_getNames())
-					PacketDispatcher.sendPacketToPlayer(new Packet3Chat(ChatMessageComponent.func_111066_d(s)), (Player) ep);
-				PacketDispatcher.sendPacketToPlayer(new Packet3Chat(ChatMessageComponent.func_111066_d(StatCollector.translateToLocal("chat.plusenchant"))),
+					PacketDispatcher.sendPacketToPlayer(new Packet3Chat(ChatMessageComponent.createFromText(s)), (Player) ep);
+				PacketDispatcher.sendPacketToPlayer(new Packet3Chat(ChatMessageComponent.createFromText(StatCollector.translateToLocal("chat.plusenchant"))),
 						(Player) ep);
 				for (String s : ((TilePump) world.getBlockTileEntity(x, y, z)).C_getEnchantments())
-					PacketDispatcher.sendPacketToPlayer(new Packet3Chat(ChatMessageComponent.func_111066_d(s)), (Player) ep);
+					PacketDispatcher.sendPacketToPlayer(new Packet3Chat(ChatMessageComponent.createFromText(s)), (Player) ep);
 				return true;
 			}
 			if (ep.getCurrentEquippedItem().getItemDamage() == 2) {
 				if (world.isRemote) return true;
 				PacketDispatcher.sendPacketToPlayer(
-						new Packet3Chat(ChatMessageComponent.func_111066_d(StatCollector.translateToLocalFormatted("chat.pumptoggle",
+						new Packet3Chat(ChatMessageComponent.createFromText(StatCollector.translateToLocalFormatted("chat.pumptoggle",
 								((TilePump) world.getBlockTileEntity(x, y, z)).incl(side), TilePump.fdToString(ForgeDirection.getOrientation(side))))),
 						(Player) ep);
 				return true;

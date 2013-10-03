@@ -115,7 +115,7 @@ public class GuiInfMJSrc extends GuiScreen {
 	public void drawScreen(int i, int j, float k) {
 		drawDefaultBackground();
 		GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-		this.mc.func_110434_K().func_110577_a(gui);
+		this.mc.getTextureManager().bindTexture(gui);
 		int xb = this.width - 176 >> 1;
 		int yb = this.height - 214 >> 1;
 		drawTexturedModalRect(xb, yb, 0, 0, 176, 214);

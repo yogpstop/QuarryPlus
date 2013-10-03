@@ -65,7 +65,7 @@ public class GuiMover extends GuiContainer {
 	@Override
 	protected void drawGuiContainerBackgroundLayer(float f, int i, int j) {
 		GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-		this.mc.func_110434_K().func_110577_a(gui);
+		this.mc.getTextureManager().bindTexture(gui);
 		int l = this.width - this.xSize >> 1;
 		int i1 = this.height - this.ySize >> 1;
 		drawTexturedModalRect(l, i1, 0, 0, this.xSize, this.ySize);

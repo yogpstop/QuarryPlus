@@ -50,8 +50,6 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 		int xx, xn, yx, yn, zx, zn;
 		EntityBlock[] lasers;
 
-		Link() {}
-
 		Link(World w, int vxx, int vxn, int vyx, int vyn, int vzx, int vzn) {
 			this.xx = vxx;
 			this.xn = vxn;
@@ -359,10 +357,7 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 	void S_tryConnection() {// onBlockActivated
 		TileEntity tx;
 		if (this.obj != null) this.obj.removeConnection(this.worldObj);
-		this.obj = new Link();
-		this.obj.xx = this.obj.xn = this.xCoord;
-		this.obj.yx = this.obj.yn = this.yCoord;
-		this.obj.zx = this.obj.zn = this.zCoord;
+		this.obj = new Link(this.worldObj, this.xCoord, this.xCoord, this.yCoord, this.yCoord, this.zCoord, this.zCoord);
 		S_renewConnection();
 		if (this.obj.xx == this.obj.xn && this.obj.yx == this.obj.yn && this.obj.zx == this.obj.zn) {
 			this.obj = null;

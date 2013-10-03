@@ -113,10 +113,10 @@ public class BlockRefinery extends BlockContainer {
 		} else if (equipped instanceof ItemTool) {
 			if (ep.getCurrentEquippedItem().getItemDamage() == 0) {
 				if (world.isRemote) return true;
-				PacketDispatcher.sendPacketToPlayer(new Packet3Chat(ChatMessageComponent.func_111066_d(StatCollector.translateToLocal("chat.plusenchant"))),
+				PacketDispatcher.sendPacketToPlayer(new Packet3Chat(ChatMessageComponent.createFromText(StatCollector.translateToLocal("chat.plusenchant"))),
 						(Player) ep);
 				for (String s : ((TileRefinery) world.getBlockTileEntity(x, y, z)).C_getEnchantments())
-					PacketDispatcher.sendPacketToPlayer(new Packet3Chat(ChatMessageComponent.func_111066_d(s)), (Player) ep);
+					PacketDispatcher.sendPacketToPlayer(new Packet3Chat(ChatMessageComponent.createFromText(s)), (Player) ep);
 				return true;
 			}
 		} else {
