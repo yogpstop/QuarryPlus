@@ -49,7 +49,7 @@ public class GuiList extends GuiScreen {
 	@Override
 	public void initGui() {
 		this.buttonList.add(new GuiButton(-1, this.width / 2 - 125, this.height - 26, 250, 20, StatCollector.translateToLocal("gui.done")));
-		this.buttonList.add(new GuiButton(PacketHandler.fortuneTInc + this.targetid, this.width * 2 / 3 + 10, 50, 100, 20, StatCollector
+		this.buttonList.add(new GuiButton(PacketHandler.fortuneTInc + this.targetid, this.width * 2 / 3 + 10, 140, 100, 20, StatCollector
 				.translateToLocal(include() ? "tof.include" : "tof.exclude")));
 		this.buttonList.add(new GuiButton(-2, this.width * 2 / 3 + 10, 80, 100, 20, StatCollector.translateToLocal("tof.addnewore") + "("
 				+ StatCollector.translateToLocal("tof.manualinput") + ")"));

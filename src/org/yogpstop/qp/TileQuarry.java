@@ -145,6 +145,7 @@ public class TileQuarry extends TileBasic {
 				sendNowPacket(this, this.now);
 				return S_checkTarget();
 			}
+			if (bid == Block.bedrock.blockID) return false;
 			if (this.worldObj.getBlockMaterial(this.targetX, this.targetY, this.targetZ).isSolid()
 					&& (bid != frameBlock.blockID || this.worldObj.getBlockMetadata(this.targetX, this.targetY, this.targetZ) != 0)) {
 				PowerManager.configureB(this.pp, this.efficiency, this.unbreaking);
