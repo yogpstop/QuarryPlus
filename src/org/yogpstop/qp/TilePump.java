@@ -246,7 +246,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 	}
 
 	void S_changeRange(EntityPlayer ep) {
-		if (this.range >= this.fortune * 2) {
+		if (this.range >= (this.fortune + 1) * 2) {
 			if (G_connected() instanceof TileQuarry) this.quarryRange = true;
 			this.range = 0;
 		} else if (this.quarryRange) {

@@ -148,30 +148,33 @@ public class PowerManager {
 		pp.configure(0, 0, 0, Float.MAX_VALUE);
 	}
 
-	private static void configure(PowerHandler pp, double CE, byte E, byte U, double CU, double NR, double XR, double BP, double MS) {
+	private static void configure(PowerHandler pp, double CE, byte E, byte U, double CU, double NR, double XR, double BP, double MS, byte pump) {
 		pp.configure((float) (NR / (U * CU + 1)), (float) (XR * Math.pow(CE, E) / (U * CU + 1)), (float) (BP * Math.pow(CE, E) / (U * CU + 1)), (float) (MS
-				* Math.pow(CE, E) / (U * CU + 1)));
+				* Math.pow(CE, E) / (U * CU + 1) + (pump > 0 ? ((65536 * PL_BP / ((pump * PL_CU + 1))) + (1020 * PF_BP / ((pump * PF_CU + 1)))) : 0)));
 	}
 
-	private static void configure15(PowerHandler pp, double CE, byte E, byte U, double CU, double NR, double XR, double BP, double MS) {
-		pp.configure((float) (NR / (U * CU + 1)), (float) (XR * Math.pow(CE, E) / (U * CU + 1)), (float) (BP * 1.5 * Math.pow(CE, E) / (U * CU + 1)),
-				(float) (MS * Math.pow(CE, E) / (U * CU + 1)));
+	private static void configure15(PowerHandler pp, double CE, byte E, byte U, double CU, double NR, double XR, double BP, double MS, byte pump) {
+		pp.configure(
+				(float) (NR / (U * CU + 1)),
+				(float) (XR * Math.pow(CE, E) / (U * CU + 1)),
+				(float) (BP * 1.5 * Math.pow(CE, E) / (U * CU + 1)),
+				(float) (MS * Math.pow(CE, E) / (U * CU + 1) + (pump > 0 ? ((65536 * PL_BP / ((pump * PL_CU + 1))) + (1020 * PF_BP / ((pump * PF_CU + 1)))) : 0)));
 	}
 
-	static void configureB(PowerHandler pp, byte E, byte U) {
-		configure15(pp, B_CE, E, U, B_CU, B_NR, B_XR, B_BP, B_MS);
+	static void configureB(PowerHandler pp, byte E, byte U, byte pump) {
+		configure15(pp, B_CE, E, U, B_CU, B_NR, B_XR, B_BP, B_MS, pump);
 	}
 
-	static void configureW(PowerHandler pp, byte E, byte U) {
-		configure15(pp, W_CE, E, U, W_CU, W_NR, W_XR, W_BP, W_MS);
+	static void configureW(PowerHandler pp, byte E, byte U, byte pump) {
+		configure15(pp, W_CE, E, U, W_CU, W_NR, W_XR, W_BP, W_MS, pump);
 	}
 
-	static void configureF(PowerHandler pp, byte E, byte U) {
-		configure(pp, F_CE, E, U, F_CU, F_NR, F_XR, F_BP, F_MS);
+	static void configureF(PowerHandler pp, byte E, byte U, byte pump) {
+		configure(pp, F_CE, E, U, F_CU, F_NR, F_XR, F_BP, F_MS, pump);
 	}
 
 	static void configureR(PowerHandler pp, byte E, byte U) {
-		configure(pp, R_CE, E, U, R_CU, R_NR, R_XR, 25, R_MS);
+		configure(pp, R_CE, E, U, R_CU, R_NR, R_XR, 25, R_MS, (byte) 0);
 	}
 
 	private static boolean useEnergy(PowerHandler pp, double BP, float H, double CSP, byte U, double CU) {

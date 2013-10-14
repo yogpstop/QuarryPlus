@@ -27,6 +27,7 @@ import com.google.common.io.ByteArrayDataInput;
 import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.ForgeDirection;
 import static buildcraft.BuildCraftFactory.plainPipeBlock;
 import static buildcraft.core.utils.Utils.addToRandomPipeAround;
@@ -42,11 +43,20 @@ public class TileMiningWell extends TileBasic {
 		switch (pattern) {
 		case packetNow:
 			this.working = data.readBoolean();
-			if (this.working) PowerManager.configureW(this.pp, this.efficiency, this.unbreaking);
-			else PowerManager.configure0(this.pp);
+			G_renew_powerConfigure();
 			this.worldObj.markBlockForRenderUpdate(this.xCoord, this.yCoord, this.zCoord);
 			break;
 		}
+	}
+
+	@Override
+	protected void G_renew_powerConfigure() {
+		TileEntity te = this.worldObj.getBlockTileEntity(this.xCoord + this.pump.offsetX, this.yCoord + this.pump.offsetY, this.zCoord + this.pump.offsetZ);
+		byte pmp = 0;
+		if (te instanceof TilePump) pmp = ((TilePump) te).unbreaking;
+		else this.pump = ForgeDirection.UNKNOWN;
+		if (this.working) PowerManager.configureW(this.pp, this.efficiency, this.unbreaking, pmp);
+		else PowerManager.configure0(this.pp);
 	}
 
 	@Override
@@ -81,8 +91,8 @@ public class TileMiningWell extends TileBasic {
 		if (bid == 0 || bid == Block.bedrock.blockID || bid == plainPipeBlock.blockID) return false;
 		if (this.pump == ForgeDirection.UNKNOWN && this.worldObj.getBlockMaterial(this.xCoord, depth, this.zCoord).isLiquid()) return false;
 		if (!this.working) {
-			PowerManager.configureW(this.pp, this.efficiency, this.unbreaking);
 			this.working = true;
+			G_renew_powerConfigure();
 			sendNowPacket(this, (byte) 1);
 		}
 		return true;
@@ -96,8 +106,7 @@ public class TileMiningWell extends TileBasic {
 	public void readFromNBT(NBTTagCompound nbttc) {
 		super.readFromNBT(nbttc);
 		this.working = nbttc.getBoolean("working");
-		if (this.working) PowerManager.configureW(this.pp, this.efficiency, this.unbreaking);
-		else PowerManager.configure0(this.pp);
+		G_renew_powerConfigure();
 	}
 
 	@Override
@@ -108,16 +117,16 @@ public class TileMiningWell extends TileBasic {
 
 	@Override
 	protected void G_reinit() {
-		PowerManager.configureW(this.pp, this.efficiency, this.unbreaking);
 		this.working = true;
+		G_renew_powerConfigure();
 		sendNowPacket(this, (byte) 1);
 	}
 
 	@Override
 	protected void G_destroy() {
 		if (this.worldObj.isRemote) return;
-		PowerManager.configure0(this.pp);
 		this.working = false;
+		G_renew_powerConfigure();
 		sendNowPacket(this, (byte) 0);
 		for (int depth = this.yCoord - 1; depth > 0; depth--) {
 			if (this.worldObj.getBlockId(this.xCoord, depth, this.zCoord) != plainPipeBlock.blockID) {

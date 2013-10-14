@@ -166,4 +166,9 @@ public class BlockQuarry extends BlockContainer {
 		return false;
 	}
 
+	@Override
+	public void onNeighborBlockChange(World world, int x, int y, int z, int blockId) {
+		if (!world.isRemote) ((TileBasic) world.getBlockTileEntity(x, y, z)).G_renew_powerConfigure();
+	}
+
 }

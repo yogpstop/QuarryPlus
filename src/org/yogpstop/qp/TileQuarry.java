@@ -110,8 +110,8 @@ public class TileQuarry extends TileBasic {
 			return true;
 		case NOTNEEDBREAK:
 			if (this.targetY < this.box.yMin) {
-				PowerManager.configureF(this.pp, this.efficiency, this.unbreaking);
 				this.now = MAKEFRAME;
+				G_renew_powerConfigure();
 				this.targetX = this.box.xMin;
 				this.targetY = this.box.yMax;
 				this.targetZ = this.box.zMin;
@@ -132,8 +132,8 @@ public class TileQuarry extends TileBasic {
 			return true;
 		case MAKEFRAME:
 			if (this.targetY < this.box.yMin) {
-				PowerManager.configureB(this.pp, this.efficiency, this.unbreaking);
 				this.now = MOVEHEAD;
+				G_renew_powerConfigure();
 				this.targetX = this.box.xMin + 1;
 				this.targetY = this.box.yMin;
 				this.targetZ = this.box.zMin + 1;
@@ -149,8 +149,8 @@ public class TileQuarry extends TileBasic {
 			if (bid == Block.bedrock.blockID) return false;
 			if (this.worldObj.getBlockMaterial(this.targetX, this.targetY, this.targetZ).isSolid()
 					&& (bid != frameBlock.blockID || this.worldObj.getBlockMetadata(this.targetX, this.targetY, this.targetZ) != 0)) {
-				PowerManager.configureB(this.pp, this.efficiency, this.unbreaking);
 				this.now = NOTNEEDBREAK;
+				G_renew_powerConfigure();
 				this.targetX = this.box.xMin;
 				this.targetZ = this.box.zMin;
 				this.targetY = this.box.yMax;
@@ -410,8 +410,8 @@ public class TileQuarry extends TileBasic {
 
 	@Override
 	protected void G_destroy() {
-		PowerManager.configure0(this.pp);
 		this.now = NONE;
+		G_renew_powerConfigure();
 		if (this.heads != null) {
 			this.heads.setDead();
 			this.heads = null;
@@ -426,8 +426,8 @@ public class TileQuarry extends TileBasic {
 
 	@Override
 	protected void G_reinit() {
-		PowerManager.configureB(this.pp, this.efficiency, this.unbreaking);
 		this.now = NOTNEEDBREAK;
+		G_renew_powerConfigure();
 		G_initEntities();
 		if (!this.worldObj.isRemote) {
 			S_setFirstPos();
@@ -495,9 +495,7 @@ public class TileQuarry extends TileBasic {
 		this.headPosY = nbttc.getDouble("headPosY");
 		this.headPosZ = nbttc.getDouble("headPosZ");
 		this.initialized = false;
-		if (this.now == NONE) PowerManager.configure0(this.pp);
-		else if (this.now == MAKEFRAME) PowerManager.configureF(this.pp, this.efficiency, this.unbreaking);
-		else PowerManager.configureB(this.pp, this.efficiency, this.unbreaking);
+		G_renew_powerConfigure();
 	}
 
 	@Override
@@ -535,9 +533,7 @@ public class TileQuarry extends TileBasic {
 		switch (pattern) {
 		case packetNow:
 			this.now = data.readByte();
-			if (this.now == NONE) PowerManager.configure0(this.pp);
-			else if (this.now == MAKEFRAME) PowerManager.configureF(this.pp, this.efficiency, this.unbreaking);
-			else PowerManager.configureB(this.pp, this.efficiency, this.unbreaking);
+			G_renew_powerConfigure();
 			this.worldObj.markBlockForRenderUpdate(this.xCoord, this.yCoord, this.zCoord);
 			G_initEntities();
 			break;
@@ -578,5 +574,16 @@ public class TileQuarry extends TileBasic {
 	@Override
 	public boolean isActive() {
 		return G_getNow() != NONE;
+	}
+
+	@Override
+	protected void G_renew_powerConfigure() {
+		TileEntity te = this.worldObj.getBlockTileEntity(this.xCoord + this.pump.offsetX, this.yCoord + this.pump.offsetY, this.zCoord + this.pump.offsetZ);
+		byte pmp = 0;
+		if (te instanceof TilePump) pmp = ((TilePump) te).unbreaking;
+		else this.pump = ForgeDirection.UNKNOWN;
+		if (this.now == NONE) PowerManager.configure0(this.pp);
+		else if (this.now == MAKEFRAME) PowerManager.configureF(this.pp, this.efficiency, this.unbreaking, pmp);
+		else PowerManager.configureB(this.pp, this.efficiency, this.unbreaking, pmp);
 	}
 }
