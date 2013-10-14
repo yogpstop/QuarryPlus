@@ -24,6 +24,7 @@ import net.minecraft.block.material.Material;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Icon;
+import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
 public class BlockInfMJSrc extends BlockContainer {
@@ -52,5 +53,10 @@ public class BlockInfMJSrc extends BlockContainer {
 	@Override
 	public Icon getIcon(int a, int b) {
 		return Block.portal.getIcon(a, b);
+	}
+
+	@Override
+	public boolean canConnectRedstone(IBlockAccess world, int x, int y, int z, int side) {
+		return side != -1;
 	}
 }

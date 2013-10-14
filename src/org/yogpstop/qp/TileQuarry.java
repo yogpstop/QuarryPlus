@@ -430,7 +430,8 @@ public class TileQuarry extends TileBasic {
 		G_initEntities();
 		if (!this.worldObj.isRemote) {
 			S_setFirstPos();
-			PacketDispatcher.sendPacketToAllPlayers(PacketHandler.getPacketFromNBT(this));
+			PacketDispatcher.sendPacketToAllAround(this.xCoord, this.yCoord, this.zCoord, 256, this.worldObj.provider.dimensionId,
+					PacketHandler.getPacketFromNBT(this));
 			sendNowPacket(this, this.now);
 		}
 	}

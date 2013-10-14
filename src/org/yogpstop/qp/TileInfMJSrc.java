@@ -35,11 +35,10 @@ public class TileInfMJSrc extends APacketTile {
 	public float power = 10;
 	public int interval = 1;
 	private int cInterval = 1;
-	public boolean active = true;
 
 	@Override
 	public void updateEntity() {
-		if (!this.active) return;
+		if (this.worldObj.isBlockIndirectlyGettingPowered(this.xCoord, this.yCoord, this.zCoord)) return;
 		if (--this.cInterval > 0) return;
 		TileEntity te;
 		for (ForgeDirection d : ForgeDirection.VALID_DIRECTIONS) {
@@ -58,11 +57,9 @@ public class TileInfMJSrc extends APacketTile {
 		case PacketHandler.infmjsrc:
 			this.power = data.readFloat();
 			this.interval = data.readInt();
-			PacketDispatcher.sendPacketToAllPlayers(PacketHandler.makeInfMJSrcPacket(this.xCoord, this.yCoord, this.zCoord, this.power, this.interval));
+			PacketDispatcher.sendPacketToAllAround(this.xCoord, this.yCoord, this.zCoord, 256, this.worldObj.provider.dimensionId,
+					PacketHandler.makeInfMJSrcPacket(this.xCoord, this.yCoord, this.zCoord, this.power, this.interval));
 			break;
-		case PacketHandler.infmjsrca:
-			this.active = data.readBoolean();
-			PacketDispatcher.sendPacketToAllPlayers(PacketHandler.makeInfMJSrcAPacket(this.xCoord, this.yCoord, this.zCoord, this.active));
 		}
 	}
 
@@ -78,13 +75,6 @@ public class TileInfMJSrc extends APacketTile {
 						QuarryPlus.guiIdInfMJSrc, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
 			}
 			break;
-		case PacketHandler.infmjsrca:
-			this.active = data.readBoolean();
-			if (Minecraft.getMinecraft().currentScreen instanceof GuiInfMJSrc) {
-				GuiInfMJSrc gims = (GuiInfMJSrc) Minecraft.getMinecraft().currentScreen;
-				if (gims.x == this.xCoord && gims.y == this.yCoord && gims.z == this.zCoord) Minecraft.getMinecraft().thePlayer.openGui(QuarryPlus.instance,
-						QuarryPlus.guiIdInfMJSrc, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
-			}
 		}
 	}
 
@@ -93,7 +83,6 @@ public class TileInfMJSrc extends APacketTile {
 		super.readFromNBT(nbttc);
 		this.power = nbttc.getFloat("power");
 		this.interval = nbttc.getInteger("interval");
-		this.active = nbttc.getBoolean("active");
 	}
 
 	@Override
@@ -101,7 +90,6 @@ public class TileInfMJSrc extends APacketTile {
 		super.writeToNBT(nbttc);
 		nbttc.setFloat("power", this.power);
 		nbttc.setInteger("interval", this.interval);
-		nbttc.setBoolean("active", this.active);
 	}
 
 }

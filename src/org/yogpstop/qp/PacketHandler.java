@@ -57,7 +57,6 @@ public class PacketHandler implements IPacketHandler {
 	public static final byte signal = 11;
 	public static final byte link = 12;
 	public static final byte infmjsrc = 13;
-	public static final byte infmjsrca = 14;
 
 	@Override
 	public void onPacketData(INetworkManager network, Packet250CustomPayload packet, Player player) {
@@ -154,21 +153,6 @@ public class PacketHandler implements IPacketHandler {
 		return composeTilePacket(bos);
 	}
 
-	public static Packet makeInfMJSrcAPacket(int x, int y, int z, boolean active) {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		DataOutputStream dos = new DataOutputStream(bos);
-		try {
-			dos.writeInt(x);
-			dos.writeInt(y);
-			dos.writeInt(z);
-			dos.writeByte(infmjsrca);
-			dos.writeBoolean(active);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return composeTilePacket(bos);
-	}
-
 	public static void sendPacketToServer(APacketTile te, byte id) {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		DataOutputStream dos = new DataOutputStream(bos);
@@ -242,7 +226,7 @@ public class PacketHandler implements IPacketHandler {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		PacketDispatcher.sendPacketToAllPlayers(composeTilePacket(bos));
+		PacketDispatcher.sendPacketToAllAround(te.xCoord, te.yCoord, te.zCoord, 256, te.worldObj.provider.dimensionId, composeTilePacket(bos));
 	}
 
 	static void sendMarkerPacket(APacketTile te, byte id, boolean data) {
@@ -257,7 +241,7 @@ public class PacketHandler implements IPacketHandler {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		PacketDispatcher.sendPacketToAllPlayers(composeTilePacket(bos));
+		PacketDispatcher.sendPacketToAllAround(te.xCoord, te.yCoord, te.zCoord, 256, te.worldObj.provider.dimensionId, composeTilePacket(bos));
 	}
 
 	static void sendHeadPosPacket(APacketTile te, double x, double y, double z) {
@@ -274,7 +258,7 @@ public class PacketHandler implements IPacketHandler {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		PacketDispatcher.sendPacketToAllPlayers(composeTilePacket(bos));
+		PacketDispatcher.sendPacketToAllAround(te.xCoord, te.yCoord, te.zCoord, 256, te.worldObj.provider.dimensionId, composeTilePacket(bos));
 	}
 
 	static void sendLinkPacket(APacketTile te, TileMarker.Link l) {
@@ -294,7 +278,7 @@ public class PacketHandler implements IPacketHandler {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		PacketDispatcher.sendPacketToAllPlayers(composeTilePacket(bos));
+		PacketDispatcher.sendPacketToAllAround(te.xCoord, te.yCoord, te.zCoord, 256, te.worldObj.provider.dimensionId, composeTilePacket(bos));
 	}
 
 	static void sendLinkPacket(APacketTile te, TileMarker.Link l, EntityPlayer ep) {

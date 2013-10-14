@@ -132,7 +132,8 @@ public class TileRefinery extends APacketTile implements IFluidHandler, IPowerRe
 			return;
 		}
 		if (this.worldObj.getWorldTime() % 20 == 7) {
-			PacketDispatcher.sendPacketToAllPlayers(PacketHandler.getPacketFromNBT(this));
+			PacketDispatcher.sendPacketToAllAround(this.xCoord, this.yCoord, this.zCoord, 256, this.worldObj.provider.dimensionId,
+					PacketHandler.getPacketFromNBT(this));
 		}
 		this.ticks++;
 		for (int i = this.efficiency + 1; i > 0; i--) {
