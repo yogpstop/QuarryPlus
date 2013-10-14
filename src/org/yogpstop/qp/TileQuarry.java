@@ -215,7 +215,6 @@ public class TileQuarry extends TileBasic {
 				if (this.targetZ < this.box.zMin + out || this.box.zMax - out < this.targetZ) {
 					this.addZ = !this.addZ;
 					this.targetZ = Math.max(this.box.zMin + out, Math.min(this.targetZ, this.box.zMax - out));
-					// System.err.println(this.digged);
 					if (this.digged) this.digged = false;
 					else {
 						this.targetY--;
