@@ -121,6 +121,7 @@ public class TileQuarry extends TileBasic {
 				return S_checkTarget();
 			}
 			if (bid == 0 || bid == Block.bedrock.blockID) return false;
+			if (this.pump == ForgeDirection.UNKNOWN && this.worldObj.getBlockMaterial(this.targetX, this.targetY, this.targetZ).isLiquid()) return false;
 			if (bid == frameBlock.blockID && this.worldObj.getBlockMetadata(this.targetX, this.targetY, this.targetZ) == 0) {
 				byte flag = 0;
 				if (this.targetX == this.box.xMin || this.targetX == this.box.xMax) flag++;
@@ -205,44 +206,44 @@ public class TileQuarry extends TileBasic {
 		} else {
 			if (this.addX) this.targetX++;
 			else this.targetX--;
-			if (this.targetX < this.box.xMin + (this.now == NOTNEEDBREAK ? 0 : 1) || this.box.xMax - (this.now == NOTNEEDBREAK ? 0 : 1) < this.targetX) {
+			int out = this.now == NOTNEEDBREAK ? 0 : 1;
+			if (this.targetX < this.box.xMin + out || this.box.xMax - out < this.targetX) {
 				this.addX = !this.addX;
-				this.targetX = Math.max(this.box.xMin + (this.now == NOTNEEDBREAK ? 0 : 1),
-						Math.min(this.targetX, this.box.xMax - (this.now == NOTNEEDBREAK ? 0 : 1)));
+				this.targetX = Math.max(this.box.xMin + out, Math.min(this.targetX, this.box.xMax - out));
 				if (this.addZ) this.targetZ++;
 				else this.targetZ--;
-				if (this.targetZ < this.box.zMin + (this.now == NOTNEEDBREAK ? 0 : 1) || this.box.zMax - (this.now == NOTNEEDBREAK ? 0 : 1) < this.targetZ) {
+				if (this.targetZ < this.box.zMin + out || this.box.zMax - out < this.targetZ) {
 					this.addZ = !this.addZ;
-					this.targetZ = Math.max(this.box.zMin + (this.now == NOTNEEDBREAK ? 0 : 1),
-							Math.min(this.targetZ, this.box.zMax - (this.now == NOTNEEDBREAK ? 0 : 1)));
+					this.targetZ = Math.max(this.box.zMin + out, Math.min(this.targetZ, this.box.zMax - out));
+					// System.err.println(this.digged);
 					if (this.digged) this.digged = false;
 					else {
 						this.targetY--;
-						double aa = S_getDistance(this.box.xMin + 1, this.targetY, this.box.zMin + (this.now == NOTNEEDBREAK ? 0 : 1));
-						double ad = S_getDistance(this.box.xMin + 1, this.targetY, this.box.zMax - (this.now == NOTNEEDBREAK ? 0 : 1));
-						double da = S_getDistance(this.box.xMax - 1, this.targetY, this.box.zMin + (this.now == NOTNEEDBREAK ? 0 : 1));
-						double dd = S_getDistance(this.box.xMax - 1, this.targetY, this.box.zMax - (this.now == NOTNEEDBREAK ? 0 : 1));
+						double aa = S_getDistance(this.box.xMin + 1, this.targetY, this.box.zMin + out);
+						double ad = S_getDistance(this.box.xMin + 1, this.targetY, this.box.zMax - out);
+						double da = S_getDistance(this.box.xMax - 1, this.targetY, this.box.zMin + out);
+						double dd = S_getDistance(this.box.xMax - 1, this.targetY, this.box.zMax - out);
 						double res = Math.min(aa, Math.min(ad, Math.min(da, dd)));
 						if (res == aa) {
 							this.addX = true;
 							this.addZ = true;
-							this.targetX = this.box.xMin + (this.now == NOTNEEDBREAK ? 0 : 1);
-							this.targetZ = this.box.zMin + (this.now == NOTNEEDBREAK ? 0 : 1);
+							this.targetX = this.box.xMin + out;
+							this.targetZ = this.box.zMin + out;
 						} else if (res == ad) {
 							this.addX = true;
 							this.addZ = false;
-							this.targetX = this.box.xMin + (this.now == NOTNEEDBREAK ? 0 : 1);
-							this.targetZ = this.box.zMax - (this.now == NOTNEEDBREAK ? 0 : 1);
+							this.targetX = this.box.xMin + out;
+							this.targetZ = this.box.zMax - out;
 						} else if (res == da) {
 							this.addX = false;
 							this.addZ = true;
-							this.targetX = this.box.xMax - (this.now == NOTNEEDBREAK ? 0 : 1);
-							this.targetZ = this.box.zMin + (this.now == NOTNEEDBREAK ? 0 : 1);
+							this.targetX = this.box.xMax - out;
+							this.targetZ = this.box.zMin + out;
 						} else if (res == dd) {
 							this.addX = false;
 							this.addZ = false;
-							this.targetX = this.box.xMax - (this.now == NOTNEEDBREAK ? 0 : 1);
-							this.targetZ = this.box.zMax - (this.now == NOTNEEDBREAK ? 0 : 1);
+							this.targetX = this.box.xMax - out;
+							this.targetZ = this.box.zMax - out;
 						}
 					}
 				}

@@ -140,9 +140,8 @@ public class BlockMarker extends BlockContainer {
 				PacketDispatcher.sendPacketToPlayer(new Packet3Chat(ChatMessageComponent.createFromText(StatCollector.translateToLocal("chat.markerarea"))),
 						(Player) ep);
 				PacketDispatcher.sendPacketToPlayer(
-						new Packet3Chat(
-								ChatMessageComponent.createFromText(String.format("x:%d y:%d z:%d - x:%d y:%d z:%d", l.xn, l.yn, l.zn, l.xx, l.yn, l.zn))),
-						(Player) ep);
+						new Packet3Chat(ChatMessageComponent.createFromText(String
+								.format("x:%d y:%d z:%d - x:%d y:%d z:%d", l.xn, l.yn, l.zn, l.xx, l.yn, l.zn))), (Player) ep);
 				return true;
 			}
 			((TileMarker) world.getBlockTileEntity(x, y, z)).S_tryConnection();
