@@ -23,6 +23,7 @@ import net.minecraft.world.World;
 import org.yogpstop.qp.client.GuiInfMJSrc;
 import org.yogpstop.qp.client.GuiMover;
 import org.yogpstop.qp.client.GuiList;
+import org.yogpstop.qp.client.GuiPlacer;
 
 import static org.yogpstop.qp.QuarryPlus.*;
 import cpw.mods.fml.common.network.IGuiHandler;
@@ -39,6 +40,8 @@ public class GuiHandler implements IGuiHandler {
 			return new GuiList((byte) 1, (TileBasic) world.getBlockTileEntity(x, y, z));
 		case guiIdInfMJSrc:
 			return new GuiInfMJSrc(x, y, z, world);
+		case guiIdPlacer:
+			return new GuiPlacer(player.inventory, (TilePlacer) world.getBlockTileEntity(x, y, z));
 		}
 
 		return null;
@@ -49,6 +52,8 @@ public class GuiHandler implements IGuiHandler {
 		switch (ID) {
 		case guiIdMover:
 			return new ContainerMover(player, world, x, y, z, null);
+		case guiIdPlacer:
+			return new ContainerPlacer(player.inventory, (TilePlacer) world.getBlockTileEntity(x, y, z));
 		}
 		return null;
 	}

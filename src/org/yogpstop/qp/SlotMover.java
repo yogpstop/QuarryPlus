@@ -36,11 +36,10 @@ public class SlotMover extends Slot {
 	public boolean isItemValid(ItemStack is) {
 		switch (this.slotNumber) {
 		case 0:
-			if (is.itemID == Item.pickaxeDiamond.itemID) { return true; }
+			if (is.itemID == Item.pickaxeDiamond.itemID) return true;
 			return false;
 		case 1:
-			if (is.itemID == QuarryPlus.blockQuarry.blockID || is.itemID == QuarryPlus.blockMiningWell.blockID || is.itemID == QuarryPlus.blockPump.blockID
-					|| is.itemID == QuarryPlus.blockRefinery.blockID || (is.itemID == QuarryPlus.itemTool.itemID && is.getItemDamage() == 1)) return true;
+			if (is.getItem() instanceof IMoveable && ((IMoveable) is.getItem()).canMove(is, -1, is.getItemDamage())) return true;
 		}
 		return false;
 	}

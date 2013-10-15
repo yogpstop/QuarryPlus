@@ -33,7 +33,7 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.Icon;
 import net.minecraft.world.World;
 
-public class ItemTool extends Item {
+public class ItemTool extends Item implements IMoveable {
 	Icon ile, ils;
 
 	public ItemTool(int par1) {
@@ -97,5 +97,12 @@ public class ItemTool extends Item {
 		this.itemIcon = ir.registerIcon("yogpstop_qp:statusChecker");
 		this.ile = ir.registerIcon("yogpstop_qp:listEditor");
 		this.ils = ir.registerIcon("yogpstop_qp:liquidSelector");
+	}
+
+	@Override
+	public boolean canMove(ItemStack is, int id, int meta) {
+		if (meta != 1) return false;
+		if (is.getEnchantmentTagList() != null) return false;
+		return id == 33 || id == 35 || id == -1;
 	}
 }

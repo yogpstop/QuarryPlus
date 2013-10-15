@@ -233,7 +233,7 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		return this.pp.getPowerReceiver();
 	}
 
-	private static final Method createStackedBlock;
+	static final Method createStackedBlock;
 
 	static {
 		Method buf = null;

@@ -52,7 +52,7 @@ public class QuarryPlus {
 
 	public static final int refineryRenderID = RenderingRegistry.getNextAvailableRenderId();
 
-	public static Block blockQuarry, blockMarker, blockMover, blockMiningWell, blockPump, blockInfMJSrc, blockRefinery;
+	public static Block blockQuarry, blockMarker, blockMover, blockMiningWell, blockPump, blockInfMJSrc, blockRefinery, blockPlacer, blockBreaker, blockLaser;
 	public static Item itemTool;
 
 	public static int RecipeDifficulty;
@@ -61,6 +61,7 @@ public class QuarryPlus {
 	public static final int guiIdMover = 2;
 	public static final int guiIdFList = 3;
 	public static final int guiIdSList = 4;
+	public static final int guiIdPlacer = 5;
 
 	@Mod.EventHandler
 	public void preInit(FMLPreInitializationEvent event) {
@@ -69,9 +70,10 @@ public class QuarryPlus {
 		int iid = Integer.MIN_VALUE;
 		try {
 			cfg.load();
-			bid = new int[] { cfg.getBlock("Quarry", 4001).getInt(), cfg.getBlock("Marker", 4002).getInt(), cfg.getBlock("EnchantMover", 4003).getInt(),
-					cfg.getBlock("MiningWell", 4004).getInt(), cfg.getBlock("Pump", 4005).getInt(), cfg.getBlock("InfMJSrc", 4006).getInt(),
-					cfg.getBlock("Refinery", 4007).getInt() };
+			bid = new int[] { cfg.getBlock("Quarry", 1970).getInt(), cfg.getBlock("Marker", 1971).getInt(), cfg.getBlock("EnchantMover", 1972).getInt(),
+					cfg.getBlock("MiningWell", 1973).getInt(), cfg.getBlock("Pump", 1974).getInt(), cfg.getBlock("InfMJSrc", 1975).getInt(),
+					cfg.getBlock("Refinery", 1976).getInt(), cfg.getBlock("Placer", 1977).getInt(), cfg.getBlock("Breaker", 1978).getInt(),
+					cfg.getBlock("Laser", 1979).getInt() };
 			iid = cfg.getItem("Tools", 18463).getInt();
 			Property RD = cfg.get(Configuration.CATEGORY_GENERAL, "RecipeDifficulty", 2);
 			RD.comment = "0:AsCheatRecipe,1:EasyRecipe,2:NormalRecipe(Default),3:HardRecipe,other:NormalRecipe";
@@ -92,6 +94,9 @@ public class QuarryPlus {
 			blockPump = (new BlockPump(bid[4]));
 			blockInfMJSrc = (new BlockInfMJSrc(bid[5]));
 			blockRefinery = (new BlockRefinery(bid[6]));
+			blockPlacer = (new BlockPlacer(bid[7]));
+			blockBreaker = (new BlockBreaker(bid[8]));
+			blockLaser = (new BlockLaser(bid[9]));
 			itemTool = (new ItemTool(iid));
 		} catch (Exception e) {
 			// throw new
@@ -105,13 +110,16 @@ public class QuarryPlus {
 
 	@Mod.EventHandler
 	public void init(FMLInitializationEvent event) {
-		GameRegistry.registerBlock(blockQuarry, "QuarryPlus");
+		GameRegistry.registerBlock(blockQuarry, ItemBlockQuarry.class, "QuarryPlus");
 		GameRegistry.registerBlock(blockMarker, "MarkerPlus");
 		GameRegistry.registerBlock(blockMover, "EnchantMover");
-		GameRegistry.registerBlock(blockMiningWell, "MiningWellPlus");
-		GameRegistry.registerBlock(blockPump, "PumpPlus");
+		GameRegistry.registerBlock(blockMiningWell, ItemBlockQuarry.class, "MiningWellPlus");
+		GameRegistry.registerBlock(blockPump, ItemBlockPump.class, "PumpPlus");
 		GameRegistry.registerBlock(blockInfMJSrc, "InfMJSrc");
-		GameRegistry.registerBlock(blockRefinery, "RefineryPlus");
+		GameRegistry.registerBlock(blockRefinery, ItemBlockRefinery.class, "RefineryPlus");
+		GameRegistry.registerBlock(blockPlacer, "PlacerPlus");
+		GameRegistry.registerBlock(blockBreaker, ItemBlockBreaker.class, "BreakerPlus");
+		GameRegistry.registerBlock(blockLaser, ItemBlockQuarry.class, "LaserPlus");
 
 		GameRegistry.registerTileEntity(TileQuarry.class, "QuarryPlus");
 		GameRegistry.registerTileEntity(TileMarker.class, "MarkerPlus");
@@ -119,6 +127,9 @@ public class QuarryPlus {
 		GameRegistry.registerTileEntity(TilePump.class, "PumpPlus");
 		GameRegistry.registerTileEntity(TileInfMJSrc.class, "InfMJSrc");
 		GameRegistry.registerTileEntity(TileRefinery.class, "RefineryPlus");
+		GameRegistry.registerTileEntity(TilePlacer.class, "PlacerPlus");
+		GameRegistry.registerTileEntity(TileBreaker.class, "BreakerPlus");
+		GameRegistry.registerTileEntity(TileLaser.class, "LaserPlus");
 
 		switch (RecipeDifficulty) {
 		case 0:

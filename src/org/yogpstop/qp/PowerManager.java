@@ -27,6 +27,7 @@ public class PowerManager {
 	private static double B_BP, B_CE, B_CU, B_NR, B_XR, B_MS;// Quarry:BreakBlock
 	private static double F_BP, F_CE, F_CU, F_NR, F_XR, F_MS;// Quarry:MakeFrame
 	private static double W_BP, W_CE, W_CU, W_NR, W_XR, W_MS;// MiningWell
+	private static double L_BP, L_CE, L_CU, L_NR, L_XR, L_MS, L_CF, L_CS;// Laser
 	private static double R_CE, R_CU, R_NR, R_XR, R_MS;// Refinery
 	private static double PF_BP, PF_CU;// Pump:Frame
 	private static double PL_BP, PL_CU;// Pump:Liquid
@@ -92,6 +93,16 @@ public class PowerManager {
 		W_XR = get(c, "BaseMaxRecieve", 100);
 		W_MS = get(c, "BaseMaxStored", 1000);
 
+		c = cg.getCategory(new StringBuilder().append(cn).append("Laser").toString());
+		L_BP = get(c, "BasePower", 4);
+		L_CE = get(c, "EfficiencyCoefficient", 2);
+		L_CU = get(c, "UnbreakingCoefficient", 0.1);
+		L_CF = get(c, "FortuneCoefficient", 1.05);
+		L_CS = get(c, "SilktouchCoefficient", 1.1);
+		L_NR = get(c, "BaseMinRecieve", 25);
+		L_XR = get(c, "BaseMaxRecieve", 100);
+		L_MS = get(c, "BaseMaxStored", 1000);
+
 		c = cg.getCategory(new StringBuilder().append(cn).append("Refinery").toString());
 		R_CE = get(c, "EfficiencyCoefficient", 1.3);
 		R_CU = get(c, "UnbreakingCoefficient", 1);
@@ -135,6 +146,15 @@ public class PowerManager {
 		if (W_XR <= 0 || W_XR < W_NR) sb.append("general.PowerSetting.MiningWell.BaseMaxRecieve value is bad.\n");
 		if (W_MS <= 0) sb.append("general.PowerSetting.MiningWell.BaseMaxStored value is bad.\n");
 
+		if (L_BP < 0) sb.append("general.PowerSetting.Laser.BasePower value is bad.\n");
+		if (L_CE < 0) sb.append("general.PowerSetting.Laser.EfficiencyCoefficient value is bad.\n");
+		if (L_CU < 0) sb.append("general.PowerSetting.Laser.UnbreakingCoefficient value is bad.\n");
+		if (L_CF < 0) sb.append("general.PowerSetting.Laser.FortuneCoefficient value is bad.\n");
+		if (L_CS < 0) sb.append("general.PowerSetting.Laser.SilktouchCoefficient value is bad.\n");
+		if (L_NR < 0) sb.append("general.PowerSetting.Laser.BaseMinRecieve value is bad.\n");
+		if (L_XR <= 0 || W_XR < W_NR) sb.append("general.PowerSetting.Laser.BaseMaxRecieve value is bad.\n");
+		if (L_MS <= 0) sb.append("general.PowerSetting.Laser.BaseMaxStored value is bad.\n");
+
 		if (R_CE < 0) sb.append("general.PowerSetting.Refinery.EfficiencyCoefficient value is bad.\n");
 		if (R_CU < 0) sb.append("general.PowerSetting.Refinery.UnbreakingCoefficient value is bad.\n");
 		if (R_NR < 0) sb.append("general.PowerSetting.Refinery.BaseMinRecieve value is bad.\n");
@@ -167,6 +187,10 @@ public class PowerManager {
 
 	static void configureW(PowerHandler pp, byte E, byte U, byte pump) {
 		configure15(pp, W_CE, E, U, W_CU, W_NR, W_XR, W_BP, W_MS, pump);
+	}
+
+	static void configureL(PowerHandler pp, byte E, byte U) {
+		configure(pp, L_CE, E, U, L_CU, L_NR, L_XR, L_BP, L_MS, (byte) 0);
 	}
 
 	static void configureF(PowerHandler pp, byte E, byte U, byte pump) {
@@ -204,6 +228,17 @@ public class PowerManager {
 		return pw * (U * CU + 1) / BP + 0.1;
 	}
 
+	private static float useEnergy(PowerHandler pp, int count, double BP, byte U, double CU, byte F, double CF, boolean S, double CS, byte E, double CE) {
+		double pwc = BP * Math.pow(CF, F) * Math.pow(CE, E) / (U * CU + 1);
+		if (S) pwc *= CS * count;
+		float pw = (float) pwc;
+		pw = pp.useEnergy(0, pw, true);
+		if (S) pwc = pw / CS;
+		pwc /= Math.pow(CF, F);
+		pwc *= U * CU + 1;
+		return (float) pwc;
+	}
+
 	enum BreakType {
 		Quarry,
 		MiningWell
@@ -227,6 +262,10 @@ public class PowerManager {
 
 	static double useEnergyH(PowerHandler pp, double distance, byte U) {
 		return useEnergy(pp, distance, H_BP, U, H_CU);
+	}
+
+	static float useEnergyL(PowerHandler pp, int count, byte U, byte F, boolean S, byte E) {
+		return useEnergy(pp, count, L_BP, U, L_CU, F, L_CF, S, L_CS, E, L_CE);
 	}
 
 }
