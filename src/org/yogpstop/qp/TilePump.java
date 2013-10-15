@@ -162,6 +162,8 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 
 	public List<String> C_getEnchantments() {
 		ArrayList<String> als = new ArrayList<String>();
+		if (!this.silktouch && this.unbreaking <= 0 && this.fortune <= 0) als.add(StatCollector.translateToLocal("chat.plusenchantno"));
+		else als.add(StatCollector.translateToLocal("chat.plusenchant"));
 		if (this.silktouch) als.add(Enchantment.enchantmentsList[33].getTranslatedName(1));
 		if (this.unbreaking > 0) als.add(Enchantment.enchantmentsList[34].getTranslatedName(this.unbreaking));
 		if (this.fortune > 0) als.add(Enchantment.enchantmentsList[35].getTranslatedName(this.fortune));
@@ -408,12 +410,20 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 	private final String[] mapping = new String[ForgeDirection.VALID_DIRECTIONS.length];
 
 	public String[] C_getNames() {
-		String[] ret = new String[this.mapping.length];
-		int index;
-		for (int i = 0; i < ret.length; i++) {
-			index = this.liquids.indexOf(FluidRegistry.getFluidStack(this.mapping[i], 0));
-			ret[i] = StatCollector.translateToLocalFormatted("chat.pumpitem", fdToString(ForgeDirection.getOrientation(i)), this.mapping[i], index == -1 ? 0
-					: this.liquids.get(index).amount);
+		String[] ret = new String[this.liquids.size() + this.mapping.length + 2];
+		if (this.liquids.size() != 0) {
+			ret[0] = StatCollector.translateToLocal("chat.pumpcontain");
+			for (int i = 0; i < this.liquids.size(); i++) {
+				ret[i + 1] = new StringBuilder().append(FluidRegistry.getFluidName(this.liquids.get(i))).append(": ").append(this.liquids.get(i).amount)
+						.append("mB").toString();
+			}
+		} else {
+			ret[0] = StatCollector.translateToLocal("chat.pumpcontainno");
+		}
+		ret[this.liquids.size() + 1] = StatCollector.translateToLocal("chat.pumpmapping");
+		for (int i = 0; i < this.mapping.length; i++) {
+			ret[this.liquids.size() + i + 2] = new StringBuilder().append(fdToString(ForgeDirection.getOrientation(i))).append(": ").append(this.mapping[i])
+					.toString();
 		}
 		return ret;
 	}

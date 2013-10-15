@@ -21,14 +21,20 @@ import java.util.ArrayList;
 
 import buildcraft.core.CreativeTabBuildCraft;
 import buildcraft.silicon.SiliconProxy;
+import cpw.mods.fml.common.network.PacketDispatcher;
+import cpw.mods.fml.common.network.Player;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IconRegister;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.packet.Packet3Chat;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.ChatMessageComponent;
 import net.minecraft.util.Icon;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeDirection;
@@ -82,9 +88,9 @@ public class BlockLaser extends BlockContainer {
 	@Override
 	@SideOnly(Side.CLIENT)
 	public void registerIcons(IconRegister par1IconRegister) {
-		this.textureTop = par1IconRegister.registerIcon("buildcraft:laser_top");
-		this.textureBottom = par1IconRegister.registerIcon("buildcraft:laser_bottom");
-		this.blockIcon = par1IconRegister.registerIcon("buildcraft:laser_side");
+		this.textureTop = par1IconRegister.registerIcon("yogpstop_qp:laser_top");
+		this.textureBottom = par1IconRegister.registerIcon("yogpstop_qp:laser_bottom");
+		this.blockIcon = par1IconRegister.registerIcon("yogpstop_qp:laser_side");
 	}
 
 	@Override
@@ -115,5 +121,17 @@ public class BlockLaser extends BlockContainer {
 	@Override
 	public ArrayList<ItemStack> getBlockDropped(World world, int x, int y, int z, int metadata, int fortune) {
 		return this.drop;
+	}
+
+	@Override
+	public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer ep, int side, float par7, float par8, float par9) {
+		Item equipped = ep.getCurrentEquippedItem() != null ? ep.getCurrentEquippedItem().getItem() : null;
+		if (equipped instanceof ItemTool && ep.getCurrentEquippedItem().getItemDamage() == 0) {
+			if (world.isRemote) return true;
+			for (String s : ((TileLaser) world.getBlockTileEntity(x, y, z)).getEnchantments())
+				PacketDispatcher.sendPacketToPlayer(new Packet3Chat(ChatMessageComponent.createFromText(s)), (Player) ep);
+			return true;
+		}
+		return false;
 	}
 }

@@ -36,7 +36,6 @@ import net.minecraft.network.packet.Packet3Chat;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatMessageComponent;
 import net.minecraft.util.Icon;
-import net.minecraft.util.StatCollector;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeDirection;
@@ -157,8 +156,6 @@ public class BlockQuarry extends BlockContainer {
 		}
 		if (equipped instanceof ItemTool && ep.getCurrentEquippedItem().getItemDamage() == 0) {
 			if (world.isRemote) return true;
-			PacketDispatcher.sendPacketToPlayer(new Packet3Chat(ChatMessageComponent.createFromText(StatCollector.translateToLocal("chat.plusenchant"))),
-					(Player) ep);
 			for (String s : ((TileQuarry) world.getBlockTileEntity(x, y, z)).C_getEnchantments())
 				PacketDispatcher.sendPacketToPlayer(new Packet3Chat(ChatMessageComponent.createFromText(s)), (Player) ep);
 			return true;

@@ -38,6 +38,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagLong;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeDirection;
 import buildcraft.api.gates.IAction;
@@ -255,6 +256,8 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 
 	public Collection<String> C_getEnchantments() {
 		ArrayList<String> als = new ArrayList<String>();
+		if (this.efficiency <= 0 && !this.silktouch && this.unbreaking <= 0 && this.fortune <= 0) als.add(StatCollector.translateToLocal("chat.plusenchantno"));
+		else als.add(StatCollector.translateToLocal("chat.plusenchant"));
 		if (this.efficiency > 0) als.add(Enchantment.enchantmentsList[32].getTranslatedName(this.efficiency));
 		if (this.silktouch) als.add(Enchantment.enchantmentsList[33].getTranslatedName(1));
 		if (this.unbreaking > 0) als.add(Enchantment.enchantmentsList[34].getTranslatedName(this.unbreaking));

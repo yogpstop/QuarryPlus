@@ -79,10 +79,10 @@ public class BlockPlacer extends BlockContainer {
 	@Override
 	@SideOnly(Side.CLIENT)
 	public void registerIcons(IconRegister par1IconRegister) {
-		this.blockIcon = par1IconRegister.registerIcon("furnace_side");
-		this.furnaceTopIcon = par1IconRegister.registerIcon("furnace_top");
-		this.horizontal = par1IconRegister.registerIcon("dispenser_front_horizontal");
-		this.vectrial = par1IconRegister.registerIcon("dispenser_front_vertical");
+		this.blockIcon = par1IconRegister.registerIcon("yogpstop_qp:plusstone_side");
+		this.furnaceTopIcon = par1IconRegister.registerIcon("yogpstop_qp:plusstone_top");
+		this.horizontal = par1IconRegister.registerIcon("yogpstop_qp:placer_front_horizontal");
+		this.vectrial = par1IconRegister.registerIcon("yogpstop_qp:placer_front_vertical");
 	}
 
 	@Override

@@ -25,6 +25,8 @@ import java.util.ArrayList;
 import java.util.Random;
 
 import buildcraft.core.proxy.CoreProxy;
+import cpw.mods.fml.common.network.PacketDispatcher;
+import cpw.mods.fml.common.network.Player;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
@@ -36,8 +38,11 @@ import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.packet.Packet3Chat;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.ChatMessageComponent;
 import net.minecraft.util.Icon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
@@ -82,10 +87,10 @@ public class BlockBreaker extends BlockContainer {
 	@Override
 	@SideOnly(Side.CLIENT)
 	public void registerIcons(IconRegister par1IconRegister) {
-		this.blockIcon = par1IconRegister.registerIcon("furnace_side");
-		this.furnaceTopIcon = par1IconRegister.registerIcon("furnace_top");
-		this.horizontal = par1IconRegister.registerIcon("dispenser_front_horizontal");
-		this.vectrial = par1IconRegister.registerIcon("dispenser_front_vertical");
+		this.blockIcon = par1IconRegister.registerIcon("yogpstop_qp:plusstone_side");
+		this.furnaceTopIcon = par1IconRegister.registerIcon("yogpstop_qp:plusstone_top");
+		this.horizontal = par1IconRegister.registerIcon("yogpstop_qp:breaker_front_horizontal");
+		this.vectrial = par1IconRegister.registerIcon("yogpstop_qp:breaker_front_vertical");
 	}
 
 	@Override
@@ -151,7 +156,7 @@ public class BlockBreaker extends BlockContainer {
 
 	@Override
 	public void onBlockPlacedBy(World world, int x, int y, int z, EntityLivingBase ent, ItemStack is) {
-		((TileBreaker) world.getBlockTileEntity(x, y, z)).set(is);
+		((TileBreaker) world.getBlockTileEntity(x, y, z)).init(is.getEnchantmentTagList());
 		world.setBlockMetadataWithNotify(x, y, z, BlockPistonBase.determineOrientation(world, x, y, z, ent), 2);
 	}
 
@@ -200,7 +205,7 @@ public class BlockBreaker extends BlockContainer {
 			id1 = idDropped(meta, world.rand, 0);
 			if (id1 > 0) {
 				is = new ItemStack(id1, 1, damageDropped(meta));
-				tile.get(is);
+				tile.setEnchantment(is);
 				this.drop.add(is);
 			}
 		}
@@ -215,5 +220,17 @@ public class BlockBreaker extends BlockContainer {
 	@Override
 	public TileEntity createNewTileEntity(World world) {
 		return new TileBreaker();
+	}
+
+	@Override
+	public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer ep, int side, float par7, float par8, float par9) {
+		Item equipped = ep.getCurrentEquippedItem() != null ? ep.getCurrentEquippedItem().getItem() : null;
+		if (equipped instanceof ItemTool && ep.getCurrentEquippedItem().getItemDamage() == 0) {
+			if (world.isRemote) return true;
+			for (String s : ((TileBreaker) world.getBlockTileEntity(x, y, z)).getEnchantments())
+				PacketDispatcher.sendPacketToPlayer(new Packet3Chat(ChatMessageComponent.createFromText(s)), (Player) ep);
+			return true;
+		}
+		return false;
 	}
 }
