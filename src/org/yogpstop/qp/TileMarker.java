@@ -63,12 +63,12 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 	}
 
 	static class Laser {
-		private int x, y, z;
+		final World w;
+		final int x, y, z;
 		private final EntityBlock[] lasers = new EntityBlock[3];
-		private final World w;
 
-		Laser(final int px, final int py, final int pz, final World pw, final Link l) {
-			double a = 0.5, b = 0.45, c = 0.1;
+		Laser(final World pw, final int px, final int py, final int pz, final Link l) {
+			final double a = 0.5, b = 0.45, c = 0.1;
 			this.x = px;
 			this.y = py;
 			this.z = pz;
@@ -83,7 +83,7 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 				this.lasers[2] = CoreProxy.proxy.newEntityBlock(pw, px + b, py + b, pz - MAX_SIZE + a, c, c, (MAX_SIZE + a) * 2, LaserKind.Blue);
 			}
 			for (EntityBlock eb : this.lasers)
-				if (eb != null) pw.spawnEntityInWorld(eb);
+				if (eb != null) eb.worldObj.spawnEntityInWorld(eb);
 			int i = TileMarker.laserList.indexOf(this);
 			if (i >= 0) TileMarker.laserList.get(i).destructor();
 			TileMarker.laserList.add(this);
@@ -91,10 +91,11 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 
 		void destructor() {
 			TileMarker.laserList.remove(this);
+			if (!this.w.isRemote) PacketHandler.sendLaserRemovePacket(this);
 			for (EntityBlock eb : this.lasers)
 				if (eb != null) {
-					this.w.removeEntity(eb);
-					if (this.w.isRemote) ((WorldClient) this.w).removeEntityFromWorld(eb.entityId);
+					eb.worldObj.removeEntity(eb);
+					if (eb.worldObj.isRemote) ((WorldClient) eb.worldObj).removeEntityFromWorld(eb.entityId);
 				}
 		}
 
@@ -122,9 +123,9 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 	static class Link {
 		int xx, xn, yx, yn, zx, zn;
 		private final EntityBlock[] lasers = new EntityBlock[12];
-		private final World w;
+		final World w;
 
-		Link(final int vx, final int vy, final int vz, final World pw) {
+		Link(final World pw, final int vx, final int vy, final int vz) {
 			this.xx = vx;
 			this.xn = vx;
 			this.yx = vy;
@@ -134,7 +135,7 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 			this.w = pw;
 		}
 
-		Link(final int vxx, final int vxn, final int vyx, final int vyn, final int vzx, final int vzn, final World pw) {
+		Link(final World pw, final int vxx, final int vxn, final int vyx, final int vyn, final int vzx, final int vzn) {
 			this.xx = vxx;
 			this.xn = vxn;
 			this.yx = vyx;
@@ -179,6 +180,7 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 
 		ArrayList<ItemStack> removeConnection(final boolean bb) {
 			TileMarker.linkList.remove(this);
+			if (!this.w.isRemote) PacketHandler.sendLinkRemovePacket(this);
 			deleteLaser();
 			ArrayList<ItemStack> i = new ArrayList<ItemStack>();
 			i.addAll(removeLink(this.xn, this.yn, this.zn, bb));
@@ -195,7 +197,7 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 		void makeLaser() {
 			deleteLaser();
 			byte flag = 0;
-			double a = 0.5, b = 0.45, c = 0.1;
+			final double a = 0.5, b = 0.45, c = 0.1;
 			if (this.xn != this.xx) flag |= 1;
 			if (this.yn != this.yx) flag |= 2;
 			if (this.zn != this.zx) flag |= 4;
@@ -226,14 +228,14 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 				this.lasers[11] = CoreProxy.proxy.newEntityBlock(this.w, this.xx + b, this.yx + b, this.zn + a, c, c, this.zx - this.zn, LaserKind.Red);
 			}
 			for (EntityBlock eb : this.lasers)
-				if (eb != null) this.w.spawnEntityInWorld(eb);
+				if (eb != null) eb.worldObj.spawnEntityInWorld(eb);
 		}
 
 		void deleteLaser() {
 			for (EntityBlock eb : this.lasers) {
 				if (eb != null) {
-					this.w.removeEntity(eb);
-					if (this.w.isRemote) ((WorldClient) this.w).removeEntityFromWorld(eb.entityId);
+					eb.worldObj.removeEntity(eb);
+					if (eb.worldObj.isRemote) ((WorldClient) eb.worldObj).removeEntityFromWorld(eb.entityId);
 				}
 			}
 		}
@@ -378,20 +380,20 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 	}
 
 	void G_updateSignal() {
-		if (!this.worldObj.isRemote) PacketHandler.sendPacketToAround(this, PacketHandler.signal);
 		if (this.laser != null) {
 			this.laser.destructor();
 			this.laser = null;
 		}
 		if (this.worldObj.isBlockIndirectlyGettingPowered(this.xCoord, this.yCoord, this.zCoord)
 				&& (this.link == null || this.link.xn == this.link.xx || this.link.yn == this.link.yx || this.link.zn == this.link.zx)) {
-			this.laser = new Laser(this.xCoord, this.yCoord, this.zCoord, this.worldObj, this.link);
+			this.laser = new Laser(this.worldObj, this.xCoord, this.yCoord, this.zCoord, this.link);
 		}
+		if (!this.worldObj.isRemote) PacketHandler.sendPacketToAround(this, PacketHandler.signal);
 	}
 
 	void S_tryConnection() {// onBlockActivated
 		if (this.link != null) this.link.removeConnection(false);
-		this.link = new Link(this.xCoord, this.yCoord, this.zCoord, this.worldObj);
+		this.link = new Link(this.worldObj, this.xCoord, this.yCoord, this.zCoord);
 		S_renewConnection(this.link, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
 		if (this.link.xx == this.link.xn && this.link.yx == this.link.yn && this.link.zx == this.link.zn) {
 			this.link = null;
@@ -422,7 +424,7 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 		switch (pattern) {
 		case PacketHandler.link_response:
 			if (this.link != null) this.link.removeConnection(false);
-			this.link = new Link(data.readInt(), data.readInt(), data.readInt(), data.readInt(), data.readInt(), data.readInt(), this.worldObj);
+			this.link = new Link(this.worldObj, data.readInt(), data.readInt(), data.readInt(), data.readInt(), data.readInt(), data.readInt());
 			this.link.init();
 			this.link.makeLaser();
 		case PacketHandler.signal:

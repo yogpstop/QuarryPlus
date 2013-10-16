@@ -30,7 +30,10 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.StatCollector;
 import net.minecraftforge.common.Configuration;
 import net.minecraftforge.common.ForgeChunkManager;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.Property;
+import net.minecraftforge.event.ForgeSubscribe;
+import net.minecraftforge.event.world.WorldEvent;
 import cpw.mods.fml.client.registry.RenderingRegistry;
 import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.Mod;
@@ -42,7 +45,8 @@ import cpw.mods.fml.common.registry.LanguageRegistry;
 import cpw.mods.fml.common.network.NetworkRegistry;
 
 @Mod(modid = "QuarryPlus", name = "QuarryPlus", version = "@VERSION@", dependencies = "required-after:BuildCraft|Builders;required-after:BuildCraft|Core;required-after:BuildCraft|Energy;required-after:BuildCraft|Factory;required-after:BuildCraft|Silicon;required-after:BuildCraft|Transport")
-@NetworkMod(clientSideRequired = true, serverSideRequired = false, channels = { PacketHandler.BTN, PacketHandler.NBT, PacketHandler.OGUI, PacketHandler.Tile }, packetHandler = PacketHandler.class)
+@NetworkMod(clientSideRequired = true, serverSideRequired = false, channels = { PacketHandler.BTN, PacketHandler.NBT, PacketHandler.OGUI, PacketHandler.Tile,
+		PacketHandler.Marker }, packetHandler = PacketHandler.class)
 public class QuarryPlus {
 	@SidedProxy(clientSide = "org.yogpstop.qp.client.ClientProxy", serverSide = "org.yogpstop.qp.CommonProxy")
 	public static CommonProxy proxy;
@@ -62,6 +66,14 @@ public class QuarryPlus {
 	public static final int guiIdFList = 3;
 	public static final int guiIdSList = 4;
 	public static final int guiIdPlacer = 5;
+
+	@ForgeSubscribe
+	public void onWorldUnload(WorldEvent.Unload event) {
+		for (TileMarker.Link l : TileMarker.linkList)
+			if (l.w == event.world) l.removeConnection(false);
+		for (TileMarker.Laser l : TileMarker.laserList)
+			if (l.w == event.world) l.destructor();
+	}
 
 	@Mod.EventHandler
 	public void preInit(FMLPreInitializationEvent event) {
@@ -106,6 +118,7 @@ public class QuarryPlus {
 		LanguageRegistry.instance().loadLocalization("/lang/yogpstop/quarryplus/en_US.lang", "en_US", false);
 		LanguageRegistry.instance().loadLocalization("/lang/yogpstop/quarryplus/ja_JP.lang", "ja_JP", false);
 		ForgeChunkManager.setForcedChunkLoadingCallback(instance, new ChunkLoadingHandler());
+		MinecraftForge.EVENT_BUS.register(this);
 	}
 
 	@Mod.EventHandler

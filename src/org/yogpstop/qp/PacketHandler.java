@@ -29,7 +29,10 @@ import net.minecraft.network.INetworkManager;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.Packet250CustomPayload;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.world.World;
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraftforge.common.DimensionManager;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
@@ -39,10 +42,11 @@ import cpw.mods.fml.common.network.Player;
 import cpw.mods.fml.common.network.IPacketHandler;
 
 public class PacketHandler implements IPacketHandler {
-	public static final String Tile = "QuarryPlusTile";
+	public static final String Tile = "QPTile";
 	public static final String NBT = "QPTENBT";
 	public static final String BTN = "QPGUIBUTTON";
 	public static final String OGUI = "QPOpenGUI";
+	public static final String Marker = "QPMarker";
 
 	public static final byte fortuneAdd = 1;
 	public static final byte silktouchAdd = 2;
@@ -56,9 +60,11 @@ public class PacketHandler implements IPacketHandler {
 	public static final byte packetSilktouchList = 10;
 	public static final byte signal = 11;
 	public static final byte link_response = 12;
-	public static final byte link_remove = 13;
-	public static final byte link_request = 14;
-	public static final byte infmjsrc = 15;
+	public static final byte link_request = 13;
+	public static final byte infmjsrc = 14;
+
+	public static final byte remove_link = 0;
+	public static final byte remove_laser = 1;
 
 	@Override
 	public void onPacketData(INetworkManager network, Packet250CustomPayload packet, Player player) {
@@ -78,7 +84,66 @@ public class PacketHandler implements IPacketHandler {
 			}
 		} else if (packet.channel.equals(OGUI)) {
 			openGuiFromPacket(ByteStreams.newDataInput(packet.data), (EntityPlayer) player);
+		} else if (packet.channel.equals(Marker)) {
+			ByteArrayDataInput data = ByteStreams.newDataInput(packet.data);
+			final byte flag = data.readByte();
+			final boolean isRemote = data.readBoolean();
+			final int dimId = data.readInt();
+			final World w = isRemote ? Minecraft.getMinecraft().theWorld : DimensionManager.getWorld(dimId);
+			if (w.provider.dimensionId != dimId) return;
+			if (flag == remove_link) {
+				final int index = TileMarker.linkList.indexOf(new TileMarker.Link(w, data.readInt(), data.readInt(), data.readInt(), data.readInt(), data
+						.readInt(), data.readInt()));
+				if (index >= 0) TileMarker.linkList.get(index).removeConnection(false);
+			} else if (flag == remove_laser) {
+				final int index = TileMarker.laserList.indexOf(new TileMarker.BlockIndex(w, data.readInt(), data.readInt(), data.readInt()));
+				if (index >= 0) TileMarker.laserList.get(index).destructor();
+			}
+
 		}
+	}
+
+	static void sendLinkRemovePacket(TileMarker.Link l) {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		DataOutputStream dos = new DataOutputStream(bos);
+		try {
+			dos.writeByte(remove_link);
+			dos.writeBoolean(!l.w.isRemote);
+			dos.writeInt(l.w.provider.dimensionId);
+			dos.writeInt(l.xx);
+			dos.writeInt(l.xn);
+			dos.writeInt(l.yx);
+			dos.writeInt(l.yn);
+			dos.writeInt(l.zx);
+			dos.writeInt(l.zn);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		Packet250CustomPayload packet = new Packet250CustomPayload();
+		packet.channel = Marker;
+		packet.data = bos.toByteArray();
+		packet.length = bos.size();
+		PacketDispatcher.sendPacketToAllPlayers(packet);
+	}
+
+	static void sendLaserRemovePacket(TileMarker.Laser l) {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		DataOutputStream dos = new DataOutputStream(bos);
+		try {
+			dos.writeByte(remove_laser);
+			dos.writeBoolean(!l.w.isRemote);
+			dos.writeInt(l.w.provider.dimensionId);
+			dos.writeInt(l.x);
+			dos.writeInt(l.y);
+			dos.writeInt(l.z);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		Packet250CustomPayload packet = new Packet250CustomPayload();
+		packet.channel = Marker;
+		packet.data = bos.toByteArray();
+		packet.length = bos.size();
+		PacketDispatcher.sendPacketToAllPlayers(packet);
 	}
 
 	public static Packet G_makeOpenGUIPacket(int guiId, int x, int y, int z) {
