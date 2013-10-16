@@ -95,7 +95,7 @@ public class BlockLaser extends BlockContainer {
 
 	@Override
 	public void onBlockPlacedBy(World world, int x, int y, int z, EntityLivingBase ent, ItemStack is) {
-		((TileLaser) world.getBlockTileEntity(x, y, z)).init(is.getEnchantmentTagList());
+		EnchantmentHelper.init((IEnchantableTile) world.getBlockTileEntity(x, y, z), is.getEnchantmentTagList());
 	}
 
 	private final ArrayList<ItemStack> drop = new ArrayList<ItemStack>();
@@ -111,7 +111,7 @@ public class BlockLaser extends BlockContainer {
 			id1 = idDropped(meta, world.rand, 0);
 			if (id1 > 0) {
 				is = new ItemStack(id1, 1, damageDropped(meta));
-				tile.setEnchantment(is);
+				EnchantmentHelper.enchantmentToIS(tile, is);
 				this.drop.add(is);
 			}
 		}
@@ -128,7 +128,7 @@ public class BlockLaser extends BlockContainer {
 		Item equipped = ep.getCurrentEquippedItem() != null ? ep.getCurrentEquippedItem().getItem() : null;
 		if (equipped instanceof ItemTool && ep.getCurrentEquippedItem().getItemDamage() == 0) {
 			if (world.isRemote) return true;
-			for (String s : ((TileLaser) world.getBlockTileEntity(x, y, z)).getEnchantments())
+			for (String s : EnchantmentHelper.getEnchantmentsChat((IEnchantableTile) world.getBlockTileEntity(x, y, z)))
 				PacketDispatcher.sendPacketToPlayer(new Packet3Chat(ChatMessageComponent.createFromText(s)), (Player) ep);
 			return true;
 		}

@@ -192,7 +192,7 @@ public class ContainerMover extends Container {
 	private boolean checkTo(final short id) {
 		ItemStack target = this.craftMatrix.getStackInSlot(1);
 		if (target != null) {
-			if (!(target.getItem() instanceof IMoveable) || !((IMoveable) target.getItem()).canMove(target, id, target.getItemDamage())) return false;
+			if (!(target.getItem() instanceof IEnchantableItem) || !((IEnchantableItem) target.getItem()).canMove(target, id, target.getItemDamage())) return false;
 			NBTTagList quarryE = target.getEnchantmentTagList();
 			if (quarryE != null) for (int i = 0; i < quarryE.tagCount(); i++) {
 				if (id == ((NBTTagCompound) quarryE.tagAt(i)).getShort("id")) {

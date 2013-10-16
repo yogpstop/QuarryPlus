@@ -17,15 +17,8 @@
 
 package org.yogpstop.qp;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
-import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeDirection;
 import net.minecraftforge.fluids.Fluid;
@@ -44,7 +37,7 @@ import com.google.common.io.ByteArrayDataInput;
 
 import cpw.mods.fml.common.network.PacketDispatcher;
 
-public class TileRefinery extends APacketTile implements IFluidHandler, IPowerReceptor {
+public class TileRefinery extends APacketTile implements IFluidHandler, IPowerReceptor, IEnchantableTile {
 	public FluidStack src1, src2, res;
 	private PowerHandler pp = new PowerHandler(this, Type.MACHINE);
 	private int ticks;
@@ -59,39 +52,10 @@ public class TileRefinery extends APacketTile implements IFluidHandler, IPowerRe
 
 	public int buf;
 
-	void G_init(NBTTagList nbttl) {
-		if (nbttl != null) for (int i = 0; i < nbttl.tagCount(); i++) {
-			short id = ((NBTTagCompound) nbttl.tagAt(i)).getShort("id");
-			short lvl = ((NBTTagCompound) nbttl.tagAt(i)).getShort("lvl");
-			if (id == 32) this.efficiency = (byte) lvl;
-			if (id == 33) this.silktouch = true;
-			if (id == 34) this.unbreaking = (byte) lvl;
-			if (id == 35) this.fortune = (byte) lvl;
-		}
-		G_reinit();
-	}
-
-	protected void G_reinit() {
+	@Override
+	public void G_reinit() {
 		PowerManager.configureR(this.pp, this.efficiency, this.unbreaking);
 		this.buf = (int) (FluidContainerRegistry.BUCKET_VOLUME * 4 * Math.pow(1.3, this.fortune));
-	}
-
-	public Collection<String> C_getEnchantments() {
-		ArrayList<String> als = new ArrayList<String>();
-		if (this.efficiency <= 0 && !this.silktouch && this.unbreaking <= 0 && this.fortune <= 0) als.add(StatCollector.translateToLocal("chat.plusenchantno"));
-		else als.add(StatCollector.translateToLocal("chat.plusenchant"));
-		if (this.efficiency > 0) als.add(Enchantment.enchantmentsList[32].getTranslatedName(this.efficiency));
-		if (this.silktouch) als.add(Enchantment.enchantmentsList[33].getTranslatedName(1));
-		if (this.unbreaking > 0) als.add(Enchantment.enchantmentsList[34].getTranslatedName(this.unbreaking));
-		if (this.fortune > 0) als.add(Enchantment.enchantmentsList[35].getTranslatedName(this.fortune));
-		return als;
-	}
-
-	void S_setEnchantment(ItemStack is) {
-		if (this.efficiency > 0) is.addEnchantment(Enchantment.enchantmentsList[32], this.efficiency);
-		if (this.silktouch) is.addEnchantment(Enchantment.enchantmentsList[33], 1);
-		if (this.unbreaking > 0) is.addEnchantment(Enchantment.enchantmentsList[34], this.unbreaking);
-		if (this.fortune > 0) is.addEnchantment(Enchantment.enchantmentsList[35], this.fortune);
 	}
 
 	@Override
@@ -315,5 +279,33 @@ public class TileRefinery extends APacketTile implements IFluidHandler, IPowerRe
 	@Override
 	public FluidTankInfo[] getTankInfo(ForgeDirection from) {
 		return new FluidTankInfo[] { new FluidTankInfo(this.src1, this.buf), new FluidTankInfo(this.src2, this.buf), new FluidTankInfo(this.res, this.buf) };
+	}
+
+	@Override
+	public byte getEfficiency() {
+		return this.efficiency;
+	}
+
+	@Override
+	public byte getFortune() {
+		return this.fortune;
+	}
+
+	@Override
+	public byte getUnbreaking() {
+		return this.unbreaking;
+	}
+
+	@Override
+	public boolean getSilktouch() {
+		return this.silktouch;
+	}
+
+	@Override
+	public void set(byte pefficiency, byte pfortune, byte punbreaking, boolean psilktouch) {
+		this.efficiency = pefficiency;
+		this.fortune = pfortune;
+		this.unbreaking = punbreaking;
+		this.silktouch = psilktouch;
 	}
 }

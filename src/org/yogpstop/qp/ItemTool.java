@@ -33,7 +33,7 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.Icon;
 import net.minecraft.world.World;
 
-public class ItemTool extends Item implements IMoveable {
+public class ItemTool extends Item implements IEnchantableItem {
 	Icon ile, ils;
 
 	public ItemTool(int par1) {

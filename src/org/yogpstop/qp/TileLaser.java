@@ -18,7 +18,6 @@
 package org.yogpstop.qp;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import static buildcraft.BuildCraftCore.actionOn;
@@ -34,16 +33,12 @@ import buildcraft.core.EntityEnergyLaser;
 import buildcraft.core.IMachine;
 import buildcraft.core.triggers.ActionMachineControl;
 import buildcraft.silicon.ILaserTarget;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeDirection;
 
-public class TileLaser extends TileEntity implements IPowerReceptor, IActionReceptor, IMachine {
+public class TileLaser extends TileEntity implements IPowerReceptor, IActionReceptor, IMachine, IEnchantableTile {
 	private EntityEnergyLaser[] lasers;
 	private final List<ILaserTarget> laserTargets = new ArrayList<ILaserTarget>();
 	protected final PowerHandler powerHandler = new PowerHandler(this, Type.MACHINE);
@@ -53,36 +48,6 @@ public class TileLaser extends TileEntity implements IPowerReceptor, IActionRece
 	protected byte fortune;
 	protected byte efficiency;
 	protected boolean silktouch;
-
-	void init(NBTTagList nbttl) {
-		if (nbttl != null) for (int i = 0; i < nbttl.tagCount(); i++) {
-			short id = ((NBTTagCompound) nbttl.tagAt(i)).getShort("id");
-			short lvl = ((NBTTagCompound) nbttl.tagAt(i)).getShort("lvl");
-			if (id == 32) this.efficiency = (byte) lvl;
-			if (id == 33) this.silktouch = true;
-			if (id == 34) this.unbreaking = (byte) lvl;
-			if (id == 35) this.fortune = (byte) lvl;
-		}
-		PowerManager.configureL(this.powerHandler, this.efficiency, this.unbreaking);
-	}
-
-	public Collection<String> getEnchantments() {
-		ArrayList<String> als = new ArrayList<String>();
-		if (this.efficiency <= 0 && !this.silktouch && this.unbreaking <= 0 && this.fortune <= 0) als.add(StatCollector.translateToLocal("chat.plusenchantno"));
-		else als.add(StatCollector.translateToLocal("chat.plusenchant"));
-		if (this.efficiency > 0) als.add(Enchantment.enchantmentsList[32].getTranslatedName(this.efficiency));
-		if (this.silktouch) als.add(Enchantment.enchantmentsList[33].getTranslatedName(1));
-		if (this.unbreaking > 0) als.add(Enchantment.enchantmentsList[34].getTranslatedName(this.unbreaking));
-		if (this.fortune > 0) als.add(Enchantment.enchantmentsList[35].getTranslatedName(this.fortune));
-		return als;
-	}
-
-	void setEnchantment(ItemStack is) {
-		if (this.efficiency > 0) is.addEnchantment(Enchantment.enchantmentsList[32], this.efficiency);
-		if (this.silktouch) is.addEnchantment(Enchantment.enchantmentsList[33], 1);
-		if (this.unbreaking > 0) is.addEnchantment(Enchantment.enchantmentsList[34], this.unbreaking);
-		if (this.fortune > 0) is.addEnchantment(Enchantment.enchantmentsList[35], this.fortune);
-	}
 
 	public TileLaser() {
 		PowerManager.configureL(this.powerHandler, this.efficiency, this.unbreaking);
@@ -285,5 +250,38 @@ public class TileLaser extends TileEntity implements IPowerReceptor, IActionRece
 	@Override
 	public World getWorld() {
 		return this.worldObj;
+	}
+
+	@Override
+	public byte getEfficiency() {
+		return this.efficiency;
+	}
+
+	@Override
+	public byte getFortune() {
+		return this.fortune;
+	}
+
+	@Override
+	public byte getUnbreaking() {
+		return this.unbreaking;
+	}
+
+	@Override
+	public boolean getSilktouch() {
+		return this.silktouch;
+	}
+
+	@Override
+	public void set(byte pefficiency, byte pfortune, byte punbreaking, boolean psilktouch) {
+		this.efficiency = pefficiency;
+		this.fortune = pfortune;
+		this.unbreaking = punbreaking;
+		this.silktouch = psilktouch;
+	}
+
+	@Override
+	public void G_reinit() {
+		PowerManager.configureL(this.powerHandler, this.efficiency, this.unbreaking);
 	}
 }

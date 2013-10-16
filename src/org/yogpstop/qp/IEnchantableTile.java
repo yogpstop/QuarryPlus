@@ -17,15 +17,16 @@
 
 package org.yogpstop.qp;
 
-import net.minecraft.item.ItemStack;
+public interface IEnchantableTile {
+	void G_reinit();
 
-public interface IMoveable {
-	/**
-	 * You should not think max enchantment level in this method
-	 * @param is target ItemStack. It is never null.
-	 * @param id target enchantment id or -1(EnchantMover accept that item)
-	 * @param meta ItemDamage
-	 * @return that ItemStack can move enchantment on EnchantMover
-	 * */
-	public boolean canMove(ItemStack is, int id, int meta);
+	byte getEfficiency();
+
+	byte getFortune();
+
+	byte getUnbreaking();
+
+	boolean getSilktouch();
+
+	void set(byte efficiency, byte fortune, byte unbreaking, boolean silktouch);
 }

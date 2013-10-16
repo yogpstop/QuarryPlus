@@ -71,17 +71,17 @@ public class TileMiningWell extends TileBasic {
 			depth--;
 		}
 		if (this.working) S_breakBlock(depth);
-		List<ItemStack> cache = new LinkedList<ItemStack>();
+		List<ItemStack> todelete = new LinkedList<ItemStack>();
 		for (ItemStack is : this.cacheItems) {
 			int added = addToRandomInventoryAround(this.worldObj, this.xCoord, this.yCoord, this.zCoord, is);
 			is.stackSize -= added;
 			if (is.stackSize > 0) {
 				added = addToRandomPipeAround(this.worldObj, this.xCoord, this.yCoord, this.zCoord, ForgeDirection.UNKNOWN, is);
 				is.stackSize -= added;
-				if (is.stackSize > 0) cache.add(is);
 			}
+			if (is.stackSize <= 0) todelete.add(is);
 		}
-		this.cacheItems = cache;
+		this.cacheItems.removeAll(todelete);
 	}
 
 	private boolean S_checkTarget(int depth) {
@@ -118,7 +118,7 @@ public class TileMiningWell extends TileBasic {
 	}
 
 	@Override
-	protected void G_reinit() {
+	public void G_reinit() {
 		this.working = true;
 		G_renew_powerConfigure();
 		sendNowPacket(this, (byte) 1);

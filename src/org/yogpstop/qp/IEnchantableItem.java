@@ -17,18 +17,15 @@
 
 package org.yogpstop.qp;
 
-import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 
-public class ItemBlockBreaker extends ItemBlock implements IEnchantableItem {
-
-	public ItemBlockBreaker(int par1) {
-		super(par1);
-	}
-
-	@Override
-	public boolean canMove(ItemStack is, int id, int meta) {
-		return id == 33 || id == 35 || id == -1;
-	}
-
+public interface IEnchantableItem {
+	/**
+	 * You should not think max enchantment level in this method
+	 * @param is target ItemStack. It is never null.
+	 * @param id target enchantment id or -1(EnchantMover accept that item)
+	 * @param meta ItemDamage
+	 * @return that ItemStack can move enchantment on EnchantMover
+	 * */
+	public boolean canMove(ItemStack is, int id, int meta);
 }

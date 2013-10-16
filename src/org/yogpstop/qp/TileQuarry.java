@@ -27,7 +27,6 @@ import com.google.common.collect.Sets;
 import com.google.common.io.ByteArrayDataInput;
 
 import cpw.mods.fml.common.network.PacketDispatcher;
-
 import buildcraft.api.core.IAreaProvider;
 import buildcraft.api.core.LaserKind;
 import static buildcraft.BuildCraftFactory.frameBlock;
@@ -35,16 +34,13 @@ import buildcraft.core.Box;
 import buildcraft.core.proxy.CoreProxy;
 import static buildcraft.core.utils.Utils.addToRandomPipeAround;
 import static buildcraft.core.utils.Utils.addToRandomInventoryAround;
-
 import net.minecraft.block.Block;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.ChunkCoordIntPair;
-
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.ForgeChunkManager.Ticket;
 import net.minecraftforge.common.ForgeChunkManager.Type;
@@ -81,17 +77,17 @@ public class TileQuarry extends TileBasic {
 				S_setNextTarget();
 			break;
 		}
-		List<ItemStack> cache = new LinkedList<ItemStack>();
+		List<ItemStack> todelete = new LinkedList<ItemStack>();
 		for (ItemStack is : this.cacheItems) {
 			int added = addToRandomInventoryAround(this.worldObj, this.xCoord, this.yCoord, this.zCoord, is);
 			is.stackSize -= added;
 			if (is.stackSize > 0) {
 				added = addToRandomPipeAround(this.worldObj, this.xCoord, this.yCoord, this.zCoord, ForgeDirection.UNKNOWN, is);
 				is.stackSize -= added;
-				if (is.stackSize > 0) cache.add(is);
 			}
+			if (is.stackSize <= 0) todelete.add(is);
 		}
-		this.cacheItems = cache;
+		this.cacheItems.removeAll(todelete);
 	}
 
 	private boolean S_checkTarget() {
@@ -191,13 +187,11 @@ public class TileQuarry extends TileBasic {
 				this.addX = !this.addX;
 				this.changeZ = true;
 				this.targetX = Math.max(this.box.xMin, Math.min(this.box.xMax, this.targetX));
-				S_setNextTarget();
 			}
 			if (this.targetZ < this.box.zMin || this.box.zMax < this.targetZ) {
 				this.addZ = !this.addZ;
 				this.changeZ = false;
 				this.targetZ = Math.max(this.box.zMin, Math.min(this.box.zMax, this.targetZ));
-				S_setNextTarget();
 			}
 			if (this.box.xMin == this.targetX && this.box.zMin == this.targetZ) {
 				if (this.digged) this.digged = false;
@@ -424,7 +418,8 @@ public class TileQuarry extends TileBasic {
 	}
 
 	@Override
-	protected void G_reinit() {
+	public void G_reinit() {
+		if (!this.box.isInitialized() && !this.worldObj.isRemote) S_createBox();
 		this.now = NOTNEEDBREAK;
 		G_renew_powerConfigure();
 		G_initEntities();
@@ -436,16 +431,9 @@ public class TileQuarry extends TileBasic {
 		}
 	}
 
-	@Override
-	void G_init(NBTTagList nbttl) {
-		if (!this.worldObj.isRemote) S_createBox();
-		requestTicket();
-		super.G_init(nbttl);
-	}
-
 	private Ticket chunkTicket;
 
-	private void requestTicket() {
+	void requestTicket() {
 		if (this.chunkTicket != null) return;
 		this.chunkTicket = ForgeChunkManager.requestTicket(QuarryPlus.instance, this.worldObj, Type.NORMAL);
 		if (this.chunkTicket == null) return;
@@ -473,6 +461,7 @@ public class TileQuarry extends TileBasic {
 		super.updateEntity();
 		if (!this.initialized) {
 			G_initEntities();
+			G_renew_powerConfigure();
 			this.initialized = true;
 		}
 		if (!this.worldObj.isRemote) S_updateEntity();
@@ -494,7 +483,6 @@ public class TileQuarry extends TileBasic {
 		this.headPosY = nbttc.getDouble("headPosY");
 		this.headPosZ = nbttc.getDouble("headPosZ");
 		this.initialized = false;
-		G_renew_powerConfigure();
 	}
 
 	@Override

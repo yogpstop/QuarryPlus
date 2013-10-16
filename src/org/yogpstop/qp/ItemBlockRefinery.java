@@ -20,7 +20,7 @@ package org.yogpstop.qp;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 
-public class ItemBlockRefinery extends ItemBlock implements IMoveable {
+public class ItemBlockRefinery extends ItemBlock implements IEnchantableItem {
 
 	public ItemBlockRefinery(int par1) {
 		super(par1);

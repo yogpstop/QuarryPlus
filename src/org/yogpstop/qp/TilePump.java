@@ -17,10 +17,7 @@
 
 package org.yogpstop.qp;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
-
 import com.google.common.io.ByteArrayDataInput;
 
 import cpw.mods.fml.common.network.PacketDispatcher;
@@ -31,10 +28,7 @@ import buildcraft.api.power.PowerHandler;
 import buildcraft.api.power.PowerHandler.PowerReceiver;
 import buildcraft.core.Box;
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockFluid;
-import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
@@ -53,7 +47,7 @@ import net.minecraftforge.fluids.FluidTankInfo;
 import net.minecraftforge.fluids.IFluidBlock;
 import net.minecraftforge.fluids.IFluidHandler;
 
-public class TilePump extends APacketTile implements IFluidHandler, IPowerReceptor {
+public class TilePump extends APacketTile implements IFluidHandler, IPowerReceptor, IEnchantableTile {
 	private ForgeDirection connectTo = ForgeDirection.UNKNOWN;
 	private boolean initialized = false;
 
@@ -154,34 +148,8 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 		}
 	}
 
-	void S_setEnchantment(ItemStack is) {
-		if (this.silktouch) is.addEnchantment(Enchantment.enchantmentsList[33], 1);
-		if (this.unbreaking > 0) is.addEnchantment(Enchantment.enchantmentsList[34], this.unbreaking);
-		if (this.fortune > 0) is.addEnchantment(Enchantment.enchantmentsList[35], this.fortune);
-	}
-
-	public List<String> C_getEnchantments() {
-		ArrayList<String> als = new ArrayList<String>();
-		if (!this.silktouch && this.unbreaking <= 0 && this.fortune <= 0) als.add(StatCollector.translateToLocal("chat.plusenchantno"));
-		else als.add(StatCollector.translateToLocal("chat.plusenchant"));
-		if (this.silktouch) als.add(Enchantment.enchantmentsList[33].getTranslatedName(1));
-		if (this.unbreaking > 0) als.add(Enchantment.enchantmentsList[34].getTranslatedName(this.unbreaking));
-		if (this.fortune > 0) als.add(Enchantment.enchantmentsList[35].getTranslatedName(this.fortune));
-		return als;
-	}
-
-	void G_init(NBTTagList nbttl) {
-		if (nbttl != null) for (int i = 0; i < nbttl.tagCount(); i++) {
-			short id = ((NBTTagCompound) nbttl.tagAt(i)).getShort("id");
-			short lvl = ((NBTTagCompound) nbttl.tagAt(i)).getShort("lvl");
-			if (id == 33) this.silktouch = true;
-			if (id == 34) this.unbreaking = (byte) lvl;
-			if (id == 35) this.fortune = (byte) lvl;
-		}
-		G_reinit();
-	}
-
-	void G_reinit() {
+	@Override
+	public void G_reinit() {
 		if (this.worldObj.isRemote) return;
 		TileEntity te;
 		for (ForgeDirection fd : ForgeDirection.VALID_DIRECTIONS) {
@@ -405,7 +373,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 	}
 
 	// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+	// TODO pump rework
 	private final LinkedList<FluidStack> liquids = new LinkedList<FluidStack>();
 	private final String[] mapping = new String[ForgeDirection.VALID_DIRECTIONS.length];
 
@@ -414,16 +382,16 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 		if (this.liquids.size() != 0) {
 			ret[0] = StatCollector.translateToLocal("chat.pumpcontain");
 			for (int i = 0; i < this.liquids.size(); i++) {
-				ret[i + 1] = new StringBuilder().append(FluidRegistry.getFluidName(this.liquids.get(i))).append(": ").append(this.liquids.get(i).amount)
-						.append("mB").toString();
+				ret[i + 1] = new StringBuilder().append("    ").append(FluidRegistry.getFluidName(this.liquids.get(i))).append(": ")
+						.append(this.liquids.get(i).amount).append("mB").toString();
 			}
 		} else {
 			ret[0] = StatCollector.translateToLocal("chat.pumpcontainno");
 		}
 		ret[this.liquids.size() + 1] = StatCollector.translateToLocal("chat.pumpmapping");
 		for (int i = 0; i < this.mapping.length; i++) {
-			ret[this.liquids.size() + i + 2] = new StringBuilder().append(fdToString(ForgeDirection.getOrientation(i))).append(": ").append(this.mapping[i])
-					.toString();
+			ret[this.liquids.size() + i + 2] = new StringBuilder().append("    ").append(fdToString(ForgeDirection.getOrientation(i))).append(": ")
+					.append(this.mapping[i]).toString();
 		}
 		return ret;
 	}
@@ -502,7 +470,8 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 
 	// //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	private static final boolean isLiquid(Block b) {
-		return b == null ? false : (b instanceof IFluidBlock || b instanceof BlockFluid || b.blockMaterial.isLiquid());
+		return b == null ? false
+				: (b instanceof IFluidBlock || b == Block.waterStill || b == Block.waterMoving || b == Block.lavaStill || b == Block.lavaMoving);
 	}
 
 	@Override
@@ -517,5 +486,32 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 	@Override
 	public World getWorld() {
 		return this.worldObj;
+	}
+
+	@Override
+	public byte getEfficiency() {
+		return 0;
+	}
+
+	@Override
+	public byte getFortune() {
+		return this.fortune;
+	}
+
+	@Override
+	public byte getUnbreaking() {
+		return this.unbreaking;
+	}
+
+	@Override
+	public boolean getSilktouch() {
+		return this.silktouch;
+	}
+
+	@Override
+	public void set(byte pefficiency, byte pfortune, byte punbreaking, boolean psilktouch) {
+		this.fortune = pfortune;
+		this.unbreaking = punbreaking;
+		this.silktouch = psilktouch;
 	}
 }

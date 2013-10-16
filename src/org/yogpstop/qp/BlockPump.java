@@ -97,14 +97,14 @@ public class BlockPump extends BlockContainer {
 	@Override
 	public void breakBlock(World world, int x, int y, int z, int id, int meta) {
 		this.drop.clear();
-		TilePump tp = (TilePump) world.getBlockTileEntity(x, y, z);
-		if (world.isRemote || tp == null) return;
+		TilePump tile = (TilePump) world.getBlockTileEntity(x, y, z);
+		if (world.isRemote || tile == null) return;
 		int count = quantityDropped(meta, 0, world.rand);
 		int id1 = idDropped(meta, world.rand, 0);
 		if (id1 > 0) {
 			for (int i = 0; i < count; i++) {
 				ItemStack is = new ItemStack(id1, 1, damageDropped(meta));
-				tp.S_setEnchantment(is);
+				EnchantmentHelper.enchantmentToIS(tile, is);
 				this.drop.add(is);
 			}
 		}
@@ -117,9 +117,9 @@ public class BlockPump extends BlockContainer {
 	}
 
 	@Override
-	public void onBlockPlacedBy(World w, int x, int y, int z, EntityLivingBase el, ItemStack stack) {
-		super.onBlockPlacedBy(w, x, y, z, el, stack);
-		((TilePump) w.getBlockTileEntity(x, y, z)).G_init(stack.getEnchantmentTagList());
+	public void onBlockPlacedBy(World w, int x, int y, int z, EntityLivingBase el, ItemStack is) {
+		super.onBlockPlacedBy(w, x, y, z, el, is);
+		EnchantmentHelper.init((IEnchantableTile) w.getBlockTileEntity(x, y, z), is.getEnchantmentTagList());
 	}
 
 	@Override
@@ -141,7 +141,7 @@ public class BlockPump extends BlockContainer {
 				if (world.isRemote) return true;
 				for (String s : ((TilePump) world.getBlockTileEntity(x, y, z)).C_getNames())
 					PacketDispatcher.sendPacketToPlayer(new Packet3Chat(ChatMessageComponent.createFromText(s)), (Player) ep);
-				for (String s : ((TilePump) world.getBlockTileEntity(x, y, z)).C_getEnchantments())
+				for (String s : EnchantmentHelper.getEnchantmentsChat((IEnchantableTile) world.getBlockTileEntity(x, y, z)))
 					PacketDispatcher.sendPacketToPlayer(new Packet3Chat(ChatMessageComponent.createFromText(s)), (Player) ep);
 				return true;
 			}

@@ -55,8 +55,10 @@ public class PacketHandler implements IPacketHandler {
 	public static final byte packetFortuneList = 9;
 	public static final byte packetSilktouchList = 10;
 	public static final byte signal = 11;
-	public static final byte link = 12;
-	public static final byte infmjsrc = 13;
+	public static final byte link_response = 12;
+	public static final byte link_remove = 13;
+	public static final byte link_request = 14;
+	public static final byte infmjsrc = 15;
 
 	@Override
 	public void onPacketData(INetworkManager network, Packet250CustomPayload packet, Player player) {
@@ -229,7 +231,7 @@ public class PacketHandler implements IPacketHandler {
 		PacketDispatcher.sendPacketToAllAround(te.xCoord, te.yCoord, te.zCoord, 256, te.worldObj.provider.dimensionId, composeTilePacket(bos));
 	}
 
-	static void sendMarkerPacket(APacketTile te, byte id, boolean data) {
+	static void sendPacketToAround(APacketTile te, byte id) {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		DataOutputStream dos = new DataOutputStream(bos);
 		try {
@@ -237,7 +239,6 @@ public class PacketHandler implements IPacketHandler {
 			dos.writeInt(te.yCoord);
 			dos.writeInt(te.zCoord);
 			dos.writeByte(id);
-			dos.writeBoolean(data);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -268,7 +269,7 @@ public class PacketHandler implements IPacketHandler {
 			dos.writeInt(te.xCoord);
 			dos.writeInt(te.yCoord);
 			dos.writeInt(te.zCoord);
-			dos.writeByte(link);
+			dos.writeByte(link_response);
 			dos.writeInt(l.xx);
 			dos.writeInt(l.xn);
 			dos.writeInt(l.yx);
@@ -288,7 +289,7 @@ public class PacketHandler implements IPacketHandler {
 			dos.writeInt(te.xCoord);
 			dos.writeInt(te.yCoord);
 			dos.writeInt(te.zCoord);
-			dos.writeByte(link);
+			dos.writeByte(link_response);
 			dos.writeInt(l.xx);
 			dos.writeInt(l.xn);
 			dos.writeInt(l.yx);

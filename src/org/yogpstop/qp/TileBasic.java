@@ -31,23 +31,22 @@ import com.google.common.io.ByteArrayDataInput;
 import cpw.mods.fml.common.network.PacketDispatcher;
 import cpw.mods.fml.common.network.Player;
 import net.minecraft.block.Block;
-import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagLong;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeDirection;
+import net.minecraftforge.fluids.IFluidBlock;
 import buildcraft.api.gates.IAction;
 import buildcraft.api.power.PowerHandler;
 import buildcraft.api.power.IPowerReceptor;
 import buildcraft.api.power.PowerHandler.PowerReceiver;
 import buildcraft.core.IMachine;
 
-public abstract class TileBasic extends APacketTile implements IPowerReceptor, IMachine {
+public abstract class TileBasic extends APacketTile implements IPowerReceptor, IMachine, IEnchantableTile {
 	protected ForgeDirection pump = ForgeDirection.UNKNOWN;
 
 	protected PowerHandler pp = new PowerHandler(this, PowerHandler.Type.MACHINE);
@@ -61,7 +60,7 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 	protected boolean silktouch;
 	protected byte efficiency;
 
-	protected List<ItemStack> cacheItems = new LinkedList<ItemStack>();
+	protected final List<ItemStack> cacheItems = new LinkedList<ItemStack>();
 
 	@Override
 	protected void S_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {
@@ -100,8 +99,6 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 	}
 
 	protected abstract void G_renew_powerConfigure();
-
-	protected abstract void G_reinit();
 
 	protected abstract void G_destroy();
 
@@ -143,21 +140,10 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		}
 	}
 
-	void G_init(NBTTagList nbttl) {
-		if (nbttl != null) for (int i = 0; i < nbttl.tagCount(); i++) {
-			short id = ((NBTTagCompound) nbttl.tagAt(i)).getShort("id");
-			short lvl = ((NBTTagCompound) nbttl.tagAt(i)).getShort("lvl");
-			if (id == 32) this.efficiency = (byte) lvl;
-			if (id == 33) this.silktouch = true;
-			if (id == 34) this.unbreaking = (byte) lvl;
-			if (id == 35) this.fortune = (byte) lvl;
-		}
-		G_reinit();
-	}
-
 	protected boolean S_breakBlock(int x, int y, int z, PowerManager.BreakType t) {
 		Collection<ItemStack> dropped = new LinkedList<ItemStack>();
-		if (this.worldObj.getBlockMaterial(x, y, z).isLiquid()) {
+		Block b = Block.blocksList[this.worldObj.getBlockId(x, y, z)];
+		if (b instanceof IFluidBlock || b == Block.waterStill || b == Block.waterMoving || b == Block.lavaStill || b == Block.lavaMoving) {
 			TileEntity te = this.worldObj.getBlockTileEntity(this.xCoord + this.pump.offsetX, this.yCoord + this.pump.offsetY, this.zCoord + this.pump.offsetZ);
 			if (!(te instanceof TilePump)) {
 				this.pump = ForgeDirection.UNKNOWN;
@@ -254,24 +240,6 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		createStackedBlock = buf;
 	}
 
-	public Collection<String> C_getEnchantments() {
-		ArrayList<String> als = new ArrayList<String>();
-		if (this.efficiency <= 0 && !this.silktouch && this.unbreaking <= 0 && this.fortune <= 0) als.add(StatCollector.translateToLocal("chat.plusenchantno"));
-		else als.add(StatCollector.translateToLocal("chat.plusenchant"));
-		if (this.efficiency > 0) als.add(Enchantment.enchantmentsList[32].getTranslatedName(this.efficiency));
-		if (this.silktouch) als.add(Enchantment.enchantmentsList[33].getTranslatedName(1));
-		if (this.unbreaking > 0) als.add(Enchantment.enchantmentsList[34].getTranslatedName(this.unbreaking));
-		if (this.fortune > 0) als.add(Enchantment.enchantmentsList[35].getTranslatedName(this.fortune));
-		return als;
-	}
-
-	void S_setEnchantment(ItemStack is) {
-		if (this.efficiency > 0) is.addEnchantment(Enchantment.enchantmentsList[32], this.efficiency);
-		if (this.silktouch) is.addEnchantment(Enchantment.enchantmentsList[33], 1);
-		if (this.unbreaking > 0) is.addEnchantment(Enchantment.enchantmentsList[34], this.unbreaking);
-		if (this.fortune > 0) is.addEnchantment(Enchantment.enchantmentsList[35], this.fortune);
-	}
-
 	@Override
 	public void readFromNBT(NBTTagCompound nbttc) {
 		super.readFromNBT(nbttc);
@@ -319,5 +287,33 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 	@Override
 	public World getWorld() {
 		return this.worldObj;
+	}
+
+	@Override
+	public byte getEfficiency() {
+		return this.efficiency;
+	}
+
+	@Override
+	public byte getFortune() {
+		return this.fortune;
+	}
+
+	@Override
+	public byte getUnbreaking() {
+		return this.unbreaking;
+	}
+
+	@Override
+	public boolean getSilktouch() {
+		return this.silktouch;
+	}
+
+	@Override
+	public void set(byte pefficiency, byte pfortune, byte punbreaking, boolean psilktouch) {
+		this.efficiency = pefficiency;
+		this.fortune = pfortune;
+		this.unbreaking = punbreaking;
+		this.silktouch = psilktouch;
 	}
 }
