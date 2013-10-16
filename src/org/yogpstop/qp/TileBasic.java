@@ -20,6 +20,8 @@ package org.yogpstop.qp;
 import static org.yogpstop.qp.QuarryPlus.data;
 import static org.yogpstop.qp.PacketHandler.*;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -62,38 +64,51 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 
 	protected final List<ItemStack> cacheItems = new LinkedList<ItemStack>();
 
+	void sendOpenGUI(EntityPlayer ep, byte id) {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		DataOutputStream dos = new DataOutputStream(bos);
+		try {
+			dos.writeInt(this.xCoord);
+			dos.writeInt(this.yCoord);
+			dos.writeInt(this.zCoord);
+			dos.writeByte(id);
+			dos.writeBoolean(id == StC_OPENGUI_FORTUNE ? this.fortuneInclude : this.silktouchInclude);
+			List<Long> target = id == StC_OPENGUI_FORTUNE ? this.fortuneList : this.silktouchList;
+			dos.writeInt(target.size());
+			for (Long l : target)
+				dos.writeLong(l);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		PacketDispatcher.sendPacketToPlayer(composeTilePacket(bos), (Player) ep);
+	}
+
 	@Override
 	protected void S_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {
 		switch (pattern) {
-		case fortuneAdd:
+		case CtS_ADD_FORTUNE:
 			this.fortuneList.add(data.readLong());
-			sendPacketToPlayer(this, ep, packetFortuneList, this.fortuneList);
-			PacketDispatcher.sendPacketToPlayer(PacketHandler.G_makeOpenGUIPacket(QuarryPlus.guiIdFList, this.xCoord, this.yCoord, this.zCoord), (Player) ep);
+			sendOpenGUI(ep, StC_OPENGUI_FORTUNE);
 			break;
-		case fortuneRemove:
+		case CtS_REMOVE_FORTUNE:
 			this.fortuneList.remove(data.readLong());
-			sendPacketToPlayer(this, ep, packetFortuneList, this.fortuneList);
-			PacketDispatcher.sendPacketToPlayer(PacketHandler.G_makeOpenGUIPacket(QuarryPlus.guiIdFList, this.xCoord, this.yCoord, this.zCoord), (Player) ep);
+			sendOpenGUI(ep, StC_OPENGUI_FORTUNE);
 			break;
-		case silktouchAdd:
+		case CtS_ADD_SILKTOUCH:
 			this.silktouchList.add(data.readLong());
-			sendPacketToPlayer(this, ep, packetSilktouchList, this.silktouchList);
-			PacketDispatcher.sendPacketToPlayer(PacketHandler.G_makeOpenGUIPacket(QuarryPlus.guiIdSList, this.xCoord, this.yCoord, this.zCoord), (Player) ep);
+			sendOpenGUI(ep, StC_OPENGUI_SILKTOUCH);
 			break;
-		case silktouchRemove:
+		case CtS_REMOVE_SILKTOUCH:
 			this.silktouchList.remove(data.readLong());
-			sendPacketToPlayer(this, ep, packetSilktouchList, this.silktouchList);
-			PacketDispatcher.sendPacketToPlayer(PacketHandler.G_makeOpenGUIPacket(QuarryPlus.guiIdSList, this.xCoord, this.yCoord, this.zCoord), (Player) ep);
+			sendOpenGUI(ep, StC_OPENGUI_SILKTOUCH);
 			break;
-		case fortuneTInc:
+		case CtS_TOGGLE_FORTUNE:
 			this.fortuneInclude = !this.fortuneInclude;
-			sendPacketToPlayer(this, ep, fortuneTInc, this.fortuneInclude);
-			PacketDispatcher.sendPacketToPlayer(PacketHandler.G_makeOpenGUIPacket(QuarryPlus.guiIdFList, this.xCoord, this.yCoord, this.zCoord), (Player) ep);
+			sendOpenGUI(ep, StC_OPENGUI_FORTUNE);
 			break;
-		case silktouchTInc:
+		case CtS_TOGGLE_SILKTOUCH:
 			this.silktouchInclude = !this.silktouchInclude;
-			sendPacketToPlayer(this, ep, silktouchTInc, this.silktouchInclude);
-			PacketDispatcher.sendPacketToPlayer(PacketHandler.G_makeOpenGUIPacket(QuarryPlus.guiIdSList, this.xCoord, this.yCoord, this.zCoord), (Player) ep);
+			sendOpenGUI(ep, StC_OPENGUI_SILKTOUCH);
 			break;
 		}
 	}
@@ -115,27 +130,25 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 	}
 
 	@Override
-	protected void C_recievePacket(byte pattern, ByteArrayDataInput data) {
+	protected void C_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {
 		switch (pattern) {
-		case packetFortuneList:
+		case StC_OPENGUI_FORTUNE:
+			this.fortuneInclude = data.readBoolean();
 			this.fortuneList.clear();
 			int fsize = data.readInt();
 			for (int i = 0; i < fsize; i++) {
 				this.fortuneList.add(data.readLong());
 			}
+			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdFList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
 			break;
-		case packetSilktouchList:
+		case StC_OPENGUI_SILKTOUCH:
+			this.silktouchInclude = data.readBoolean();
 			this.silktouchList.clear();
 			int ssize = data.readInt();
 			for (int i = 0; i < ssize; i++) {
 				this.silktouchList.add(data.readLong());
 			}
-			break;
-		case fortuneTInc:
-			this.fortuneInclude = data.readBoolean();
-			break;
-		case silktouchTInc:
-			this.silktouchInclude = data.readBoolean();
+			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdSList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
 			break;
 		}
 	}
@@ -249,12 +262,12 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		this.unbreaking = nbttc.getByte("unbreaking");
 		this.fortuneInclude = nbttc.getBoolean("fortuneInclude");
 		this.silktouchInclude = nbttc.getBoolean("silktouchInclude");
-		readArrayList(nbttc.getTagList("fortuneList"), this.fortuneList);
-		readArrayList(nbttc.getTagList("silktouchList"), this.silktouchList);
+		readLongCollection(nbttc.getTagList("fortuneList"), this.fortuneList);
+		readLongCollection(nbttc.getTagList("silktouchList"), this.silktouchList);
 		this.pp.readFromNBT(nbttc);
 	}
 
-	private static void readArrayList(NBTTagList nbttl, Collection<Long> target) {
+	private static void readLongCollection(NBTTagList nbttl, Collection<Long> target) {
 		target.clear();
 		for (int i = 0; i < nbttl.tagCount(); i++)
 			target.add(((NBTTagLong) nbttl.tagAt(i)).data);
@@ -269,12 +282,12 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		nbttc.setByte("unbreaking", this.unbreaking);
 		nbttc.setBoolean("fortuneInclude", this.fortuneInclude);
 		nbttc.setBoolean("silktouchInclude", this.silktouchInclude);
-		nbttc.setTag("fortuneList", writeArrayList(this.fortuneList));
-		nbttc.setTag("silktouchList", writeArrayList(this.silktouchList));
+		nbttc.setTag("fortuneList", writeLongCollection(this.fortuneList));
+		nbttc.setTag("silktouchList", writeLongCollection(this.silktouchList));
 		this.pp.writeToNBT(nbttc);
 	}
 
-	private static NBTTagList writeArrayList(Collection<Long> target) {
+	private static NBTTagList writeLongCollection(Collection<Long> target) {
 		NBTTagList nbttl = new NBTTagList();
 		for (Long l : target)
 			nbttl.appendTag(new NBTTagLong("", l));

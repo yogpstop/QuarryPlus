@@ -17,6 +17,9 @@
 
 package org.yogpstop.qp.client;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+
 import org.lwjgl.opengl.GL11;
 
 import cpw.mods.fml.common.network.PacketDispatcher;
@@ -100,7 +103,19 @@ public class GuiInfMJSrc extends GuiScreen {
 				this.itv.setText(StatCollector.translateToLocal("tof.error"));
 				return;
 			}
-			PacketDispatcher.sendPacketToServer(PacketHandler.makeInfMJSrcPacket(this.x, this.y, this.z, this.pw, this.it));
+			ByteArrayOutputStream bos = new ByteArrayOutputStream();
+			DataOutputStream dos = new DataOutputStream(bos);
+			try {
+				dos.writeInt(this.x);
+				dos.writeInt(this.y);
+				dos.writeInt(this.z);
+				dos.writeByte(PacketHandler.CtS_INFMJSRC);
+				dos.writeFloat(this.pw);
+				dos.writeInt(this.it);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			PacketDispatcher.sendPacketToServer(PacketHandler.composeTilePacket(bos));
 			break;
 		}
 	}

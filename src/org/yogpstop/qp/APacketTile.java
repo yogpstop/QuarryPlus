@@ -26,7 +26,7 @@ import com.google.common.io.ByteArrayDataInput;
 public abstract class APacketTile extends TileEntity {
 	abstract void S_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep);
 
-	abstract void C_recievePacket(byte pattern, ByteArrayDataInput data);
+	abstract void C_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep);
 
 	@Override
 	public final Packet getDescriptionPacket() {

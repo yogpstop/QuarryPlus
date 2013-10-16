@@ -17,7 +17,11 @@
 
 package org.yogpstop.qp;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.util.Collection;
 import java.util.LinkedList;
+
 import com.google.common.io.ByteArrayDataInput;
 
 import cpw.mods.fml.common.network.PacketDispatcher;
@@ -77,14 +81,8 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 		this.fortune = nbttc.getByte("fortune");
 		this.unbreaking = nbttc.getByte("unbreaking");
 		this.connectTo = ForgeDirection.values()[nbttc.getByte("connectTo")];
-		if (nbttc.getTag("mapping0") instanceof NBTTagString) {
-			this.mapping[0] = nbttc.getString("mapping0");
-			this.mapping[1] = nbttc.getString("mapping1");
-			this.mapping[2] = nbttc.getString("mapping2");
-			this.mapping[3] = nbttc.getString("mapping3");
-			this.mapping[4] = nbttc.getString("mapping4");
-			this.mapping[5] = nbttc.getString("mapping5");
-		}
+		if (nbttc.getTag("mapping0") instanceof NBTTagList) for (int i = 0; i < this.mapping.length; i++)
+			readStringCollection(nbttc.getTagList(String.format("mapping%d", i)), this.mapping[i]);
 		this.range = nbttc.getByte("range");
 		this.quarryRange = nbttc.getBoolean("quarryRange");
 		this.prev = (byte) (this.connectTo.ordinal() | (G_working() ? 0x80 : 0));
@@ -97,6 +95,12 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 		}
 	}
 
+	private static void readStringCollection(NBTTagList nbttl, Collection<String> target) {
+		target.clear();
+		for (int i = 0; i < nbttl.tagCount(); i++)
+			target.add(((NBTTagString) nbttl.tagAt(i)).data);
+	}
+
 	@Override
 	public void writeToNBT(NBTTagCompound nbttc) {
 		super.writeToNBT(nbttc);
@@ -104,12 +108,8 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 		nbttc.setByte("fortune", this.fortune);
 		nbttc.setByte("unbreaking", this.unbreaking);
 		nbttc.setByte("connectTo", (byte) this.connectTo.ordinal());
-		nbttc.setString("mapping0", this.mapping[0] == null ? "null" : this.mapping[0]);
-		nbttc.setString("mapping1", this.mapping[1] == null ? "null" : this.mapping[1]);
-		nbttc.setString("mapping2", this.mapping[2] == null ? "null" : this.mapping[2]);
-		nbttc.setString("mapping3", this.mapping[3] == null ? "null" : this.mapping[3]);
-		nbttc.setString("mapping4", this.mapping[4] == null ? "null" : this.mapping[4]);
-		nbttc.setString("mapping5", this.mapping[5] == null ? "null" : this.mapping[5]);
+		for (int i = 0; i < this.mapping.length; i++)
+			nbttc.setTag(String.format("mapping%d", i), writeStringCollection(this.mapping[i]));
 		nbttc.setByte("range", this.range);
 		nbttc.setBoolean("quarryRange", this.quarryRange);
 		if (this.silktouch) {
@@ -120,6 +120,13 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 		}
 	}
 
+	private static NBTTagList writeStringCollection(Collection<String> target) {
+		NBTTagList nbttl = new NBTTagList();
+		for (String l : target)
+			nbttl.appendTag(new NBTTagString("", l));
+		return nbttl;
+	}
+
 	@Override
 	public void updateEntity() {
 		super.updateEntity();
@@ -127,11 +134,16 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 		TileEntity te;
 		FluidStack fs;
 		for (ForgeDirection fd : ForgeDirection.VALID_DIRECTIONS) {
-			pZ = this.liquids.indexOf(FluidRegistry.getFluidStack(this.mapping[fd.ordinal()], 0));
-			if (pZ == -1) continue;
-			fs = this.liquids.get(pZ);
 			te = this.worldObj.getBlockTileEntity(this.xCoord + fd.offsetX, this.yCoord + fd.offsetY, this.zCoord + fd.offsetZ);
-			if (te instanceof IFluidHandler) fs.amount -= ((IFluidHandler) te).fill(fd.getOpposite(), fs, true);
+			if (te instanceof IFluidHandler) {
+				for (String s : this.mapping[fd.ordinal()]) {
+					pZ = this.liquids.indexOf(FluidRegistry.getFluidStack(s, 0));
+					if (pZ == -1) continue;
+					fs = this.liquids.get(pZ);
+					fs.amount -= ((IFluidHandler) te).fill(fd.getOpposite(), fs, true);
+					break;
+				}
+			}
 		}
 		if (this.worldObj.isRemote || this.initialized) return;
 		pX = this.xCoord + this.connectTo.offsetX;
@@ -174,19 +186,101 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 	}
 
 	@Override
-	void S_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {}
+	void S_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {
+		byte target;
+		int pos;
+		String buf;
+		switch (pattern) {
+		case PacketHandler.CtS_ADD_MAPPING:// BLjava.lang.String;
+			target = data.readByte();
+			this.mapping[target].add(data.readUTF());
+			S_OpenGUI(target, ep);
+			break;
+		case PacketHandler.CtS_REMOVE_MAPPING:// BLjava.lang.String;
+			target = data.readByte();
+			this.mapping[target].remove(data.readUTF());
+			S_OpenGUI(target, ep);
+			break;
+		case PacketHandler.CtS_UP_MAPPING:// BLjava.lang.String;
+			target = data.readByte();
+			pos = this.mapping[target].indexOf(data.readUTF());
+			if (pos > 0) {
+				buf = this.mapping[target].get(pos);
+				this.mapping[target].remove(pos);
+				this.mapping[target].add(pos - 1, buf);
+			}
+			S_OpenGUI(target, ep);
+			break;
+		case PacketHandler.CtS_DOWN_MAPPING:// BLjava.lang.String;
+			target = data.readByte();
+			pos = this.mapping[target].indexOf(data.readUTF());
+			if (pos >= 0 && pos < this.mapping[target].size()) {
+				buf = this.mapping[target].get(pos);
+				this.mapping[target].remove(pos);
+				this.mapping[target].add(pos + 1, buf);
+			}
+			S_OpenGUI(target, ep);
+			break;
+		case PacketHandler.CtS_TOP_MAPPING:// BLjava.lang.String;
+			target = data.readByte();
+			pos = this.mapping[target].indexOf(data.readUTF());
+			if (pos >= 0) {
+				buf = this.mapping[target].get(pos);
+				this.mapping[target].remove(pos);
+				this.mapping[target].addFirst(buf);
+			}
+			S_OpenGUI(target, ep);
+			break;
+		case PacketHandler.CtS_BOTTOM_MAPPING:// BLjava.lang.String;
+			target = data.readByte();
+			pos = this.mapping[target].indexOf(data.readUTF());
+			if (pos >= 0) {
+				buf = this.mapping[target].get(pos);
+				this.mapping[target].remove(pos);
+				this.mapping[target].addLast(buf);
+			}
+			S_OpenGUI(target, ep);
+			break;
+		}
+	}
 
 	@Override
-	void C_recievePacket(byte pattern, ByteArrayDataInput data) {
+	void C_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {
 		switch (pattern) {
-		case PacketHandler.packetNow:
+		case PacketHandler.StC_NOW:// B
 			byte flag = data.readByte();
 			if ((flag & 0x80) != 0) this.cy = this.currentHeight = -1;
 			else this.currentHeight = Integer.MIN_VALUE;
 			this.connectTo = ForgeDirection.getOrientation(flag & 0x7F);
 			this.worldObj.markBlockForRenderUpdate(this.xCoord, this.yCoord, this.zCoord);
 			break;
+		case PacketHandler.StC_OPENGUI_MAPPING:// BI[Ljava.lang.String;
+			byte target = data.readByte();
+			int len = data.readInt();
+			this.mapping[target].clear();
+			for (int i = 0; i < len; i++)
+				this.mapping[target].add(data.readUTF());
+			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdPump + target, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
+			break;
 		}
+	}
+
+	void S_OpenGUI(int d, EntityPlayer ep) {// BI[Ljava.lang.String;
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		DataOutputStream dos = new DataOutputStream(bos);
+		try {
+			dos.writeInt(this.xCoord);
+			dos.writeInt(this.yCoord);
+			dos.writeInt(this.zCoord);
+			dos.writeByte(PacketHandler.StC_OPENGUI_MAPPING);
+			dos.writeByte(d);
+			dos.writeInt(this.mapping[d].size());
+			for (String s : this.mapping[d])
+				dos.writeUTF(s);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		PacketDispatcher.sendPacketToPlayer(PacketHandler.composeTilePacket(bos), (Player) ep);
 	}
 
 	// /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -373,30 +467,29 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 	}
 
 	// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// TODO pump rework
 	private final LinkedList<FluidStack> liquids = new LinkedList<FluidStack>();
-	private final String[] mapping = new String[ForgeDirection.VALID_DIRECTIONS.length];
+	public final LinkedList<String>[] mapping = new LinkedList[ForgeDirection.VALID_DIRECTIONS.length];
+
+	{
+		for (int i = 0; i < this.mapping.length; i++)
+			this.mapping[i] = new LinkedList<String>();
+	}
 
 	public String[] C_getNames() {
-		String[] ret = new String[this.liquids.size() + this.mapping.length + 2];
-		if (this.liquids.size() != 0) {
+		String[] ret = new String[this.liquids.size() + 1];
+		if (this.liquids.size() > 0) {
 			ret[0] = StatCollector.translateToLocal("chat.pumpcontain");
 			for (int i = 0; i < this.liquids.size(); i++) {
-				ret[i + 1] = new StringBuilder().append("    ").append(FluidRegistry.getFluidName(this.liquids.get(i))).append(": ")
+				ret[i + 1] = new StringBuilder().append("    ").append(this.liquids.get(i).getFluid().getLocalizedName()).append(": ")
 						.append(this.liquids.get(i).amount).append("mB").toString();
 			}
 		} else {
 			ret[0] = StatCollector.translateToLocal("chat.pumpcontainno");
 		}
-		ret[this.liquids.size() + 1] = StatCollector.translateToLocal("chat.pumpmapping");
-		for (int i = 0; i < this.mapping.length; i++) {
-			ret[this.liquids.size() + i + 2] = new StringBuilder().append("    ").append(fdToString(ForgeDirection.getOrientation(i))).append(": ")
-					.append(this.mapping[i]).toString();
-		}
 		return ret;
 	}
 
-	static String fdToString(ForgeDirection fd) {
+	public static String fdToString(ForgeDirection fd) {
 		switch (fd) {
 		case UP:
 			return StatCollector.translateToLocal("up");
@@ -415,13 +508,6 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 		}
 	}
 
-	String incl(int side) {
-		if (this.liquids.isEmpty()) return this.mapping[side] = null;
-		int index = this.liquids.indexOf(FluidRegistry.getFluidStack(this.mapping[side], 0)) + 1;
-		if (index == this.liquids.size()) index = 0;
-		return this.mapping[side] = FluidRegistry.getFluidName(this.liquids.get(index));
-	}
-
 	@Override
 	public int fill(ForgeDirection from, FluidStack resource, boolean doFill) {
 		return 0;
@@ -429,19 +515,22 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 
 	@Override
 	public FluidStack drain(ForgeDirection fd, FluidStack resource, boolean doDrain) {
-		return drain(fd, resource == null ? 0 : resource.amount, doDrain);
+		if (resource == null) return null;
+		int index = this.liquids.indexOf(resource);
+		if (index == -1) return null;
+		FluidStack fs = this.liquids.get(index);
+		if (fs == null) return null;
+		FluidStack ret = fs.copy();
+		ret.amount = Math.min(fs.amount, resource.amount);
+		if (doDrain) fs.amount -= ret.amount;
+		if (fs.amount <= 0) this.liquids.remove(fs);
+		if (ret.amount <= 0) return null;
+		return ret;
 	}
 
 	@Override
 	public boolean canFill(ForgeDirection from, Fluid fluid) {
 		return false;
-	}
-
-	private FluidStack getFluidStack(ForgeDirection fd) {
-		if (fd.ordinal() < 0 || fd.ordinal() >= this.mapping.length) return getFluidStack(ForgeDirection.UP);
-		int index = this.liquids.indexOf(FluidRegistry.getFluidStack(this.mapping[fd.ordinal()], 0));
-		if (index != -1) return this.liquids.get(index);
-		return null;
 	}
 
 	@Override
@@ -451,21 +540,42 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 
 	@Override
 	public FluidTankInfo[] getTankInfo(ForgeDirection fd) {
-		FluidStack fs = getFluidStack(fd);
-		if (fs == null) return null;
-		return new FluidTankInfo[] { new FluidTankInfo(fs, Integer.MAX_VALUE) };
+		if (fd.ordinal() < 0 || fd.ordinal() >= this.mapping.length) return getTankInfo(ForgeDirection.UP);
+		LinkedList<FluidTankInfo> ret = new LinkedList<FluidTankInfo>();
+		if (this.mapping[fd.ordinal()].size() <= 0) {
+			for (FluidStack fs : this.liquids)
+				ret.add(new FluidTankInfo(fs, Integer.MAX_VALUE));
+		} else {
+			int index;
+			FluidStack fs;
+			for (String s : this.mapping[fd.ordinal()]) {
+				fs = FluidRegistry.getFluidStack(s, 0);
+				if (fs == null) continue;
+				index = this.liquids.indexOf(fs);
+				if (index != -1) ret.add(new FluidTankInfo(this.liquids.get(index), Integer.MAX_VALUE));
+				else ret.add(new FluidTankInfo(fs, Integer.MAX_VALUE));
+			}
+		}
+		return ret.toArray(new FluidTankInfo[ret.size()]);
 	}
 
 	@Override
 	public FluidStack drain(ForgeDirection fd, int maxDrain, boolean doDrain) {
-		FluidStack fs = getFluidStack(fd);
-		if (fs == null) return null;
-		FluidStack ret = fs.copy();
-		ret.amount = Math.min(fs.amount, maxDrain);
-		if (doDrain) fs.amount -= ret.amount;
-		if (fs.amount <= 0) this.liquids.remove(fs);
-		if (ret.amount <= 0) return null;
-		return ret;
+		if (fd.ordinal() < 0 || fd.ordinal() >= this.mapping.length) return drain(ForgeDirection.UP, maxDrain, doDrain);
+		if (this.mapping[fd.ordinal()].size() <= 0) {
+			if (this.liquids.size() <= 0) return null;
+			return drain(fd, this.liquids.getFirst(), doDrain);
+		}
+		int index;
+		FluidStack fs;
+		for (String s : this.mapping[fd.ordinal()]) {
+			fs = FluidRegistry.getFluidStack(s, maxDrain);
+			if (fs == null) continue;
+			index = this.liquids.indexOf(fs);
+			if (index == -1) continue;
+			return drain(fd, this.liquids.get(index), doDrain);
+		}
+		return null;
 	}
 
 	// //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

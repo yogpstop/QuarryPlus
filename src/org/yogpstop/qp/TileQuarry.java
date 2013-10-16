@@ -19,6 +19,8 @@ package org.yogpstop.qp;
 
 import static org.yogpstop.qp.PacketHandler.*;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -36,6 +38,7 @@ import static buildcraft.core.utils.Utils.addToRandomPipeAround;
 import static buildcraft.core.utils.Utils.addToRandomInventoryAround;
 import net.minecraft.block.Block;
 import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
@@ -67,7 +70,21 @@ public class TileQuarry extends TileBasic {
 			if (this.heads != null) {
 				this.heads.setHead(this.headPosX, this.headPosY, this.headPosZ);
 				this.heads.updatePosition();
-				sendHeadPosPacket(this, this.headPosX, this.headPosY, this.headPosZ);
+				try {
+					ByteArrayOutputStream bos = new ByteArrayOutputStream();
+					DataOutputStream dos = new DataOutputStream(bos);
+					dos.writeInt(this.xCoord);
+					dos.writeInt(this.yCoord);
+					dos.writeInt(this.zCoord);
+					dos.writeByte(StC_HEAD_POS);
+					dos.writeDouble(this.headPosX);
+					dos.writeDouble(this.headPosY);
+					dos.writeDouble(this.headPosZ);
+					PacketDispatcher.sendPacketToAllAround(this.xCoord, this.yCoord, this.zCoord, 256, this.worldObj.provider.dimensionId,
+							composeTilePacket(bos));
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
 			if (!done) break;
 			this.now = BREAKBLOCK;
@@ -515,16 +532,16 @@ public class TileQuarry extends TileBasic {
 	private byte now = NONE;
 
 	@Override
-	protected void C_recievePacket(byte pattern, ByteArrayDataInput data) {
-		super.C_recievePacket(pattern, data);
+	protected void C_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {
+		super.C_recievePacket(pattern, data, ep);
 		switch (pattern) {
-		case packetNow:
+		case StC_NOW:
 			this.now = data.readByte();
 			G_renew_powerConfigure();
 			this.worldObj.markBlockForRenderUpdate(this.xCoord, this.yCoord, this.zCoord);
 			G_initEntities();
 			break;
-		case packetHeadPos:
+		case StC_HEAD_POS:
 			this.headPosX = data.readDouble();
 			this.headPosY = data.readDouble();
 			this.headPosZ = data.readDouble();

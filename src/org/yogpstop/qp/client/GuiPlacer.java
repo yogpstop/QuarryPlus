@@ -54,4 +54,9 @@ public class GuiPlacer extends GuiContainer {
 		int l = (this.height - this.ySize) / 2;
 		this.drawTexturedModalRect(k, l, 0, 0, this.xSize, this.ySize);
 	}
+
+	@Override
+	public boolean doesGuiPauseGame() {
+		return false;
+	}
 }

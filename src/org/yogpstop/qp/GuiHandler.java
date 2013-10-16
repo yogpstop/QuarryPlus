@@ -22,7 +22,8 @@ import net.minecraft.world.World;
 
 import org.yogpstop.qp.client.GuiInfMJSrc;
 import org.yogpstop.qp.client.GuiMover;
-import org.yogpstop.qp.client.GuiList;
+import org.yogpstop.qp.client.GuiP_List;
+import org.yogpstop.qp.client.GuiQ_List;
 import org.yogpstop.qp.client.GuiPlacer;
 
 import static org.yogpstop.qp.QuarryPlus.*;
@@ -35,13 +36,20 @@ public class GuiHandler implements IGuiHandler {
 		case guiIdMover:
 			return new GuiMover(player, world, x, y, z);
 		case guiIdFList:
-			return new GuiList((byte) 0, (TileBasic) world.getBlockTileEntity(x, y, z));
+			return new GuiQ_List((byte) 0, (TileBasic) world.getBlockTileEntity(x, y, z));
 		case guiIdSList:
-			return new GuiList((byte) 1, (TileBasic) world.getBlockTileEntity(x, y, z));
+			return new GuiQ_List((byte) 1, (TileBasic) world.getBlockTileEntity(x, y, z));
 		case guiIdInfMJSrc:
 			return new GuiInfMJSrc(x, y, z, world);
 		case guiIdPlacer:
 			return new GuiPlacer(player.inventory, (TilePlacer) world.getBlockTileEntity(x, y, z));
+		case guiIdPump:
+		case guiIdPump + 1:
+		case guiIdPump + 2:
+		case guiIdPump + 3:
+		case guiIdPump + 4:
+		case guiIdPump + 5:
+			return new GuiP_List((byte) (ID - guiIdPump), (TilePump) world.getBlockTileEntity(x, y, z));
 		}
 
 		return null;

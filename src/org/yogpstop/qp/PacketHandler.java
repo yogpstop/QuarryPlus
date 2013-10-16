@@ -20,7 +20,6 @@ package org.yogpstop.qp;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.Collection;
 
 import net.minecraft.inventory.Container;
 import net.minecraft.nbt.CompressedStreamTools;
@@ -29,10 +28,7 @@ import net.minecraft.network.INetworkManager;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.Packet250CustomPayload;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.world.World;
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraftforge.common.DimensionManager;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
@@ -45,23 +41,31 @@ public class PacketHandler implements IPacketHandler {
 	public static final String Tile = "QPTile";
 	public static final String NBT = "QPTENBT";
 	public static final String BTN = "QPGUIBUTTON";
-	public static final String OGUI = "QPOpenGUI";
 	public static final String Marker = "QPMarker";
 
-	public static final byte fortuneAdd = 1;
-	public static final byte silktouchAdd = 2;
-	public static final byte fortuneRemove = 3;
-	public static final byte silktouchRemove = 4;
-	public static final byte packetNow = 5;
-	public static final byte packetHeadPos = 6;
-	public static final byte fortuneTInc = 7;
-	public static final byte silktouchTInc = 8;
-	public static final byte packetFortuneList = 9;
-	public static final byte packetSilktouchList = 10;
-	public static final byte signal = 11;
-	public static final byte link_response = 12;
-	public static final byte link_request = 13;
-	public static final byte infmjsrc = 14;
+	public static final byte StC_OPENGUI_FORTUNE = 0;
+	public static final byte StC_OPENGUI_SILKTOUCH = 1;
+	public static final byte StC_OPENGUI_INFMJSRC = 2;
+	public static final byte StC_OPENGUI_MAPPING = 3;
+	public static final byte StC_NOW = 4;
+	public static final byte StC_HEAD_POS = 5;
+	public static final byte StC_UPDATE_MARKER = 6;
+	public static final byte StC_LINK_RES = 7;
+
+	public static final byte CtS_ADD_FORTUNE = 8;
+	public static final byte CtS_ADD_SILKTOUCH = 9;
+	public static final byte CtS_REMOVE_FORTUNE = 10;
+	public static final byte CtS_REMOVE_SILKTOUCH = 11;
+	public static final byte CtS_TOGGLE_FORTUNE = 12;
+	public static final byte CtS_TOGGLE_SILKTOUCH = 13;
+	public static final byte CtS_LINK_REQ = 14;
+	public static final byte CtS_INFMJSRC = 15;
+	public static final byte CtS_ADD_MAPPING = 16;
+	public static final byte CtS_REMOVE_MAPPING = 17;
+	public static final byte CtS_UP_MAPPING = 18;
+	public static final byte CtS_DOWN_MAPPING = 19;
+	public static final byte CtS_TOP_MAPPING = 20;
+	public static final byte CtS_BOTTOM_MAPPING = 21;
 
 	public static final byte remove_link = 0;
 	public static final byte remove_laser = 1;
@@ -79,94 +83,12 @@ public class PacketHandler implements IPacketHandler {
 			TileEntity t = ((EntityPlayer) player).worldObj.getBlockTileEntity(data.readInt(), data.readInt(), data.readInt());
 			if (t instanceof APacketTile) {
 				APacketTile tb = (APacketTile) t;
-				if (tb.worldObj.isRemote) tb.C_recievePacket(data.readByte(), data);
+				if (tb.worldObj.isRemote) tb.C_recievePacket(data.readByte(), data, (EntityPlayer) player);
 				else tb.S_recievePacket(data.readByte(), data, (EntityPlayer) player);
 			}
-		} else if (packet.channel.equals(OGUI)) {
-			openGuiFromPacket(ByteStreams.newDataInput(packet.data), (EntityPlayer) player);
 		} else if (packet.channel.equals(Marker)) {
-			ByteArrayDataInput data = ByteStreams.newDataInput(packet.data);
-			final byte flag = data.readByte();
-			final boolean isRemote = data.readBoolean();
-			final int dimId = data.readInt();
-			final World w = isRemote ? Minecraft.getMinecraft().theWorld : DimensionManager.getWorld(dimId);
-			if (w.provider.dimensionId != dimId) return;
-			if (flag == remove_link) {
-				final int index = TileMarker.linkList.indexOf(new TileMarker.Link(w, data.readInt(), data.readInt(), data.readInt(), data.readInt(), data
-						.readInt(), data.readInt()));
-				if (index >= 0) TileMarker.linkList.get(index).removeConnection(false);
-			} else if (flag == remove_laser) {
-				final int index = TileMarker.laserList.indexOf(new TileMarker.BlockIndex(w, data.readInt(), data.readInt(), data.readInt()));
-				if (index >= 0) TileMarker.laserList.get(index).destructor();
-			}
-
+			TileMarker.recieveLinkPacket(packet.data);
 		}
-	}
-
-	static void sendLinkRemovePacket(TileMarker.Link l) {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		DataOutputStream dos = new DataOutputStream(bos);
-		try {
-			dos.writeByte(remove_link);
-			dos.writeBoolean(!l.w.isRemote);
-			dos.writeInt(l.w.provider.dimensionId);
-			dos.writeInt(l.xx);
-			dos.writeInt(l.xn);
-			dos.writeInt(l.yx);
-			dos.writeInt(l.yn);
-			dos.writeInt(l.zx);
-			dos.writeInt(l.zn);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		Packet250CustomPayload packet = new Packet250CustomPayload();
-		packet.channel = Marker;
-		packet.data = bos.toByteArray();
-		packet.length = bos.size();
-		PacketDispatcher.sendPacketToAllPlayers(packet);
-	}
-
-	static void sendLaserRemovePacket(TileMarker.Laser l) {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		DataOutputStream dos = new DataOutputStream(bos);
-		try {
-			dos.writeByte(remove_laser);
-			dos.writeBoolean(!l.w.isRemote);
-			dos.writeInt(l.w.provider.dimensionId);
-			dos.writeInt(l.x);
-			dos.writeInt(l.y);
-			dos.writeInt(l.z);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		Packet250CustomPayload packet = new Packet250CustomPayload();
-		packet.channel = Marker;
-		packet.data = bos.toByteArray();
-		packet.length = bos.size();
-		PacketDispatcher.sendPacketToAllPlayers(packet);
-	}
-
-	public static Packet G_makeOpenGUIPacket(int guiId, int x, int y, int z) {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		DataOutputStream dos = new DataOutputStream(bos);
-		try {
-			dos.writeByte(guiId);
-			dos.writeInt(x);
-			dos.writeInt(y);
-			dos.writeInt(z);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		Packet250CustomPayload packet = new Packet250CustomPayload();
-		packet.channel = OGUI;
-		packet.data = bos.toByteArray();
-		packet.length = bos.size();
-		packet.isChunkDataPacket = true;
-		return packet;
-	}
-
-	private static void openGuiFromPacket(ByteArrayDataInput badi, EntityPlayer ep) {
-		ep.openGui(QuarryPlus.instance, badi.readByte(), ep.worldObj, badi.readInt(), badi.readInt(), badi.readInt());
 	}
 
 	static Packet getPacketFromNBT(TileEntity te) {
@@ -196,7 +118,7 @@ public class PacketHandler implements IPacketHandler {
 		}
 	}
 
-	private static Packet250CustomPayload composeTilePacket(ByteArrayOutputStream bos) {
+	public static Packet250CustomPayload composeTilePacket(ByteArrayOutputStream bos) {
 		Packet250CustomPayload packet = new Packet250CustomPayload();
 		packet.channel = Tile;
 		packet.data = bos.toByteArray();
@@ -204,20 +126,50 @@ public class PacketHandler implements IPacketHandler {
 		return packet;
 	}
 
-	public static Packet makeInfMJSrcPacket(int x, int y, int z, float power, int itv) {
+	public static void sendPacketToServer(APacketTile te, byte id, long data) {//J
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		DataOutputStream dos = new DataOutputStream(bos);
 		try {
-			dos.writeInt(x);
-			dos.writeInt(y);
-			dos.writeInt(z);
-			dos.writeByte(infmjsrc);
-			dos.writeFloat(power);
-			dos.writeInt(itv);
+			dos.writeInt(te.xCoord);
+			dos.writeInt(te.yCoord);
+			dos.writeInt(te.zCoord);
+			dos.writeByte(id);
+			dos.writeLong(data);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return composeTilePacket(bos);
+		PacketDispatcher.sendPacketToServer(composeTilePacket(bos));
+	}
+
+	public static void sendPacketToServer(APacketTile te, byte id, byte pos, String data) {//BLjava.lang.String;
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		DataOutputStream dos = new DataOutputStream(bos);
+		try {
+			dos.writeInt(te.xCoord);
+			dos.writeInt(te.yCoord);
+			dos.writeInt(te.zCoord);
+			dos.writeByte(id);
+			dos.writeByte(pos);
+			dos.writeUTF(data);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		PacketDispatcher.sendPacketToServer(composeTilePacket(bos));
+	}
+
+	static void sendNowPacket(APacketTile te, byte data) {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		DataOutputStream dos = new DataOutputStream(bos);
+		try {
+			dos.writeInt(te.xCoord);
+			dos.writeInt(te.yCoord);
+			dos.writeInt(te.zCoord);
+			dos.writeByte(StC_NOW);
+			dos.writeByte(data);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		PacketDispatcher.sendPacketToAllAround(te.xCoord, te.yCoord, te.zCoord, 256, te.worldObj.provider.dimensionId, composeTilePacket(bos));
 	}
 
 	public static void sendPacketToServer(APacketTile te, byte id) {
@@ -234,68 +186,6 @@ public class PacketHandler implements IPacketHandler {
 		PacketDispatcher.sendPacketToServer(composeTilePacket(bos));
 	}
 
-	public static void sendPacketToServer(APacketTile te, byte id, long data) {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		DataOutputStream dos = new DataOutputStream(bos);
-		try {
-			dos.writeInt(te.xCoord);
-			dos.writeInt(te.yCoord);
-			dos.writeInt(te.zCoord);
-			dos.writeByte(id);
-			dos.writeLong(data);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		PacketDispatcher.sendPacketToServer(composeTilePacket(bos));
-	}
-
-	static void sendPacketToPlayer(APacketTile te, EntityPlayer ep, byte id, boolean value) {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		DataOutputStream dos = new DataOutputStream(bos);
-		try {
-			dos.writeInt(te.xCoord);
-			dos.writeInt(te.yCoord);
-			dos.writeInt(te.zCoord);
-			dos.writeByte(id);
-			dos.writeBoolean(value);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		PacketDispatcher.sendPacketToPlayer(composeTilePacket(bos), (Player) ep);
-	}
-
-	static void sendPacketToPlayer(APacketTile te, EntityPlayer ep, byte id, Collection<Long> value) {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		DataOutputStream dos = new DataOutputStream(bos);
-		try {
-			dos.writeInt(te.xCoord);
-			dos.writeInt(te.yCoord);
-			dos.writeInt(te.zCoord);
-			dos.writeByte(id);
-			dos.writeInt(value.size());
-			for (Long l : value)
-				dos.writeLong(l);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		PacketDispatcher.sendPacketToPlayer(composeTilePacket(bos), (Player) ep);
-	}
-
-	static void sendNowPacket(APacketTile te, byte data) {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		DataOutputStream dos = new DataOutputStream(bos);
-		try {
-			dos.writeInt(te.xCoord);
-			dos.writeInt(te.yCoord);
-			dos.writeInt(te.zCoord);
-			dos.writeByte(packetNow);
-			dos.writeByte(data);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		PacketDispatcher.sendPacketToAllAround(te.xCoord, te.yCoord, te.zCoord, 256, te.worldObj.provider.dimensionId, composeTilePacket(bos));
-	}
-
 	static void sendPacketToAround(APacketTile te, byte id) {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		DataOutputStream dos = new DataOutputStream(bos);
@@ -308,62 +198,5 @@ public class PacketHandler implements IPacketHandler {
 			e.printStackTrace();
 		}
 		PacketDispatcher.sendPacketToAllAround(te.xCoord, te.yCoord, te.zCoord, 256, te.worldObj.provider.dimensionId, composeTilePacket(bos));
-	}
-
-	static void sendHeadPosPacket(APacketTile te, double x, double y, double z) {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		DataOutputStream dos = new DataOutputStream(bos);
-		try {
-			dos.writeInt(te.xCoord);
-			dos.writeInt(te.yCoord);
-			dos.writeInt(te.zCoord);
-			dos.writeByte(packetHeadPos);
-			dos.writeDouble(x);
-			dos.writeDouble(y);
-			dos.writeDouble(z);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		PacketDispatcher.sendPacketToAllAround(te.xCoord, te.yCoord, te.zCoord, 256, te.worldObj.provider.dimensionId, composeTilePacket(bos));
-	}
-
-	static void sendLinkPacket(APacketTile te, TileMarker.Link l) {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		DataOutputStream dos = new DataOutputStream(bos);
-		try {
-			dos.writeInt(te.xCoord);
-			dos.writeInt(te.yCoord);
-			dos.writeInt(te.zCoord);
-			dos.writeByte(link_response);
-			dos.writeInt(l.xx);
-			dos.writeInt(l.xn);
-			dos.writeInt(l.yx);
-			dos.writeInt(l.yn);
-			dos.writeInt(l.zx);
-			dos.writeInt(l.zn);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		PacketDispatcher.sendPacketToAllAround(te.xCoord, te.yCoord, te.zCoord, 256, te.worldObj.provider.dimensionId, composeTilePacket(bos));
-	}
-
-	static void sendLinkPacket(APacketTile te, TileMarker.Link l, EntityPlayer ep) {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		DataOutputStream dos = new DataOutputStream(bos);
-		try {
-			dos.writeInt(te.xCoord);
-			dos.writeInt(te.yCoord);
-			dos.writeInt(te.zCoord);
-			dos.writeByte(link_response);
-			dos.writeInt(l.xx);
-			dos.writeInt(l.xn);
-			dos.writeInt(l.yx);
-			dos.writeInt(l.yn);
-			dos.writeInt(l.zx);
-			dos.writeInt(l.zn);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		PacketDispatcher.sendPacketToPlayer(composeTilePacket(bos), (Player) ep);
 	}
 }

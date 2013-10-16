@@ -30,7 +30,7 @@ import static org.yogpstop.qp.QuarryPlus.getname;
 import static org.yogpstop.qp.QuarryPlus.data;
 
 @SideOnly(Side.CLIENT)
-public class GuiManual extends GuiScreen {
+public class GuiQ_Manual extends GuiScreen {
 	private GuiScreen parent;
 	private GuiTextField blockid;
 	private GuiTextField meta;
@@ -39,7 +39,7 @@ public class GuiManual extends GuiScreen {
 	private short bid;
 	private int metaid;
 
-	public GuiManual(GuiScreen parents, byte id, TileBasic tq) {
+	public GuiQ_Manual(GuiScreen parents, byte id, TileBasic tq) {
 		this.parent = parents;
 		this.targetid = id;
 		this.tile = tq;
@@ -85,10 +85,8 @@ public class GuiManual extends GuiScreen {
 
 	@Override
 	public void confirmClicked(boolean par1, int par2) {
-		if (par1) {
-			PacketHandler.sendPacketToServer(this.tile, (byte) (PacketHandler.fortuneAdd + this.targetid), data(this.bid, this.metaid));
-		}
-		this.mc.displayGuiScreen(this.parent);
+		if (par1) PacketHandler.sendPacketToServer(this.tile, (byte) (PacketHandler.CtS_ADD_FORTUNE + this.targetid), data(this.bid, this.metaid));
+		else this.mc.displayGuiScreen(this.parent);
 	}
 
 	@Override

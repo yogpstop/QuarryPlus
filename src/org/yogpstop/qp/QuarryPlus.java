@@ -45,8 +45,7 @@ import cpw.mods.fml.common.registry.LanguageRegistry;
 import cpw.mods.fml.common.network.NetworkRegistry;
 
 @Mod(modid = "QuarryPlus", name = "QuarryPlus", version = "@VERSION@", dependencies = "required-after:BuildCraft|Builders;required-after:BuildCraft|Core;required-after:BuildCraft|Energy;required-after:BuildCraft|Factory;required-after:BuildCraft|Silicon;required-after:BuildCraft|Transport")
-@NetworkMod(clientSideRequired = true, serverSideRequired = false, channels = { PacketHandler.BTN, PacketHandler.NBT, PacketHandler.OGUI, PacketHandler.Tile,
-		PacketHandler.Marker }, packetHandler = PacketHandler.class)
+@NetworkMod(clientSideRequired = true, serverSideRequired = false, channels = { PacketHandler.BTN, PacketHandler.NBT, PacketHandler.Tile, PacketHandler.Marker }, packetHandler = PacketHandler.class)
 public class QuarryPlus {
 	@SidedProxy(clientSide = "org.yogpstop.qp.client.ClientProxy", serverSide = "org.yogpstop.qp.CommonProxy")
 	public static CommonProxy proxy;
@@ -66,6 +65,7 @@ public class QuarryPlus {
 	public static final int guiIdFList = 3;
 	public static final int guiIdSList = 4;
 	public static final int guiIdPlacer = 5;
+	public static final int guiIdPump = 6;//reserved from 6 to 11
 
 	@ForgeSubscribe
 	public void onWorldUnload(WorldEvent.Unload event) {

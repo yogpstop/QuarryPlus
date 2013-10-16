@@ -58,16 +58,19 @@ public class ItemTool extends Item implements IEnchantableItem {
 
 	@Override
 	public boolean onItemUse(ItemStack is, EntityPlayer ep, World w, int x, int y, int z, int side, float par8, float par9, float par10) {
-		boolean s = false, f = false;
-		NBTTagList nbttl = is.getEnchantmentTagList();
-		if (nbttl != null) for (int i = 0; i < nbttl.tagCount(); i++) {
-			short id = ((NBTTagCompound) nbttl.tagAt(i)).getShort("id");
-			if (id == 33) s = true;
-			if (id == 35) f = true;
-		}
-		if (w.getBlockTileEntity(x, y, z) instanceof TileBasic && s != f) {
-			if (w.isRemote) ep.openGui(QuarryPlus.instance, f ? QuarryPlus.guiIdFList : QuarryPlus.guiIdSList, w, x, y, z);
-			return true;
+		if (is.getItemDamage() == 1) {
+			boolean s = false, f = false;
+			NBTTagList nbttl = is.getEnchantmentTagList();
+			if (nbttl != null) for (int i = 0; i < nbttl.tagCount(); i++) {
+				short id = ((NBTTagCompound) nbttl.tagAt(i)).getShort("id");
+				if (id == 33) s = true;
+				if (id == 35) f = true;
+			}
+			if (w.getBlockTileEntity(x, y, z) instanceof TileBasic && s != f) {
+				if (!w.isRemote) ((TileBasic) w.getBlockTileEntity(x, y, z)).sendOpenGUI(ep, f ? PacketHandler.StC_OPENGUI_FORTUNE
+						: PacketHandler.StC_OPENGUI_SILKTOUCH);
+				return true;
+			}
 		}
 		return false;
 	}

@@ -25,6 +25,7 @@ import java.util.List;
 import com.google.common.io.ByteArrayDataInput;
 
 import net.minecraft.block.Block;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
@@ -38,10 +39,10 @@ public class TileMiningWell extends TileBasic {
 	private boolean working;
 
 	@Override
-	protected void C_recievePacket(byte pattern, ByteArrayDataInput data) {
-		super.C_recievePacket(pattern, data);
+	protected void C_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {
+		super.C_recievePacket(pattern, data, ep);
 		switch (pattern) {
-		case packetNow:
+		case PacketHandler.StC_NOW:
 			this.working = data.readBoolean();
 			G_renew_powerConfigure();
 			this.worldObj.markBlockForRenderUpdate(this.xCoord, this.yCoord, this.zCoord);

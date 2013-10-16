@@ -17,15 +17,16 @@
 
 package org.yogpstop.qp;
 
-import org.yogpstop.qp.client.GuiInfMJSrc;
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 
 import com.google.common.io.ByteArrayDataInput;
 
 import cpw.mods.fml.common.network.PacketDispatcher;
+import cpw.mods.fml.common.network.Player;
 import buildcraft.api.power.IPowerReceptor;
 import buildcraft.api.power.PowerHandler.PowerReceiver;
 import buildcraft.api.power.PowerHandler.Type;
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
@@ -51,29 +52,40 @@ public class TileInfMJSrc extends APacketTile {
 		this.cInterval = this.interval;
 	}
 
+	void S_openGUI(EntityPlayer ep) {
+		try {
+			ByteArrayOutputStream bos = new ByteArrayOutputStream();
+			DataOutputStream dos = new DataOutputStream(bos);
+			dos.writeInt(this.xCoord);
+			dos.writeInt(this.yCoord);
+			dos.writeInt(this.zCoord);
+			dos.writeByte(PacketHandler.CtS_INFMJSRC);
+			dos.writeFloat(this.power);
+			dos.writeInt(this.interval);
+			PacketDispatcher.sendPacketToPlayer(PacketHandler.composeTilePacket(bos), (Player) ep);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
 	@Override
 	void S_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {
 		switch (pattern) {
-		case PacketHandler.infmjsrc:
+		case PacketHandler.CtS_INFMJSRC:
 			this.power = data.readFloat();
 			this.interval = data.readInt();
-			PacketDispatcher.sendPacketToAllAround(this.xCoord, this.yCoord, this.zCoord, 256, this.worldObj.provider.dimensionId,
-					PacketHandler.makeInfMJSrcPacket(this.xCoord, this.yCoord, this.zCoord, this.power, this.interval));
+			S_openGUI(ep);
 			break;
 		}
 	}
 
 	@Override
-	void C_recievePacket(byte pattern, ByteArrayDataInput data) {
+	void C_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {
 		switch (pattern) {
-		case PacketHandler.infmjsrc:
+		case PacketHandler.StC_OPENGUI_INFMJSRC:
 			this.power = data.readFloat();
 			this.interval = data.readInt();
-			if (Minecraft.getMinecraft().currentScreen instanceof GuiInfMJSrc) {
-				GuiInfMJSrc gims = (GuiInfMJSrc) Minecraft.getMinecraft().currentScreen;
-				if (gims.x == this.xCoord && gims.y == this.yCoord && gims.z == this.zCoord) Minecraft.getMinecraft().thePlayer.openGui(QuarryPlus.instance,
-						QuarryPlus.guiIdInfMJSrc, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
-			}
+			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdInfMJSrc, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
 			break;
 		}
 	}

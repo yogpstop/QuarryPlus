@@ -33,7 +33,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
-public class GuiSlotBlockList extends GuiSlot {
+public class GuiQ_SlotBlockList extends GuiSlot {
 	private static final List<ItemStack> blocklist_s = new ArrayList<ItemStack>();
 	private final List<ItemStack> blocklist = new ArrayList<ItemStack>(blocklist_s);
 	private GuiScreen parent;
@@ -48,13 +48,14 @@ public class GuiSlotBlockList extends GuiSlot {
 		}
 	}
 
-	public GuiSlotBlockList(Minecraft par1Minecraft, int par2, int par3, int par4, int par5, int par6, GuiScreen parents, List<Long> list) {
+	public GuiQ_SlotBlockList(Minecraft par1Minecraft, int par2, int par3, int par4, int par5, int par6, GuiScreen parents, List<Long> list) {
 		super(par1Minecraft, par2, par3, par4, par5, par6);
-		for (int i = 0; i < blocklist_s.size(); i++) {
+		for (int i = 0; i < this.blocklist.size(); i++) {
 			for (int j = 0; j < list.size(); j++) {
-				if (data((short) blocklist_s.get(i).itemID, blocklist_s.get(i).getItemDamage()) == list.get(j)) {
-					blocklist_s.remove(i);
+				if (data((short) this.blocklist.get(i).itemID, this.blocklist.get(i).getItemDamage()) == list.get(j)) {
+					this.blocklist.remove(i);
 					i--;
+					if (i < 0) break;
 					continue;
 				}
 			}

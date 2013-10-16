@@ -184,7 +184,7 @@ public class TileRefinery extends APacketTile implements IFluidHandler, IPowerRe
 	}
 
 	@Override
-	void C_recievePacket(byte pattern, ByteArrayDataInput data) {
+	void C_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {
 
 	}
 

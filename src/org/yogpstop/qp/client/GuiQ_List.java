@@ -25,17 +25,16 @@ import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.StatCollector;
-
 import static org.yogpstop.qp.QuarryPlus.getname;
 
 @SideOnly(Side.CLIENT)
-public class GuiList extends GuiScreen {
-	private GuiSlotList oreslot;
+public class GuiQ_List extends GuiScreen {
+	private GuiQ_SlotList oreslot;
 	private GuiButton delete;
 	private TileBasic tile;
 	private byte targetid;
 
-	public GuiList(byte id, TileBasic tq) {
+	public GuiQ_List(byte id, TileBasic tq) {
 		super();
 		this.targetid = id;
 		this.tile = tq;
@@ -49,15 +48,15 @@ public class GuiList extends GuiScreen {
 	@Override
 	public void initGui() {
 		this.buttonList.add(new GuiButton(-1, this.width / 2 - 125, this.height - 26, 250, 20, StatCollector.translateToLocal("gui.done")));
-		this.buttonList.add(new GuiButton(PacketHandler.fortuneTInc + this.targetid, this.width * 2 / 3 + 10, 140, 100, 20, StatCollector
-				.translateToLocal(include() ? "tof.include" : "tof.exclude")));
 		this.buttonList.add(new GuiButton(-2, this.width * 2 / 3 + 10, 80, 100, 20, StatCollector.translateToLocal("tof.addnewore") + "("
 				+ StatCollector.translateToLocal("tof.manualinput") + ")"));
 		this.buttonList.add(new GuiButton(-3, this.width * 2 / 3 + 10, 50, 100, 20, StatCollector.translateToLocal("tof.addnewore") + "("
 				+ StatCollector.translateToLocal("tof.fromlist") + ")"));
-		this.buttonList.add(this.delete = new GuiButton(PacketHandler.fortuneRemove + this.targetid, this.width * 2 / 3 + 10, 110, 100, 20, StatCollector
+		this.buttonList.add(new GuiButton(PacketHandler.CtS_TOGGLE_FORTUNE + this.targetid, this.width * 2 / 3 + 10, 140, 100, 20, StatCollector
+				.translateToLocal(include() ? "tof.include" : "tof.exclude")));
+		this.buttonList.add(this.delete = new GuiButton(PacketHandler.CtS_REMOVE_FORTUNE + this.targetid, this.width * 2 / 3 + 10, 110, 100, 20, StatCollector
 				.translateToLocal("selectServer.delete")));
-		this.oreslot = new GuiSlotList(this.mc, this.width * 3 / 5, this.height, 30, this.height - 30, 18, this, this.targetid == 0 ? this.tile.fortuneList
+		this.oreslot = new GuiQ_SlotList(this.mc, this.width * 3 / 5, this.height, 30, this.height - 30, 18, this, this.targetid == 0 ? this.tile.fortuneList
 				: this.tile.silktouchList);
 	}
 
@@ -68,13 +67,13 @@ public class GuiList extends GuiScreen {
 			this.mc.displayGuiScreen(null);
 			break;
 		case -2:
-			this.mc.displayGuiScreen(new GuiManual(this, this.targetid, this.tile));
+			this.mc.displayGuiScreen(new GuiQ_Manual(this, this.targetid, this.tile));
 			break;
 		case -3:
-			this.mc.displayGuiScreen(new GuiSelectBlock(this, this.tile, this.targetid));
+			this.mc.displayGuiScreen(new GuiQ_SelectBlock(this, this.tile, this.targetid));
 			break;
-		case PacketHandler.fortuneRemove:
-		case PacketHandler.silktouchRemove:
+		case PacketHandler.CtS_REMOVE_FORTUNE:
+		case PacketHandler.CtS_REMOVE_SILKTOUCH:
 			this.mc.displayGuiScreen(new GuiYesNo(this, StatCollector.translateToLocal("tof.deleteblocksure"),
 					getname((this.targetid == 0 ? this.tile.fortuneList : this.tile.silktouchList).get(this.oreslot.currentore)), par1.id));
 			break;
@@ -101,10 +100,8 @@ public class GuiList extends GuiScreen {
 
 	@Override
 	public void confirmClicked(boolean par1, int par2) {
-		if (par1) {
-			PacketHandler.sendPacketToServer(this.tile, (byte) par2, this.oreslot.target.get(this.oreslot.currentore));
-		}
-		this.mc.displayGuiScreen(this);
+		if (par1) PacketHandler.sendPacketToServer(this.tile, (byte) par2, this.oreslot.target.get(this.oreslot.currentore));
+		else this.mc.displayGuiScreen(this);
 	}
 
 	@Override

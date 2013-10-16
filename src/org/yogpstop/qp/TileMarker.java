@@ -17,6 +17,8 @@
 
 package org.yogpstop.qp;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -24,15 +26,20 @@ import java.util.Set;
 
 import com.google.common.collect.Sets;
 import com.google.common.io.ByteArrayDataInput;
+import com.google.common.io.ByteStreams;
 
+import cpw.mods.fml.common.network.PacketDispatcher;
+import cpw.mods.fml.common.network.Player;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.packet.Packet250CustomPayload;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.World;
 import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.ForgeChunkManager.Ticket;
@@ -49,6 +56,22 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 	private static final int MAX_SIZE = 256;
 	public Link link;
 	public Laser laser;
+
+	static void recieveLinkPacket(byte[] pdata) {
+		ByteArrayDataInput data = ByteStreams.newDataInput(pdata);
+		final byte flag = data.readByte();
+		final int dimId = data.readInt();
+		final World w = Minecraft.getMinecraft().theWorld;
+		if (w.provider.dimensionId != dimId) return;
+		if (flag == PacketHandler.remove_link) {
+			final int index = TileMarker.linkList.indexOf(new TileMarker.Link(w, data.readInt(), data.readInt(), data.readInt(), data.readInt(),
+					data.readInt(), data.readInt()));
+			if (index >= 0) TileMarker.linkList.get(index).removeConnection(false);
+		} else if (flag == PacketHandler.remove_laser) {
+			final int index = TileMarker.laserList.indexOf(new TileMarker.BlockIndex(w, data.readInt(), data.readInt(), data.readInt()));
+			if (index >= 0) TileMarker.laserList.get(index).destructor();
+		}
+	}
 
 	static class BlockIndex {
 		final World w;
@@ -91,7 +114,25 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 
 		void destructor() {
 			TileMarker.laserList.remove(this);
-			if (!this.w.isRemote) PacketHandler.sendLaserRemovePacket(this);
+			if (!this.w.isRemote) {
+				try {
+					ByteArrayOutputStream bos = new ByteArrayOutputStream();
+					DataOutputStream dos = new DataOutputStream(bos);
+					dos.writeByte(PacketHandler.remove_laser);
+					dos.writeBoolean(!this.w.isRemote);
+					dos.writeInt(this.w.provider.dimensionId);
+					dos.writeInt(this.x);
+					dos.writeInt(this.y);
+					dos.writeInt(this.z);
+					Packet250CustomPayload packet = new Packet250CustomPayload();
+					packet.channel = PacketHandler.Marker;
+					packet.data = bos.toByteArray();
+					packet.length = bos.size();
+					PacketDispatcher.sendPacketToAllPlayers(packet);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
 			for (EntityBlock eb : this.lasers)
 				if (eb != null) {
 					eb.worldObj.removeEntity(eb);
@@ -180,7 +221,27 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 
 		ArrayList<ItemStack> removeConnection(final boolean bb) {
 			TileMarker.linkList.remove(this);
-			if (!this.w.isRemote) PacketHandler.sendLinkRemovePacket(this);
+			if (!this.w.isRemote) {
+				try {
+					ByteArrayOutputStream bos = new ByteArrayOutputStream();
+					DataOutputStream dos = new DataOutputStream(bos);
+					dos.writeByte(PacketHandler.remove_link);
+					dos.writeInt(this.w.provider.dimensionId);
+					dos.writeInt(this.xx);
+					dos.writeInt(this.xn);
+					dos.writeInt(this.yx);
+					dos.writeInt(this.yn);
+					dos.writeInt(this.zx);
+					dos.writeInt(this.zn);
+					Packet250CustomPayload packet = new Packet250CustomPayload();
+					packet.channel = PacketHandler.Marker;
+					packet.data = bos.toByteArray();
+					packet.length = bos.size();
+					PacketDispatcher.sendPacketToAllPlayers(packet);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
 			deleteLaser();
 			ArrayList<ItemStack> i = new ArrayList<ItemStack>();
 			i.addAll(removeLink(this.xn, this.yn, this.zn, bb));
@@ -388,7 +449,7 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 				&& (this.link == null || this.link.xn == this.link.xx || this.link.yn == this.link.yx || this.link.zn == this.link.zx)) {
 			this.laser = new Laser(this.worldObj, this.xCoord, this.yCoord, this.zCoord, this.link);
 		}
-		if (!this.worldObj.isRemote) PacketHandler.sendPacketToAround(this, PacketHandler.signal);
+		if (!this.worldObj.isRemote) PacketHandler.sendPacketToAround(this, PacketHandler.StC_UPDATE_MARKER);
 	}
 
 	void S_tryConnection() {// onBlockActivated
@@ -401,15 +462,52 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 		}
 		this.link.init();
 		this.link.makeLaser();
-		PacketHandler.sendLinkPacket(this, this.link);
+		{
+			try {
+				ByteArrayOutputStream bos = new ByteArrayOutputStream();
+				DataOutputStream dos = new DataOutputStream(bos);
+				dos.writeInt(this.xCoord);
+				dos.writeInt(this.yCoord);
+				dos.writeInt(this.zCoord);
+				dos.writeByte(PacketHandler.StC_LINK_RES);
+				dos.writeInt(this.link.xx);
+				dos.writeInt(this.link.xn);
+				dos.writeInt(this.link.yx);
+				dos.writeInt(this.link.yn);
+				dos.writeInt(this.link.zx);
+				dos.writeInt(this.link.zn);
+				PacketDispatcher.sendPacketToAllAround(this.xCoord, this.yCoord, this.zCoord, 256, this.worldObj.provider.dimensionId,
+						PacketHandler.composeTilePacket(bos));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 		G_updateSignal();
 	}
 
 	@Override
 	void S_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {// onPacketData
 		switch (pattern) {
-		case PacketHandler.link_request:
-			if (this.link != null) PacketHandler.sendLinkPacket(this, this.link, ep);
+		case PacketHandler.CtS_LINK_REQ:
+			if (this.link != null) {
+				try {
+					ByteArrayOutputStream bos = new ByteArrayOutputStream();
+					DataOutputStream dos = new DataOutputStream(bos);
+					dos.writeInt(this.xCoord);
+					dos.writeInt(this.yCoord);
+					dos.writeInt(this.zCoord);
+					dos.writeByte(PacketHandler.StC_LINK_RES);
+					dos.writeInt(this.link.xx);
+					dos.writeInt(this.link.xn);
+					dos.writeInt(this.link.yx);
+					dos.writeInt(this.link.yn);
+					dos.writeInt(this.link.zx);
+					dos.writeInt(this.link.zn);
+					PacketDispatcher.sendPacketToPlayer(PacketHandler.composeTilePacket(bos), (Player) ep);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 
@@ -420,14 +518,14 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 	}
 
 	@Override
-	void C_recievePacket(byte pattern, ByteArrayDataInput data) {// onPacketData
+	void C_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {// onPacketData
 		switch (pattern) {
-		case PacketHandler.link_response:
+		case PacketHandler.StC_LINK_RES:
 			if (this.link != null) this.link.removeConnection(false);
 			this.link = new Link(this.worldObj, data.readInt(), data.readInt(), data.readInt(), data.readInt(), data.readInt(), data.readInt());
 			this.link.init();
 			this.link.makeLaser();
-		case PacketHandler.signal:
+		case PacketHandler.StC_UPDATE_MARKER:
 			G_updateSignal();
 			break;
 		}
@@ -466,7 +564,7 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 			i = laserList.indexOf(this);
 			if (i >= 0) this.laser = laserList.get(i);
 			G_updateSignal();
-			if (this.worldObj.isRemote) PacketHandler.sendPacketToServer(this, PacketHandler.link_request);
+			if (this.worldObj.isRemote) PacketHandler.sendPacketToServer(this, PacketHandler.CtS_LINK_REQ);
 		}
 	}
 

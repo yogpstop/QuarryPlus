@@ -37,10 +37,8 @@ import net.minecraft.network.packet.Packet3Chat;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatMessageComponent;
 import net.minecraft.util.Icon;
-import net.minecraft.util.StatCollector;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
-import net.minecraftforge.common.ForgeDirection;
 
 public class BlockPump extends BlockContainer {
 
@@ -146,11 +144,7 @@ public class BlockPump extends BlockContainer {
 				return true;
 			}
 			if (ep.getCurrentEquippedItem().getItemDamage() == 2) {
-				if (world.isRemote) return true;
-				PacketDispatcher.sendPacketToPlayer(
-						new Packet3Chat(ChatMessageComponent.createFromText(StatCollector.translateToLocalFormatted("chat.pumptoggle",
-								((TilePump) world.getBlockTileEntity(x, y, z)).incl(side), TilePump.fdToString(ForgeDirection.getOrientation(side))))),
-						(Player) ep);
+				if (!world.isRemote) ((TilePump) world.getBlockTileEntity(x, y, z)).S_OpenGUI(side, ep);
 				return true;
 			}
 		}
