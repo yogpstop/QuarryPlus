@@ -66,6 +66,8 @@ public class PacketHandler implements IPacketHandler {
 	public static final byte CtS_DOWN_MAPPING = 19;
 	public static final byte CtS_TOP_MAPPING = 20;
 	public static final byte CtS_BOTTOM_MAPPING = 21;
+	public static final byte CtS_RENEW_DIRECTION = 22;
+	public static final byte CtS_COPY_MAPPING = 23;
 
 	public static final byte remove_link = 0;
 	public static final byte remove_laser = 1;
@@ -126,7 +128,7 @@ public class PacketHandler implements IPacketHandler {
 		return packet;
 	}
 
-	public static void sendPacketToServer(APacketTile te, byte id, long data) {//J
+	public static void sendPacketToServer(APacketTile te, byte id, long data) {// J
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		DataOutputStream dos = new DataOutputStream(bos);
 		try {
@@ -141,7 +143,7 @@ public class PacketHandler implements IPacketHandler {
 		PacketDispatcher.sendPacketToServer(composeTilePacket(bos));
 	}
 
-	public static void sendPacketToServer(APacketTile te, byte id, byte pos, String data) {//BLjava.lang.String;
+	public static void sendPacketToServer(APacketTile te, byte id, byte pos, String data) {// BLjava.lang.String;
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		DataOutputStream dos = new DataOutputStream(bos);
 		try {

@@ -36,4 +36,12 @@ public class GuiYesNo extends net.minecraft.client.gui.GuiYesNo {
 	public boolean doesGuiPauseGame() {
 		return false;
 	}
+
+	@Override
+	public void updateScreen() {
+		super.updateScreen();
+		if (!this.mc.thePlayer.isEntityAlive() || this.mc.thePlayer.isDead) {
+			this.mc.thePlayer.closeScreen();
+		}
+	}
 }

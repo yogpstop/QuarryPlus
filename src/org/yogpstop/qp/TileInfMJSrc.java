@@ -59,7 +59,7 @@ public class TileInfMJSrc extends APacketTile {
 			dos.writeInt(this.xCoord);
 			dos.writeInt(this.yCoord);
 			dos.writeInt(this.zCoord);
-			dos.writeByte(PacketHandler.CtS_INFMJSRC);
+			dos.writeByte(PacketHandler.StC_OPENGUI_INFMJSRC);
 			dos.writeFloat(this.power);
 			dos.writeInt(this.interval);
 			PacketDispatcher.sendPacketToPlayer(PacketHandler.composeTilePacket(bos), (Player) ep);

@@ -23,19 +23,18 @@ import org.yogpstop.qp.TileBasic;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.StatCollector;
 import static org.yogpstop.qp.QuarryPlus.getname;
 
 @SideOnly(Side.CLIENT)
-public class GuiQ_List extends GuiScreen {
+public class GuiQ_List extends GuiScreenA {
 	private GuiQ_SlotList oreslot;
 	private GuiButton delete;
 	private TileBasic tile;
 	private byte targetid;
 
 	public GuiQ_List(byte id, TileBasic tq) {
-		super();
+		super(null);
 		this.targetid = id;
 		this.tile = tq;
 	}
@@ -64,7 +63,7 @@ public class GuiQ_List extends GuiScreen {
 	public void actionPerformed(GuiButton par1) {
 		switch (par1.id) {
 		case -1:
-			this.mc.displayGuiScreen(null);
+			showParent();
 			break;
 		case -2:
 			this.mc.displayGuiScreen(new GuiQ_Manual(this, this.targetid, this.tile));
@@ -102,18 +101,5 @@ public class GuiQ_List extends GuiScreen {
 	public void confirmClicked(boolean par1, int par2) {
 		if (par1) PacketHandler.sendPacketToServer(this.tile, (byte) par2, this.oreslot.target.get(this.oreslot.currentore));
 		else this.mc.displayGuiScreen(this);
-	}
-
-	@Override
-	public boolean doesGuiPauseGame() {
-		return false;
-	}
-
-	@Override
-	public void updateScreen() {
-		super.updateScreen();
-		if (!this.mc.thePlayer.isEntityAlive() || this.mc.thePlayer.isDead) {
-			this.mc.thePlayer.closeScreen();
-		}
 	}
 }

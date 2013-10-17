@@ -214,7 +214,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 		case PacketHandler.CtS_DOWN_MAPPING:// BLjava.lang.String;
 			target = data.readByte();
 			pos = this.mapping[target].indexOf(data.readUTF());
-			if (pos >= 0 && pos < this.mapping[target].size()) {
+			if (pos >= 0 && pos + 1 < this.mapping[target].size()) {
 				buf = this.mapping[target].get(pos);
 				this.mapping[target].remove(pos);
 				this.mapping[target].add(pos + 1, buf);
@@ -239,6 +239,16 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 				this.mapping[target].remove(pos);
 				this.mapping[target].addLast(buf);
 			}
+			S_OpenGUI(target, ep);
+			break;
+		case PacketHandler.CtS_RENEW_DIRECTION:
+			S_OpenGUI(data.readByte(), ep);
+			break;
+		case PacketHandler.CtS_COPY_MAPPING:
+			byte from = data.readByte();
+			target = data.readByte();
+			this.mapping[target].clear();
+			this.mapping[target].addAll(this.mapping[from]);
 			S_OpenGUI(target, ep);
 			break;
 		}
@@ -543,8 +553,13 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 		if (fd.ordinal() < 0 || fd.ordinal() >= this.mapping.length) return getTankInfo(ForgeDirection.UP);
 		LinkedList<FluidTankInfo> ret = new LinkedList<FluidTankInfo>();
 		if (this.mapping[fd.ordinal()].size() <= 0) {
-			for (FluidStack fs : this.liquids)
-				ret.add(new FluidTankInfo(fs, Integer.MAX_VALUE));
+			if (this.liquids.size() <= 0) {
+				for (Integer i : FluidRegistry.getRegisteredFluidIDs().values())
+					ret.add(new FluidTankInfo(new FluidStack(i, 0), Integer.MAX_VALUE));
+			} else {
+				for (FluidStack fs : this.liquids)
+					ret.add(new FluidTankInfo(fs, Integer.MAX_VALUE));
+			}
 		} else {
 			int index;
 			FluidStack fs;

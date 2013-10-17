@@ -31,4 +31,8 @@ public class ItemBlockPump extends ItemBlock implements IEnchantableItem {
 		return id == 33 || id == 34 || id == 35 || id == -1;
 	}
 
+	@Override
+	public boolean isBookEnchantable(ItemStack itemstack1, ItemStack itemstack2) {
+		return false;
+	}
 }

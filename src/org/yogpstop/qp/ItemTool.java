@@ -57,6 +57,11 @@ public class ItemTool extends Item implements IEnchantableItem {
 	}
 
 	@Override
+	public boolean isBookEnchantable(ItemStack itemstack1, ItemStack itemstack2) {
+		return false;
+	}
+
+	@Override
 	public boolean onItemUse(ItemStack is, EntityPlayer ep, World w, int x, int y, int z, int side, float par8, float par9, float par10) {
 		if (is.getItemDamage() == 1) {
 			boolean s = false, f = false;

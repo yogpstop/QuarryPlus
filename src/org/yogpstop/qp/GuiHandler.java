@@ -40,7 +40,7 @@ public class GuiHandler implements IGuiHandler {
 		case guiIdSList:
 			return new GuiQ_List((byte) 1, (TileBasic) world.getBlockTileEntity(x, y, z));
 		case guiIdInfMJSrc:
-			return new GuiInfMJSrc(x, y, z, world);
+			return new GuiInfMJSrc((TileInfMJSrc) world.getBlockTileEntity(x, y, z));
 		case guiIdPlacer:
 			return new GuiPlacer(player.inventory, (TilePlacer) world.getBlockTileEntity(x, y, z));
 		case guiIdPump:

@@ -22,9 +22,13 @@ import net.minecraft.item.ItemStack;
 public interface IEnchantableItem {
 	/**
 	 * You should not think max enchantment level in this method
-	 * @param is target ItemStack. It is never null.
-	 * @param id target enchantment id or -1(EnchantMover accept that item)
-	 * @param meta ItemDamage
+	 * 
+	 * @param is
+	 *            target ItemStack. It is never null.
+	 * @param id
+	 *            target enchantment id or -1(EnchantMover accept that item)
+	 * @param meta
+	 *            ItemDamage
 	 * @return that ItemStack can move enchantment on EnchantMover
 	 * */
 	public boolean canMove(ItemStack is, int id, int meta);

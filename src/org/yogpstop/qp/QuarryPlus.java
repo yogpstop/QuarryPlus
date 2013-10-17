@@ -65,7 +65,7 @@ public class QuarryPlus {
 	public static final int guiIdFList = 3;
 	public static final int guiIdSList = 4;
 	public static final int guiIdPlacer = 5;
-	public static final int guiIdPump = 6;//reserved from 6 to 11
+	public static final int guiIdPump = 6;// reserved from 6 to 11
 
 	@ForgeSubscribe
 	public void onWorldUnload(WorldEvent.Unload event) {

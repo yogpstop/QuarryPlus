@@ -26,35 +26,23 @@ import cpw.mods.fml.common.network.PacketDispatcher;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
-import net.minecraft.world.World;
 
 import org.yogpstop.qp.PacketHandler;
 import org.yogpstop.qp.TileInfMJSrc;
 
 @SideOnly(Side.CLIENT)
-public class GuiInfMJSrc extends GuiScreen {
-
+public class GuiInfMJSrc extends GuiScreenA {
+	private static final ResourceLocation gui = new ResourceLocation("yogpstop_qp", "textures/gui/infmjsrc.png");
+	private TileInfMJSrc tile;
 	private GuiTextField eng;
 	private GuiTextField itv;
-	private float pw;
-	private int it;
-	private static final ResourceLocation gui = new ResourceLocation("yogpstop_qp", "textures/gui/infmjsrc.png");
-	public int x, y, z;
 
-	public GuiInfMJSrc(int ax, int ay, int az, World aw) {
-		this.x = ax;
-		this.y = ay;
-		this.z = az;
-		TileEntity te = aw.getBlockTileEntity(ax, ay, az);
-		if (te instanceof TileInfMJSrc) {
-			this.pw = ((TileInfMJSrc) te).power;
-			this.it = ((TileInfMJSrc) te).interval;
-		}
+	public GuiInfMJSrc(TileInfMJSrc pt) {
+		super(null);
+		this.tile = pt;
 	}
 
 	@Override
@@ -63,9 +51,9 @@ public class GuiInfMJSrc extends GuiScreen {
 		// int xb = (this.width - 176) >> 1;
 		int yb = (this.height - 214) >> 1;
 		this.eng = new GuiTextField(this.fontRenderer, (this.width >> 1) - 75, yb + 58, 150, 20);
-		this.eng.setText(Float.toString(this.pw));
+		this.eng.setText(Float.toString(this.tile.power));
 		this.itv = new GuiTextField(this.fontRenderer, (this.width >> 1) - 75, yb + 106, 150, 20);
-		this.itv.setText(Integer.toString(this.it));
+		this.itv.setText(Integer.toString(this.tile.interval));
 		this.buttonList.add(new GuiButton(1, (this.width >> 1) + 30, yb + 34, 50, 20, "Reset"));
 		this.buttonList.add(new GuiButton(2, (this.width >> 1) + 30, yb + 82, 50, 20, "Reset"));
 		this.buttonList.add(new GuiButton(3, (this.width >> 1) - 75, yb + 144, 150, 20, "Apply"));
@@ -83,35 +71,35 @@ public class GuiInfMJSrc extends GuiScreen {
 			break;
 		case 3:
 			try {
-				this.pw = Float.parseFloat(this.eng.getText());
+				this.tile.power = Float.parseFloat(this.eng.getText());
 			} catch (Exception e) {
 				this.eng.setText(StatCollector.translateToLocal("tof.error"));
 				return;
 			}
-			if (this.pw <= 0) {
+			if (this.tile.power <= 0) {
 				this.eng.setText(StatCollector.translateToLocal("tof.error"));
 				return;
 
 			}
 			try {
-				this.it = Integer.parseInt(this.itv.getText());
+				this.tile.interval = Integer.parseInt(this.itv.getText());
 			} catch (Exception e) {
 				this.itv.setText(StatCollector.translateToLocal("tof.error"));
 				return;
 			}
-			if (this.it < 1) {
+			if (this.tile.interval < 1) {
 				this.itv.setText(StatCollector.translateToLocal("tof.error"));
 				return;
 			}
 			ByteArrayOutputStream bos = new ByteArrayOutputStream();
 			DataOutputStream dos = new DataOutputStream(bos);
 			try {
-				dos.writeInt(this.x);
-				dos.writeInt(this.y);
-				dos.writeInt(this.z);
+				dos.writeInt(this.tile.xCoord);
+				dos.writeInt(this.tile.yCoord);
+				dos.writeInt(this.tile.zCoord);
 				dos.writeByte(PacketHandler.CtS_INFMJSRC);
-				dos.writeFloat(this.pw);
-				dos.writeInt(this.it);
+				dos.writeFloat(this.tile.power);
+				dos.writeInt(this.tile.interval);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -128,8 +116,9 @@ public class GuiInfMJSrc extends GuiScreen {
 		int xb = this.width - 176 >> 1;
 		int yb = this.height - 214 >> 1;
 		drawTexturedModalRect(xb, yb, 0, 0, 176, 214);
-		drawCenteredString(this.fontRenderer, "InfinityMJSource", this.width / 2, yb + 6, 0xFFFFFF);
-		drawCenteredString(this.fontRenderer, String.format("x:%d, y:%d, z:%d", this.x, this.y, this.z), this.width / 2, yb + 20, 0xFFFFFF);
+		drawCenteredString(this.fontRenderer, StatCollector.translateToLocal("tile.InfMJSrc.name"), this.width / 2, yb + 6, 0xFFFFFF);
+		drawCenteredString(this.fontRenderer, String.format("x:%d, y:%d, z:%d", this.tile.xCoord, this.tile.yCoord, this.tile.zCoord), this.width / 2, yb + 20,
+				0xFFFFFF);
 		this.fontRenderer.drawStringWithShadow("Energy(MJ)", this.width / 2 - 70, yb + 39, 0xFFFFFF);
 		this.fontRenderer.drawStringWithShadow("Interval(tick)", this.width / 2 - 70, yb + 88, 0xFFFFFF);
 		drawCenteredString(this.fontRenderer, "1tick=1/20second", this.width / 2, yb + 130, 0xFFFFFF);
@@ -152,24 +141,6 @@ public class GuiInfMJSrc extends GuiScreen {
 		} else if (this.itv.isFocused()) {
 			this.itv.textboxKeyTyped(par1, par2);
 		}
-		if (par2 == 1 || par1 == this.mc.gameSettings.keyBindInventory.keyCode) {
-			this.mc.displayGuiScreen((GuiScreen) null);
-			this.mc.setIngameFocus();
-		}
-	}
-
-	@Override
-	public boolean doesGuiPauseGame() {
-		return false;
-	}
-
-	@Override
-	public void updateScreen() {
-		super.updateScreen();
-		this.eng.updateCursorCounter();
-		this.itv.updateCursorCounter();
-		if (!this.mc.thePlayer.isEntityAlive() || this.mc.thePlayer.isDead) {
-			this.mc.thePlayer.closeScreen();
-		}
+		super.keyTyped(par1, par2);
 	}
 }

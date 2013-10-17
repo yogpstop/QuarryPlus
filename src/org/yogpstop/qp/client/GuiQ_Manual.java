@@ -30,8 +30,7 @@ import static org.yogpstop.qp.QuarryPlus.getname;
 import static org.yogpstop.qp.QuarryPlus.data;
 
 @SideOnly(Side.CLIENT)
-public class GuiQ_Manual extends GuiScreen {
-	private GuiScreen parent;
+public class GuiQ_Manual extends GuiScreenA {
 	private GuiTextField blockid;
 	private GuiTextField meta;
 	private byte targetid;
@@ -40,7 +39,7 @@ public class GuiQ_Manual extends GuiScreen {
 	private int metaid;
 
 	public GuiQ_Manual(GuiScreen parents, byte id, TileBasic tq) {
-		this.parent = parents;
+		super(parents);
 		this.targetid = id;
 		this.tile = tq;
 	}
@@ -78,7 +77,7 @@ public class GuiQ_Manual extends GuiScreen {
 			this.mc.displayGuiScreen(new GuiYesNo(this, StatCollector.translateToLocal("tof.addblocksure"), getname(this.bid, this.metaid), -1));
 			break;
 		case -2:
-			this.mc.displayGuiScreen(this.parent);
+			showParent();
 			break;
 		}
 	}
@@ -86,7 +85,7 @@ public class GuiQ_Manual extends GuiScreen {
 	@Override
 	public void confirmClicked(boolean par1, int par2) {
 		if (par1) PacketHandler.sendPacketToServer(this.tile, (byte) (PacketHandler.CtS_ADD_FORTUNE + this.targetid), data(this.bid, this.metaid));
-		else this.mc.displayGuiScreen(this.parent);
+		else showParent();
 	}
 
 	@Override
@@ -96,9 +95,7 @@ public class GuiQ_Manual extends GuiScreen {
 		} else if (this.meta.isFocused()) {
 			this.meta.textboxKeyTyped(par1, par2);
 		}
-		if (par2 == 1 || par1 == this.mc.gameSettings.keyBindInventory.keyCode) {
-			this.mc.displayGuiScreen(this.parent);
-		}
+		super.keyTyped(par1, par2);
 	}
 
 	@Override
@@ -123,17 +120,9 @@ public class GuiQ_Manual extends GuiScreen {
 	}
 
 	@Override
-	public boolean doesGuiPauseGame() {
-		return false;
-	}
-
-	@Override
 	public void updateScreen() {
 		super.updateScreen();
 		this.meta.updateCursorCounter();
 		this.blockid.updateCursorCounter();
-		if (!this.mc.thePlayer.isEntityAlive() || this.mc.thePlayer.isDead) {
-			this.mc.thePlayer.closeScreen();
-		}
 	}
 }

@@ -19,23 +19,14 @@ package org.yogpstop.qp.client;
 
 import cpw.mods.fml.relauncher.SideOnly;
 import cpw.mods.fml.relauncher.Side;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.gui.GuiErrorScreen;
 import net.minecraft.client.gui.GuiScreen;
 
 @SideOnly(Side.CLIENT)
-public class GuiError extends GuiErrorScreen {
+public class GuiScreenA extends GuiScreen {
 	private GuiScreen parent;
 
-	public GuiError(GuiScreen par1GuiScreen, String par2Str, String par3Str) {
-		super(par2Str, par3Str);
-		this.parent = par1GuiScreen;
-	}
-
-	@Override
-	protected void actionPerformed(GuiButton par1GuiButton) {
-		Minecraft.getMinecraft().displayGuiScreen(this.parent);
+	public GuiScreenA(GuiScreen pparent) {
+		this.parent = pparent;
 	}
 
 	@Override
@@ -48,6 +39,18 @@ public class GuiError extends GuiErrorScreen {
 		super.updateScreen();
 		if (!this.mc.thePlayer.isEntityAlive() || this.mc.thePlayer.isDead) {
 			this.mc.thePlayer.closeScreen();
+		}
+	}
+
+	protected void showParent() {
+		this.mc.displayGuiScreen(this.parent);
+		if (this.parent == null) this.mc.setIngameFocus();
+	}
+
+	@Override
+	protected void keyTyped(char par1, int par2) {
+		if (par2 == 1) {
+			showParent();
 		}
 	}
 }

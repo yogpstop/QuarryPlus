@@ -93,7 +93,7 @@ public class TileLaser extends TileEntity implements IPowerReceptor, IActionRece
 			}
 		}
 
-		float power = PowerManager.useEnergyL(this.powerHandler, this.laserTargets.size(), this.unbreaking, this.fortune, this.silktouch, this.efficiency);
+		float power = PowerManager.useEnergyL(this.powerHandler, this.unbreaking, this.fortune, this.silktouch, this.efficiency);
 		for (ILaserTarget lt : this.laserTargets)
 			lt.receiveLaserEnergy(power / this.laserTargets.size());
 		for (EntityEnergyLaser laser : this.lasers)

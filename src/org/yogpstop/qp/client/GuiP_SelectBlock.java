@@ -27,15 +27,13 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
-public class GuiP_SelectBlock extends GuiScreen {
+public class GuiP_SelectBlock extends GuiScreenA {
 	private GuiP_SlotBlockList blocks;
-	private GuiScreen parent;
 	private TilePump tile;
 	private byte targetid;
 
 	public GuiP_SelectBlock(GuiScreen pscr, TilePump tb, byte id) {
-		super();
-		this.parent = pscr;
+		super(pscr);
 		this.tile = tb;
 		this.targetid = id;
 	}
@@ -54,14 +52,9 @@ public class GuiP_SelectBlock extends GuiScreen {
 			PacketHandler.sendPacketToServer(this.tile, PacketHandler.CtS_ADD_MAPPING, this.targetid, this.blocks.current);
 			break;
 		case -2:
-			this.mc.displayGuiScreen(this.parent);
+			showParent();
 			break;
 		}
-	}
-
-	@Override
-	public boolean doesGuiPauseGame() {
-		return false;
 	}
 
 	@Override

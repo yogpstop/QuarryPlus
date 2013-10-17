@@ -29,15 +29,13 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
-public class GuiQ_SelectBlock extends GuiScreen {
+public class GuiQ_SelectBlock extends GuiScreenA {
 	private GuiQ_SlotBlockList blocks;
-	private GuiScreen parent;
 	private TileBasic tile;
 	private byte targetid;
 
 	public GuiQ_SelectBlock(GuiScreen pscr, TileBasic tb, byte id) {
-		super();
-		this.parent = pscr;
+		super(pscr);
 		this.tile = tb;
 		this.targetid = id;
 	}
@@ -58,7 +56,7 @@ public class GuiQ_SelectBlock extends GuiScreen {
 					data(this.blocks.currentblockid, this.blocks.currentmeta));
 			break;
 		case -2:
-			this.mc.displayGuiScreen(this.parent);
+			showParent();
 			break;
 		}
 	}
@@ -70,10 +68,5 @@ public class GuiQ_SelectBlock extends GuiScreen {
 		String title = StatCollector.translateToLocal("tof.selectblock");
 		this.fontRenderer.drawStringWithShadow(title, (this.width - this.fontRenderer.getStringWidth(title)) / 2, 8, 0xFFFFFF);
 		super.drawScreen(i, j, k);
-	}
-
-	@Override
-	public boolean doesGuiPauseGame() {
-		return false;
 	}
 }

@@ -228,9 +228,9 @@ public class PowerManager {
 		return pw * (U * CU + 1) / BP + 0.1;
 	}
 
-	private static float useEnergy(PowerHandler pp, int count, double BP, byte U, double CU, byte F, double CF, boolean S, double CS, byte E, double CE) {
+	private static float useEnergy(PowerHandler pp, double BP, byte U, double CU, byte F, double CF, boolean S, double CS, byte E, double CE) {
 		double pwc = BP * Math.pow(CF, F) * Math.pow(CE, E) / (U * CU + 1);
-		if (S) pwc *= CS * count;
+		if (S) pwc *= CS;
 		float pw = (float) pwc;
 		pw = pp.useEnergy(0, pw, true);
 		if (S) pwc = pw / CS;
@@ -264,8 +264,8 @@ public class PowerManager {
 		return useEnergy(pp, distance, H_BP, U, H_CU);
 	}
 
-	static float useEnergyL(PowerHandler pp, int count, byte U, byte F, boolean S, byte E) {
-		return useEnergy(pp, count, L_BP, U, L_CU, F, L_CF, S, L_CS, E, L_CE);
+	static float useEnergyL(PowerHandler pp, byte U, byte F, boolean S, byte E) {
+		return useEnergy(pp, L_BP, U, L_CU, F, L_CF, S, L_CS, E, L_CE);
 	}
 
 }
