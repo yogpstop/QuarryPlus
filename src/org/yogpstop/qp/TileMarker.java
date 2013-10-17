@@ -128,7 +128,7 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 					packet.channel = PacketHandler.Marker;
 					packet.data = bos.toByteArray();
 					packet.length = bos.size();
-					PacketDispatcher.sendPacketToAllPlayers(packet);
+					PacketDispatcher.sendPacketToAllInDimension(packet, this.w.provider.dimensionId);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -237,7 +237,7 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 					packet.channel = PacketHandler.Marker;
 					packet.data = bos.toByteArray();
 					packet.length = bos.size();
-					PacketDispatcher.sendPacketToAllPlayers(packet);
+					PacketDispatcher.sendPacketToAllInDimension(packet, this.w.provider.dimensionId);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

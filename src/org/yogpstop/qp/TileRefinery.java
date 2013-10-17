@@ -17,6 +17,9 @@
 
 package org.yogpstop.qp;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
@@ -148,7 +151,24 @@ public class TileRefinery extends APacketTile implements IFluidHandler, IPowerRe
 		}
 	}
 
+	private void sendNowPacket() {
+		try {
+			ByteArrayOutputStream bos = new ByteArrayOutputStream();
+			DataOutputStream dos = new DataOutputStream(bos);
+			dos.writeInt(this.xCoord);
+			dos.writeInt(this.yCoord);
+			dos.writeInt(this.zCoord);
+			dos.writeByte(PacketHandler.StC_NOW);
+			dos.writeFloat(this.animationSpeed);
+			PacketDispatcher.sendPacketToAllAround(this.xCoord, this.yCoord, this.zCoord, 256, this.worldObj.provider.dimensionId,
+					PacketHandler.composeTilePacket(bos));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
 	private void increaseAnimation() {
+		float prev = this.animationSpeed;
 		if (this.animationSpeed < 2) {
 			this.animationSpeed = 2;
 		} else if (this.animationSpeed <= 5) {
@@ -160,9 +180,11 @@ public class TileRefinery extends APacketTile implements IFluidHandler, IPowerRe
 		if (this.animationStage > 300) {
 			this.animationStage = 100;
 		}
+		if (this.animationSpeed != prev) sendNowPacket();
 	}
 
 	private void decreaseAnimation() {
+		float prev = this.animationSpeed;
 		if (this.animationSpeed >= 1) {
 			this.animationSpeed -= 0.1;
 
@@ -176,16 +198,21 @@ public class TileRefinery extends APacketTile implements IFluidHandler, IPowerRe
 				this.animationStage--;
 			}
 		}
+		if (this.animationSpeed != prev) sendNowPacket();
 	}
 
 	@Override
-	void S_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {
+	protected void S_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {
 
 	}
 
 	@Override
-	void C_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {
-
+	protected void C_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {
+		switch (pattern) {
+		case PacketHandler.StC_NOW:
+			this.animationSpeed = data.readFloat();
+			break;
+		}
 	}
 
 	@Override

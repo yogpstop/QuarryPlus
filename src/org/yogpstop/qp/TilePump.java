@@ -276,9 +276,9 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 	}
 
 	void S_OpenGUI(int d, EntityPlayer ep) {// BI[Ljava.lang.String;
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		DataOutputStream dos = new DataOutputStream(bos);
 		try {
+			ByteArrayOutputStream bos = new ByteArrayOutputStream();
+			DataOutputStream dos = new DataOutputStream(bos);
 			dos.writeInt(this.xCoord);
 			dos.writeInt(this.yCoord);
 			dos.writeInt(this.zCoord);
@@ -287,10 +287,10 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 			dos.writeInt(this.mapping[d].size());
 			for (String s : this.mapping[d])
 				dos.writeUTF(s);
+			PacketDispatcher.sendPacketToPlayer(PacketHandler.composeTilePacket(bos), (Player) ep);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		PacketDispatcher.sendPacketToPlayer(PacketHandler.composeTilePacket(bos), (Player) ep);
 	}
 
 	// /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
