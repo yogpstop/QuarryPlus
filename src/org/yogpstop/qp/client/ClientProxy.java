@@ -17,6 +17,11 @@
 
 package org.yogpstop.qp.client;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.WorldClient;
+import net.minecraft.entity.Entity;
+import net.minecraft.world.World;
+
 import org.yogpstop.qp.CommonProxy;
 import org.yogpstop.qp.EntityMechanicalArm;
 import org.yogpstop.qp.TileRefinery;
@@ -36,4 +41,13 @@ public class ClientProxy extends CommonProxy {
 		RenderingRegistry.registerBlockHandler(RenderRefinery.INSTANCE);
 	}
 
+	@Override
+	public void removeEntity(Entity e) {
+		e.worldObj.removeEntity(e);
+		if (e.worldObj.isRemote) ((WorldClient) e.worldObj).removeEntityFromWorld(e.entityId);
+	}
+
+	public World getClientWorld() {
+		return Minecraft.getMinecraft().theWorld;
+	}
 }

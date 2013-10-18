@@ -17,6 +17,17 @@
 
 package org.yogpstop.qp;
 
+import net.minecraft.entity.Entity;
+import net.minecraft.world.World;
+
 public class CommonProxy {
 	public void registerTextures() {}
+
+	public void removeEntity(Entity e) {
+		e.worldObj.removeEntity(e);
+	}
+
+	public World getClientWorld() {
+		return null;
+	}
 }

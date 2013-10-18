@@ -39,8 +39,6 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.World;
 import net.minecraft.block.Block;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.ForgeChunkManager.Ticket;
 import net.minecraftforge.common.ForgeChunkManager.Type;
@@ -61,7 +59,7 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 		ByteArrayDataInput data = ByteStreams.newDataInput(pdata);
 		final byte flag = data.readByte();
 		final int dimId = data.readInt();
-		final World w = Minecraft.getMinecraft().theWorld;
+		final World w = QuarryPlus.proxy.getClientWorld();
 		if (w.provider.dimensionId != dimId) return;
 		if (flag == PacketHandler.remove_link) {
 			final int index = TileMarker.linkList.indexOf(new TileMarker.Link(w, data.readInt(), data.readInt(), data.readInt(), data.readInt(),
@@ -134,10 +132,7 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 				}
 			}
 			for (EntityBlock eb : this.lasers)
-				if (eb != null) {
-					eb.worldObj.removeEntity(eb);
-					if (eb.worldObj.isRemote) ((WorldClient) eb.worldObj).removeEntityFromWorld(eb.entityId);
-				}
+				if (eb != null) QuarryPlus.proxy.removeEntity(eb);
 		}
 
 		@Override
@@ -294,10 +289,7 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 
 		void deleteLaser() {
 			for (EntityBlock eb : this.lasers) {
-				if (eb != null) {
-					eb.worldObj.removeEntity(eb);
-					if (eb.worldObj.isRemote) ((WorldClient) eb.worldObj).removeEntityFromWorld(eb.entityId);
-				}
+				if (eb != null) QuarryPlus.proxy.removeEntity(eb);
 			}
 		}
 
