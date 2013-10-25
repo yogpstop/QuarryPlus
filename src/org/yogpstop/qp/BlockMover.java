@@ -17,7 +17,6 @@
 
 package org.yogpstop.qp;
 
-import static buildcraft.core.CreativeTabBuildCraft.tabBuildCraft;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
@@ -34,11 +33,12 @@ public class BlockMover extends Block {
 	public BlockMover(int par1) {
 		super(par1, Material.iron);
 		setHardness(1.2F);
-		this.setCreativeTab(tabBuildCraft);
+		this.setCreativeTab(QuarryPlus.ct);
 		setUnlocalizedName("EnchantMover");
 	}
 
 	@Override
+	@SideOnly(Side.CLIENT)
 	public Icon getIcon(int i, int j) {
 
 		switch (i) {

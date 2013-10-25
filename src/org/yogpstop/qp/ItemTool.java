@@ -17,8 +17,6 @@
 
 package org.yogpstop.qp;
 
-import static buildcraft.core.CreativeTabBuildCraft.tabBuildCraft;
-
 import java.util.List;
 
 import cpw.mods.fml.relauncher.Side;
@@ -41,7 +39,7 @@ public class ItemTool extends Item implements IEnchantableItem {
 		setMaxStackSize(1);
 		setHasSubtypes(true);
 		this.setMaxDamage(0);
-		setCreativeTab(tabBuildCraft);
+		setCreativeTab(QuarryPlus.ct);
 	}
 
 	@Override

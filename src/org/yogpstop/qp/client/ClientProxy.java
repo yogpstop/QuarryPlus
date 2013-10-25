@@ -47,6 +47,7 @@ public class ClientProxy extends CommonProxy {
 		if (e.worldObj.isRemote) ((WorldClient) e.worldObj).removeEntityFromWorld(e.entityId);
 	}
 
+	@Override
 	public World getClientWorld() {
 		return Minecraft.getMinecraft().theWorld;
 	}

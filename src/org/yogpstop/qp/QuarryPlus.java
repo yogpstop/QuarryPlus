@@ -25,6 +25,7 @@ import buildcraft.BuildCraftSilicon;
 import buildcraft.BuildCraftTransport;
 import buildcraft.api.recipes.AssemblyRecipe;
 import net.minecraft.block.Block;
+import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.StatCollector;
@@ -69,9 +70,11 @@ public class QuarryPlus {
 
 	@ForgeSubscribe
 	public void onWorldUnload(WorldEvent.Unload event) {
-		for (TileMarker.Link l : TileMarker.linkList)
+		TileMarker.Link[] la = TileMarker.linkList.toArray(new TileMarker.Link[TileMarker.linkList.size()]);
+		for (TileMarker.Link l : la)
 			if (l.w == event.world) l.removeConnection(false);
-		for (TileMarker.Laser l : TileMarker.laserList)
+		TileMarker.Laser[] lb = TileMarker.laserList.toArray(new TileMarker.Laser[TileMarker.laserList.size()]);
+		for (TileMarker.Laser l : lb)
 			if (l.w == event.world) l.destructor();
 	}
 
@@ -317,5 +320,18 @@ public class QuarryPlus {
 
 	public static long data(short id, int meta) {
 		return id | (meta << 12);
+	}
+
+	public static CreativeTabs ct = null;
+	static {
+		final Class ctc = buildcraft.core.CreativeTabBuildCraft.class;
+		try {
+			ct = (CreativeTabs) ctc.getField("tabBuildCraft").get(null);
+		} catch (Exception e) {}
+		if (ct == null) {
+			try {
+				ct = (CreativeTabs) ctc.getMethod("get", new Class[] {}).invoke(ctc.getField("MACHINES").get(null), new Object[] {});
+			} catch (Exception e) {}
+		}
 	}
 }

@@ -17,7 +17,8 @@
 
 package org.yogpstop.qp;
 
-import static buildcraft.core.CreativeTabBuildCraft.tabBuildCraft;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
@@ -34,7 +35,7 @@ public class BlockInfMJSrc extends BlockContainer {
 		setHardness(1.5F);
 		setResistance(10F);
 		setStepSound(soundStoneFootstep);
-		setCreativeTab(tabBuildCraft);
+		setCreativeTab(QuarryPlus.ct);
 		setUnlocalizedName("InfMJSrc");
 	}
 
@@ -50,6 +51,7 @@ public class BlockInfMJSrc extends BlockContainer {
 	}
 
 	@Override
+	@SideOnly(Side.CLIENT)
 	public Icon getIcon(int a, int b) {
 		return Block.portal.getIcon(a, b);
 	}

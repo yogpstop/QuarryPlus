@@ -20,7 +20,6 @@ package org.yogpstop.qp;
 import java.util.ArrayList;
 
 import buildcraft.api.tools.IToolWrench;
-import static buildcraft.core.CreativeTabBuildCraft.tabBuildCraft;
 import cpw.mods.fml.common.network.PacketDispatcher;
 import cpw.mods.fml.common.network.Player;
 import cpw.mods.fml.relauncher.Side;
@@ -48,7 +47,7 @@ public class BlockQuarry extends BlockContainer {
 		setHardness(1.5F);
 		setResistance(10F);
 		setStepSound(soundStoneFootstep);
-		setCreativeTab(tabBuildCraft);
+		setCreativeTab(QuarryPlus.ct);
 		setUnlocalizedName("QuarryPlus");
 	}
 

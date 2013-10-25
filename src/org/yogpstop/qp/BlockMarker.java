@@ -22,7 +22,6 @@ import cpw.mods.fml.common.network.Player;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import static buildcraft.BuildCraftCore.markerModel;
-import static buildcraft.core.CreativeTabBuildCraft.tabBuildCraft;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IconRegister;
@@ -42,7 +41,7 @@ public class BlockMarker extends BlockContainer {
 	public BlockMarker(int i) {
 		super(i, Material.circuits);
 		setLightValue(0.5F);
-		setCreativeTab(tabBuildCraft);
+		setCreativeTab(QuarryPlus.ct);
 		setUnlocalizedName("MarkerPlus");
 	}
 

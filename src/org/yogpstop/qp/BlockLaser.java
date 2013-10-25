@@ -19,7 +19,6 @@ package org.yogpstop.qp;
 
 import java.util.ArrayList;
 
-import buildcraft.core.CreativeTabBuildCraft;
 import buildcraft.silicon.SiliconProxy;
 import cpw.mods.fml.common.network.PacketDispatcher;
 import cpw.mods.fml.common.network.Player;
@@ -47,7 +46,7 @@ public class BlockLaser extends BlockContainer {
 	public BlockLaser(int i) {
 		super(i, Material.iron);
 		setHardness(10F);
-		setCreativeTab(CreativeTabBuildCraft.tabBuildCraft);
+		setCreativeTab(QuarryPlus.ct);
 		this.setUnlocalizedName("LaserPlus");
 	}
 
@@ -72,6 +71,7 @@ public class BlockLaser extends BlockContainer {
 	}
 
 	@Override
+	@SideOnly(Side.CLIENT)
 	public Icon getIcon(int i, int j) {
 		if (i == ForgeDirection.values()[j].getOpposite().ordinal()) return this.textureBottom;
 		else if (i == j) return this.textureTop;

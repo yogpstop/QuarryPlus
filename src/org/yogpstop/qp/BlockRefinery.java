@@ -17,8 +17,6 @@
 
 package org.yogpstop.qp;
 
-import static buildcraft.core.CreativeTabBuildCraft.tabBuildCraft;
-
 import java.util.ArrayList;
 
 import buildcraft.api.core.Position;
@@ -45,7 +43,7 @@ public class BlockRefinery extends BlockContainer {
 	public BlockRefinery(int par1) {
 		super(par1, Material.iron);
 		setHardness(5F);
-		setCreativeTab(tabBuildCraft);
+		setCreativeTab(QuarryPlus.ct);
 		setUnlocalizedName("RefineryPlus");
 	}
 

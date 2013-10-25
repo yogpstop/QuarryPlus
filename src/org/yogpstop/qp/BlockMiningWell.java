@@ -20,7 +20,6 @@ package org.yogpstop.qp;
 import java.util.ArrayList;
 
 import buildcraft.api.tools.IToolWrench;
-import static buildcraft.core.CreativeTabBuildCraft.tabBuildCraft;
 import cpw.mods.fml.common.network.PacketDispatcher;
 import cpw.mods.fml.common.network.Player;
 import cpw.mods.fml.relauncher.Side;
@@ -47,7 +46,7 @@ public class BlockMiningWell extends BlockContainer {
 		super(par1, Material.ground);
 		setHardness(1.5F);
 		setResistance(10F);
-		setCreativeTab(tabBuildCraft);
+		setCreativeTab(QuarryPlus.ct);
 		setStepSound(soundStoneFootstep);
 		setUnlocalizedName("MiningWellPlus");
 	}
