@@ -19,6 +19,7 @@ package org.yogpstop.qp;
 
 import java.util.Random;
 
+import buildcraft.api.tools.IToolWrench;
 import buildcraft.core.proxy.CoreProxy;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -31,11 +32,11 @@ import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Icon;
-import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeDirection;
 
@@ -150,6 +151,7 @@ public class BlockPlacer extends BlockContainer {
 					if (is.tryPlaceItemIntoWorld(player, world, tx + fd4.offsetX, ty + fd4.offsetY, tz + fd4.offsetZ, sd3, 0.5F, 0.5F, 0.5F)) break;
 					if (is.tryPlaceItemIntoWorld(player, world, tx + fd5.offsetX, ty + fd5.offsetY, tz + fd5.offsetZ, sd6, 0.5F, 0.5F, 0.5F)) break;
 					if (is.tryPlaceItemIntoWorld(player, world, tx + fd6.offsetX, ty + fd6.offsetY, tz + fd6.offsetZ, sd5, 0.5F, 0.5F, 0.5F)) break;
+					if (is.stackSize <= 0) tile.setInventorySlotContents(i, null);
 				}
 			}
 		}
@@ -159,11 +161,6 @@ public class BlockPlacer extends BlockContainer {
 	public void onBlockPlacedBy(World par1World, int par2, int par3, int par4, EntityLivingBase par5EntityLivingBase, ItemStack par6ItemStack) {
 		int l = BlockPistonBase.determineOrientation(par1World, par2, par3, par4, par5EntityLivingBase);
 		par1World.setBlockMetadataWithNotify(par2, par3, par4, l, 2);
-	}
-
-	@Override
-	public boolean canConnectRedstone(IBlockAccess world, int x, int y, int z, int side) {
-		return side != -1;
 	}
 
 	@Override
@@ -214,8 +211,16 @@ public class BlockPlacer extends BlockContainer {
 	}
 
 	@Override
-	public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer par5EntityPlayer, int par6, float par7, float par8, float par9) {
-		if (!world.isRemote) par5EntityPlayer.openGui(QuarryPlus.instance, QuarryPlus.guiIdPlacer, world, x, y, z);
+	public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer ep, int par6, float par7, float par8, float par9) {
+		Item equipped = ep.getCurrentEquippedItem() != null ? ep.getCurrentEquippedItem().getItem() : null;
+		if (equipped instanceof IToolWrench && ((IToolWrench) equipped).canWrench(ep, x, y, z)) {
+			int i = world.getBlockMetadata(x, y, z) + 1;
+			if (i >= 6) i = 0;
+			world.setBlockMetadataWithNotify(x, y, z, i, 2);
+			((IToolWrench) equipped).wrenchUsed(ep, x, y, z);
+			return true;
+		}
+		if (!world.isRemote) ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdPlacer, world, x, y, z);
 		return true;
 	}
 }

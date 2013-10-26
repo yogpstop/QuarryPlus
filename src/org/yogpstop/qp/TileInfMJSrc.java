@@ -39,7 +39,8 @@ public class TileInfMJSrc extends APacketTile {
 
 	@Override
 	public void updateEntity() {
-		if (this.worldObj.isBlockIndirectlyGettingPowered(this.xCoord, this.yCoord, this.zCoord)) return;
+		if (this.worldObj.isBlockIndirectlyGettingPowered(this.xCoord, this.yCoord, this.zCoord)
+				|| this.worldObj.isBlockIndirectlyGettingPowered(this.xCoord, this.yCoord + 1, this.zCoord)) return;
 		if (--this.cInterval > 0) return;
 		TileEntity te;
 		for (ForgeDirection d : ForgeDirection.VALID_DIRECTIONS) {

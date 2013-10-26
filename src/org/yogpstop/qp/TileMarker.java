@@ -437,7 +437,8 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 			this.laser.destructor();
 			this.laser = null;
 		}
-		if (this.worldObj.isBlockIndirectlyGettingPowered(this.xCoord, this.yCoord, this.zCoord)
+		if ((this.worldObj.isBlockIndirectlyGettingPowered(this.xCoord, this.yCoord, this.zCoord) || this.worldObj.isBlockIndirectlyGettingPowered(this.xCoord,
+				this.yCoord + 1, this.zCoord))
 				&& (this.link == null || this.link.xn == this.link.xx || this.link.yn == this.link.yx || this.link.zn == this.link.zx)) {
 			this.laser = new Laser(this.worldObj, this.xCoord, this.yCoord, this.zCoord, this.link);
 		}

@@ -17,10 +17,12 @@
 
 package org.yogpstop.qp;
 
+import buildcraft.api.gates.IAction;
+import buildcraft.core.IMachine;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 
-public class TileBreaker extends TileEntity implements IEnchantableTile {
+public class TileBreaker extends TileEntity implements IEnchantableTile, IMachine {
 	boolean silktouch = false;
 	byte fortune = 0;
 
@@ -66,4 +68,24 @@ public class TileBreaker extends TileEntity implements IEnchantableTile {
 
 	@Override
 	public void G_reinit() {}
+
+	@Override
+	public boolean isActive() {
+		return true;
+	}
+
+	@Override
+	public boolean manageFluids() {
+		return false;
+	}
+
+	@Override
+	public boolean manageSolids() {
+		return true;
+	}
+
+	@Override
+	public boolean allowAction(IAction action) {
+		return false;
+	}
 }

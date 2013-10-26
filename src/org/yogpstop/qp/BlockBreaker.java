@@ -24,6 +24,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Random;
 
+import buildcraft.api.tools.IToolWrench;
 import buildcraft.core.proxy.CoreProxy;
 import cpw.mods.fml.common.network.PacketDispatcher;
 import cpw.mods.fml.common.network.Player;
@@ -44,7 +45,6 @@ import net.minecraft.network.packet.Packet3Chat;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatMessageComponent;
 import net.minecraft.util.Icon;
-import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeDirection;
 
@@ -160,11 +160,6 @@ public class BlockBreaker extends BlockContainer {
 		world.setBlockMetadataWithNotify(x, y, z, BlockPistonBase.determineOrientation(world, x, y, z, ent), 2);
 	}
 
-	@Override
-	public boolean canConnectRedstone(IBlockAccess world, int x, int y, int z, int side) {
-		return side != -1;
-	}
-
 	static void setDispenserDefaultDirection(World par1World, int par2, int par3, int par4) {
 		if (!par1World.isRemote) {
 			int l = par1World.getBlockId(par2, par3, par4 - 1);
@@ -225,6 +220,13 @@ public class BlockBreaker extends BlockContainer {
 	@Override
 	public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer ep, int side, float par7, float par8, float par9) {
 		Item equipped = ep.getCurrentEquippedItem() != null ? ep.getCurrentEquippedItem().getItem() : null;
+		if (equipped instanceof IToolWrench && ((IToolWrench) equipped).canWrench(ep, x, y, z)) {
+			int i = world.getBlockMetadata(x, y, z) + 1;
+			if (i >= 6) i = 0;
+			world.setBlockMetadataWithNotify(x, y, z, i, 2);
+			((IToolWrench) equipped).wrenchUsed(ep, x, y, z);
+			return true;
+		}
 		if (equipped instanceof ItemTool && ep.getCurrentEquippedItem().getItemDamage() == 0) {
 			if (world.isRemote) return true;
 			for (String s : EnchantmentHelper.getEnchantmentsChat((IEnchantableTile) world.getBlockTileEntity(x, y, z)))
