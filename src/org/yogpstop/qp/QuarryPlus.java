@@ -108,9 +108,7 @@ public class QuarryPlus {
 			RecipeDifficulty = RD.getInt(2);
 			PowerManager.loadConfiguration(cfg);
 		} catch (Exception e) {
-			// throw new
-			// Exception("Your QuarryPlus's config file is broken. your setting is bad!",
-			// e);
+			e.printStackTrace();
 		} finally {
 			cfg.save();
 		}
@@ -127,9 +125,7 @@ public class QuarryPlus {
 			blockLaser = (new BlockLaser(bid[9]));
 			itemTool = (new ItemTool(iid));
 		} catch (Exception e) {
-			// throw new
-			// Exception("Your BlockID or ItemID is invalid. your setting is bad!",
-			// e);
+			e.printStackTrace();
 		}
 		LanguageRegistry.instance().loadLocalization("/lang/yogpstop/quarryplus/en_US.lang", "en_US", false);
 		LanguageRegistry.instance().loadLocalization("/lang/yogpstop/quarryplus/ja_JP.lang", "ja_JP", false);
