@@ -95,13 +95,13 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 			this.z = pz;
 			this.w = pw;
 			if (l == null || l.xn == l.xx) {
-				this.lasers[0] = CoreProxy.proxy.newEntityBlock(pw, px - MAX_SIZE + a, py + b, pz + b, (MAX_SIZE + a) * 2, c, c, LaserKind.Blue);
+				this.lasers[0] = CoreProxy.proxy.newEntityBlock(pw, px - MAX_SIZE + a, py + b, pz + b, MAX_SIZE * 2, c, c, LaserKind.Blue);
 			}
 			if (l == null || l.yn == l.yx) {
 				this.lasers[1] = CoreProxy.proxy.newEntityBlock(pw, px + b, a, pz + b, c, 255, c, LaserKind.Blue);
 			}
 			if (l == null || l.zn == l.zx) {
-				this.lasers[2] = CoreProxy.proxy.newEntityBlock(pw, px + b, py + b, pz - MAX_SIZE + a, c, c, (MAX_SIZE + a) * 2, LaserKind.Blue);
+				this.lasers[2] = CoreProxy.proxy.newEntityBlock(pw, px + b, py + b, pz - MAX_SIZE + a, c, c, MAX_SIZE * 2, LaserKind.Blue);
 			}
 			for (EntityBlock eb : this.lasers)
 				if (eb != null) eb.worldObj.spawnEntityInWorld(eb);

@@ -112,6 +112,7 @@ public class BlockBreaker extends BlockContainer {
 		TileBreaker tile = (TileBreaker) world.getBlockTileEntity(x, y, z);
 		ForgeDirection fd = ForgeDirection.getOrientation(world.getBlockMetadata(x, y, z) & 7);
 		int tx = x + fd.offsetX, ty = y + fd.offsetY, tz = z + fd.offsetZ, id = world.getBlockId(tx, ty, tz), meta = world.getBlockMetadata(tx, ty, tz);
+		if (ty < 1) return;
 		if (id <= 0) return;
 		Block b = Block.blocksList[id];
 		if (b == null) return;
