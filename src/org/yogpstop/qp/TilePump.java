@@ -422,7 +422,6 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 		int frame_count = 0;
 		Block bb;
 		int bz, meta, bid;
-		FluidStack fs = null;
 		do {
 			while (++this.px < this.block_side_x) {
 				for (bz = 0; bz < this.block_side_z; bz++) {
@@ -450,14 +449,15 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 					bb = Block.blocksList[bid];
 					meta = this.ebses[this.px >> 4][bz >> 4][this.py >> 4].getExtBlockMetadata(this.px & 0xF, this.py & 0xF, bz & 0xF);
 					if (isLiquid(bb)) {
+						FluidStack fs = null;
 						if (bb instanceof IFluidBlock && ((IFluidBlock) bb).canDrain(this.worldObj, this.px + this.xOffset, this.py, bz + this.zOffset)) {
 							fs = ((IFluidBlock) bb).drain(this.worldObj, this.px + this.xOffset, this.py, bz + this.zOffset, true);
 						} else if ((bid == Block.waterStill.blockID || bid == Block.waterMoving.blockID) && meta == 0) {
-							this.worldObj.setBlockToAir(this.px + this.xOffset, this.py, bz + this.zOffset);
 							fs = new FluidStack(FluidRegistry.WATER, FluidContainerRegistry.BUCKET_VOLUME);
-						} else if ((bid == Block.lavaStill.blockID || bid == Block.lavaMoving.blockID) && meta == 0) {
 							this.worldObj.setBlockToAir(this.px + this.xOffset, this.py, bz + this.zOffset);
+						} else if ((bid == Block.lavaStill.blockID || bid == Block.lavaMoving.blockID) && meta == 0) {
 							fs = new FluidStack(FluidRegistry.LAVA, FluidContainerRegistry.BUCKET_VOLUME);
+							this.worldObj.setBlockToAir(this.px + this.xOffset, this.py, bz + this.zOffset);
 						}
 						if (fs != null) {
 							int index = this.liquids.indexOf(fs);

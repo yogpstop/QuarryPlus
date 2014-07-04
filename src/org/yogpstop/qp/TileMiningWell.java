@@ -19,20 +19,14 @@ package org.yogpstop.qp;
 
 import static org.yogpstop.qp.PacketHandler.*;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import com.google.common.io.ByteArrayDataInput;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.ForgeDirection;
 import static buildcraft.BuildCraftFactory.plainPipeBlock;
-import static buildcraft.core.utils.Utils.addToRandomPipeAround;
-import static buildcraft.core.utils.Utils.addToRandomInventoryAround;
 
 public class TileMiningWell extends TileBasic {
 
@@ -71,18 +65,8 @@ public class TileMiningWell extends TileBasic {
 			if (this.working) this.worldObj.setBlock(this.xCoord, depth, this.zCoord, plainPipeBlock.blockID);
 			depth--;
 		}
-		if (this.working) S_breakBlock(depth);
-		List<ItemStack> todelete = new LinkedList<ItemStack>();
-		for (ItemStack is : this.cacheItems) {
-			int added = addToRandomInventoryAround(this.worldObj, this.xCoord, this.yCoord, this.zCoord, is);
-			is.stackSize -= added;
-			if (is.stackSize > 0) {
-				added = addToRandomPipeAround(this.worldObj, this.xCoord, this.yCoord, this.zCoord, ForgeDirection.UNKNOWN, is);
-				is.stackSize -= added;
-			}
-			if (is.stackSize <= 0) todelete.add(is);
-		}
-		this.cacheItems.removeAll(todelete);
+		if (this.working) S_breakBlock(this.xCoord, depth, this.zCoord);
+		S_pollItems();
 	}
 
 	private boolean S_checkTarget(int depth) {
@@ -90,8 +74,9 @@ public class TileMiningWell extends TileBasic {
 			G_destroy();
 			return true;
 		}
-		int bid = this.worldObj.getBlockId(this.xCoord, depth, this.zCoord);
-		if (bid == 0 || bid == Block.bedrock.blockID || bid == plainPipeBlock.blockID) return false;
+		Block b = Block.blocksList[this.worldObj.getBlockId(this.xCoord, depth, this.zCoord)];
+		float h = b == null ? -1 : b.getBlockHardness(this.worldObj, this.xCoord, depth, this.zCoord);
+		if (h < 0 || b == plainPipeBlock) return false;
 		if (this.pump == ForgeDirection.UNKNOWN && this.worldObj.getBlockMaterial(this.xCoord, depth, this.zCoord).isLiquid()) return false;
 		if (!this.working) {
 			this.working = true;
@@ -99,10 +84,6 @@ public class TileMiningWell extends TileBasic {
 			sendNowPacket(this, (byte) 1);
 		}
 		return true;
-	}
-
-	private boolean S_breakBlock(int depth) {
-		return S_breakBlock(this.xCoord, depth, this.zCoord, PowerManager.BreakType.MiningWell);
 	}
 
 	@Override

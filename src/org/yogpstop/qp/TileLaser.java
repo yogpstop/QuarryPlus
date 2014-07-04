@@ -48,6 +48,8 @@ public class TileLaser extends TileEntity implements IPowerReceptor, IActionRece
 	protected byte efficiency;
 	protected boolean silktouch;
 
+	private long from = 38669;
+
 	public TileLaser() {
 		PowerManager.configureL(this.powerHandler, this.efficiency, this.unbreaking);
 	}
@@ -62,7 +64,7 @@ public class TileLaser extends TileEntity implements IPowerReceptor, IActionRece
 			return;
 		}
 
-		if ((!isValidTable() && (this.worldObj.getWorldTime() % 100) == 23) || (this.worldObj.getWorldTime() % 600) == 383) {
+		if (!isValidTable() && (this.worldObj.getWorldTime() % 100) == (this.from % 100)) {
 			findTable();
 		}
 
@@ -76,17 +78,17 @@ public class TileLaser extends TileEntity implements IPowerReceptor, IActionRece
 				this.lasers[i] = new EntityEnergyLaser(this.worldObj, new Position(this.xCoord, this.yCoord, this.zCoord), new Position(this.xCoord,
 						this.yCoord, this.zCoord));
 				this.worldObj.spawnEntityInWorld(this.lasers[i]);
+				this.from = this.worldObj.getWorldTime();
 			}
 		}
 
-		if (isValidLaser() && (this.worldObj.getWorldTime() % 10) == 3) {// updateLaser
+		if (isValidLaser() && (this.worldObj.getWorldTime() % 10) == (this.from % 10)) {// updateLaser
 			ForgeDirection fd = ForgeDirection.values()[this.worldObj.getBlockMetadata(this.xCoord, this.yCoord, this.zCoord)];
 			Position head = new Position(this.xCoord + 0.5 + 0.3 * fd.offsetX, this.yCoord + 0.5 + 0.3 * fd.offsetY, this.zCoord + 0.5 + 0.3 * fd.offsetZ);
 			for (int i = 0; i < this.laserTargets.size(); i++) {
 				Position tail = new Position(ILaserTargetHelper.getXCoord(this.laserTargets.get(i)) + 0.475 + (this.worldObj.rand.nextFloat() - 0.5) / 5F,
-						ILaserTargetHelper.getYCoord(this.laserTargets.get(i)) + 9F / 16F, ILaserTargetHelper.getXCoord(this.laserTargets.get(i)) + 0.475
+						ILaserTargetHelper.getYCoord(this.laserTargets.get(i)) + 9F / 16F, ILaserTargetHelper.getZCoord(this.laserTargets.get(i)) + 0.475
 								+ (this.worldObj.rand.nextFloat() - 0.5) / 5F);
-
 				this.lasers[i].setPositions(head, tail);
 
 				if (!this.lasers[i].isVisible()) this.lasers[i].show();
@@ -98,10 +100,6 @@ public class TileLaser extends TileEntity implements IPowerReceptor, IActionRece
 			ILaserTargetHelper.receiveLaserEnergy(lt, power / this.laserTargets.size());
 		for (EntityEnergyLaser laser : this.lasers)
 			laser.pushPower(power / this.laserTargets.size());
-	}
-
-	protected static float getMaxPowerSent() {
-		return 4;
 	}
 
 	protected boolean isValidLaser() {

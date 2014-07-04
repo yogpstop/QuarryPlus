@@ -21,7 +21,6 @@ import static org.yogpstop.qp.PacketHandler.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -34,8 +33,6 @@ import buildcraft.api.core.LaserKind;
 import static buildcraft.BuildCraftFactory.frameBlock;
 import buildcraft.core.Box;
 import buildcraft.core.proxy.CoreProxy;
-import static buildcraft.core.utils.Utils.addToRandomPipeAround;
-import static buildcraft.core.utils.Utils.addToRandomInventoryAround;
 import net.minecraft.block.Block;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
@@ -94,22 +91,13 @@ public class TileQuarry extends TileBasic {
 				S_setNextTarget();
 			break;
 		}
-		List<ItemStack> todelete = new LinkedList<ItemStack>();
-		for (ItemStack is : this.cacheItems) {
-			int added = addToRandomInventoryAround(this.worldObj, this.xCoord, this.yCoord, this.zCoord, is);
-			is.stackSize -= added;
-			if (is.stackSize > 0) {
-				added = addToRandomPipeAround(this.worldObj, this.xCoord, this.yCoord, this.zCoord, ForgeDirection.UNKNOWN, is);
-				is.stackSize -= added;
-			}
-			if (is.stackSize <= 0) todelete.add(is);
-		}
-		this.cacheItems.removeAll(todelete);
+		S_pollItems();
 	}
 
 	private boolean S_checkTarget() {
 		if (this.targetY > this.box.yMax) this.targetY = this.box.yMax;
-		int bid = this.worldObj.getBlockId(this.targetX, this.targetY, this.targetZ);
+		Block b = Block.blocksList[this.worldObj.getBlockId(this.targetX, this.targetY, this.targetZ)];
+		float h = b == null ? -1 : b.getBlockHardness(this.worldObj, this.targetX, this.targetY, this.targetZ);
 		switch (this.now) {
 		case BREAKBLOCK:
 		case MOVEHEAD:
@@ -118,7 +106,7 @@ public class TileQuarry extends TileBasic {
 				sendNowPacket(this, this.now);
 				return true;
 			}
-			if (bid == 0 || bid == Block.bedrock.blockID) return false;
+			if (h < 0) return false;
 			if (this.pump == ForgeDirection.UNKNOWN && this.worldObj.getBlockMaterial(this.targetX, this.targetY, this.targetZ).isLiquid()) return false;
 			return true;
 		case NOTNEEDBREAK:
@@ -133,9 +121,9 @@ public class TileQuarry extends TileBasic {
 				sendNowPacket(this, this.now);
 				return S_checkTarget();
 			}
-			if (bid == 0 || bid == Block.bedrock.blockID) return false;
+			if (h < 0) return false;
 			if (this.pump == ForgeDirection.UNKNOWN && this.worldObj.getBlockMaterial(this.targetX, this.targetY, this.targetZ).isLiquid()) return false;
-			if (bid == frameBlock.blockID && this.worldObj.getBlockMetadata(this.targetX, this.targetY, this.targetZ) == 0) {
+			if (b == frameBlock && this.worldObj.getBlockMetadata(this.targetX, this.targetY, this.targetZ) == 0) {
 				byte flag = 0;
 				if (this.targetX == this.box.xMin || this.targetX == this.box.xMax) flag++;
 				if (this.targetY == this.box.yMin || this.targetY == this.box.yMax) flag++;
@@ -159,9 +147,9 @@ public class TileQuarry extends TileBasic {
 				sendNowPacket(this, this.now);
 				return S_checkTarget();
 			}
-			if (bid == Block.bedrock.blockID) return false;
+			if (b != null && h < 0) return false;
 			if (this.worldObj.getBlockMaterial(this.targetX, this.targetY, this.targetZ).isSolid()
-					&& (bid != frameBlock.blockID || this.worldObj.getBlockMetadata(this.targetX, this.targetY, this.targetZ) != 0)) {
+					&& (b != frameBlock || this.worldObj.getBlockMetadata(this.targetX, this.targetY, this.targetZ) != 0)) {
 				this.now = NOTNEEDBREAK;
 				G_renew_powerConfigure();
 				this.targetX = this.box.xMin;
@@ -177,7 +165,7 @@ public class TileQuarry extends TileBasic {
 			if (this.targetY == this.box.yMin || this.targetY == this.box.yMax) flag++;
 			if (this.targetZ == this.box.zMin || this.targetZ == this.box.zMax) flag++;
 			if (flag > 1) {
-				if (bid == frameBlock.blockID && this.worldObj.getBlockMetadata(this.targetX, this.targetY, this.targetZ) == 0) return false;
+				if (b == frameBlock && this.worldObj.getBlockMetadata(this.targetX, this.targetY, this.targetZ) == 0) return false;
 				return true;
 			}
 			return false;
@@ -275,7 +263,7 @@ public class TileQuarry extends TileBasic {
 
 	private boolean S_breakBlock() {
 		this.digged = true;
-		if (S_breakBlock(this.targetX, this.targetY, this.targetZ, PowerManager.BreakType.Quarry)) {
+		if (S_breakBlock(this.targetX, this.targetY, this.targetZ)) {
 			S_checkDropItem();
 			if (this.now == BREAKBLOCK) this.now = MOVEHEAD;
 			S_setNextTarget();

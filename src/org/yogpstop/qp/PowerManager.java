@@ -165,7 +165,7 @@ public class PowerManager {
 	}
 
 	static void configure0(PowerHandler pp) {
-		pp.configure(0, 0, 0, Float.MAX_VALUE);
+		pp.configure(0, 0, 0, pp.getMaxEnergyStored());
 	}
 
 	private static void configure(PowerHandler pp, double CE, byte E, byte U, double CU, double NR, double XR, double BP, double MS, byte pump) {
@@ -231,20 +231,27 @@ public class PowerManager {
 	private static float useEnergy(PowerHandler pp, double BP, byte U, double CU, byte F, double CF, boolean S, double CS, byte E, double CE) {
 		double pwc = BP * Math.pow(CF, F) * Math.pow(CE, E) / (U * CU + 1);
 		if (S) pwc *= CS;
-		float pw = (float) pwc;
-		pw = pp.useEnergy(0, pw, true);
-		if (S) pwc = pw / CS;
+		pwc = pp.useEnergy(0, (float) pwc, true);
+		if (S) pwc = pwc / CS;
 		pwc /= Math.pow(CF, F);
 		pwc *= U * CU + 1;
 		return (float) pwc;
 	}
 
-	enum BreakType {
-		Quarry, MiningWell
-	}
-
-	static boolean useEnergyB(PowerHandler pp, float H, double CSP, byte U, BreakType t) {
-		return useEnergy(pp, t == BreakType.Quarry ? B_BP : W_BP, H, CSP, U, t == BreakType.Quarry ? B_CU : W_CU);
+	static boolean useEnergyB(PowerHandler pp, float H, byte SF, byte U, TileBasic t) {
+		double BP, CU, CSP;
+		if (t instanceof TileMiningWell) {
+			BP = W_BP;
+			CU = W_CU;
+			if (SF < 0) CSP = W_CS;
+			else CSP = Math.pow(W_CF, SF);
+		} else {
+			BP = B_BP;
+			CU = B_CU;
+			if (SF < 0) CSP = B_CS;
+			else CSP = Math.pow(B_CF, SF);
+		}
+		return useEnergy(pp, BP, H, CSP, U, CU);
 	}
 
 	static boolean useEnergyF(PowerHandler pp, byte U) {

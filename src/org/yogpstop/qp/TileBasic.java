@@ -17,6 +17,8 @@
 
 package org.yogpstop.qp;
 
+import static buildcraft.core.utils.Utils.addToRandomInventoryAround;
+import static buildcraft.core.utils.Utils.addToRandomPipeAround;
 import static org.yogpstop.qp.QuarryPlus.data;
 import static org.yogpstop.qp.PacketHandler.*;
 
@@ -27,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 import com.google.common.io.ByteArrayDataInput;
 
@@ -62,7 +65,7 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 	protected boolean silktouch;
 	protected byte efficiency;
 
-	protected final List<ItemStack> cacheItems = new LinkedList<ItemStack>();
+	protected final Queue<ItemStack> cacheItems = new LinkedList<ItemStack>();
 
 	void sendOpenGUI(EntityPlayer ep, byte id) {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -153,9 +156,26 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		}
 	}
 
-	protected boolean S_breakBlock(int x, int y, int z, PowerManager.BreakType t) {
+	protected void S_pollItems() {
+		ItemStack is;
+		while (null != (is = this.cacheItems.poll())) {
+			int added = addToRandomInventoryAround(this.worldObj, this.xCoord, this.yCoord, this.zCoord, is);
+			is.stackSize -= added;
+			if (is.stackSize > 0) {
+				added = addToRandomPipeAround(this.worldObj, this.xCoord, this.yCoord, this.zCoord, ForgeDirection.UNKNOWN, is);
+				is.stackSize -= added;
+			}
+			if (is.stackSize > 0) {
+				this.cacheItems.add(is);
+				break;
+			}
+		}
+	}
+
+	protected boolean S_breakBlock(int x, int y, int z) {
 		Collection<ItemStack> dropped = new LinkedList<ItemStack>();
 		Block b = Block.blocksList[this.worldObj.getBlockId(x, y, z)];
+		if (b == null) return true;
 		if (b instanceof IFluidBlock || b == Block.waterStill || b == Block.waterMoving || b == Block.lavaStill || b == Block.lavaMoving) {
 			TileEntity te = this.worldObj.getBlockTileEntity(this.xCoord + this.pump.offsetX, this.yCoord + this.pump.offsetY, this.zCoord + this.pump.offsetZ);
 			if (!(te instanceof TilePump)) {
@@ -165,7 +185,7 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 			}
 			return ((TilePump) te).S_removeLiquids(this.pp, x, y, z);
 		}
-		if (!PowerManager.useEnergyB(this.pp, S_blockHardness(b, x, y, z), S_addDroppedItems(dropped, b, x, y, z, t), this.unbreaking, t)) return false;
+		if (!PowerManager.useEnergyB(this.pp, b.getBlockHardness(this.worldObj, x, y, z), S_addDroppedItems(dropped, b, x, y, z), this.unbreaking, this)) return false;
 		this.cacheItems.addAll(dropped);
 		this.worldObj.playAuxSFXAtEntity(null, 2001, x, y, z, this.worldObj.getBlockId(x, y, z) | (this.worldObj.getBlockMetadata(x, y, z) << 12));
 		this.worldObj.setBlockToAir(x, y, z);
@@ -181,22 +201,13 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		return true;
 	}
 
-	private float S_blockHardness(Block b, int x, int y, int z) {
-		if (b != null) {
-			if (this.worldObj.getBlockMaterial(x, y, z).isLiquid()) return 0;
-			return b.getBlockHardness(this.worldObj, x, y, z);
-		}
-		return 0;
-	}
-
-	private double S_addDroppedItems(Collection<ItemStack> list, Block b, int x, int y, int z, PowerManager.BreakType t) {
+	private byte S_addDroppedItems(Collection<ItemStack> list, Block b, int x, int y, int z) {
 		int meta = this.worldObj.getBlockMetadata(x, y, z);
-		if (b == null) return 1;
 		if (b.canSilkHarvest(this.worldObj, null, x, y, z, meta) && this.silktouch
 				&& (this.silktouchList.contains(data((short) b.blockID, meta)) == this.silktouchInclude)) {
 			try {
 				list.add((ItemStack) createStackedBlock.invoke(b, meta));
-				return t == PowerManager.BreakType.Quarry ? PowerManager.B_CS : PowerManager.W_CS;
+				return -1;
 			} catch (Exception e) {
 				e.printStackTrace();
 			} catch (Error e) {
@@ -205,10 +216,10 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		}
 		if (this.fortuneList.contains(data((short) b.blockID, meta)) == this.fortuneInclude) {
 			list.addAll(b.getBlockDropped(this.worldObj, x, y, z, meta, this.fortune));
-			return Math.pow(t == PowerManager.BreakType.Quarry ? PowerManager.B_CF : PowerManager.W_CF, this.fortune);
+			return this.fortune;
 		}
 		list.addAll(b.getBlockDropped(this.worldObj, x, y, z, meta, 0));
-		return 1;
+		return 0;
 	}
 
 	@Override
