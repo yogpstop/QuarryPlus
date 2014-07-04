@@ -71,7 +71,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 	}
 
 	boolean G_working() {
-		return this.currentHeight >= this.cy;
+		return this.py >= this.cy;
 	}
 
 	@Override
@@ -259,8 +259,8 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 		switch (pattern) {
 		case PacketHandler.StC_NOW:// B
 			byte flag = data.readByte();
-			if ((flag & 0x80) != 0) this.cy = this.currentHeight = -1;
-			else this.currentHeight = Integer.MIN_VALUE;
+			if ((flag & 0x80) != 0) this.cy = this.py = -1;
+			else this.py = Integer.MIN_VALUE;
 			this.connectTo = ForgeDirection.getOrientation(flag & 0x7F);
 			this.worldObj.markBlockForRenderUpdate(this.xCoord, this.yCoord, this.zCoord);
 			break;
@@ -299,7 +299,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 
 	private byte[][][] blocks;
 	private ExtendedBlockStorage[][][] ebses;
-	private int xOffset, yOffset, zOffset, currentHeight = Integer.MIN_VALUE;
+	private int xOffset, yOffset, zOffset, px, py = Integer.MIN_VALUE;
 	private int cx, cy = -1, cz;
 	private byte range = 0;
 	private boolean quarryRange = true;
@@ -347,7 +347,8 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 		this.cy = y;
 		this.cz = z;
 		this.yOffset = y & 0xFFFFFFF0;
-		this.currentHeight = Y_SIZE - 1;
+		this.py = Y_SIZE - 1;
+		this.px = 0;
 		Box b = S_getBox();
 		if (b != null && b.isInitialized()) {
 			chunk_side_x = 1 + (b.xMax >> 4) - (b.xMin >> 4);
@@ -416,64 +417,62 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 		if (!this.worldObj.getBlockMaterial(x, y, z).isLiquid()) return true;
 		S_sendNowPacket();
 		this.count++;
-		if (this.cx != x || this.cy != y || this.cz != z || this.currentHeight < this.cy || this.count > 200) S_searchLiquid(x, y, z);
+		if (this.cx != x || this.cy != y || this.cz != z || this.py < this.cy || this.count > 200) S_searchLiquid(x, y, z);
 		int block_count = 0;
 		int frame_count = 0;
 		Block bb;
-		int bx, bz, meta, bid;
+		int bz, meta, bid;
 		FluidStack fs = null;
-		for (; block_count == 0; this.currentHeight--) {
-			if (this.currentHeight < this.cy) return false;
-			for (bx = 0; bx < this.block_side_x; bx++) {
+		do {
+			while (++this.px < this.block_side_x) {
 				for (bz = 0; bz < this.block_side_z; bz++) {
-					if (this.blocks[this.currentHeight - this.yOffset][bx][bz] != 0) {
-						if ((this.blocks[this.currentHeight - this.yOffset][bx][bz] & 0x40) != 0) {
+					if (this.blocks[this.py - this.yOffset][this.px][bz] != 0) {
+						if ((this.blocks[this.py - this.yOffset][this.px][bz] & 0x40) != 0) {
 							frame_count++;
 						}
-						bid = this.ebses[bx >> 4][bz >> 4][this.currentHeight >> 4].getExtBlockID(bx & 0xF, this.currentHeight & 0xF, bz & 0xF);
+						bid = this.ebses[this.px >> 4][bz >> 4][this.py >> 4].getExtBlockID(this.px & 0xF, this.py & 0xF, bz & 0xF);
 						bb = Block.blocksList[bid];
 						if (isLiquid(bb)) {
 							block_count++;
 						}
 					}
 				}
+				if (block_count > 0 || frame_count > 0) break;
 			}
-		}
-		this.currentHeight++;
+			if (block_count > 0 || frame_count > 0) break;
+			this.px = 0;
+		} while (--this.py >= this.cy);
+		if (block_count <= 0 && frame_count <= 0) return false;
 		if (PowerManager.useEnergyP(tbpp, this.unbreaking, block_count, frame_count)) {
-			for (bx = 0; bx < this.block_side_x; bx++) {
-				for (bz = 0; bz < this.block_side_z; bz++) {
-					if (this.blocks[this.currentHeight - this.yOffset][bx][bz] != 0) {
-						bid = this.ebses[bx >> 4][bz >> 4][this.currentHeight >> 4].getExtBlockID(bx & 0xF, this.currentHeight & 0xF, bz & 0xF);
-						bb = Block.blocksList[bid];
-						meta = this.ebses[bx >> 4][bz >> 4][this.currentHeight >> 4].getExtBlockMetadata(bx & 0xF, this.currentHeight & 0xF, bz & 0xF);
-						if (isLiquid(bb)) {
-							if (bb instanceof IFluidBlock
-									&& ((IFluidBlock) bb).canDrain(this.worldObj, bx + this.xOffset, this.currentHeight, bz + this.zOffset)) {
-								fs = ((IFluidBlock) bb).drain(this.worldObj, bx + this.xOffset, this.currentHeight, bz + this.zOffset, true);
-							} else if ((bid == Block.waterStill.blockID || bid == Block.waterMoving.blockID) && meta == 0) {
-								this.worldObj.setBlockToAir(bx + this.xOffset, this.currentHeight, bz + this.zOffset);
-								fs = new FluidStack(FluidRegistry.WATER, FluidContainerRegistry.BUCKET_VOLUME);
-							} else if ((bid == Block.lavaStill.blockID || bid == Block.lavaMoving.blockID) && meta == 0) {
-								this.worldObj.setBlockToAir(bx + this.xOffset, this.currentHeight, bz + this.zOffset);
-								fs = new FluidStack(FluidRegistry.LAVA, FluidContainerRegistry.BUCKET_VOLUME);
-							}
-							if (fs != null) {
-								int index = this.liquids.indexOf(fs);
-								if (index != -1) this.liquids.get(index).amount += fs.amount;
-								else this.liquids.add(fs);
-								fs = null;
-							} else this.worldObj.setBlockToAir(bx + this.xOffset, this.currentHeight, bz + this.zOffset);
-							if ((this.blocks[this.currentHeight - this.yOffset][bx][bz] & 0x40) != 0) this.worldObj.setBlock(bx + this.xOffset,
-									this.currentHeight, bz + this.zOffset, frameBlock.blockID);
+			for (bz = 0; bz < this.block_side_z; bz++) {
+				if (this.blocks[this.py - this.yOffset][this.px][bz] != 0) {
+					bid = this.ebses[this.px >> 4][bz >> 4][this.py >> 4].getExtBlockID(this.px & 0xF, this.py & 0xF, bz & 0xF);
+					bb = Block.blocksList[bid];
+					meta = this.ebses[this.px >> 4][bz >> 4][this.py >> 4].getExtBlockMetadata(this.px & 0xF, this.py & 0xF, bz & 0xF);
+					if (isLiquid(bb)) {
+						if (bb instanceof IFluidBlock && ((IFluidBlock) bb).canDrain(this.worldObj, this.px + this.xOffset, this.py, bz + this.zOffset)) {
+							fs = ((IFluidBlock) bb).drain(this.worldObj, this.px + this.xOffset, this.py, bz + this.zOffset, true);
+						} else if ((bid == Block.waterStill.blockID || bid == Block.waterMoving.blockID) && meta == 0) {
+							this.worldObj.setBlockToAir(this.px + this.xOffset, this.py, bz + this.zOffset);
+							fs = new FluidStack(FluidRegistry.WATER, FluidContainerRegistry.BUCKET_VOLUME);
+						} else if ((bid == Block.lavaStill.blockID || bid == Block.lavaMoving.blockID) && meta == 0) {
+							this.worldObj.setBlockToAir(this.px + this.xOffset, this.py, bz + this.zOffset);
+							fs = new FluidStack(FluidRegistry.LAVA, FluidContainerRegistry.BUCKET_VOLUME);
 						}
+						if (fs != null) {
+							int index = this.liquids.indexOf(fs);
+							if (index != -1) this.liquids.get(index).amount += fs.amount;
+							else this.liquids.add(fs);
+							fs = null;
+						} else this.worldObj.setBlockToAir(this.px + this.xOffset, this.py, bz + this.zOffset);
+						if ((this.blocks[this.py - this.yOffset][this.px][bz] & 0x40) != 0) this.worldObj.setBlock(this.px + this.xOffset, this.py, bz
+								+ this.zOffset, frameBlock.blockID);
 					}
 				}
 			}
-			this.currentHeight--;
 		}
 		S_sendNowPacket();
-		return this.currentHeight < this.cy;
+		return this.py < this.cy;
 	}
 
 	// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

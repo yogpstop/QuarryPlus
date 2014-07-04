@@ -63,23 +63,23 @@ public class ILaserTargetHelper {
 	}
 
 	static int getXCoord(Object o) {
-		return (int) call(_getXCoord, o, new Object[] {});
+		return (Integer) call(_getXCoord, o, new Object[] {});
 	}
 
 	static int getYCoord(Object o) {
-		return (int) call(_getYCoord, o, new Object[] {});
+		return (Integer) call(_getYCoord, o, new Object[] {});
 	}
 
 	static int getZCoord(Object o) {
-		return (int) call(_getZCoord, o, new Object[] {});
+		return (Integer) call(_getZCoord, o, new Object[] {});
 	}
 
 	static boolean requiresLaserEnergy(Object o) {
-		return (boolean) call(_requiresLaserEnergy, o, new Object[] {});
+		return (Boolean) call(_requiresLaserEnergy, o, new Object[] {});
 	}
 
 	static boolean isInvalidTarget(Object o) {
-		return (boolean) call(_isInvalidTarget, o, new Object[] {});
+		return (Boolean) call(_isInvalidTarget, o, new Object[] {});
 	}
 
 	static void receiveLaserEnergy(Object o, float f) {
