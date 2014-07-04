@@ -311,7 +311,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 	private static final int[] yb = new int[ARRAY_MAX];
 	private static final int[] zb = new int[ARRAY_MAX];
 	private static int cp = 0, cg = 0;
-	private int count;
+	private long fwt;
 
 	private Box S_getBox() {
 		TileBasic tb = G_connected();
@@ -329,7 +329,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 		PacketDispatcher.sendPacketToPlayer(
 				new Packet3Chat(ChatMessageComponent.createFromText(StatCollector.translateToLocalFormatted("chat.pump_rtoggle", this.quarryRange ? "quarry"
 						: Integer.toString(this.range * 2 + 1)))), (Player) ep);
-		this.count = Integer.MAX_VALUE - 1;
+		this.fwt = Long.MIN_VALUE;
 	}
 
 	private static void S_put(int x, int y, int z) {
@@ -341,14 +341,15 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 	}
 
 	private void S_searchLiquid(int x, int y, int z) {
-		this.count = cp = cg = 0;
+		this.fwt = this.worldObj.getWorldTime();
+		cp = cg = 0;
 		int chunk_side_x, chunk_side_z;
 		this.cx = x;
 		this.cy = y;
 		this.cz = z;
 		this.yOffset = y & 0xFFFFFFF0;
 		this.py = Y_SIZE - 1;
-		this.px = 0;
+		this.px = -1;
 		Box b = S_getBox();
 		if (b != null && b.isInitialized()) {
 			chunk_side_x = 1 + (b.xMax >> 4) - (b.xMin >> 4);
@@ -380,7 +381,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 		int kx, kz;
 		for (kx = 0; kx < chunk_side_x; kx++) {
 			for (kz = 0; kz < chunk_side_z; kz++) {
-				this.ebses[kx][kz] = this.worldObj.getChunkFromChunkCoords(kx + (this.xOffset >> 4), kz + (this.zOffset >> 4)).getBlockStorageArray();
+				this.ebses[kx][kz] = this.worldObj.getChunkProvider().loadChunk(kx + (this.xOffset >> 4), kz + (this.zOffset >> 4)).getBlockStorageArray();
 			}
 		}
 		S_put(x - this.xOffset, y, z - this.zOffset);
@@ -390,7 +391,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 			ebs_c = this.ebses[xb[cg] >> 4][zb[cg] >> 4][yb[cg] >> 4];
 			if (ebs_c != null) {
 				b_c = Block.blocksList[ebs_c.getExtBlockID(xb[cg] & 0xF, yb[cg] & 0xF, zb[cg] & 0xF)];
-				if (this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] == 0 && isLiquid(b_c)) {
+				if (this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] == 0 && isLiquid(b_c, false, null, 0, 0, 0, 0)) {
 					this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] = 0x3F;
 
 					if ((b != null ? b.xMin & 0xF : 0) < xb[cg]) S_put(xb[cg] - 1, yb[cg], zb[cg]);
@@ -414,59 +415,57 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 	}
 
 	boolean S_removeLiquids(PowerHandler tbpp, int x, int y, int z) {
-		if (!this.worldObj.getBlockMaterial(x, y, z).isLiquid()) return true;
 		S_sendNowPacket();
-		this.count++;
-		if (this.cx != x || this.cy != y || this.cz != z || this.py < this.cy || this.count > 200) S_searchLiquid(x, y, z);
-		int block_count = 0;
-		int frame_count = 0;
+		if (this.cx != x || this.cy != y || this.cz != z || this.py < this.cy || this.worldObj.getWorldTime() - this.fwt > 200) S_searchLiquid(x, y, z);
+		int count = 0;
 		Block bb;
 		int bz, meta, bid;
 		do {
-			while (++this.px < this.block_side_x) {
-				for (bz = 0; bz < this.block_side_z; bz++) {
-					if (this.blocks[this.py - this.yOffset][this.px][bz] != 0) {
-						if ((this.blocks[this.py - this.yOffset][this.px][bz] & 0x40) != 0) {
-							frame_count++;
+			do {
+				if (this.px == -1) {
+					int bx;
+					for (bx = 0; bx < this.block_side_x; bx++) {
+						for (bz = 0; bz < this.block_side_z; bz++) {
+							if ((this.blocks[this.py - this.yOffset][bx][bz] & 0x40) != 0) {
+								bid = this.ebses[bx >> 4][bz >> 4][this.py >> 4].getExtBlockID(bx & 0xF, this.py & 0xF, bz & 0xF);
+								bb = Block.blocksList[bid];
+								if (isLiquid(bb, false, null, 0, 0, 0, 0)) {
+									count++;
+								}
+							}
 						}
-						bid = this.ebses[this.px >> 4][bz >> 4][this.py >> 4].getExtBlockID(this.px & 0xF, this.py & 0xF, bz & 0xF);
-						bb = Block.blocksList[bid];
-						if (isLiquid(bb)) {
-							block_count++;
+					}
+				} else {
+					for (bz = 0; bz < this.block_side_z; bz++) {
+						if (this.blocks[this.py - this.yOffset][this.px][bz] != 0) {
+							bid = this.ebses[this.px >> 4][bz >> 4][this.py >> 4].getExtBlockID(this.px & 0xF, this.py & 0xF, bz & 0xF);
+							bb = Block.blocksList[bid];
+							meta = this.ebses[this.px >> 4][bz >> 4][this.py >> 4].getExtBlockMetadata(this.px & 0xF, this.py & 0xF, bz & 0xF);
+							if (isLiquid(bb, true, this.worldObj, this.py + this.xOffset, this.py, bz + this.zOffset, meta)) {
+								count++;
+							}
 						}
 					}
 				}
-				if (block_count > 0 || frame_count > 0) break;
-			}
-			if (block_count > 0 || frame_count > 0) break;
-			this.px = 0;
+				if (count > 0) break;
+			} while (++this.px < this.block_side_x);
+			if (count > 0) break;
+			this.px = -1;
 		} while (--this.py >= this.cy);
-		if (block_count <= 0 && frame_count <= 0) return false;
-		if (PowerManager.useEnergyP(tbpp, this.unbreaking, block_count, frame_count)) {
-			for (bz = 0; bz < this.block_side_z; bz++) {
-				if (this.blocks[this.py - this.yOffset][this.px][bz] != 0) {
-					bid = this.ebses[this.px >> 4][bz >> 4][this.py >> 4].getExtBlockID(this.px & 0xF, this.py & 0xF, bz & 0xF);
-					bb = Block.blocksList[bid];
-					meta = this.ebses[this.px >> 4][bz >> 4][this.py >> 4].getExtBlockMetadata(this.px & 0xF, this.py & 0xF, bz & 0xF);
-					if (isLiquid(bb)) {
-						FluidStack fs = null;
-						if (bb instanceof IFluidBlock && ((IFluidBlock) bb).canDrain(this.worldObj, this.px + this.xOffset, this.py, bz + this.zOffset)) {
-							fs = ((IFluidBlock) bb).drain(this.worldObj, this.px + this.xOffset, this.py, bz + this.zOffset, true);
-						} else if ((bid == Block.waterStill.blockID || bid == Block.waterMoving.blockID) && meta == 0) {
-							fs = new FluidStack(FluidRegistry.WATER, FluidContainerRegistry.BUCKET_VOLUME);
-							this.worldObj.setBlockToAir(this.px + this.xOffset, this.py, bz + this.zOffset);
-						} else if ((bid == Block.lavaStill.blockID || bid == Block.lavaMoving.blockID) && meta == 0) {
-							fs = new FluidStack(FluidRegistry.LAVA, FluidContainerRegistry.BUCKET_VOLUME);
-							this.worldObj.setBlockToAir(this.px + this.xOffset, this.py, bz + this.zOffset);
+		if (count > 0 && PowerManager.useEnergyP(tbpp, this.unbreaking, count, this.px == -1 ? count : 0)) {
+			if (this.px == -1) {
+				int bx;
+				for (bx = 0; bx < this.block_side_x; bx++) {
+					for (bz = 0; bz < this.block_side_z; bz++) {
+						if ((this.blocks[this.py - this.yOffset][bx][bz] & 0x40) != 0) {
+							drainBlock(bx, bz, frameBlock.blockID);
 						}
-						if (fs != null) {
-							int index = this.liquids.indexOf(fs);
-							if (index != -1) this.liquids.get(index).amount += fs.amount;
-							else this.liquids.add(fs);
-							fs = null;
-						} else this.worldObj.setBlockToAir(this.px + this.xOffset, this.py, bz + this.zOffset);
-						if ((this.blocks[this.py - this.yOffset][this.px][bz] & 0x40) != 0) this.worldObj.setBlock(this.px + this.xOffset, this.py, bz
-								+ this.zOffset, frameBlock.blockID);
+					}
+				}
+			} else {
+				for (bz = 0; bz < this.block_side_z; bz++) {
+					if (this.blocks[this.py - this.yOffset][this.px][bz] != 0) {
+						drainBlock(this.px, bz, 0);
 					}
 				}
 			}
@@ -593,9 +592,47 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 	}
 
 	// //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	private static final boolean isLiquid(Block b) {
-		return b == null ? false
-				: (b instanceof IFluidBlock || b == Block.waterStill || b == Block.waterMoving || b == Block.lavaStill || b == Block.lavaMoving);
+	/**
+	 * @param w
+	 *            When source is false, it can be null.
+	 * @param x
+	 *            When source is false, it can be any value.
+	 * @param y
+	 *            When source is false, it can be any value.
+	 * @param z
+	 *            When source is false, it can be any value.
+	 * @param m
+	 *            When source is false, it can be any value.
+	 * 
+	 * */
+	static final boolean isLiquid(Block b, boolean s, World w, int x, int y, int z, int m) {
+		if (b == null) return false;
+		if (b instanceof IFluidBlock) return !s || ((IFluidBlock) b).canDrain(w, x, y, z);
+		if (b == Block.waterStill || b == Block.waterMoving || b == Block.lavaStill || b == Block.lavaMoving) return !s || m == 0;
+		return false;
+	}
+
+	private final void drainBlock(int bx, int bz, int tbid) {
+		int bid = this.ebses[bx >> 4][bz >> 4][this.py >> 4].getExtBlockID(bx & 0xF, this.py & 0xF, bz & 0xF);
+		Block bb = Block.blocksList[bid];
+		int meta = this.ebses[bx >> 4][bz >> 4][this.py >> 4].getExtBlockMetadata(bx & 0xF, this.py & 0xF, bz & 0xF);
+		if (isLiquid(bb, false, null, 0, 0, 0, 0)) {
+			FluidStack fs = null;
+			if (bb instanceof IFluidBlock && ((IFluidBlock) bb).canDrain(this.worldObj, bx + this.xOffset, this.py, bz + this.zOffset)) {
+				fs = ((IFluidBlock) bb).drain(this.worldObj, bx + this.xOffset, this.py, bz + this.zOffset, true);
+			} else if ((bid == Block.waterStill.blockID || bid == Block.waterMoving.blockID) && meta == 0) {
+				fs = new FluidStack(FluidRegistry.WATER, FluidContainerRegistry.BUCKET_VOLUME);
+			} else if ((bid == Block.lavaStill.blockID || bid == Block.lavaMoving.blockID) && meta == 0) {
+				fs = new FluidStack(FluidRegistry.LAVA, FluidContainerRegistry.BUCKET_VOLUME);
+			}
+			if (fs != null) {
+				int index = this.liquids.indexOf(fs);
+				if (index != -1) this.liquids.get(index).amount += fs.amount;
+				else this.liquids.add(fs);
+				fs = null;
+			}
+			this.worldObj.setBlock(bx + this.xOffset, this.py, bz + this.zOffset, tbid);
+		}
 	}
 
 	@Override

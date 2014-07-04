@@ -44,7 +44,6 @@ import net.minecraft.nbt.NBTTagLong;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeDirection;
-import net.minecraftforge.fluids.IFluidBlock;
 import buildcraft.api.gates.IAction;
 import buildcraft.api.power.PowerHandler;
 import buildcraft.api.power.IPowerReceptor;
@@ -176,20 +175,20 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		Collection<ItemStack> dropped = new LinkedList<ItemStack>();
 		Block b = Block.blocksList[this.worldObj.getBlockId(x, y, z)];
 		if (b == null) return true;
-		if (b instanceof IFluidBlock || b == Block.waterStill || b == Block.waterMoving || b == Block.lavaStill || b == Block.lavaMoving) {
+		if (TilePump.isLiquid(b, false, null, 0, 0, 0, 0)) {
 			TileEntity te = this.worldObj.getBlockTileEntity(this.xCoord + this.pump.offsetX, this.yCoord + this.pump.offsetY, this.zCoord + this.pump.offsetZ);
 			if (!(te instanceof TilePump)) {
 				this.pump = ForgeDirection.UNKNOWN;
 				G_renew_powerConfigure();
 				return true;
 			}
+			if (!TilePump.isLiquid(b, true, this.worldObj, x, y, z, this.worldObj.getBlockMetadata(x, y, z))) return true;
 			return ((TilePump) te).S_removeLiquids(this.pp, x, y, z);
 		}
 		if (!PowerManager.useEnergyB(this.pp, b.getBlockHardness(this.worldObj, x, y, z), S_addDroppedItems(dropped, b, x, y, z), this.unbreaking, this)) return false;
 		this.cacheItems.addAll(dropped);
 		this.worldObj.playAuxSFXAtEntity(null, 2001, x, y, z, this.worldObj.getBlockId(x, y, z) | (this.worldObj.getBlockMetadata(x, y, z) << 12));
 		this.worldObj.setBlockToAir(x, y, z);
-
 		return true;
 	}
 
