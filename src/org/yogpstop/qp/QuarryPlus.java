@@ -94,14 +94,20 @@ public class QuarryPlus {
 	@Mod.EventHandler
 	public void preInit(FMLPreInitializationEvent event) {
 		Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
-		int[] bid = null;
+		int[] bid = new int[10];
 		int iid = Integer.MIN_VALUE;
 		try {
 			cfg.load();
-			bid = new int[] { cfg.getBlock("Quarry", 1970).getInt(), cfg.getBlock("Marker", 1971).getInt(), cfg.getBlock("EnchantMover", 1972).getInt(),
-					cfg.getBlock("MiningWell", 1973).getInt(), cfg.getBlock("Pump", 1974).getInt(), cfg.getBlock("InfMJSrc", 1975).getInt(),
-					cfg.getBlock("Refinery", 1976).getInt(), cfg.getBlock("Placer", 1977).getInt(), cfg.getBlock("Breaker", 1978).getInt(),
-					cfg.getBlock("Laser", 1979).getInt() };
+			bid[0] = cfg.getBlock("Quarry", 1970).getInt();
+			bid[1] = cfg.getBlock("Marker", 1971).getInt();
+			bid[2] = cfg.getBlock("EnchantMover", 1972).getInt();
+			bid[3] = cfg.getBlock("MiningWell", 1973).getInt();
+			bid[4] = cfg.getBlock("Pump", 1974).getInt();
+			bid[5] = cfg.getBlock("InfMJSrc", 1975).getInt();
+			bid[6] = cfg.getBlock("Refinery", 1976).getInt();
+			bid[7] = cfg.getBlock("Placer", 1977).getInt();
+			bid[8] = cfg.getBlock("Breaker", 1978).getInt();
+			bid[9] = cfg.getBlock("Laser", 1979).getInt();
 			iid = cfg.getItem("Tools", 18463).getInt();
 			Property RD = cfg.get(Configuration.CATEGORY_GENERAL, "RecipeDifficulty", 2);
 			RD.comment = "0:AsCheatRecipe,1:EasyRecipe,2:NormalRecipe(Default),3:HardRecipe,other:NormalRecipe";
@@ -336,7 +342,7 @@ public class QuarryPlus {
 
 	public static CreativeTabs ct = null;
 	static {
-		final Class ctc = buildcraft.core.CreativeTabBuildCraft.class;
+		final Class<buildcraft.core.CreativeTabBuildCraft> ctc = buildcraft.core.CreativeTabBuildCraft.class;
 		try {
 			ct = (CreativeTabs) ctc.getField("tabBuildCraft").get(null);
 		} catch (Exception e) {}

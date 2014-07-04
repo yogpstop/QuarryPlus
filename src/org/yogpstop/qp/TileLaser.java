@@ -32,7 +32,6 @@ import buildcraft.api.power.PowerHandler.Type;
 import buildcraft.core.EntityEnergyLaser;
 import buildcraft.core.IMachine;
 import buildcraft.core.triggers.ActionMachineControl;
-import buildcraft.silicon.ILaserTarget;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
@@ -40,7 +39,7 @@ import net.minecraftforge.common.ForgeDirection;
 
 public class TileLaser extends TileEntity implements IPowerReceptor, IActionReceptor, IMachine, IEnchantableTile {
 	private EntityEnergyLaser[] lasers;
-	private final List<ILaserTarget> laserTargets = new ArrayList<ILaserTarget>();
+	private final List<Object> laserTargets = new ArrayList<Object>();
 	protected final PowerHandler powerHandler = new PowerHandler(this, Type.MACHINE);
 	private ActionMachineControl.Mode lastMode = ActionMachineControl.Mode.Unknown;
 
@@ -84,8 +83,9 @@ public class TileLaser extends TileEntity implements IPowerReceptor, IActionRece
 			ForgeDirection fd = ForgeDirection.values()[this.worldObj.getBlockMetadata(this.xCoord, this.yCoord, this.zCoord)];
 			Position head = new Position(this.xCoord + 0.5 + 0.3 * fd.offsetX, this.yCoord + 0.5 + 0.3 * fd.offsetY, this.zCoord + 0.5 + 0.3 * fd.offsetZ);
 			for (int i = 0; i < this.laserTargets.size(); i++) {
-				Position tail = new Position(this.laserTargets.get(i).getXCoord() + 0.475 + (this.worldObj.rand.nextFloat() - 0.5) / 5F, this.laserTargets.get(
-						i).getYCoord() + 9F / 16F, this.laserTargets.get(i).getZCoord() + 0.475 + (this.worldObj.rand.nextFloat() - 0.5) / 5F);
+				Position tail = new Position(ILaserTargetHelper.getXCoord(this.laserTargets.get(i)) + 0.475 + (this.worldObj.rand.nextFloat() - 0.5) / 5F,
+						ILaserTargetHelper.getYCoord(this.laserTargets.get(i)) + 9F / 16F, ILaserTargetHelper.getXCoord(this.laserTargets.get(i)) + 0.475
+								+ (this.worldObj.rand.nextFloat() - 0.5) / 5F);
 
 				this.lasers[i].setPositions(head, tail);
 
@@ -94,8 +94,8 @@ public class TileLaser extends TileEntity implements IPowerReceptor, IActionRece
 		}
 
 		float power = PowerManager.useEnergyL(this.powerHandler, this.unbreaking, this.fortune, this.silktouch, this.efficiency);
-		for (ILaserTarget lt : this.laserTargets)
-			lt.receiveLaserEnergy(power / this.laserTargets.size());
+		for (Object lt : this.laserTargets)
+			ILaserTargetHelper.receiveLaserEnergy(lt, power / this.laserTargets.size());
 		for (EntityEnergyLaser laser : this.lasers)
 			laser.pushPower(power / this.laserTargets.size());
 	}
@@ -113,8 +113,8 @@ public class TileLaser extends TileEntity implements IPowerReceptor, IActionRece
 
 	protected boolean isValidTable() {
 		if (this.laserTargets.size() == 0) return false;
-		for (ILaserTarget lt : this.laserTargets)
-			if (lt == null || lt.isInvalidTarget() || !lt.hasCurrentWork()) return false;
+		for (Object lt : this.laserTargets)
+			if (lt == null || !ILaserTargetHelper.isValid(lt)) return false;
 		return true;
 	}
 
@@ -157,10 +157,9 @@ public class TileLaser extends TileEntity implements IPowerReceptor, IActionRece
 			for (int y = minY; y <= maxY; ++y) {
 				for (int z = minZ; z <= maxZ; ++z) {
 					TileEntity tile = this.worldObj.getBlockTileEntity(x, y, z);
-					if (tile instanceof ILaserTarget) {
-						ILaserTarget table = (ILaserTarget) tile;
-						if (table.hasCurrentWork() && !table.isInvalidTarget()) {
-							this.laserTargets.add(table);
+					if (ILaserTargetHelper.isInstance(tile)) {
+						if (ILaserTargetHelper.isValid(tile)) {
+							this.laserTargets.add(tile);
 						}
 					}
 				}
@@ -168,7 +167,7 @@ public class TileLaser extends TileEntity implements IPowerReceptor, IActionRece
 		}
 		if (this.laserTargets.isEmpty()) return;
 		if (!this.silktouch) {
-			ILaserTarget laserTarget = this.laserTargets.get(this.worldObj.rand.nextInt(this.laserTargets.size()));
+			Object laserTarget = this.laserTargets.get(this.worldObj.rand.nextInt(this.laserTargets.size()));
 			this.laserTargets.clear();
 			this.laserTargets.add(laserTarget);
 		}

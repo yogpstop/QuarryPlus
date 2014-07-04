@@ -165,7 +165,7 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 			}
 			return ((TilePump) te).S_removeLiquids(this.pp, x, y, z);
 		}
-		if (!PowerManager.useEnergyB(this.pp, S_blockHardness(x, y, z), S_addDroppedItems(dropped, x, y, z, t), this.unbreaking, t)) return false;
+		if (!PowerManager.useEnergyB(this.pp, S_blockHardness(b, x, y, z), S_addDroppedItems(dropped, b, x, y, z, t), this.unbreaking, t)) return false;
 		this.cacheItems.addAll(dropped);
 		this.worldObj.playAuxSFXAtEntity(null, 2001, x, y, z, this.worldObj.getBlockId(x, y, z) | (this.worldObj.getBlockMetadata(x, y, z) << 12));
 		this.worldObj.setBlockToAir(x, y, z);
@@ -181,8 +181,7 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		return true;
 	}
 
-	protected float S_blockHardness(int x, int y, int z) {
-		Block b = Block.blocksList[this.worldObj.getBlockId(x, y, z)];
+	private float S_blockHardness(Block b, int x, int y, int z) {
 		if (b != null) {
 			if (this.worldObj.getBlockMaterial(x, y, z).isLiquid()) return 0;
 			return b.getBlockHardness(this.worldObj, x, y, z);
@@ -190,8 +189,7 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		return 0;
 	}
 
-	private double S_addDroppedItems(Collection<ItemStack> list, int x, int y, int z, PowerManager.BreakType t) {
-		Block b = Block.blocksList[this.worldObj.getBlockId(x, y, z)];
+	private double S_addDroppedItems(Collection<ItemStack> list, Block b, int x, int y, int z, PowerManager.BreakType t) {
 		int meta = this.worldObj.getBlockMetadata(x, y, z);
 		if (b == null) return 1;
 		if (b.canSilkHarvest(this.worldObj, null, x, y, z, meta) && this.silktouch

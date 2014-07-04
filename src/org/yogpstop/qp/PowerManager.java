@@ -240,8 +240,7 @@ public class PowerManager {
 	}
 
 	enum BreakType {
-		Quarry,
-		MiningWell
+		Quarry, MiningWell
 	}
 
 	static boolean useEnergyB(PowerHandler pp, float H, double CSP, byte U, BreakType t) {
