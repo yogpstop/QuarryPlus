@@ -17,13 +17,14 @@
 
 package com.yogpc.qp;
 
+import net.minecraft.block.Block;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 
 public class ItemBlockRefinery extends ItemBlock implements IEnchantableItem {
 
-	public ItemBlockRefinery(int par1) {
-		super(par1);
+	public ItemBlockRefinery(Block b) {
+		super(b);
 	}
 
 	@Override

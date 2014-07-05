@@ -17,31 +17,36 @@
 
 package com.yogpc.qp;
 
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
+
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.EnumMap;
 
 import net.minecraft.inventory.Container;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.network.INetworkManager;
-import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.Packet250CustomPayload;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.entity.player.EntityPlayer;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
 
-import cpw.mods.fml.common.network.PacketDispatcher;
-import cpw.mods.fml.common.network.Player;
-import cpw.mods.fml.common.network.IPacketHandler;
+import cpw.mods.fml.common.network.FMLEmbeddedChannel;
+import cpw.mods.fml.common.network.FMLOutboundHandler;
+import cpw.mods.fml.common.network.FMLOutboundHandler.OutboundTarget;
+import cpw.mods.fml.common.network.NetworkRegistry;
+import cpw.mods.fml.relauncher.Side;
 
-public class PacketHandler implements IPacketHandler {
-	public static final String Tile = "QPTile";
-	public static final String NBT = "QPTENBT";
-	public static final String BTN = "QPGUIBUTTON";
-	public static final String Marker = "QPMarker";
+public class PacketHandler extends SimpleChannelInboundHandler<QuarryPlusPacket> {
+	public static EnumMap<Side, FMLEmbeddedChannel> channels;
+	public static final byte Tile = 0;
+	public static final byte NBT = 1;
+	public static final byte BTN = 2;
+	public static final byte Marker = 3;
 
 	public static final byte StC_OPENGUI_FORTUNE = 0;
 	public static final byte StC_OPENGUI_SILKTOUCH = 1;
@@ -73,62 +78,50 @@ public class PacketHandler implements IPacketHandler {
 	public static final byte remove_laser = 1;
 
 	@Override
-	public void onPacketData(INetworkManager network, Packet250CustomPayload packet, Player player) {
-		if (packet.channel.equals(NBT)) {
-			setNBTFromPacket(packet, (EntityPlayer) player);
-		} else if (packet.channel.equals(BTN)) {
-			ByteArrayDataInput data = ByteStreams.newDataInput(packet.data);
-			Container container = ((EntityPlayer) player).openContainer;
+	protected void channelRead0(ChannelHandlerContext ctx, QuarryPlusPacket packet) throws Exception {
+		if (packet.getChannel() == NBT) {
+			setNBTFromPacket(packet);
+		} else if (packet.getChannel() == BTN) {
+			ByteArrayDataInput data = ByteStreams.newDataInput(packet.getData());
+			Container container = packet.getPlayer().openContainer;
 			if (container instanceof ContainerMover) ((ContainerMover) container).moveEnchant(data.readByte());
-		} else if (packet.channel.equals(Tile)) {
-			ByteArrayDataInput data = ByteStreams.newDataInput(packet.data);
-			TileEntity t = ((EntityPlayer) player).worldObj.getBlockTileEntity(data.readInt(), data.readInt(), data.readInt());
+		} else if (packet.getChannel() == Tile) {
+			ByteArrayDataInput data = ByteStreams.newDataInput(packet.getData());
+			TileEntity t = packet.getPlayer().worldObj.getTileEntity(data.readInt(), data.readInt(), data.readInt());
 			if (t instanceof APacketTile) {
 				APacketTile tb = (APacketTile) t;
-				if (tb.worldObj.isRemote) tb.C_recievePacket(data.readByte(), data, (EntityPlayer) player);
-				else tb.S_recievePacket(data.readByte(), data, (EntityPlayer) player);
+				if (tb.getWorldObj().isRemote) tb.C_recievePacket(data.readByte(), data, packet.getPlayer());
+				else tb.S_recievePacket(data.readByte(), data, packet.getPlayer());
 			}
-		} else if (packet.channel.equals(Marker)) {
-			TileMarker.recieveLinkPacket(packet.data);
+		} else if (packet.getChannel() == Marker) {
+			TileMarker.recieveLinkPacket(packet.getData());
 		}
 	}
 
-	static Packet getPacketFromNBT(TileEntity te) {
-		Packet250CustomPayload pkt = new Packet250CustomPayload();
-		pkt.channel = NBT;
-		pkt.isChunkDataPacket = true;
+	static QuarryPlusPacket getPacketFromNBT(TileEntity te) {
 		try {
 			NBTTagCompound nbttc = new NBTTagCompound();
 			te.writeToNBT(nbttc);
 			byte[] bytes = CompressedStreamTools.compress(nbttc);
-			pkt.data = bytes;
-			pkt.length = bytes.length;
+			return new QuarryPlusPacket(NBT, bytes);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		return pkt;
+		return null;
 	}
 
-	private static void setNBTFromPacket(Packet250CustomPayload p, EntityPlayer ep) {
+	private static void setNBTFromPacket(QuarryPlusPacket p) {
 		try {
 			NBTTagCompound cache;
-			cache = CompressedStreamTools.decompress(p.data);
-			TileEntity te = (ep).worldObj.getBlockTileEntity(cache.getInteger("x"), cache.getInteger("y"), cache.getInteger("z"));
+			cache = CompressedStreamTools.decompress(p.getData());
+			TileEntity te = p.getPlayer().worldObj.getTileEntity(cache.getInteger("x"), cache.getInteger("y"), cache.getInteger("z"));
 			if (te != null) te.readFromNBT(cache);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
-	public static Packet250CustomPayload composeTilePacket(ByteArrayOutputStream bos) {
-		Packet250CustomPayload packet = new Packet250CustomPayload();
-		packet.channel = Tile;
-		packet.data = bos.toByteArray();
-		packet.length = bos.size();
-		return packet;
-	}
-
-	public static void sendPacketToServer(APacketTile te, byte id, long data) {// J
+	public static void sendPacketToServer(APacketTile te, byte id, ItemStack is) {// Ljava.lang.String;I
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		DataOutputStream dos = new DataOutputStream(bos);
 		try {
@@ -136,11 +129,13 @@ public class PacketHandler implements IPacketHandler {
 			dos.writeInt(te.yCoord);
 			dos.writeInt(te.zCoord);
 			dos.writeByte(id);
-			dos.writeLong(data);
+			dos.writeUTF(Item.itemRegistry.getNameForObject(is.getItem()));
+			dos.writeInt(is.getItemDamage());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		PacketDispatcher.sendPacketToServer(composeTilePacket(bos));
+		channels.get(Side.CLIENT).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.TOSERVER);
+		channels.get(Side.CLIENT).writeOutbound(new QuarryPlusPacket(Tile, bos.toByteArray()));
 	}
 
 	public static void sendPacketToServer(APacketTile te, byte id, byte pos, String data) {// BLjava.lang.String;
@@ -156,7 +151,8 @@ public class PacketHandler implements IPacketHandler {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		PacketDispatcher.sendPacketToServer(composeTilePacket(bos));
+		channels.get(Side.CLIENT).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.TOSERVER);
+		channels.get(Side.CLIENT).writeOutbound(new QuarryPlusPacket(Tile, bos.toByteArray()));
 	}
 
 	static void sendNowPacket(APacketTile te, byte data) {
@@ -171,7 +167,10 @@ public class PacketHandler implements IPacketHandler {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		PacketDispatcher.sendPacketToAllAround(te.xCoord, te.yCoord, te.zCoord, 256, te.worldObj.provider.dimensionId, composeTilePacket(bos));
+		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.ALLAROUNDPOINT);
+		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS)
+				.set(new NetworkRegistry.TargetPoint(te.getWorldObj().provider.dimensionId, te.xCoord, te.yCoord, te.zCoord, 256));
+		channels.get(Side.SERVER).writeOutbound(new QuarryPlusPacket(Tile, bos.toByteArray()));
 	}
 
 	public static void sendPacketToServer(APacketTile te, byte id) {
@@ -185,7 +184,8 @@ public class PacketHandler implements IPacketHandler {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		PacketDispatcher.sendPacketToServer(composeTilePacket(bos));
+		channels.get(Side.CLIENT).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.TOSERVER);
+		channels.get(Side.CLIENT).writeOutbound(new QuarryPlusPacket(Tile, bos.toByteArray()));
 	}
 
 	static void sendPacketToAround(APacketTile te, byte id) {
@@ -199,6 +199,9 @@ public class PacketHandler implements IPacketHandler {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		PacketDispatcher.sendPacketToAllAround(te.xCoord, te.yCoord, te.zCoord, 256, te.worldObj.provider.dimensionId, composeTilePacket(bos));
+		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.ALLAROUNDPOINT);
+		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS)
+				.set(new NetworkRegistry.TargetPoint(te.getWorldObj().provider.dimensionId, te.xCoord, te.yCoord, te.zCoord, 256));
+		channels.get(Side.SERVER).writeOutbound(new QuarryPlusPacket(Tile, bos.toByteArray()));
 	}
 }

@@ -17,8 +17,6 @@
 
 package com.yogpc.qp.client;
 
-import static com.yogpc.qp.QuarryPlus.data;
-
 import com.yogpc.qp.PacketHandler;
 import com.yogpc.qp.TileBasic;
 
@@ -52,8 +50,7 @@ public class GuiQ_SelectBlock extends GuiScreenA {
 	public void actionPerformed(GuiButton par1) {
 		switch (par1.id) {
 		case -1:
-			PacketHandler.sendPacketToServer(this.tile, (byte) (PacketHandler.CtS_ADD_FORTUNE + this.targetid),
-					data(this.blocks.currentblockid, this.blocks.currentmeta));
+			PacketHandler.sendPacketToServer(this.tile, (byte) (PacketHandler.CtS_ADD_FORTUNE + this.targetid), this.blocks.currentblock);
 			break;
 		case -2:
 			showParent();
@@ -66,7 +63,7 @@ public class GuiQ_SelectBlock extends GuiScreenA {
 		drawDefaultBackground();
 		this.blocks.drawScreen(i, j, k);
 		String title = StatCollector.translateToLocal("tof.selectblock");
-		this.fontRenderer.drawStringWithShadow(title, (this.width - this.fontRenderer.getStringWidth(title)) / 2, 8, 0xFFFFFF);
+		this.fontRendererObj.drawStringWithShadow(title, (this.width - this.fontRendererObj.getStringWidth(title)) / 2, 8, 0xFFFFFF);
 		super.drawScreen(i, j, k);
 	}
 }

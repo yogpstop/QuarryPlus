@@ -17,11 +17,15 @@
 
 package com.yogpc.qp;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.network.packet.Packet;
+import net.minecraft.network.Packet;
 import net.minecraft.tileentity.TileEntity;
 
 import com.google.common.io.ByteArrayDataInput;
+
+import cpw.mods.fml.common.network.internal.FMLProxyPacket;
 
 public abstract class APacketTile extends TileEntity {
 	abstract void S_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep);
@@ -30,6 +34,9 @@ public abstract class APacketTile extends TileEntity {
 
 	@Override
 	public final Packet getDescriptionPacket() {
-		return PacketHandler.getPacketFromNBT(this);
+		ByteBuf buf = Unpooled.buffer();
+		buf.writeByte(0);
+		PacketHandler.getPacketFromNBT(this).writeData(buf);
+		return new FMLProxyPacket(buf, "QuarryPlus");
 	}
 }

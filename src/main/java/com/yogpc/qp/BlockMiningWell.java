@@ -20,45 +20,43 @@ package com.yogpc.qp;
 import java.util.ArrayList;
 
 import buildcraft.api.tools.IToolWrench;
-import cpw.mods.fml.common.network.PacketDispatcher;
-import cpw.mods.fml.common.network.Player;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
-import net.minecraft.client.renderer.texture.IconRegister;
+import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.packet.Packet3Chat;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ChatMessageComponent;
-import net.minecraft.util.Icon;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
-import net.minecraftforge.common.ForgeDirection;
+import net.minecraftforge.common.util.ForgeDirection;
 
 public class BlockMiningWell extends BlockContainer {
-	Icon textureFront, textureBack, textureTop, texW;
+	IIcon textureFront, textureBack, textureTop, texW;
 
-	public BlockMiningWell(int par1) {
-		super(par1, Material.ground);
+	public BlockMiningWell() {
+		super(Material.ground);
 		setHardness(1.5F);
 		setResistance(10F);
 		setCreativeTab(QuarryPlus.ct);
-		setStepSound(soundStoneFootstep);
-		setUnlocalizedName("MiningWellPlus");
+		setStepSound(soundTypeStone);
+		setBlockName("MiningWellPlus");
 	}
 
 	@Override
-	public TileEntity createNewTileEntity(World world) {
+	public TileEntity createNewTileEntity(World w, int m) {
 		return new TileMiningWell();
 	}
 
 	@Override
 	@SideOnly(Side.CLIENT)
-	public void registerIcons(IconRegister par1IconRegister) {
+	public void registerBlockIcons(IIconRegister par1IconRegister) {
 		this.textureFront = par1IconRegister.registerIcon("yogpstop_qp:miningwell_front");
 		this.blockIcon = par1IconRegister.registerIcon("yogpstop_qp:miningwell");
 		this.textureBack = par1IconRegister.registerIcon("yogpstop_qp:miningwell_back");
@@ -68,15 +66,15 @@ public class BlockMiningWell extends BlockContainer {
 
 	@Override
 	@SideOnly(Side.CLIENT)
-	public Icon getBlockTexture(IBlockAccess ba, int x, int y, int z, int side) {
-		TileEntity tile = ba.getBlockTileEntity(x, y, z);
+	public IIcon getIcon(IBlockAccess ba, int x, int y, int z, int side) {
+		TileEntity tile = ba.getTileEntity(x, y, z);
 		if (tile instanceof TileMiningWell && side == 1 && ((TileMiningWell) tile).isActive()) return this.texW;
-		return super.getBlockTexture(ba, x, y, z, side);
+		return super.getIcon(ba, x, y, z, side);
 	}
 
 	@Override
 	@SideOnly(Side.CLIENT)
-	public Icon getIcon(int i, int j) {
+	public IIcon getIcon(int i, int j) {
 		if (j == 0 && i == 3) return this.textureFront;
 		if (i == 1) return this.textureTop;
 		else if (i == 0) return this.textureBack;
@@ -90,7 +88,7 @@ public class BlockMiningWell extends BlockContainer {
 		super.onBlockPlacedBy(w, x, y, z, el, is);
 		ForgeDirection orientation = get2dOrientation(el.posX, el.posZ, x, z);
 		w.setBlockMetadataWithNotify(x, y, z, orientation.getOpposite().ordinal(), 1);
-		EnchantmentHelper.init((IEnchantableTile) w.getBlockTileEntity(x, y, z), is.getEnchantmentTagList());
+		EnchantmentHelper.init((IEnchantableTile) w.getTileEntity(x, y, z), is.getEnchantmentTagList());
 	}
 
 	private static ForgeDirection get2dOrientation(double x1, double z1, double x2, double z2) {
@@ -107,24 +105,24 @@ public class BlockMiningWell extends BlockContainer {
 	private final ArrayList<ItemStack> drop = new ArrayList<ItemStack>();
 
 	@Override
-	public void breakBlock(World world, int x, int y, int z, int id, int meta) {
+	public void breakBlock(World world, int x, int y, int z, Block b, int meta) {
 		this.drop.clear();
-		TileMiningWell tile = (TileMiningWell) world.getBlockTileEntity(x, y, z);
+		TileMiningWell tile = (TileMiningWell) world.getTileEntity(x, y, z);
 		if (world.isRemote || tile == null) return;
 		int count = quantityDropped(meta, 0, world.rand);
-		int id1 = idDropped(meta, world.rand, 0);
-		if (id1 > 0) {
+		Item it = getItemDropped(meta, world.rand, 0);
+		if (it != null) {
 			for (int i = 0; i < count; i++) {
-				ItemStack is = new ItemStack(id1, 1, damageDropped(meta));
+				ItemStack is = new ItemStack(it, 1, damageDropped(meta));
 				EnchantmentHelper.enchantmentToIS(tile, is);
 				this.drop.add(is);
 			}
 		}
-		super.breakBlock(world, x, y, z, id, meta);
+		super.breakBlock(world, x, y, z, b, meta);
 	}
 
 	@Override
-	public ArrayList<ItemStack> getBlockDropped(World world, int x, int y, int z, int metadata, int fortune) {
+	public ArrayList<ItemStack> getDrops(World world, int x, int y, int z, int metadata, int fortune) {
 		return this.drop;
 	}
 
@@ -132,21 +130,21 @@ public class BlockMiningWell extends BlockContainer {
 	public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer ep, int side, float par7, float par8, float par9) {
 		Item equipped = ep.getCurrentEquippedItem() != null ? ep.getCurrentEquippedItem().getItem() : null;
 		if (equipped instanceof IToolWrench && ((IToolWrench) equipped).canWrench(ep, x, y, z)) {
-			((TileMiningWell) world.getBlockTileEntity(x, y, z)).G_reinit();
+			((TileMiningWell) world.getTileEntity(x, y, z)).G_reinit();
 			((IToolWrench) equipped).wrenchUsed(ep, x, y, z);
 			return true;
 		}
 		if (equipped instanceof ItemTool && ep.getCurrentEquippedItem().getItemDamage() == 0) {
 			if (world.isRemote) return true;
-			for (String s : EnchantmentHelper.getEnchantmentsChat((IEnchantableTile) world.getBlockTileEntity(x, y, z)))
-				PacketDispatcher.sendPacketToPlayer(new Packet3Chat(ChatMessageComponent.createFromText(s)), (Player) ep);
+			for (String s : EnchantmentHelper.getEnchantmentsChat((IEnchantableTile) world.getTileEntity(x, y, z)))
+				ep.addChatMessage(new ChatComponentText(s));
 			return true;
 		}
 		return false;
 	}
 
 	@Override
-	public void onNeighborBlockChange(World world, int x, int y, int z, int blockId) {
-		if (!world.isRemote) ((TileBasic) world.getBlockTileEntity(x, y, z)).G_renew_powerConfigure();
+	public void onNeighborBlockChange(World world, int x, int y, int z, Block b) {
+		if (!world.isRemote) ((TileBasic) world.getTileEntity(x, y, z)).G_renew_powerConfigure();
 	}
 }

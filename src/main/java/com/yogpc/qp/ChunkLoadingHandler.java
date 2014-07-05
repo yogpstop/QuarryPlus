@@ -19,6 +19,7 @@ package com.yogpc.qp;
 
 import java.util.List;
 
+import net.minecraft.block.Block;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeChunkManager;
@@ -33,7 +34,7 @@ public class ChunkLoadingHandler implements ForgeChunkManager.OrderedLoadingCall
 			int quarryX = ticket.getModData().getInteger("quarryX");
 			int quarryY = ticket.getModData().getInteger("quarryY");
 			int quarryZ = ticket.getModData().getInteger("quarryZ");
-			TileEntity te = world.getBlockTileEntity(quarryX, quarryY, quarryZ);
+			TileEntity te = world.getTileEntity(quarryX, quarryY, quarryZ);
 			if (te instanceof TileQuarry) ((TileQuarry) te).forceChunkLoading(ticket);
 			else if (te instanceof TileMarker) ((TileMarker) te).forceChunkLoading(ticket);
 		}
@@ -47,8 +48,8 @@ public class ChunkLoadingHandler implements ForgeChunkManager.OrderedLoadingCall
 			int quarryY = ticket.getModData().getInteger("quarryY");
 			int quarryZ = ticket.getModData().getInteger("quarryZ");
 
-			int blId = world.getBlockId(quarryX, quarryY, quarryZ);
-			if (blId == QuarryPlus.blockQuarry.blockID || blId == QuarryPlus.blockMarker.blockID) {
+			Block b = world.getBlock(quarryX, quarryY, quarryZ);
+			if (b == QuarryPlus.blockQuarry || b == QuarryPlus.blockMarker) {
 				validTickets.add(ticket);
 			}
 		}

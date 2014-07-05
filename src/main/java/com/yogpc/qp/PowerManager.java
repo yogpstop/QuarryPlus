@@ -17,9 +17,9 @@
 
 package com.yogpc.qp;
 
-import net.minecraftforge.common.ConfigCategory;
-import net.minecraftforge.common.Configuration;
-import net.minecraftforge.common.Property;
+import net.minecraftforge.common.config.ConfigCategory;
+import net.minecraftforge.common.config.Configuration;
+import net.minecraftforge.common.config.Property;
 import buildcraft.api.power.PowerHandler;
 
 public class PowerManager {
@@ -223,7 +223,7 @@ public class PowerManager {
 	}
 
 	private static double useEnergy(PowerHandler pp, double D, double BP, byte U, double CU) {
-		float pw = (float) Math.min(2 + pp.getEnergyStored() / 500, (D - 0.1) * BP / (U * CU + 1));
+		double pw = Math.min(2 + pp.getEnergyStored() / 500, (D - 0.1) * BP / (U * CU + 1));
 		pw = pp.useEnergy(pw, pw, true);
 		return pw * (U * CU + 1) / BP + 0.1;
 	}

@@ -47,7 +47,7 @@ public class TilePlacer extends TileEntity implements IInventory, IMachine {
 			if (this.stack[slot].stackSize <= size) {
 				itemstack = this.stack[slot];
 				this.stack[slot] = null;
-				this.onInventoryChanged();
+				this.markDirty();
 				return itemstack;
 			}
 			itemstack = this.stack[slot].splitStack(size);
@@ -56,7 +56,7 @@ public class TilePlacer extends TileEntity implements IInventory, IMachine {
 				this.stack[slot] = null;
 			}
 
-			this.onInventoryChanged();
+			this.markDirty();
 			return itemstack;
 		}
 		return null;
@@ -78,16 +78,16 @@ public class TilePlacer extends TileEntity implements IInventory, IMachine {
 		if (parstack != null && parstack.stackSize > this.getInventoryStackLimit()) {
 			parstack.stackSize = this.getInventoryStackLimit();
 		}
-		this.onInventoryChanged();
+		this.markDirty();
 	}
 
 	@Override
-	public String getInvName() {
+	public String getInventoryName() {
 		return "tile.PlacerPlus.name";
 	}
 
 	@Override
-	public boolean isInvNameLocalized() {
+	public boolean hasCustomInventoryName() {
 		return false;
 	}
 
@@ -98,15 +98,15 @@ public class TilePlacer extends TileEntity implements IInventory, IMachine {
 
 	@Override
 	public boolean isUseableByPlayer(EntityPlayer ep) {
-		return this.worldObj.getBlockTileEntity(this.xCoord, this.yCoord, this.zCoord) != this ? false : ep.getDistanceSq(this.xCoord + 0.5D,
-				this.yCoord + 0.5D, this.zCoord + 0.5D) <= 64.0D;
+		return this.worldObj.getTileEntity(this.xCoord, this.yCoord, this.zCoord) != this ? false : ep.getDistanceSq(this.xCoord + 0.5D, this.yCoord + 0.5D,
+				this.zCoord + 0.5D) <= 64.0D;
 	}
 
 	@Override
-	public void openChest() {}
+	public void openInventory() {}
 
 	@Override
-	public void closeChest() {}
+	public void closeInventory() {}
 
 	@Override
 	public boolean isItemValidForSlot(int i, ItemStack itemstack) {
@@ -116,10 +116,10 @@ public class TilePlacer extends TileEntity implements IInventory, IMachine {
 	@Override
 	public void readFromNBT(NBTTagCompound par1NBTTagCompound) {
 		super.readFromNBT(par1NBTTagCompound);
-		NBTTagList nbttaglist = par1NBTTagCompound.getTagList("Items");
+		NBTTagList nbttaglist = par1NBTTagCompound.getTagList("Items", 10);
 
 		for (int i = 0; i < nbttaglist.tagCount(); ++i) {
-			NBTTagCompound nbttagcompound1 = (NBTTagCompound) nbttaglist.tagAt(i);
+			NBTTagCompound nbttagcompound1 = nbttaglist.getCompoundTagAt(i);
 			int j = nbttagcompound1.getByte("Slot") & 255;
 
 			if (j >= 0 && j < this.stack.length) {

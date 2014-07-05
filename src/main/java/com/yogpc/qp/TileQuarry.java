@@ -27,9 +27,12 @@ import java.util.Set;
 import com.google.common.collect.Sets;
 import com.google.common.io.ByteArrayDataInput;
 
-import cpw.mods.fml.common.network.PacketDispatcher;
+import cpw.mods.fml.common.network.FMLOutboundHandler;
+import cpw.mods.fml.common.network.NetworkRegistry;
+import cpw.mods.fml.common.network.FMLOutboundHandler.OutboundTarget;
+import cpw.mods.fml.relauncher.Side;
 import buildcraft.api.core.IAreaProvider;
-import buildcraft.api.core.LaserKind;
+import buildcraft.core.LaserKind;
 import static buildcraft.BuildCraftFactory.frameBlock;
 import buildcraft.core.Box;
 import buildcraft.core.proxy.CoreProxy;
@@ -44,7 +47,7 @@ import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.ForgeChunkManager.Ticket;
 import net.minecraftforge.common.ForgeChunkManager.Type;
-import net.minecraftforge.common.ForgeDirection;
+import net.minecraftforge.common.util.ForgeDirection;
 
 public class TileQuarry extends TileBasic {
 	private int targetX, targetY, targetZ;
@@ -77,8 +80,10 @@ public class TileQuarry extends TileBasic {
 					dos.writeDouble(this.headPosX);
 					dos.writeDouble(this.headPosY);
 					dos.writeDouble(this.headPosZ);
-					PacketDispatcher.sendPacketToAllAround(this.xCoord, this.yCoord, this.zCoord, 256, this.worldObj.provider.dimensionId,
-							composeTilePacket(bos));
+					channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.ALLAROUNDPOINT);
+					channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS)
+							.set(new NetworkRegistry.TargetPoint(this.getWorldObj().provider.dimensionId, this.xCoord, this.yCoord, this.zCoord, 256));
+					channels.get(Side.SERVER).writeOutbound(new QuarryPlusPacket(Tile, bos.toByteArray()));
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -96,7 +101,7 @@ public class TileQuarry extends TileBasic {
 
 	private boolean S_checkTarget() {
 		if (this.targetY > this.box.yMax) this.targetY = this.box.yMax;
-		Block b = Block.blocksList[this.worldObj.getBlockId(this.targetX, this.targetY, this.targetZ)];
+		Block b = this.worldObj.getBlock(this.targetX, this.targetY, this.targetZ);
 		float h = b == null ? -1 : b.getBlockHardness(this.worldObj, this.targetX, this.targetY, this.targetZ);
 		switch (this.now) {
 		case BREAKBLOCK:
@@ -107,7 +112,7 @@ public class TileQuarry extends TileBasic {
 				return true;
 			}
 			if (h < 0) return false;
-			if (this.pump == ForgeDirection.UNKNOWN && this.worldObj.getBlockMaterial(this.targetX, this.targetY, this.targetZ).isLiquid()) return false;
+			if (this.pump == ForgeDirection.UNKNOWN && this.worldObj.getBlock(this.targetX, this.targetY, this.targetZ).getMaterial().isLiquid()) return false;
 			return true;
 		case NOTNEEDBREAK:
 			if (this.targetY < this.box.yMin) {
@@ -122,7 +127,7 @@ public class TileQuarry extends TileBasic {
 				return S_checkTarget();
 			}
 			if (h < 0) return false;
-			if (this.pump == ForgeDirection.UNKNOWN && this.worldObj.getBlockMaterial(this.targetX, this.targetY, this.targetZ).isLiquid()) return false;
+			if (this.pump == ForgeDirection.UNKNOWN && this.worldObj.getBlock(this.targetX, this.targetY, this.targetZ).getMaterial().isLiquid()) return false;
 			if (b == frameBlock && this.worldObj.getBlockMetadata(this.targetX, this.targetY, this.targetZ) == 0) {
 				byte flag = 0;
 				if (this.targetX == this.box.xMin || this.targetX == this.box.xMax) flag++;
@@ -148,7 +153,7 @@ public class TileQuarry extends TileBasic {
 				return S_checkTarget();
 			}
 			if (b != null && h < 0) return false;
-			if (this.worldObj.getBlockMaterial(this.targetX, this.targetY, this.targetZ).isSolid()
+			if (this.worldObj.getBlock(this.targetX, this.targetY, this.targetZ).getMaterial().isSolid()
 					&& (b != frameBlock || this.worldObj.getBlockMetadata(this.targetX, this.targetY, this.targetZ) != 0)) {
 				this.now = NOTNEEDBREAK;
 				G_renew_powerConfigure();
@@ -256,7 +261,7 @@ public class TileQuarry extends TileBasic {
 	private boolean S_makeFrame() {
 		this.digged = true;
 		if (!PowerManager.useEnergyF(this.pp, this.unbreaking)) return false;
-		this.worldObj.setBlock(this.targetX, this.targetY, this.targetZ, frameBlock.blockID);
+		this.worldObj.setBlock(this.targetX, this.targetY, this.targetZ, frameBlock);
 		S_setNextTarget();
 		return true;
 	}
@@ -319,7 +324,7 @@ public class TileQuarry extends TileBasic {
 	}
 
 	private boolean S_checkIAreaProvider(int x, int y, int z) {
-		TileEntity te = this.worldObj.getBlockTileEntity(x, y, z);
+		TileEntity te = this.worldObj.getTileEntity(x, y, z);
 		if (te instanceof IAreaProvider) {
 			this.box.initialize(((IAreaProvider) te));
 			this.box.reorder();
@@ -376,7 +381,7 @@ public class TileQuarry extends TileBasic {
 	}
 
 	private void S_setBreakableFrame(int x, int y, int z) {
-		if (this.worldObj.getBlockId(x, y, z) == frameBlock.blockID) {
+		if (this.worldObj.getBlock(x, y, z) == frameBlock) {
 			this.worldObj.setBlockMetadataWithNotify(x, y, z, 1, 3);
 		}
 	}
@@ -430,8 +435,10 @@ public class TileQuarry extends TileBasic {
 		G_initEntities();
 		if (!this.worldObj.isRemote) {
 			S_setFirstPos();
-			PacketDispatcher.sendPacketToAllAround(this.xCoord, this.yCoord, this.zCoord, 256, this.worldObj.provider.dimensionId,
-					PacketHandler.getPacketFromNBT(this));
+			channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.ALLAROUNDPOINT);
+			channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS)
+					.set(new NetworkRegistry.TargetPoint(this.getWorldObj().provider.dimensionId, this.xCoord, this.yCoord, this.zCoord, 256));
+			channels.get(Side.SERVER).writeOutbound(PacketHandler.getPacketFromNBT(this));
 			sendNowPacket(this, this.now);
 		}
 	}
@@ -526,7 +533,7 @@ public class TileQuarry extends TileBasic {
 		case StC_NOW:
 			this.now = data.readByte();
 			G_renew_powerConfigure();
-			this.worldObj.markBlockForRenderUpdate(this.xCoord, this.yCoord, this.zCoord);
+			this.worldObj.markBlockForUpdate(this.xCoord, this.yCoord, this.zCoord);
 			G_initEntities();
 			break;
 		case StC_HEAD_POS:
@@ -570,7 +577,7 @@ public class TileQuarry extends TileBasic {
 
 	@Override
 	protected void G_renew_powerConfigure() {
-		TileEntity te = this.worldObj.getBlockTileEntity(this.xCoord + this.pump.offsetX, this.yCoord + this.pump.offsetY, this.zCoord + this.pump.offsetZ);
+		TileEntity te = this.worldObj.getTileEntity(this.xCoord + this.pump.offsetX, this.yCoord + this.pump.offsetY, this.zCoord + this.pump.offsetZ);
 		byte pmp = 0;
 		if (te instanceof TilePump) pmp = ((TilePump) te).unbreaking;
 		else this.pump = ForgeDirection.UNKNOWN;

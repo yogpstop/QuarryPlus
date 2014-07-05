@@ -22,15 +22,15 @@ import java.io.DataOutputStream;
 
 import com.google.common.io.ByteArrayDataInput;
 
-import cpw.mods.fml.common.network.PacketDispatcher;
-import cpw.mods.fml.common.network.Player;
+import cpw.mods.fml.common.network.FMLOutboundHandler;
+import cpw.mods.fml.relauncher.Side;
 import buildcraft.api.power.IPowerReceptor;
 import buildcraft.api.power.PowerHandler.PowerReceiver;
 import buildcraft.api.power.PowerHandler.Type;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraftforge.common.ForgeDirection;
+import net.minecraftforge.common.util.ForgeDirection;
 
 public class TileInfMJSrc extends APacketTile {
 	public float power = 10;
@@ -44,7 +44,7 @@ public class TileInfMJSrc extends APacketTile {
 		if (--this.cInterval > 0) return;
 		TileEntity te;
 		for (ForgeDirection d : ForgeDirection.VALID_DIRECTIONS) {
-			te = this.worldObj.getBlockTileEntity(this.xCoord + d.offsetX, this.yCoord + d.offsetY, this.zCoord + d.offsetZ);
+			te = this.worldObj.getTileEntity(this.xCoord + d.offsetX, this.yCoord + d.offsetY, this.zCoord + d.offsetZ);
 			if (te instanceof IPowerReceptor) {
 				PowerReceiver pr = ((IPowerReceptor) te).getPowerReceiver(d.getOpposite());
 				if (pr != null) pr.receiveEnergy(Type.ENGINE, this.power, d.getOpposite());
@@ -63,7 +63,9 @@ public class TileInfMJSrc extends APacketTile {
 			dos.writeByte(PacketHandler.StC_OPENGUI_INFMJSRC);
 			dos.writeFloat(this.power);
 			dos.writeInt(this.interval);
-			PacketDispatcher.sendPacketToPlayer(PacketHandler.composeTilePacket(bos), (Player) ep);
+			PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(FMLOutboundHandler.OutboundTarget.PLAYER);
+			PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS).set(ep);
+			PacketHandler.channels.get(Side.SERVER).writeOutbound(new QuarryPlusPacket(PacketHandler.Tile, bos.toByteArray()));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

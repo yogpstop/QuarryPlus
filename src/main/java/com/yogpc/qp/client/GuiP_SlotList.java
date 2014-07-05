@@ -45,7 +45,7 @@ public class GuiP_SlotList extends GuiSlot {
 	}
 
 	@Override
-	protected void elementClicked(int var1, boolean var2) {
+	protected void elementClicked(int var1, boolean var2, int var3, int var4) {
 		this.currentore = var1;
 	}
 
@@ -60,7 +60,7 @@ public class GuiP_SlotList extends GuiSlot {
 	}
 
 	@Override
-	protected void drawSlot(int var1, int var2, int var3, int var4, Tessellator var5) {
+	protected void drawSlot(int var1, int var2, int var3, int var4, Tessellator var5, int var6, int var7) {
 		String name = this.target.get(var1);
 		if (FluidRegistry.isFluidRegistered(name)) name = FluidRegistry.getFluid(name).getLocalizedName();
 		Minecraft.getMinecraft().fontRenderer.drawStringWithShadow(name,

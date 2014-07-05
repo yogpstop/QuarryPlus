@@ -22,7 +22,6 @@ import java.util.Collection;
 
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.StatCollector;
 
@@ -31,8 +30,8 @@ public final class EnchantmentHelper {
 		byte efficiency = 0, unbreaking = 0, fortune = 0;
 		boolean silktouch = false;
 		if (nbttl != null) for (int i = 0; i < nbttl.tagCount(); i++) {
-			short id = ((NBTTagCompound) nbttl.tagAt(i)).getShort("id");
-			short lvl = ((NBTTagCompound) nbttl.tagAt(i)).getShort("lvl");
+			short id = nbttl.getCompoundTagAt(i).getShort("id");
+			short lvl = nbttl.getCompoundTagAt(i).getShort("lvl");
 			if (id == 32) efficiency = (byte) lvl;
 			if (id == 33) silktouch = true;
 			if (id == 34) unbreaking = (byte) lvl;

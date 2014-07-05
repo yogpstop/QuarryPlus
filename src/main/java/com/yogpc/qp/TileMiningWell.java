@@ -25,7 +25,7 @@ import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraftforge.common.ForgeDirection;
+import net.minecraftforge.common.util.ForgeDirection;
 import static buildcraft.BuildCraftFactory.plainPipeBlock;
 
 public class TileMiningWell extends TileBasic {
@@ -39,7 +39,7 @@ public class TileMiningWell extends TileBasic {
 		case PacketHandler.StC_NOW:
 			this.working = data.readBoolean();
 			G_renew_powerConfigure();
-			this.worldObj.markBlockForRenderUpdate(this.xCoord, this.yCoord, this.zCoord);
+			this.worldObj.markBlockForUpdate(this.xCoord, this.yCoord, this.zCoord);
 			break;
 		}
 	}
@@ -48,7 +48,7 @@ public class TileMiningWell extends TileBasic {
 	protected void G_renew_powerConfigure() {
 		byte pmp = 0;
 		if (this.worldObj != null) {
-			TileEntity te = this.worldObj.getBlockTileEntity(this.xCoord + this.pump.offsetX, this.yCoord + this.pump.offsetY, this.zCoord + this.pump.offsetZ);
+			TileEntity te = this.worldObj.getTileEntity(this.xCoord + this.pump.offsetX, this.yCoord + this.pump.offsetY, this.zCoord + this.pump.offsetZ);
 			if (te instanceof TilePump) pmp = ((TilePump) te).unbreaking;
 			else this.pump = ForgeDirection.UNKNOWN;
 		}
@@ -62,7 +62,7 @@ public class TileMiningWell extends TileBasic {
 		if (this.worldObj.isRemote) return;
 		int depth = this.yCoord - 1;
 		while (!S_checkTarget(depth)) {
-			if (this.working) this.worldObj.setBlock(this.xCoord, depth, this.zCoord, plainPipeBlock.blockID);
+			if (this.working) this.worldObj.setBlock(this.xCoord, depth, this.zCoord, plainPipeBlock);
 			depth--;
 		}
 		if (this.working) S_breakBlock(this.xCoord, depth, this.zCoord);
@@ -74,10 +74,10 @@ public class TileMiningWell extends TileBasic {
 			G_destroy();
 			return true;
 		}
-		Block b = Block.blocksList[this.worldObj.getBlockId(this.xCoord, depth, this.zCoord)];
+		Block b = this.worldObj.getBlock(this.xCoord, depth, this.zCoord);
 		float h = b == null ? -1 : b.getBlockHardness(this.worldObj, this.xCoord, depth, this.zCoord);
 		if (h < 0 || b == plainPipeBlock) return false;
-		if (this.pump == ForgeDirection.UNKNOWN && this.worldObj.getBlockMaterial(this.xCoord, depth, this.zCoord).isLiquid()) return false;
+		if (this.pump == ForgeDirection.UNKNOWN && this.worldObj.getBlock(this.xCoord, depth, this.zCoord).getMaterial().isLiquid()) return false;
 		if (!this.working) {
 			this.working = true;
 			G_renew_powerConfigure();
@@ -113,7 +113,7 @@ public class TileMiningWell extends TileBasic {
 		G_renew_powerConfigure();
 		sendNowPacket(this, (byte) 0);
 		for (int depth = this.yCoord - 1; depth > 0; depth--) {
-			if (this.worldObj.getBlockId(this.xCoord, depth, this.zCoord) != plainPipeBlock.blockID) {
+			if (this.worldObj.getBlock(this.xCoord, depth, this.zCoord) != plainPipeBlock) {
 				break;
 			}
 			this.worldObj.setBlockToAir(this.xCoord, depth, this.zCoord);

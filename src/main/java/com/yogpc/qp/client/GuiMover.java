@@ -23,16 +23,18 @@ import java.io.DataOutputStream;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.network.packet.Packet250CustomPayload;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
 
 import org.lwjgl.opengl.GL11;
+
 import com.yogpc.qp.ContainerMover;
 import com.yogpc.qp.PacketHandler;
+import com.yogpc.qp.QuarryPlusPacket;
 
-import cpw.mods.fml.common.network.PacketDispatcher;
+import cpw.mods.fml.common.network.FMLOutboundHandler;
+import cpw.mods.fml.common.network.FMLOutboundHandler.OutboundTarget;
 import cpw.mods.fml.relauncher.SideOnly;
 import cpw.mods.fml.relauncher.Side;
 
@@ -59,7 +61,7 @@ public class GuiMover extends GuiContainer {
 
 	@Override
 	protected void drawGuiContainerForegroundLayer(int par1, int par2) {
-		this.fontRenderer.drawString(StatCollector.translateToLocal("container.inventory"), 8, 72, 0x404040);
+		this.fontRendererObj.drawString(StatCollector.translateToLocal("container.inventory"), 8, 72, 0x404040);
 	}
 
 	@Override
@@ -82,12 +84,7 @@ public class GuiMover extends GuiContainer {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		Packet250CustomPayload packet = new Packet250CustomPayload();
-		packet.channel = PacketHandler.BTN;
-		packet.data = bos.toByteArray();
-		packet.length = bos.size();
-		packet.isChunkDataPacket = true;
-
-		PacketDispatcher.sendPacketToServer(packet);
+		PacketHandler.channels.get(Side.CLIENT).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.TOSERVER);
+		PacketHandler.channels.get(Side.CLIENT).writeOutbound(new QuarryPlusPacket(PacketHandler.BTN, bos.toByteArray()));
 	}
 }

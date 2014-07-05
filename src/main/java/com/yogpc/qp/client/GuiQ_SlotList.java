@@ -27,14 +27,15 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiSlot;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.item.ItemStack;
 
 @SideOnly(Side.CLIENT)
 public class GuiQ_SlotList extends GuiSlot {
 	private GuiScreen parent;
 	public int currentore = 0;
-	protected List<Long> target;
+	protected List<ItemStack> target;
 
-	public GuiQ_SlotList(Minecraft par1Minecraft, int par2, int par3, int par4, int par5, int par6, GuiScreen parents, List<Long> ali) {
+	public GuiQ_SlotList(Minecraft par1Minecraft, int par2, int par3, int par4, int par5, int par6, GuiScreen parents, List<ItemStack> ali) {
 		super(par1Minecraft, par2, par3, par4, par5, par6);
 		this.parent = parents;
 		this.target = ali;
@@ -46,7 +47,7 @@ public class GuiQ_SlotList extends GuiSlot {
 	}
 
 	@Override
-	protected void elementClicked(int var1, boolean var2) {
+	protected void elementClicked(int var1, boolean var2, int var3, int var4) {
 		this.currentore = var1;
 	}
 
@@ -61,7 +62,7 @@ public class GuiQ_SlotList extends GuiSlot {
 	}
 
 	@Override
-	protected void drawSlot(int var1, int var2, int var3, int var4, Tessellator var5) {
+	protected void drawSlot(int var1, int var2, int var3, int var4, Tessellator var5, int var6, int var7) {
 		String name = getname(this.target.get(var1));
 		Minecraft.getMinecraft().fontRenderer.drawStringWithShadow(name,
 				(this.parent.width * 3 / 5 - Minecraft.getMinecraft().fontRenderer.getStringWidth(name)) / 2, var3 + 1, 0xFFFFFF);

@@ -21,12 +21,14 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 
 import com.yogpc.qp.PacketHandler;
+import com.yogpc.qp.QuarryPlusPacket;
 import com.yogpc.qp.TilePump;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.util.StatCollector;
-import net.minecraftforge.common.ForgeDirection;
-import cpw.mods.fml.common.network.PacketDispatcher;
+import net.minecraftforge.common.util.ForgeDirection;
+import cpw.mods.fml.common.network.FMLOutboundHandler;
+import cpw.mods.fml.common.network.FMLOutboundHandler.OutboundTarget;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
@@ -75,7 +77,8 @@ public class GuiP_SelectSide extends GuiScreenA {
 				dos.writeByte(PacketHandler.CtS_RENEW_DIRECTION);
 				dos.writeByte(par1.id);
 			}
-			PacketDispatcher.sendPacketToServer(PacketHandler.composeTilePacket(bos));
+			PacketHandler.channels.get(Side.CLIENT).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.TOSERVER);
+			PacketHandler.channels.get(Side.CLIENT).writeOutbound(new QuarryPlusPacket(PacketHandler.Tile, bos.toByteArray()));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -84,7 +87,8 @@ public class GuiP_SelectSide extends GuiScreenA {
 	@Override
 	public void drawScreen(int i, int j, float k) {
 		this.drawDefaultBackground();
-		this.drawCenteredString(this.fontRenderer, StatCollector.translateToLocal(this.copy ? "pp.copy.select" : "pp.set.select"), this.width / 2, 8, 0xFFFFFF);
+		this.drawCenteredString(this.fontRendererObj, StatCollector.translateToLocal(this.copy ? "pp.copy.select" : "pp.set.select"), this.width / 2, 8,
+				0xFFFFFF);
 		super.drawScreen(i, j, k);
 	}
 

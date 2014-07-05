@@ -17,10 +17,10 @@
 
 package com.yogpc.qp;
 
+import net.minecraft.init.Items;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 
 public class SlotMover extends Slot {
@@ -36,7 +36,7 @@ public class SlotMover extends Slot {
 	public boolean isItemValid(ItemStack is) {
 		switch (this.slotNumber) {
 		case 0:
-			if (is.itemID == Item.pickaxeDiamond.itemID) return true;
+			if (is.getItem() == Items.diamond_pickaxe) return true;
 			return false;
 		case 1:
 			if (is.getItem() instanceof IEnchantableItem && ((IEnchantableItem) is.getItem()).canMove(is, -1, is.getItemDamage())) return true;

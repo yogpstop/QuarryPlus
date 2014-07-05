@@ -19,39 +19,39 @@ package com.yogpc.qp;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Icon;
+import net.minecraft.util.IIcon;
 import net.minecraft.world.World;
 
 public class BlockInfMJSrc extends BlockContainer {
 
-	public BlockInfMJSrc(int par1) {
-		super(par1, Material.iron);
+	public BlockInfMJSrc() {
+		super(Material.iron);
 		setHardness(1.5F);
 		setResistance(10F);
-		setStepSound(soundStoneFootstep);
+		setStepSound(soundTypeStone);
 		setCreativeTab(QuarryPlus.ct);
-		setUnlocalizedName("InfMJSrc");
+		setBlockName("InfMJSrc");
 	}
 
 	@Override
-	public TileEntity createNewTileEntity(World world) {
+	public TileEntity createNewTileEntity(World w, int m) {
 		return new TileInfMJSrc();
 	}
 
 	@Override
 	public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer ep, int par6, float par7, float par8, float par9) {
-		if (!world.isRemote) ((TileInfMJSrc) world.getBlockTileEntity(x, y, z)).S_openGUI(ep);
+		if (!world.isRemote) ((TileInfMJSrc) world.getTileEntity(x, y, z)).S_openGUI(ep);
 		return true;
 	}
 
 	@Override
 	@SideOnly(Side.CLIENT)
-	public Icon getIcon(int a, int b) {
-		return Block.portal.getIcon(a, b);
+	public IIcon getIcon(int a, int b) {
+		return Blocks.portal.getIcon(a, b);
 	}
 }

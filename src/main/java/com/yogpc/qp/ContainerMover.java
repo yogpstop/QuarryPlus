@@ -72,7 +72,7 @@ public class ContainerMover extends Container {
 			for (int var2 = 0; var2 < 2; ++var2) {
 				ItemStack var3 = this.craftMatrix.getStackInSlotOnClosing(var2);
 				if (var3 != null) {
-					par1EntityPlayer.dropPlayerItem(var3);
+					par1EntityPlayer.dropPlayerItemWithRandomChoice(var3, false);
 				}
 			}
 		}
@@ -80,7 +80,7 @@ public class ContainerMover extends Container {
 
 	@Override
 	public boolean canInteractWith(EntityPlayer var1) {
-		return this.worldObj.getBlockId(this.posX, this.posY, this.posZ) != QuarryPlus.blockMover.blockID ? false : var1.getDistanceSq(this.posX + 0.5D,
+		return this.worldObj.getBlock(this.posX, this.posY, this.posZ) != QuarryPlus.blockMover ? false : var1.getDistanceSq(this.posX + 0.5D,
 				this.posY + 0.5D, this.posZ + 0.5D) <= 64.0D;
 	}
 
@@ -106,14 +106,14 @@ public class ContainerMover extends Container {
 			list = is.getEnchantmentTagList();
 			if (list == null) return;
 			for (int i = 0; i < list.tagCount(); i++) {
-				short lvl = ((NBTTagCompound) list.tagAt(i)).getShort("lvl");
+				short lvl = list.getCompoundTagAt(i).getShort("lvl");
 				if (lvl < 1) continue;
-				if (((NBTTagCompound) list.tagAt(i)).getShort("id") == eid) {
-					if (lvl > 1) ((NBTTagCompound) list.tagAt(i)).setShort("lvl", --lvl);
+				if (list.getCompoundTagAt(i).getShort("id") == eid) {
+					if (lvl > 1) list.getCompoundTagAt(i).setShort("lvl", --lvl);
 					else {
 						NBTTagList nlist = new NBTTagList();
 						for (int j = 0; j < list.tagCount(); j++) {
-							if (i != j) nlist.appendTag(list.tagAt(j));
+							if (i != j) nlist.appendTag(list.getCompoundTagAt(i));
 						}
 						is.getTagCompound().setTag("ench", nlist);
 						list = is.getEnchantmentTagList();
@@ -136,11 +136,11 @@ public class ContainerMover extends Container {
 			nbttc.setTag("ench", list);
 		} else {
 			for (int i = 0; i < list.tagCount(); i++) {
-				short id = ((NBTTagCompound) list.tagAt(i)).getShort("id");
-				short lvl = ((NBTTagCompound) list.tagAt(i)).getShort("lvl");
+				short id = list.getCompoundTagAt(i).getShort("id");
+				short lvl = list.getCompoundTagAt(i).getShort("lvl");
 				if (lvl < 1) continue;
 				if (id == eid) {
-					((NBTTagCompound) list.tagAt(i)).setShort("lvl", ++lvl);
+					list.getCompoundTagAt(i).setShort("lvl", ++lvl);
 					done = true;
 					break;
 				}
@@ -161,8 +161,8 @@ public class ContainerMover extends Container {
 		if (pickaxeIs != null) {
 			NBTTagList pickaxeE = pickaxeIs.getEnchantmentTagList();
 			if (pickaxeE != null) for (int i = 0; i < pickaxeE.tagCount(); i++) {
-				short id = ((NBTTagCompound) pickaxeE.tagAt(i)).getShort("id");
-				short lvl = ((NBTTagCompound) pickaxeE.tagAt(i)).getShort("lvl");
+				short id = (pickaxeE.getCompoundTagAt(i)).getShort("id");
+				short lvl = (pickaxeE.getCompoundTagAt(i)).getShort("lvl");
 				if (!checkTo(id)) continue;
 				if (lvl < 1) continue;
 				switch (id) {
@@ -195,8 +195,8 @@ public class ContainerMover extends Container {
 			if (!(target.getItem() instanceof IEnchantableItem) || !((IEnchantableItem) target.getItem()).canMove(target, id, target.getItemDamage())) return false;
 			NBTTagList quarryE = target.getEnchantmentTagList();
 			if (quarryE != null) for (int i = 0; i < quarryE.tagCount(); i++) {
-				if (id == ((NBTTagCompound) quarryE.tagAt(i)).getShort("id")) {
-					if (Enchantment.enchantmentsList[id].getMaxLevel() > ((NBTTagCompound) quarryE.tagAt(i)).getShort("lvl")) return true;
+				if (id == quarryE.getCompoundTagAt(i).getShort("id")) {
+					if (Enchantment.enchantmentsList[id].getMaxLevel() > quarryE.getCompoundTagAt(i).getShort("lvl")) return true;
 					return false;
 				}
 			}

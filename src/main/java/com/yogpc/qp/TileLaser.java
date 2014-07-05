@@ -29,16 +29,16 @@ import buildcraft.api.power.IPowerReceptor;
 import buildcraft.api.power.PowerHandler;
 import buildcraft.api.power.PowerHandler.PowerReceiver;
 import buildcraft.api.power.PowerHandler.Type;
-import buildcraft.core.EntityEnergyLaser;
 import buildcraft.core.IMachine;
+import buildcraft.core.LaserData;
 import buildcraft.core.triggers.ActionMachineControl;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
-import net.minecraftforge.common.ForgeDirection;
+import net.minecraftforge.common.util.ForgeDirection;
 
 public class TileLaser extends TileEntity implements IPowerReceptor, IActionReceptor, IMachine, IEnchantableTile {
-	private EntityEnergyLaser[] lasers;
+	private LaserData[] lasers;
 	private final List<Object> laserTargets = new ArrayList<Object>();
 	protected final PowerHandler powerHandler = new PowerHandler(this, Type.MACHINE);
 	private ActionMachineControl.Mode lastMode = ActionMachineControl.Mode.Unknown;
@@ -75,8 +75,7 @@ public class TileLaser extends TileEntity implements IPowerReceptor, IActionRece
 
 		if (!isValidLaser()) {// createLaser
 			for (int i = 0; i < this.lasers.length; i++) {
-				this.lasers[i] = new EntityEnergyLaser(this.worldObj, new Position(this.xCoord, this.yCoord, this.zCoord), new Position(this.xCoord,
-						this.yCoord, this.zCoord));
+				this.lasers[i] = new LaserData(new Position(this.xCoord, this.yCoord, this.zCoord), new Position(this.xCoord, this.yCoord, this.zCoord));
 				this.worldObj.spawnEntityInWorld(this.lasers[i]);
 				this.from = this.worldObj.getWorldTime();
 			}
@@ -98,13 +97,13 @@ public class TileLaser extends TileEntity implements IPowerReceptor, IActionRece
 		float power = PowerManager.useEnergyL(this.powerHandler, this.unbreaking, this.fortune, this.silktouch, this.efficiency);
 		for (Object lt : this.laserTargets)
 			ILaserTargetHelper.receiveLaserEnergy(lt, power / this.laserTargets.size());
-		for (EntityEnergyLaser laser : this.lasers)
+		for (LaserData laser : this.lasers)
 			laser.pushPower(power / this.laserTargets.size());
 	}
 
 	protected boolean isValidLaser() {
 		if (this.lasers == null) return false;
-		for (EntityEnergyLaser laser : this.lasers)
+		for (LaserData laser : this.lasers)
 			if (laser == null) return false;
 		return true;
 	}
@@ -154,7 +153,7 @@ public class TileLaser extends TileEntity implements IPowerReceptor, IActionRece
 		for (int x = minX; x <= maxX; ++x) {
 			for (int y = minY; y <= maxY; ++y) {
 				for (int z = minZ; z <= maxZ; ++z) {
-					TileEntity tile = this.worldObj.getBlockTileEntity(x, y, z);
+					TileEntity tile = this.worldObj.getTileEntity(x, y, z);
 					if (ILaserTargetHelper.isInstance(tile)) {
 						if (ILaserTargetHelper.isValid(tile)) {
 							this.laserTargets.add(tile);
@@ -169,13 +168,13 @@ public class TileLaser extends TileEntity implements IPowerReceptor, IActionRece
 			this.laserTargets.clear();
 			this.laserTargets.add(laserTarget);
 		}
-		this.lasers = new EntityEnergyLaser[this.laserTargets.size()];
+		this.lasers = new LaserData[this.laserTargets.size()];
 	}
 
 	protected void removeLaser() {
 		if (this.lasers != null) for (int i = 0; i < this.lasers.length; i++)
 			if (this.lasers[i] != null) {
-				this.lasers[i].setDead();
+				this.lasers[i].isVisible = false;
 				this.lasers[i] = null;
 			}
 	}

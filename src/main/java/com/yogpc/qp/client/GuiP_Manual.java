@@ -44,7 +44,7 @@ public class GuiP_Manual extends GuiScreenA {
 	public void initGui() {
 		this.buttonList.add(new GuiButton(-1, this.width / 2 - 150, this.height - 26, 140, 20, StatCollector.translateToLocal("gui.done")));
 		this.buttonList.add(new GuiButton(-2, this.width / 2 + 10, this.height - 26, 140, 20, StatCollector.translateToLocal("gui.cancel")));
-		this.blockid = new GuiTextField(this.fontRenderer, this.width / 2 - 50, 50, 100, 20);
+		this.blockid = new GuiTextField(this.fontRendererObj, this.width / 2 - 50, 50, 100, 20);
 		this.blockid.setFocused(true);
 	}
 
@@ -91,9 +91,9 @@ public class GuiP_Manual extends GuiScreenA {
 	@Override
 	public void drawScreen(int i, int j, float k) {
 		this.drawDefaultBackground();
-		this.drawCenteredString(this.fontRenderer, StatCollector.translateToLocal("tof.selectfluid"), this.width / 2, 8, 0xFFFFFF);
-		this.fontRenderer.drawStringWithShadow(StatCollector.translateToLocal("tof.fluidid"),
-				this.width / 2 - 60 - this.fontRenderer.getStringWidth(StatCollector.translateToLocal("tof.fluidid")), 50, 0xFFFFFF);
+		this.drawCenteredString(this.fontRendererObj, StatCollector.translateToLocal("tof.selectfluid"), this.width / 2, 8, 0xFFFFFF);
+		this.fontRendererObj.drawStringWithShadow(StatCollector.translateToLocal("tof.fluidid"),
+				this.width / 2 - 60 - this.fontRendererObj.getStringWidth(StatCollector.translateToLocal("tof.fluidid")), 50, 0xFFFFFF);
 		this.blockid.drawTextBox();
 		super.drawScreen(i, j, k);
 	}

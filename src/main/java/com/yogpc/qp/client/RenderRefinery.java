@@ -21,7 +21,7 @@ import net.minecraft.block.Block;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.RenderBlocks;
-import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
+import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
@@ -29,6 +29,7 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraftforge.fluids.FluidStack;
 
 import org.lwjgl.opengl.GL11;
+
 import com.yogpc.qp.QuarryPlus;
 import com.yogpc.qp.TileRefinery;
 
@@ -61,7 +62,7 @@ public class RenderRefinery extends TileEntitySpecialRenderer implements ISimple
 			this.magnet[i].rotationPointZ = 8;
 		}
 
-		setTileEntityRenderer(TileEntityRenderer.instance);
+		this.field_147501_a = TileEntityRendererDispatcher.instance;
 	}
 
 	@Override
@@ -83,7 +84,7 @@ public class RenderRefinery extends TileEntitySpecialRenderer implements ISimple
 			anim = tile.getAnimationStage();
 
 			angle = 0;
-			switch (tile.worldObj.getBlockMetadata(tile.xCoord, tile.yCoord, tile.zCoord)) {
+			switch (tile.getWorldObj().getBlockMetadata(tile.xCoord, tile.yCoord, tile.zCoord)) {
 			case 2:
 				angle = 90;
 				break;
@@ -172,7 +173,7 @@ public class RenderRefinery extends TileEntitySpecialRenderer implements ISimple
 			GL11.glScalef(0.5F, 1, 0.5F);
 
 			if (liquid1 != null && liquid1.amount > 0) {
-				int[] list1 = FluidRenderer.getFluidDisplayLists(liquid1, tile.worldObj, false);
+				int[] list1 = FluidRenderer.getFluidDisplayLists(liquid1, tile.getWorldObj(), false);
 
 				if (list1 != null) {
 					bindTexture(FluidRenderer.getFluidSheet(liquid1));
@@ -182,7 +183,7 @@ public class RenderRefinery extends TileEntitySpecialRenderer implements ISimple
 			}
 
 			if (liquid2 != null && liquid2.amount > 0) {
-				int[] list2 = FluidRenderer.getFluidDisplayLists(liquid2, tile.worldObj, false);
+				int[] list2 = FluidRenderer.getFluidDisplayLists(liquid2, tile.getWorldObj(), false);
 
 				if (list2 != null) {
 					GL11.glPushMatrix();
@@ -195,7 +196,7 @@ public class RenderRefinery extends TileEntitySpecialRenderer implements ISimple
 			}
 
 			if (liquidResult != null && liquidResult.amount > 0) {
-				int[] list3 = FluidRenderer.getFluidDisplayLists(liquidResult, tile.worldObj, false);
+				int[] list3 = FluidRenderer.getFluidDisplayLists(liquidResult, tile.getWorldObj(), false);
 
 				if (list3 != null) {
 					GL11.glPushMatrix();
@@ -225,7 +226,7 @@ public class RenderRefinery extends TileEntitySpecialRenderer implements ISimple
 	}
 
 	@Override
-	public boolean shouldRender3DInInventory() {
+	public boolean shouldRender3DInInventory(int arg0) {
 		return true;
 	}
 

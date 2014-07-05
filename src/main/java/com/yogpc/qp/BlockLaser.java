@@ -20,34 +20,32 @@ package com.yogpc.qp;
 import java.util.ArrayList;
 
 import buildcraft.silicon.SiliconProxy;
-import cpw.mods.fml.common.network.PacketDispatcher;
-import cpw.mods.fml.common.network.Player;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
-import net.minecraft.client.renderer.texture.IconRegister;
+import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.packet.Packet3Chat;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ChatMessageComponent;
-import net.minecraft.util.Icon;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.IIcon;
 import net.minecraft.world.World;
-import net.minecraftforge.common.ForgeDirection;
+import net.minecraftforge.common.util.ForgeDirection;
 
 public class BlockLaser extends BlockContainer {
 
 	@SideOnly(Side.CLIENT)
-	private Icon textureTop, textureBottom;
+	private IIcon textureTop, textureBottom;
 
-	public BlockLaser(int i) {
-		super(i, Material.iron);
+	public BlockLaser() {
+		super(Material.iron);
 		setHardness(10F);
 		setCreativeTab(QuarryPlus.ct);
-		this.setUnlocalizedName("LaserPlus");
+		this.setBlockName("LaserPlus");
 	}
 
 	@Override
@@ -66,13 +64,13 @@ public class BlockLaser extends BlockContainer {
 	}
 
 	@Override
-	public TileEntity createNewTileEntity(World world) {
+	public TileEntity createNewTileEntity(World w, int m) {
 		return new TileLaser();
 	}
 
 	@Override
 	@SideOnly(Side.CLIENT)
-	public Icon getIcon(int i, int j) {
+	public IIcon getIcon(int i, int j) {
 		if (i == ForgeDirection.values()[j].getOpposite().ordinal()) return this.textureBottom;
 		else if (i == j) return this.textureTop;
 		else return this.blockIcon;
@@ -87,7 +85,7 @@ public class BlockLaser extends BlockContainer {
 
 	@Override
 	@SideOnly(Side.CLIENT)
-	public void registerIcons(IconRegister par1IconRegister) {
+	public void registerBlockIcons(IIconRegister par1IconRegister) {
 		this.textureTop = par1IconRegister.registerIcon("yogpstop_qp:laser_top");
 		this.textureBottom = par1IconRegister.registerIcon("yogpstop_qp:laser_bottom");
 		this.blockIcon = par1IconRegister.registerIcon("yogpstop_qp:laser_side");
@@ -95,31 +93,30 @@ public class BlockLaser extends BlockContainer {
 
 	@Override
 	public void onBlockPlacedBy(World world, int x, int y, int z, EntityLivingBase ent, ItemStack is) {
-		EnchantmentHelper.init((IEnchantableTile) world.getBlockTileEntity(x, y, z), is.getEnchantmentTagList());
+		EnchantmentHelper.init((IEnchantableTile) world.getTileEntity(x, y, z), is.getEnchantmentTagList());
 	}
 
 	private final ArrayList<ItemStack> drop = new ArrayList<ItemStack>();
 
 	@Override
-	public void breakBlock(World world, int x, int y, int z, int id, int meta) {
-		TileLaser tile = (TileLaser) world.getBlockTileEntity(x, y, z);
+	public void breakBlock(World world, int x, int y, int z, Block b, int meta) {
+		TileLaser tile = (TileLaser) world.getTileEntity(x, y, z);
 		this.drop.clear();
 		int count = quantityDropped(meta, 0, world.rand);
-		int id1;
 		ItemStack is;
 		for (int i = 0; i < count; i++) {
-			id1 = idDropped(meta, world.rand, 0);
-			if (id1 > 0) {
-				is = new ItemStack(id1, 1, damageDropped(meta));
+			Item it = getItemDropped(meta, world.rand, 0);
+			if (it != null) {
+				is = new ItemStack(it, 1, damageDropped(meta));
 				EnchantmentHelper.enchantmentToIS(tile, is);
 				this.drop.add(is);
 			}
 		}
-		super.breakBlock(world, x, y, z, id, meta);
+		super.breakBlock(world, x, y, z, b, meta);
 	}
 
 	@Override
-	public ArrayList<ItemStack> getBlockDropped(World world, int x, int y, int z, int metadata, int fortune) {
+	public ArrayList<ItemStack> getDrops(World world, int x, int y, int z, int metadata, int fortune) {
 		return this.drop;
 	}
 
@@ -128,8 +125,8 @@ public class BlockLaser extends BlockContainer {
 		Item equipped = ep.getCurrentEquippedItem() != null ? ep.getCurrentEquippedItem().getItem() : null;
 		if (equipped instanceof ItemTool && ep.getCurrentEquippedItem().getItemDamage() == 0) {
 			if (world.isRemote) return true;
-			for (String s : EnchantmentHelper.getEnchantmentsChat((IEnchantableTile) world.getBlockTileEntity(x, y, z)))
-				PacketDispatcher.sendPacketToPlayer(new Packet3Chat(ChatMessageComponent.createFromText(s)), (Player) ep);
+			for (String s : EnchantmentHelper.getEnchantmentsChat((IEnchantableTile) world.getTileEntity(x, y, z)))
+				ep.addChatMessage(new ChatComponentText(s));
 			return true;
 		}
 		return false;

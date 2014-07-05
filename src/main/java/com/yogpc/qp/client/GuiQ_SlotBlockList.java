@@ -18,7 +18,6 @@
 package com.yogpc.qp.client;
 
 import static com.yogpc.qp.QuarryPlus.getname;
-import static com.yogpc.qp.QuarryPlus.data;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,22 +36,18 @@ public class GuiQ_SlotBlockList extends GuiSlot {
 	private static final List<ItemStack> blocklist_s = new ArrayList<ItemStack>();
 	private final List<ItemStack> blocklist = new ArrayList<ItemStack>(blocklist_s);
 	private GuiScreen parent;
-	public short currentblockid;
-	public int currentmeta;
+	public ItemStack currentblock;
 
 	static {
-		for (int i = 0; i < 4096; i++) {
-			if (Block.blocksList[i] != null) {
-				Block.blocksList[i].getSubBlocks(i, null, blocklist_s);
-			}
-		}
+		for (Object b : Block.blockRegistry)
+			if (b instanceof Block) ((Block) b).getSubBlocks(null, null, blocklist_s);
 	}
 
-	public GuiQ_SlotBlockList(Minecraft par1Minecraft, int par2, int par3, int par4, int par5, int par6, GuiScreen parents, List<Long> list) {
+	public GuiQ_SlotBlockList(Minecraft par1Minecraft, int par2, int par3, int par4, int par5, int par6, GuiScreen parents, List<ItemStack> list) {
 		super(par1Minecraft, par2, par3, par4, par5, par6);
 		for (int i = 0; i < this.blocklist.size(); i++) {
 			for (int j = 0; j < list.size(); j++) {
-				if (data((short) this.blocklist.get(i).itemID, this.blocklist.get(i).getItemDamage()) == list.get(j)) {
+				if (list.get(j).isItemEqual(this.blocklist.get(i))) {
 					this.blocklist.remove(i);
 					i--;
 					if (i < 0) break;
@@ -69,14 +64,13 @@ public class GuiQ_SlotBlockList extends GuiSlot {
 	}
 
 	@Override
-	protected void elementClicked(int var1, boolean var2) {
-		this.currentblockid = (short) this.blocklist.get(var1).itemID;
-		this.currentmeta = this.blocklist.get(var1).getItemDamage();
+	protected void elementClicked(int var1, boolean var2, int var3, int var4) {
+		this.currentblock = this.blocklist.get(var1);
 	}
 
 	@Override
 	protected boolean isSelected(int var1) {
-		return this.blocklist.get(var1).itemID == this.currentblockid && this.currentmeta == this.blocklist.get(var1).getItemDamage();
+		return this.blocklist.get(var1).isItemEqual(this.currentblock);
 	}
 
 	@Override
@@ -85,8 +79,8 @@ public class GuiQ_SlotBlockList extends GuiSlot {
 	}
 
 	@Override
-	protected void drawSlot(int var1, int var2, int var3, int var4, Tessellator var5) {
-		String name = getname((short) this.blocklist.get(var1).itemID, this.blocklist.get(var1).getItemDamage());
+	protected void drawSlot(int var1, int var2, int var3, int var4, Tessellator var5, int var6, int var7) {
+		String name = getname(this.blocklist.get(var1));
 		Minecraft.getMinecraft().fontRenderer.drawStringWithShadow(name, (this.parent.width - Minecraft.getMinecraft().fontRenderer.getStringWidth(name)) / 2,
 				var3 + 1, 0xFFFFFF);
 	}

@@ -28,13 +28,14 @@ import com.google.common.collect.Sets;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
 
-import cpw.mods.fml.common.network.PacketDispatcher;
-import cpw.mods.fml.common.network.Player;
+import cpw.mods.fml.common.network.FMLOutboundHandler;
+import cpw.mods.fml.common.network.NetworkRegistry;
+import cpw.mods.fml.common.network.FMLOutboundHandler.OutboundTarget;
+import cpw.mods.fml.relauncher.Side;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.network.packet.Packet250CustomPayload;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.World;
@@ -43,7 +44,7 @@ import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.ForgeChunkManager.Ticket;
 import net.minecraftforge.common.ForgeChunkManager.Type;
 import buildcraft.api.core.IAreaProvider;
-import buildcraft.api.core.LaserKind;
+import buildcraft.core.LaserKind;
 import buildcraft.core.EntityBlock;
 import buildcraft.core.proxy.CoreProxy;
 
@@ -122,11 +123,9 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 					dos.writeInt(this.x);
 					dos.writeInt(this.y);
 					dos.writeInt(this.z);
-					Packet250CustomPayload packet = new Packet250CustomPayload();
-					packet.channel = PacketHandler.Marker;
-					packet.data = bos.toByteArray();
-					packet.length = bos.size();
-					PacketDispatcher.sendPacketToAllInDimension(packet, this.w.provider.dimensionId);
+					PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.DIMENSION);
+					PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS).set(this.w.provider.dimensionId);
+					PacketHandler.channels.get(Side.SERVER).writeOutbound(new QuarryPlusPacket(PacketHandler.Marker, bos.toByteArray()));
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -143,7 +142,7 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 			}
 			if (o instanceof TileEntity) {
 				final TileEntity te = (TileEntity) o;
-				return te.xCoord == this.x && te.yCoord == this.y && te.zCoord == this.z && this.w == te.worldObj;
+				return te.xCoord == this.x && te.yCoord == this.y && te.zCoord == this.z && this.w == te.getWorldObj();
 			}
 			if (!(o instanceof Laser)) return false;
 			final Laser l = (Laser) o;
@@ -190,11 +189,11 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 
 		private final ArrayList<ItemStack> removeLink(final int x, final int y, final int z, final boolean bb) {
 			final ArrayList<ItemStack> ret = new ArrayList<ItemStack>();
-			final TileEntity te = this.w.getBlockTileEntity(x, y, z);
-			final Block b = Block.blocksList[this.w.getBlockId(x, y, z)];
+			final TileEntity te = this.w.getTileEntity(x, y, z);
+			final Block b = this.w.getBlock(x, y, z);
 			if (b instanceof BlockMarker) {
 				if (te instanceof TileMarker) ((TileMarker) te).link = null;
-				ret.addAll(b.getBlockDropped(this.w, x, y, z, this.w.getBlockMetadata(x, y, z), 0));
+				ret.addAll(b.getDrops(this.w, x, y, z, this.w.getBlockMetadata(x, y, z), 0));
 				if (bb) this.w.setBlockToAir(x, y, z);
 			}
 			return ret;
@@ -204,14 +203,14 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 			int i = TileMarker.linkList.indexOf(this);
 			if (i >= 0) TileMarker.linkList.get(i).removeConnection(false);
 			TileMarker.linkList.add(this);
-			connect(this.w.getBlockTileEntity(this.xn, this.yn, this.zn));
-			connect(this.w.getBlockTileEntity(this.xn, this.yn, this.zx));
-			connect(this.w.getBlockTileEntity(this.xn, this.yx, this.zn));
-			connect(this.w.getBlockTileEntity(this.xn, this.yx, this.zx));
-			connect(this.w.getBlockTileEntity(this.xx, this.yn, this.zn));
-			connect(this.w.getBlockTileEntity(this.xx, this.yn, this.zx));
-			connect(this.w.getBlockTileEntity(this.xx, this.yx, this.zn));
-			connect(this.w.getBlockTileEntity(this.xx, this.yx, this.zx));
+			connect(this.w.getTileEntity(this.xn, this.yn, this.zn));
+			connect(this.w.getTileEntity(this.xn, this.yn, this.zx));
+			connect(this.w.getTileEntity(this.xn, this.yx, this.zn));
+			connect(this.w.getTileEntity(this.xn, this.yx, this.zx));
+			connect(this.w.getTileEntity(this.xx, this.yn, this.zn));
+			connect(this.w.getTileEntity(this.xx, this.yn, this.zx));
+			connect(this.w.getTileEntity(this.xx, this.yx, this.zn));
+			connect(this.w.getTileEntity(this.xx, this.yx, this.zx));
 		}
 
 		ArrayList<ItemStack> removeConnection(final boolean bb) {
@@ -228,11 +227,9 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 					dos.writeInt(this.yn);
 					dos.writeInt(this.zx);
 					dos.writeInt(this.zn);
-					Packet250CustomPayload packet = new Packet250CustomPayload();
-					packet.channel = PacketHandler.Marker;
-					packet.data = bos.toByteArray();
-					packet.length = bos.size();
-					PacketDispatcher.sendPacketToAllInDimension(packet, this.w.provider.dimensionId);
+					PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.DIMENSION);
+					PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS).set(this.w.provider.dimensionId);
+					PacketHandler.channels.get(Side.SERVER).writeOutbound(new QuarryPlusPacket(PacketHandler.Marker, bos.toByteArray()));
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -302,7 +299,7 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 			if (o instanceof TileEntity) {
 				final TileEntity te = (TileEntity) o;
 				return (te.xCoord == this.xn || te.xCoord == this.xx) && (te.yCoord == this.yn || te.yCoord == this.yx)
-						&& (te.zCoord == this.zn || te.zCoord == this.zx) && this.w == te.worldObj;
+						&& (te.zCoord == this.zn || te.zCoord == this.zx) && this.w == te.getWorldObj();
 			}
 			if (!(o instanceof Link)) return false;
 			final Link l = (Link) o;
@@ -348,7 +345,8 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 	@Override
 	public void removeFromWorld() {
 		if (this.link == null) {
-			QuarryPlus.blockMarker.dropBlockAsItem(this.worldObj, this.xCoord, this.yCoord, this.zCoord, QuarryPlus.blockMarker.blockID, 0);
+			QuarryPlus.blockMarker.dropBlockAsItem(this.worldObj, this.xCoord, this.yCoord, this.zCoord,
+					this.worldObj.getBlockMetadata(this.xCoord, this.yCoord, this.zCoord), 0);
 			this.worldObj.setBlockToAir(this.xCoord, this.yCoord, this.zCoord);
 			return;
 		}
@@ -367,7 +365,7 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 	public Collection<ItemStack> removeFromWorldWithItem() {
 		if (this.link != null) return this.link.removeConnection(true);
 		Collection<ItemStack> ret = new LinkedList<ItemStack>();
-		ret.addAll(QuarryPlus.blockMarker.getBlockDropped(this.worldObj, this.xCoord, this.yCoord, this.zCoord, 0, 0));
+		ret.addAll(QuarryPlus.blockMarker.getDrops(this.worldObj, this.xCoord, this.yCoord, this.zCoord, 0, 0));
 		this.worldObj.setBlockToAir(this.xCoord, this.yCoord, this.zCoord);
 		return ret;
 	}
@@ -377,12 +375,12 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 		Block b;
 		if (l.xx == l.xn) {
 			for (tx = 1; tx <= MAX_SIZE; tx++) {
-				b = Block.blocksList[w.getBlockId(x + tx, y, z)];
+				b = w.getBlock(x + tx, y, z);
 				if (b instanceof BlockMarker && !linkList.contains(new BlockIndex(w, x + tx, y, z))) {
 					l.xx = x + tx;
 					break;
 				}
-				b = Block.blocksList[w.getBlockId(x - tx, y, z)];
+				b = w.getBlock(x - tx, y, z);
 				if (b instanceof BlockMarker && !linkList.contains(new BlockIndex(w, x - tx, y, z))) {
 					tx = -tx;
 					l.xn = x + tx;
@@ -393,12 +391,12 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 		}
 		if (l.yx == l.yn) {
 			for (ty = 1; ty <= MAX_SIZE; ty++) {
-				b = Block.blocksList[w.getBlockId(x, y + ty, z)];
+				b = w.getBlock(x, y + ty, z);
 				if (b instanceof BlockMarker && !linkList.contains(new BlockIndex(w, x, y + ty, z))) {
 					l.yx = y + ty;
 					break;
 				}
-				b = Block.blocksList[w.getBlockId(x, y - ty, z)];
+				b = w.getBlock(x, y - ty, z);
 				if (b instanceof BlockMarker && !linkList.contains(new BlockIndex(w, x, y - ty, z))) {
 					ty = -ty;
 					l.yn = y + ty;
@@ -409,12 +407,12 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 		}
 		if (l.zx == l.zn) {
 			for (tz = 1; tz <= MAX_SIZE; tz++) {
-				b = Block.blocksList[w.getBlockId(x, y, z + tz)];
+				b = w.getBlock(x, y, z + tz);
 				if (b instanceof BlockMarker && !linkList.contains(new BlockIndex(w, x, y, z + tz))) {
 					l.zx = z + tz;
 					break;
 				}
-				b = Block.blocksList[w.getBlockId(x, y, z - tz)];
+				b = w.getBlock(x, y, z - tz);
 				if (b instanceof BlockMarker && !linkList.contains(new BlockIndex(w, x, y, z - tz))) {
 					tz = -tz;
 					l.zn = z + tz;
@@ -469,8 +467,10 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 				dos.writeInt(this.link.yn);
 				dos.writeInt(this.link.zx);
 				dos.writeInt(this.link.zn);
-				PacketDispatcher.sendPacketToAllAround(this.xCoord, this.yCoord, this.zCoord, 256, this.worldObj.provider.dimensionId,
-						PacketHandler.composeTilePacket(bos));
+				PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.ALLAROUNDPOINT);
+				PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS)
+						.set(new NetworkRegistry.TargetPoint(this.getWorldObj().provider.dimensionId, this.xCoord, this.yCoord, this.zCoord, 256));
+				PacketHandler.channels.get(Side.SERVER).writeOutbound(new QuarryPlusPacket(PacketHandler.Tile, bos.toByteArray()));
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -496,7 +496,9 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 					dos.writeInt(this.link.yn);
 					dos.writeInt(this.link.zx);
 					dos.writeInt(this.link.zn);
-					PacketDispatcher.sendPacketToPlayer(PacketHandler.composeTilePacket(bos), (Player) ep);
+					PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.PLAYER);
+					PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS).set(ep);
+					PacketHandler.channels.get(Side.SERVER).writeOutbound(new QuarryPlusPacket(PacketHandler.Tile, bos.toByteArray()));
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -570,6 +572,6 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 	@Override
 	public void invalidate() {
 		super.invalidate();
-		if (this.worldObj.getBlockId(this.xCoord, this.yCoord, this.zCoord) != QuarryPlus.blockMarker.blockID) G_destroy();
+		if (this.worldObj.getBlock(this.xCoord, this.yCoord, this.zCoord) != QuarryPlus.blockMarker) G_destroy();
 	}
 }

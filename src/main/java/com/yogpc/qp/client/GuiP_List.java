@@ -24,7 +24,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.util.StatCollector;
-import net.minecraftforge.common.ForgeDirection;
+import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.FluidRegistry;
 
 @SideOnly(Side.CLIENT)
@@ -94,7 +94,7 @@ public class GuiP_List extends GuiScreenA {
 		this.drawDefaultBackground();
 		this.oreslot.drawScreen(i, j, k);
 		this.drawCenteredString(
-				this.fontRenderer,
+				this.fontRendererObj,
 				StatCollector.translateToLocal("pp.list.setting")
 						+ StatCollector.translateToLocal(TilePump.fdToString(ForgeDirection.getOrientation(this.dir))), this.width / 2, 8, 0xFFFFFF);
 		if (this.tile.mapping[this.dir].isEmpty()) {

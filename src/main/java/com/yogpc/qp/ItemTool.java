@@ -21,21 +21,20 @@ import java.util.List;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import net.minecraft.client.renderer.texture.IconRegister;
+import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.util.Icon;
+import net.minecraft.util.IIcon;
 import net.minecraft.world.World;
 
 public class ItemTool extends Item implements IEnchantableItem {
-	Icon ile, ils;
+	IIcon ile, ils;
 
-	public ItemTool(int par1) {
-		super(par1);
+	public ItemTool() {
+		super();
 		setMaxStackSize(1);
 		setHasSubtypes(true);
 		this.setMaxDamage(0);
@@ -44,7 +43,7 @@ public class ItemTool extends Item implements IEnchantableItem {
 
 	@Override
 	@SideOnly(Side.CLIENT)
-	public Icon getIconFromDamage(int par1) {
+	public IIcon getIconFromDamage(int par1) {
 		switch (par1) {
 		case 1:
 			return this.ile;
@@ -65,12 +64,12 @@ public class ItemTool extends Item implements IEnchantableItem {
 			boolean s = false, f = false;
 			NBTTagList nbttl = is.getEnchantmentTagList();
 			if (nbttl != null) for (int i = 0; i < nbttl.tagCount(); i++) {
-				short id = ((NBTTagCompound) nbttl.tagAt(i)).getShort("id");
+				short id = nbttl.getCompoundTagAt(i).getShort("id");
 				if (id == 33) s = true;
 				if (id == 35) f = true;
 			}
-			if (w.getBlockTileEntity(x, y, z) instanceof TileBasic && s != f) {
-				if (!w.isRemote) ((TileBasic) w.getBlockTileEntity(x, y, z)).sendOpenGUI(ep, f ? PacketHandler.StC_OPENGUI_FORTUNE
+			if (w.getTileEntity(x, y, z) instanceof TileBasic && s != f) {
+				if (!w.isRemote) ((TileBasic) w.getTileEntity(x, y, z)).sendOpenGUI(ep, f ? PacketHandler.StC_OPENGUI_FORTUNE
 						: PacketHandler.StC_OPENGUI_SILKTOUCH);
 				return true;
 			}
@@ -91,15 +90,15 @@ public class ItemTool extends Item implements IEnchantableItem {
 
 	@Override
 	@SideOnly(Side.CLIENT)
-	public void getSubItems(int par1, CreativeTabs par2CreativeTabs, List par3List) {
-		par3List.add(new ItemStack(par1, 1, 0));
-		par3List.add(new ItemStack(par1, 1, 1));
-		par3List.add(new ItemStack(par1, 1, 2));
+	public void getSubItems(Item i, CreativeTabs par2CreativeTabs, List par3List) {
+		par3List.add(new ItemStack(i, 1, 0));
+		par3List.add(new ItemStack(i, 1, 1));
+		par3List.add(new ItemStack(i, 1, 2));
 	}
 
 	@Override
 	@SideOnly(Side.CLIENT)
-	public void registerIcons(IconRegister ir) {
+	public void registerIcons(IIconRegister ir) {
 		this.itemIcon = ir.registerIcon("yogpstop_qp:statusChecker");
 		this.ile = ir.registerIcon("yogpstop_qp:listEditor");
 		this.ils = ir.registerIcon("yogpstop_qp:liquidSelector");

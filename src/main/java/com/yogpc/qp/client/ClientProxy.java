@@ -44,7 +44,7 @@ public class ClientProxy extends CommonProxy {
 	@Override
 	public void removeEntity(Entity e) {
 		e.worldObj.removeEntity(e);
-		if (e.worldObj.isRemote) ((WorldClient) e.worldObj).removeEntityFromWorld(e.entityId);
+		if (e.worldObj.isRemote) ((WorldClient) e.worldObj).removeEntityFromWorld(e.getEntityId());
 	}
 
 	@Override

@@ -87,7 +87,7 @@ public class GuiQ_List extends GuiScreenA {
 		this.drawDefaultBackground();
 		this.oreslot.drawScreen(i, j, k);
 		this.drawCenteredString(
-				this.fontRenderer,
+				this.fontRendererObj,
 				StatCollector.translateToLocal("qp.list.setting")
 						+ StatCollector.translateToLocal(this.targetid == 0 ? "enchantment.lootBonusDigger" : "enchantment.untouching"), this.width / 2, 8,
 				0xFFFFFF);

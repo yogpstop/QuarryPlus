@@ -23,7 +23,7 @@ import java.io.DataOutputStream;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
-import net.minecraftforge.common.ForgeDirection;
+import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidContainerRegistry;
 import net.minecraftforge.fluids.FluidStack;
@@ -33,12 +33,15 @@ import buildcraft.api.power.IPowerReceptor;
 import buildcraft.api.power.PowerHandler;
 import buildcraft.api.power.PowerHandler.PowerReceiver;
 import buildcraft.api.power.PowerHandler.Type;
-import buildcraft.api.recipes.RefineryRecipes;
-import buildcraft.api.recipes.RefineryRecipes.Recipe;
+import buildcraft.core.recipes.RefineryRecipeManager;
+import buildcraft.core.recipes.RefineryRecipeManager.RefineryRecipe;
 
 import com.google.common.io.ByteArrayDataInput;
 
-import cpw.mods.fml.common.network.PacketDispatcher;
+import cpw.mods.fml.common.network.FMLOutboundHandler;
+import cpw.mods.fml.common.network.NetworkRegistry;
+import cpw.mods.fml.common.network.FMLOutboundHandler.OutboundTarget;
+import cpw.mods.fml.relauncher.Side;
 
 public class TileRefinery extends APacketTile implements IFluidHandler, IPowerReceptor, IEnchantableTile {
 	public FluidStack src1, src2, res;
@@ -86,9 +89,9 @@ public class TileRefinery extends APacketTile implements IFluidHandler, IPowerRe
 		nbttc.setByte("efficiency", this.efficiency);
 		nbttc.setByte("unbreaking", this.unbreaking);
 		this.pp.writeToNBT(nbttc);
-		if (this.src1 != null) nbttc.setCompoundTag("src1", this.src1.writeToNBT(new NBTTagCompound()));
-		if (this.src2 != null) nbttc.setCompoundTag("src2", this.src2.writeToNBT(new NBTTagCompound()));
-		if (this.res != null) nbttc.setCompoundTag("res", this.res.writeToNBT(new NBTTagCompound()));
+		if (this.src1 != null) nbttc.setTag("src1", this.src1.writeToNBT(new NBTTagCompound()));
+		if (this.src2 != null) nbttc.setTag("src2", this.src2.writeToNBT(new NBTTagCompound()));
+		if (this.res != null) nbttc.setTag("res", this.res.writeToNBT(new NBTTagCompound()));
 		nbttc.setFloat("animationSpeed", this.animationSpeed);
 		nbttc.setInteger("animationStage", this.animationStage);
 	}
@@ -100,12 +103,14 @@ public class TileRefinery extends APacketTile implements IFluidHandler, IPowerRe
 			return;
 		}
 		if (this.worldObj.getWorldTime() % 20 == 7) {
-			PacketDispatcher.sendPacketToAllAround(this.xCoord, this.yCoord, this.zCoord, 256, this.worldObj.provider.dimensionId,
-					PacketHandler.getPacketFromNBT(this));
+			PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.ALLAROUNDPOINT);
+			PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS)
+					.set(new NetworkRegistry.TargetPoint(this.getWorldObj().provider.dimensionId, this.xCoord, this.yCoord, this.zCoord, 256));
+			PacketHandler.channels.get(Side.SERVER).writeOutbound(PacketHandler.getPacketFromNBT(this));
 		}
 		this.ticks++;
 		for (int i = this.efficiency + 1; i > 0; i--) {
-			Recipe r = RefineryRecipes.findRefineryRecipe(this.src1, this.src2);
+			RefineryRecipe r = RefineryRecipeManager.INSTANCE.findRefineryRecipe(this.src1, this.src2);
 			if (r == null) {
 				decreaseAnimation();
 				this.ticks = 0;
@@ -115,9 +120,9 @@ public class TileRefinery extends APacketTile implements IFluidHandler, IPowerRe
 				decreaseAnimation();
 				return;
 			}
-			if (r.delay > this.ticks) return;
+			if (r.timeRequired > this.ticks) return;
 			if (i == 1) this.ticks = 0;
-			if (!PowerManager.useEnergyR(this.pp, r.energy, this.unbreaking)) {
+			if (!PowerManager.useEnergyR(this.pp, r.energyCost, this.unbreaking)) {
 				decreaseAnimation();
 				return;
 			}
@@ -160,8 +165,10 @@ public class TileRefinery extends APacketTile implements IFluidHandler, IPowerRe
 			dos.writeInt(this.zCoord);
 			dos.writeByte(PacketHandler.StC_NOW);
 			dos.writeFloat(this.animationSpeed);
-			PacketDispatcher.sendPacketToAllAround(this.xCoord, this.yCoord, this.zCoord, 256, this.worldObj.provider.dimensionId,
-					PacketHandler.composeTilePacket(bos));
+			PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.ALLAROUNDPOINT);
+			PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS)
+					.set(new NetworkRegistry.TargetPoint(this.getWorldObj().provider.dimensionId, this.xCoord, this.yCoord, this.zCoord, 256));
+			PacketHandler.channels.get(Side.SERVER).writeOutbound(new QuarryPlusPacket(PacketHandler.Tile, bos.toByteArray()));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

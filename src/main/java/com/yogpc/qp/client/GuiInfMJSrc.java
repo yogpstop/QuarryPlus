@@ -22,7 +22,8 @@ import java.io.DataOutputStream;
 
 import org.lwjgl.opengl.GL11;
 
-import cpw.mods.fml.common.network.PacketDispatcher;
+import cpw.mods.fml.common.network.FMLOutboundHandler;
+import cpw.mods.fml.common.network.FMLOutboundHandler.OutboundTarget;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.gui.GuiButton;
@@ -31,6 +32,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 
 import com.yogpc.qp.PacketHandler;
+import com.yogpc.qp.QuarryPlusPacket;
 import com.yogpc.qp.TileInfMJSrc;
 
 @SideOnly(Side.CLIENT)
@@ -50,9 +52,9 @@ public class GuiInfMJSrc extends GuiScreenA {
 		super.initGui();
 		// int xb = (this.width - 176) >> 1;
 		int yb = (this.height - 214) >> 1;
-		this.eng = new GuiTextField(this.fontRenderer, (this.width >> 1) - 75, yb + 58, 150, 20);
+		this.eng = new GuiTextField(this.fontRendererObj, (this.width >> 1) - 75, yb + 58, 150, 20);
 		this.eng.setText(Float.toString(this.tile.power));
-		this.itv = new GuiTextField(this.fontRenderer, (this.width >> 1) - 75, yb + 106, 150, 20);
+		this.itv = new GuiTextField(this.fontRendererObj, (this.width >> 1) - 75, yb + 106, 150, 20);
 		this.itv.setText(Integer.toString(this.tile.interval));
 		this.buttonList.add(new GuiButton(1, (this.width >> 1) + 30, yb + 34, 50, 20, "Reset"));
 		this.buttonList.add(new GuiButton(2, (this.width >> 1) + 30, yb + 82, 50, 20, "Reset"));
@@ -103,7 +105,8 @@ public class GuiInfMJSrc extends GuiScreenA {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			PacketDispatcher.sendPacketToServer(PacketHandler.composeTilePacket(bos));
+			PacketHandler.channels.get(Side.CLIENT).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.TOSERVER);
+			PacketHandler.channels.get(Side.CLIENT).writeOutbound(new QuarryPlusPacket(PacketHandler.Tile, bos.toByteArray()));
 			break;
 		}
 	}
@@ -116,12 +119,12 @@ public class GuiInfMJSrc extends GuiScreenA {
 		int xb = this.width - 176 >> 1;
 		int yb = this.height - 214 >> 1;
 		drawTexturedModalRect(xb, yb, 0, 0, 176, 214);
-		drawCenteredString(this.fontRenderer, StatCollector.translateToLocal("tile.InfMJSrc.name"), this.width / 2, yb + 6, 0xFFFFFF);
-		drawCenteredString(this.fontRenderer, String.format("x:%d, y:%d, z:%d", this.tile.xCoord, this.tile.yCoord, this.tile.zCoord), this.width / 2, yb + 20,
-				0xFFFFFF);
-		this.fontRenderer.drawStringWithShadow("Energy(MJ)", this.width / 2 - 70, yb + 39, 0xFFFFFF);
-		this.fontRenderer.drawStringWithShadow("Interval(tick)", this.width / 2 - 70, yb + 88, 0xFFFFFF);
-		drawCenteredString(this.fontRenderer, "1tick=1/20second", this.width / 2, yb + 130, 0xFFFFFF);
+		drawCenteredString(this.fontRendererObj, StatCollector.translateToLocal("tile.InfMJSrc.name"), this.width / 2, yb + 6, 0xFFFFFF);
+		drawCenteredString(this.fontRendererObj, String.format("x:%d, y:%d, z:%d", this.tile.xCoord, this.tile.yCoord, this.tile.zCoord), this.width / 2,
+				yb + 20, 0xFFFFFF);
+		this.fontRendererObj.drawStringWithShadow("Energy(MJ)", this.width / 2 - 70, yb + 39, 0xFFFFFF);
+		this.fontRendererObj.drawStringWithShadow("Interval(tick)", this.width / 2 - 70, yb + 88, 0xFFFFFF);
+		drawCenteredString(this.fontRendererObj, "1tick=1/20second", this.width / 2, yb + 130, 0xFFFFFF);
 		this.eng.drawTextBox();
 		this.itv.drawTextBox();
 		super.drawScreen(i, j, k);

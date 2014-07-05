@@ -19,68 +19,65 @@ package com.yogpc.qp;
 
 import java.util.ArrayList;
 
-import buildcraft.api.core.Position;
 import buildcraft.api.tools.IToolWrench;
+import buildcraft.core.fluids.FluidUtils;
 import buildcraft.core.utils.Utils;
-import cpw.mods.fml.common.network.PacketDispatcher;
-import cpw.mods.fml.common.network.Player;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.packet.Packet3Chat;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ChatMessageComponent;
+import net.minecraft.util.ChatComponentText;
 import net.minecraft.world.World;
-import net.minecraftforge.common.ForgeDirection;
+import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.FluidContainerRegistry;
-import net.minecraftforge.fluids.FluidStack;
 
 public class BlockRefinery extends BlockContainer {
 
-	public BlockRefinery(int par1) {
-		super(par1, Material.iron);
+	public BlockRefinery() {
+		super(Material.iron);
 		setHardness(5F);
 		setCreativeTab(QuarryPlus.ct);
-		setUnlocalizedName("RefineryPlus");
+		setBlockName("RefineryPlus");
 	}
 
 	@Override
-	public TileEntity createNewTileEntity(World world) {
+	public TileEntity createNewTileEntity(World w, int m) {
 		return new TileRefinery();
 	}
 
 	private final ArrayList<ItemStack> drop = new ArrayList<ItemStack>();
 
 	@Override
-	public void breakBlock(World world, int x, int y, int z, int id, int meta) {
+	public void breakBlock(World world, int x, int y, int z, Block b, int meta) {
 		this.drop.clear();
-		TileRefinery tile = (TileRefinery) world.getBlockTileEntity(x, y, z);
+		TileRefinery tile = (TileRefinery) world.getTileEntity(x, y, z);
 		if (world.isRemote || tile == null) return;
 		int count = quantityDropped(meta, 0, world.rand);
-		int id1 = idDropped(meta, world.rand, 0);
-		if (id1 > 0) {
+		Item it = getItemDropped(meta, world.rand, 0);
+		if (it != null) {
 			for (int i = 0; i < count; i++) {
-				ItemStack is = new ItemStack(id1, 1, damageDropped(meta));
+				ItemStack is = new ItemStack(it, 1, damageDropped(meta));
 				EnchantmentHelper.enchantmentToIS(tile, is);
 				this.drop.add(is);
 			}
 		}
-		super.breakBlock(world, x, y, z, id, meta);
+		super.breakBlock(world, x, y, z, b, meta);
 	}
 
 	@Override
-	public ArrayList<ItemStack> getBlockDropped(World world, int x, int y, int z, int metadata, int fortune) {
+	public ArrayList<ItemStack> getDrops(World world, int x, int y, int z, int metadata, int fortune) {
 		return this.drop;
 	}
 
 	@Override
 	public void onBlockPlacedBy(World w, int x, int y, int z, EntityLivingBase el, ItemStack is) {
 		super.onBlockPlacedBy(w, x, y, z, el, is);
-		EnchantmentHelper.init((IEnchantableTile) w.getBlockTileEntity(x, y, z), is.getEnchantmentTagList());
-		ForgeDirection orientation = Utils.get2dOrientation(new Position(el.posX, el.posY, el.posZ), new Position(x, y, z));
+		EnchantmentHelper.init((IEnchantableTile) w.getTileEntity(x, y, z), is.getEnchantmentTagList());
+		ForgeDirection orientation = Utils.get2dOrientation(el);
 		w.setBlockMetadataWithNotify(x, y, z, orientation.getOpposite().ordinal(), 1);
 	}
 
@@ -110,20 +107,14 @@ public class BlockRefinery extends BlockContainer {
 		} else if (equipped instanceof ItemTool) {
 			if (ep.getCurrentEquippedItem().getItemDamage() == 0) {
 				if (world.isRemote) return true;
-				for (String s : EnchantmentHelper.getEnchantmentsChat((IEnchantableTile) world.getBlockTileEntity(x, y, z)))
-					PacketDispatcher.sendPacketToPlayer(new Packet3Chat(ChatMessageComponent.createFromText(s)), (Player) ep);
+				for (String s : EnchantmentHelper.getEnchantmentsChat((IEnchantableTile) world.getTileEntity(x, y, z)))
+					ep.addChatMessage(new ChatComponentText(s));
 				return true;
 			}
 		} else {
-			FluidStack liquid = FluidContainerRegistry.getFluidForFilledItem(ep.getCurrentEquippedItem());
-			if (liquid != null) {
-				if (world.isRemote) return true;
-				int qty = ((TileRefinery) world.getBlockTileEntity(x, y, z)).fill(ForgeDirection.UNKNOWN, liquid, true);
-				if (qty != 0 && !ep.capabilities.isCreativeMode) {
-					ep.inventory.setInventorySlotContents(ep.inventory.currentItem, Utils.consumeItem(ep.inventory.getCurrentItem()));
-				}
-				return true;
-			}
+			if (!world.isRemote) {
+				if (FluidUtils.handleRightClick((TileRefinery) world.getTileEntity(x, y, z), ForgeDirection.getOrientation(side), ep, true, false)) { return true; }
+			} else if (FluidContainerRegistry.isContainer(ep.getCurrentEquippedItem())) { return true; }
 		}
 		return false;
 	}

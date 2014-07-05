@@ -24,8 +24,8 @@ import java.util.LinkedList;
 
 import com.google.common.io.ByteArrayDataInput;
 
-import cpw.mods.fml.common.network.PacketDispatcher;
-import cpw.mods.fml.common.network.Player;
+import cpw.mods.fml.common.network.FMLOutboundHandler;
+import cpw.mods.fml.relauncher.Side;
 import static buildcraft.BuildCraftFactory.frameBlock;
 import buildcraft.api.power.IPowerReceptor;
 import buildcraft.api.power.PowerHandler;
@@ -33,16 +33,16 @@ import buildcraft.api.power.PowerHandler.PowerReceiver;
 import buildcraft.core.Box;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
-import net.minecraft.network.packet.Packet3Chat;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ChatMessageComponent;
+import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
-import net.minecraftforge.common.ForgeDirection;
+import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidContainerRegistry;
 import net.minecraftforge.fluids.FluidRegistry;
@@ -62,7 +62,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 	protected boolean silktouch;
 
 	TileBasic G_connected() {
-		TileEntity te = this.worldObj.getBlockTileEntity(this.xCoord + this.connectTo.offsetX, this.yCoord + this.connectTo.offsetY, this.zCoord
+		TileEntity te = this.worldObj.getTileEntity(this.xCoord + this.connectTo.offsetX, this.yCoord + this.connectTo.offsetY, this.zCoord
 				+ this.connectTo.offsetZ);
 		if (te instanceof TileBasic) return (TileBasic) te;
 		this.connectTo = ForgeDirection.UNKNOWN;
@@ -82,15 +82,15 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 		this.unbreaking = nbttc.getByte("unbreaking");
 		this.connectTo = ForgeDirection.values()[nbttc.getByte("connectTo")];
 		if (nbttc.getTag("mapping0") instanceof NBTTagList) for (int i = 0; i < this.mapping.length; i++)
-			readStringCollection(nbttc.getTagList(String.format("mapping%d", i)), this.mapping[i]);
+			readStringCollection(nbttc.getTagList(String.format("mapping%d", i), 8), this.mapping[i]);
 		this.range = nbttc.getByte("range");
 		this.quarryRange = nbttc.getBoolean("quarryRange");
 		this.prev = (byte) (this.connectTo.ordinal() | (G_working() ? 0x80 : 0));
 		if (this.silktouch) {
 			this.liquids.clear();
-			NBTTagList nbttl = nbttc.getTagList("liquids");
+			NBTTagList nbttl = nbttc.getTagList("liquids", 10);
 			for (int i = 0; i < nbttl.tagCount(); i++) {
-				this.liquids.add(FluidStack.loadFluidStackFromNBT((NBTTagCompound) nbttl.tagAt(i)));
+				this.liquids.add(FluidStack.loadFluidStackFromNBT(nbttl.getCompoundTagAt(i)));
 			}
 		}
 	}
@@ -98,7 +98,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 	private static void readStringCollection(NBTTagList nbttl, Collection<String> target) {
 		target.clear();
 		for (int i = 0; i < nbttl.tagCount(); i++)
-			target.add(((NBTTagString) nbttl.tagAt(i)).data);
+			target.add(nbttl.getStringTagAt(i));
 	}
 
 	@Override
@@ -123,7 +123,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 	private static NBTTagList writeStringCollection(Collection<String> target) {
 		NBTTagList nbttl = new NBTTagList();
 		for (String l : target)
-			nbttl.appendTag(new NBTTagString("", l));
+			nbttl.appendTag(new NBTTagString(l));
 		return nbttl;
 	}
 
@@ -134,7 +134,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 		TileEntity te;
 		FluidStack fs;
 		for (ForgeDirection fd : ForgeDirection.VALID_DIRECTIONS) {
-			te = this.worldObj.getBlockTileEntity(this.xCoord + fd.offsetX, this.yCoord + fd.offsetY, this.zCoord + fd.offsetZ);
+			te = this.worldObj.getTileEntity(this.xCoord + fd.offsetX, this.yCoord + fd.offsetY, this.zCoord + fd.offsetZ);
 			if (te instanceof IFluidHandler) {
 				for (String s : this.mapping[fd.ordinal()]) {
 					pZ = this.liquids.indexOf(FluidRegistry.getFluidStack(s, 0));
@@ -149,7 +149,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 		pX = this.xCoord + this.connectTo.offsetX;
 		pY = this.yCoord + this.connectTo.offsetY;
 		pZ = this.zCoord + this.connectTo.offsetZ;
-		te = this.worldObj.getBlockTileEntity(pX, pY, pZ);
+		te = this.worldObj.getTileEntity(pX, pY, pZ);
 		if (te instanceof TileBasic && ((TileBasic) te).S_connect(this.connectTo.getOpposite())) {
 			S_sendNowPacket();
 			this.initialized = true;
@@ -165,7 +165,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 		if (this.worldObj.isRemote) return;
 		TileEntity te;
 		for (ForgeDirection fd : ForgeDirection.VALID_DIRECTIONS) {
-			te = this.worldObj.getBlockTileEntity(this.xCoord + fd.offsetX, this.yCoord + fd.offsetY, this.zCoord + fd.offsetZ);
+			te = this.worldObj.getTileEntity(this.xCoord + fd.offsetX, this.yCoord + fd.offsetY, this.zCoord + fd.offsetZ);
 			if (te instanceof TileBasic && ((TileBasic) te).S_connect(fd.getOpposite())) {
 				this.connectTo = fd;
 				S_sendNowPacket();
@@ -262,7 +262,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 			if ((flag & 0x80) != 0) this.cy = this.py = -1;
 			else this.py = Integer.MIN_VALUE;
 			this.connectTo = ForgeDirection.getOrientation(flag & 0x7F);
-			this.worldObj.markBlockForRenderUpdate(this.xCoord, this.yCoord, this.zCoord);
+			this.worldObj.markBlockForUpdate(this.xCoord, this.yCoord, this.zCoord);
 			break;
 		case PacketHandler.StC_OPENGUI_MAPPING:// BI[Ljava.lang.String;
 			byte target = data.readByte();
@@ -287,7 +287,9 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 			dos.writeInt(this.mapping[d].size());
 			for (String s : this.mapping[d])
 				dos.writeUTF(s);
-			PacketDispatcher.sendPacketToPlayer(PacketHandler.composeTilePacket(bos), (Player) ep);
+			PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(FMLOutboundHandler.OutboundTarget.PLAYER);
+			PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS).set(ep);
+			PacketHandler.channels.get(Side.SERVER).writeOutbound(new QuarryPlusPacket(PacketHandler.Tile, bos.toByteArray()));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -326,9 +328,8 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 		} else if (this.quarryRange) {
 			this.quarryRange = false;
 		} else this.range++;
-		PacketDispatcher.sendPacketToPlayer(
-				new Packet3Chat(ChatMessageComponent.createFromText(StatCollector.translateToLocalFormatted("chat.pump_rtoggle", this.quarryRange ? "quarry"
-						: Integer.toString(this.range * 2 + 1)))), (Player) ep);
+		ep.addChatMessage(new ChatComponentText(StatCollector.translateToLocalFormatted("chat.pump_rtoggle",
+				this.quarryRange ? "quarry" : Integer.toString(this.range * 2 + 1))));
 		this.fwt = Long.MIN_VALUE;
 	}
 
@@ -390,7 +391,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 		while (cp != cg) {
 			ebs_c = this.ebses[xb[cg] >> 4][zb[cg] >> 4][yb[cg] >> 4];
 			if (ebs_c != null) {
-				b_c = Block.blocksList[ebs_c.getExtBlockID(xb[cg] & 0xF, yb[cg] & 0xF, zb[cg] & 0xF)];
+				b_c = ebs_c.getBlockByExtId(xb[cg] & 0xF, yb[cg] & 0xF, zb[cg] & 0xF);
 				if (this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] == 0 && isLiquid(b_c, false, null, 0, 0, 0, 0)) {
 					this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] = 0x3F;
 
@@ -419,7 +420,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 		if (this.cx != x || this.cy != y || this.cz != z || this.py < this.cy || this.worldObj.getWorldTime() - this.fwt > 200) S_searchLiquid(x, y, z);
 		int count = 0;
 		Block bb;
-		int bz, meta, bid;
+		int bz, meta;
 		do {
 			do {
 				if (this.px == -1) {
@@ -427,8 +428,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 					for (bx = 0; bx < this.block_side_x; bx++) {
 						for (bz = 0; bz < this.block_side_z; bz++) {
 							if ((this.blocks[this.py - this.yOffset][bx][bz] & 0x40) != 0) {
-								bid = this.ebses[bx >> 4][bz >> 4][this.py >> 4].getExtBlockID(bx & 0xF, this.py & 0xF, bz & 0xF);
-								bb = Block.blocksList[bid];
+								bb = this.ebses[bx >> 4][bz >> 4][this.py >> 4].getBlockByExtId(bx & 0xF, this.py & 0xF, bz & 0xF);
 								if (isLiquid(bb, false, null, 0, 0, 0, 0)) {
 									count++;
 								}
@@ -438,8 +438,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 				} else {
 					for (bz = 0; bz < this.block_side_z; bz++) {
 						if (this.blocks[this.py - this.yOffset][this.px][bz] != 0) {
-							bid = this.ebses[this.px >> 4][bz >> 4][this.py >> 4].getExtBlockID(this.px & 0xF, this.py & 0xF, bz & 0xF);
-							bb = Block.blocksList[bid];
+							bb = this.ebses[this.px >> 4][bz >> 4][this.py >> 4].getBlockByExtId(this.px & 0xF, this.py & 0xF, bz & 0xF);
 							meta = this.ebses[this.px >> 4][bz >> 4][this.py >> 4].getExtBlockMetadata(this.px & 0xF, this.py & 0xF, bz & 0xF);
 							if (isLiquid(bb, true, this.worldObj, this.py + this.xOffset, this.py, bz + this.zOffset, meta)) {
 								count++;
@@ -458,14 +457,14 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 				for (bx = 0; bx < this.block_side_x; bx++) {
 					for (bz = 0; bz < this.block_side_z; bz++) {
 						if ((this.blocks[this.py - this.yOffset][bx][bz] & 0x40) != 0) {
-							drainBlock(bx, bz, frameBlock.blockID);
+							drainBlock(bx, bz, frameBlock);
 						}
 					}
 				}
 			} else {
 				for (bz = 0; bz < this.block_side_z; bz++) {
 					if (this.blocks[this.py - this.yOffset][this.px][bz] != 0) {
-						drainBlock(this.px, bz, 0);
+						drainBlock(this.px, bz, null);
 					}
 				}
 			}
@@ -608,21 +607,20 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 	static final boolean isLiquid(Block b, boolean s, World w, int x, int y, int z, int m) {
 		if (b == null) return false;
 		if (b instanceof IFluidBlock) return !s || ((IFluidBlock) b).canDrain(w, x, y, z);
-		if (b == Block.waterStill || b == Block.waterMoving || b == Block.lavaStill || b == Block.lavaMoving) return !s || m == 0;
+		if (b == Blocks.water || b == Blocks.lava) return !s || m == 0;
 		return false;
 	}
 
-	private final void drainBlock(int bx, int bz, int tbid) {
-		int bid = this.ebses[bx >> 4][bz >> 4][this.py >> 4].getExtBlockID(bx & 0xF, this.py & 0xF, bz & 0xF);
-		Block bb = Block.blocksList[bid];
+	private final void drainBlock(int bx, int bz, Block tb) {
+		Block bb = this.ebses[bx >> 4][bz >> 4][this.py >> 4].getBlockByExtId(bx & 0xF, this.py & 0xF, bz & 0xF);
 		int meta = this.ebses[bx >> 4][bz >> 4][this.py >> 4].getExtBlockMetadata(bx & 0xF, this.py & 0xF, bz & 0xF);
 		if (isLiquid(bb, false, null, 0, 0, 0, 0)) {
 			FluidStack fs = null;
 			if (bb instanceof IFluidBlock && ((IFluidBlock) bb).canDrain(this.worldObj, bx + this.xOffset, this.py, bz + this.zOffset)) {
 				fs = ((IFluidBlock) bb).drain(this.worldObj, bx + this.xOffset, this.py, bz + this.zOffset, true);
-			} else if ((bid == Block.waterStill.blockID || bid == Block.waterMoving.blockID) && meta == 0) {
+			} else if ((bb == Blocks.water) && meta == 0) {
 				fs = new FluidStack(FluidRegistry.WATER, FluidContainerRegistry.BUCKET_VOLUME);
-			} else if ((bid == Block.lavaStill.blockID || bid == Block.lavaMoving.blockID) && meta == 0) {
+			} else if ((bb == Blocks.lava) && meta == 0) {
 				fs = new FluidStack(FluidRegistry.LAVA, FluidContainerRegistry.BUCKET_VOLUME);
 			}
 			if (fs != null) {
@@ -631,7 +629,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 				else this.liquids.add(fs);
 				fs = null;
 			}
-			this.worldObj.setBlock(bx + this.xOffset, this.py, bz + this.zOffset, tbid);
+			this.worldObj.setBlock(bx + this.xOffset, this.py, bz + this.zOffset, tb);
 		}
 	}
 
