@@ -22,17 +22,12 @@ import java.io.DataOutputStream;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidContainerRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidTankInfo;
 import net.minecraftforge.fluids.IFluidHandler;
-import buildcraft.api.power.IPowerReceptor;
-import buildcraft.api.power.PowerHandler;
-import buildcraft.api.power.PowerHandler.PowerReceiver;
-import buildcraft.api.power.PowerHandler.Type;
 import buildcraft.core.recipes.RefineryRecipeManager;
 import buildcraft.core.recipes.RefineryRecipeManager.RefineryRecipe;
 
@@ -43,9 +38,8 @@ import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.network.FMLOutboundHandler.OutboundTarget;
 import cpw.mods.fml.relauncher.Side;
 
-public class TileRefinery extends APacketTile implements IFluidHandler, IPowerReceptor, IEnchantableTile {
+public class TileRefinery extends APowerTile implements IFluidHandler, IEnchantableTile {
 	public FluidStack src1, src2, res;
-	private PowerHandler pp = new PowerHandler(this, Type.MACHINE);
 	private int ticks;
 
 	public float animationSpeed = 1;
@@ -60,7 +54,7 @@ public class TileRefinery extends APacketTile implements IFluidHandler, IPowerRe
 
 	@Override
 	public void G_reinit() {
-		PowerManager.configureR(this.pp, this.efficiency, this.unbreaking);
+		PowerManager.configureR(this, this.efficiency, this.unbreaking);
 		this.buf = (int) (FluidContainerRegistry.BUCKET_VOLUME * 4 * Math.pow(1.3, this.fortune));
 	}
 
@@ -71,14 +65,13 @@ public class TileRefinery extends APacketTile implements IFluidHandler, IPowerRe
 		this.fortune = nbttc.getByte("fortune");
 		this.efficiency = nbttc.getByte("efficiency");
 		this.unbreaking = nbttc.getByte("unbreaking");
-		this.pp.readFromNBT(nbttc);
 		this.src1 = FluidStack.loadFluidStackFromNBT(nbttc.getCompoundTag("src1"));
 		this.src2 = FluidStack.loadFluidStackFromNBT(nbttc.getCompoundTag("src2"));
 		this.res = FluidStack.loadFluidStackFromNBT(nbttc.getCompoundTag("res"));
 		this.animationSpeed = nbttc.getFloat("animationSpeed");
 		this.animationStage = nbttc.getInteger("animationStage");
 		this.buf = (int) (FluidContainerRegistry.BUCKET_VOLUME * 4 * Math.pow(1.3, this.fortune));
-		PowerManager.configureR(this.pp, this.efficiency, this.unbreaking);
+		PowerManager.configureR(this, this.efficiency, this.unbreaking);
 	}
 
 	@Override
@@ -88,7 +81,6 @@ public class TileRefinery extends APacketTile implements IFluidHandler, IPowerRe
 		nbttc.setByte("fortune", this.fortune);
 		nbttc.setByte("efficiency", this.efficiency);
 		nbttc.setByte("unbreaking", this.unbreaking);
-		this.pp.writeToNBT(nbttc);
 		if (this.src1 != null) nbttc.setTag("src1", this.src1.writeToNBT(new NBTTagCompound()));
 		if (this.src2 != null) nbttc.setTag("src2", this.src2.writeToNBT(new NBTTagCompound()));
 		if (this.res != null) nbttc.setTag("res", this.res.writeToNBT(new NBTTagCompound()));
@@ -122,7 +114,7 @@ public class TileRefinery extends APacketTile implements IFluidHandler, IPowerRe
 			}
 			if (r.timeRequired > this.ticks) return;
 			if (i == 1) this.ticks = 0;
-			if (!PowerManager.useEnergyR(this.pp, r.energyCost, this.unbreaking)) {
+			if (!PowerManager.useEnergyR(this, r.energyCost, this.unbreaking)) {
 				decreaseAnimation();
 				return;
 			}
@@ -220,19 +212,6 @@ public class TileRefinery extends APacketTile implements IFluidHandler, IPowerRe
 			this.animationSpeed = data.readFloat();
 			break;
 		}
-	}
-
-	@Override
-	public PowerReceiver getPowerReceiver(ForgeDirection side) {
-		return this.pp.getPowerReceiver();
-	}
-
-	@Override
-	public void doWork(PowerHandler workProvider) {}
-
-	@Override
-	public World getWorld() {
-		return this.worldObj;
 	}
 
 	@Override

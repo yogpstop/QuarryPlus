@@ -20,7 +20,6 @@ package com.yogpc.qp;
 import net.minecraftforge.common.config.ConfigCategory;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
-import buildcraft.api.power.PowerHandler;
 
 public class PowerManager {
 	static double B_CF, B_CS, W_CF, W_CS;
@@ -164,81 +163,78 @@ public class PowerManager {
 		if (sb.length() != 0) throw new RuntimeException(sb.toString());
 	}
 
-	static void configure0(PowerHandler pp) {
-		pp.configure(0, 0, 0, pp.getMaxEnergyStored());
+	static void configure0(APowerTile pp) {
+		pp.configure(0, 0, 0, pp.getMaxStored());
 	}
 
-	private static void configure(PowerHandler pp, double CE, byte E, byte U, double CU, double NR, double XR, double BP, double MS, byte pump) {
-		pp.configure((float) (NR / (U * CU + 1)), (float) (XR * Math.pow(CE, E) / (U * CU + 1)), (float) (BP * Math.pow(CE, E) / (U * CU + 1)), (float) (MS
-				* Math.pow(CE, E) / (U * CU + 1) + (pump > 0 ? ((65536 * PL_BP / ((pump * PL_CU + 1))) + (1020 * PF_BP / ((pump * PF_CU + 1)))) : 0)));
+	private static void configure(APowerTile pp, double CE, byte E, byte U, double CU, double NR, double XR, double BP, double MS, byte pump) {
+		pp.configure(NR / (U * CU + 1), XR * Math.pow(CE, E) / (U * CU + 1), BP * Math.pow(CE, E) / (U * CU + 1), MS * Math.pow(CE, E) / (U * CU + 1)
+				+ (pump > 0 ? ((65536 * PL_BP / ((pump * PL_CU + 1))) + (1020 * PF_BP / ((pump * PF_CU + 1)))) : 0));
 	}
 
-	private static void configure15(PowerHandler pp, double CE, byte E, byte U, double CU, double NR, double XR, double BP, double MS, byte pump) {
-		pp.configure(
-				(float) (NR / (U * CU + 1)),
-				(float) (XR * Math.pow(CE, E) / (U * CU + 1)),
-				(float) (BP * 1.5 * Math.pow(CE, E) / (U * CU + 1)),
-				(float) (MS * Math.pow(CE, E) / (U * CU + 1) + (pump > 0 ? ((65536 * PL_BP / ((pump * PL_CU + 1))) + (1020 * PF_BP / ((pump * PF_CU + 1)))) : 0)));
+	private static void configure15(APowerTile pp, double CE, byte E, byte U, double CU, double NR, double XR, double BP, double MS, byte pump) {
+		pp.configure(NR / (U * CU + 1), XR * Math.pow(CE, E) / (U * CU + 1), BP * 1.5 * Math.pow(CE, E) / (U * CU + 1), MS * Math.pow(CE, E) / (U * CU + 1)
+				+ (pump > 0 ? ((65536 * PL_BP / ((pump * PL_CU + 1))) + (1020 * PF_BP / ((pump * PF_CU + 1)))) : 0));
 	}
 
-	static void configureB(PowerHandler pp, byte E, byte U, byte pump) {
+	static void configureB(APowerTile pp, byte E, byte U, byte pump) {
 		configure15(pp, B_CE, E, U, B_CU, B_NR, B_XR, B_BP, B_MS, pump);
 	}
 
-	static void configureW(PowerHandler pp, byte E, byte U, byte pump) {
+	static void configureW(APowerTile pp, byte E, byte U, byte pump) {
 		configure15(pp, W_CE, E, U, W_CU, W_NR, W_XR, W_BP, W_MS, pump);
 	}
 
-	static void configureL(PowerHandler pp, byte E, byte U) {
+	static void configureL(APowerTile pp, byte E, byte U) {
 		configure(pp, L_CE, E, U, L_CU, L_NR, L_XR, L_BP, L_MS, (byte) 0);
 	}
 
-	static void configureF(PowerHandler pp, byte E, byte U, byte pump) {
+	static void configureF(APowerTile pp, byte E, byte U, byte pump) {
 		configure(pp, F_CE, E, U, F_CU, F_NR, F_XR, F_BP, F_MS, pump);
 	}
 
-	static void configureR(PowerHandler pp, byte E, byte U) {
+	static void configureR(APowerTile pp, byte E, byte U) {
 		configure(pp, R_CE, E, U, R_CU, R_NR, R_XR, 25, R_MS, (byte) 0);
 	}
 
-	private static boolean useEnergy(PowerHandler pp, double BP, float H, double CSP, byte U, double CU) {
-		float pw = (float) (BP * H * CSP / (U * CU + 1));
+	private static boolean useEnergy(APowerTile pp, double BP, float H, double CSP, byte U, double CU) {
+		double pw = BP * H * CSP / (U * CU + 1);
 		if (pp.useEnergy(pw, pw, false) != pw) return false;
 		pp.useEnergy(pw, pw, true);
 		return true;
 	}
 
-	private static boolean useEnergy(PowerHandler pp, double BP, byte U, double CU) {
-		float pw = (float) (BP / (U * CU + 1));
+	private static boolean useEnergy(APowerTile pp, double BP, byte U, double CU) {
+		double pw = BP / (U * CU + 1);
 		if (pp.useEnergy(pw, pw, false) != pw) return false;
 		pp.useEnergy(pw, pw, true);
 		return true;
 	}
 
-	private static boolean useEnergy(PowerHandler pp, double BP1, long amount1, double BP2, long amount2, byte U, double CU1, double CU2) {
-		float pw = (float) ((BP1 * amount1 / (U * CU1 + 1)) + (BP2 * amount2 / (U * CU2 + 1)));
+	private static boolean useEnergy(APowerTile pp, double BP1, long amount1, double BP2, long amount2, byte U, double CU1, double CU2) {
+		double pw = (BP1 * amount1 / (U * CU1 + 1)) + (BP2 * amount2 / (U * CU2 + 1));
 		if (pp.useEnergy(pw, pw, false) != pw) return false;
 		pp.useEnergy(pw, pw, true);
 		return true;
 	}
 
-	private static double useEnergy(PowerHandler pp, double D, double BP, byte U, double CU) {
-		double pw = Math.min(2 + pp.getEnergyStored() / 500, (D - 0.1) * BP / (U * CU + 1));
+	private static double useEnergy(APowerTile pp, double D, double BP, byte U, double CU) {
+		double pw = Math.min(2 + pp.getStoredEnergy() / 500, (D - 0.1) * BP / (U * CU + 1));
 		pw = pp.useEnergy(pw, pw, true);
 		return pw * (U * CU + 1) / BP + 0.1;
 	}
 
-	private static float useEnergy(PowerHandler pp, double BP, byte U, double CU, byte F, double CF, boolean S, double CS, byte E, double CE) {
+	private static double useEnergy(APowerTile pp, double BP, byte U, double CU, byte F, double CF, boolean S, double CS, byte E, double CE) {
 		double pwc = BP * Math.pow(CF, F) * Math.pow(CE, E) / (U * CU + 1);
 		if (S) pwc *= CS;
-		pwc = pp.useEnergy(0, (float) pwc, true);
+		pwc = pp.useEnergy(0, pwc, true);
 		if (S) pwc = pwc / CS;
 		pwc /= Math.pow(CF, F);
 		pwc *= U * CU + 1;
-		return (float) pwc;
+		return pwc;
 	}
 
-	static boolean useEnergyB(PowerHandler pp, float H, byte SF, byte U, TileBasic t) {
+	static boolean useEnergyB(APowerTile pp, float H, byte SF, byte U, TileBasic t) {
 		double BP, CU, CSP;
 		if (t instanceof TileMiningWell) {
 			BP = W_BP;
@@ -254,23 +250,23 @@ public class PowerManager {
 		return useEnergy(pp, BP, H, CSP, U, CU);
 	}
 
-	static boolean useEnergyF(PowerHandler pp, byte U) {
+	static boolean useEnergyF(APowerTile pp, byte U) {
 		return useEnergy(pp, F_BP, U, F_CU);
 	}
 
-	static boolean useEnergyR(PowerHandler pp, int energy, byte U) {
+	static boolean useEnergyR(APowerTile pp, int energy, byte U) {
 		return useEnergy(pp, energy, U, R_CU);
 	}
 
-	static boolean useEnergyP(PowerHandler pp, byte U, long liquids, long frames) {
+	static boolean useEnergyP(APowerTile pp, byte U, long liquids, long frames) {
 		return useEnergy(pp, PL_BP, liquids, PF_BP, frames, U, PL_CU, PF_CU);
 	}
 
-	static double useEnergyH(PowerHandler pp, double distance, byte U) {
+	static double useEnergyH(APowerTile pp, double distance, byte U) {
 		return useEnergy(pp, distance, H_BP, U, H_CU);
 	}
 
-	static float useEnergyL(PowerHandler pp, byte U, byte F, boolean S, byte E) {
+	static double useEnergyL(APowerTile pp, byte U, byte F, boolean S, byte E) {
 		return useEnergy(pp, L_BP, U, L_CU, F, L_CF, S, L_CS, E, L_CE);
 	}
 

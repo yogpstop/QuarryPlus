@@ -51,7 +51,7 @@ import net.minecraftforge.fluids.FluidTankInfo;
 import net.minecraftforge.fluids.IFluidBlock;
 import net.minecraftforge.fluids.IFluidHandler;
 
-public class TilePump extends APacketTile implements IFluidHandler, IPowerReceptor, IEnchantableTile {
+public class TilePump extends APacketTile implements IFluidHandler, IEnchantableTile, IPowerReceptor {
 	private ForgeDirection connectTo = ForgeDirection.UNKNOWN;
 	private boolean initialized = false;
 
@@ -415,7 +415,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 		}
 	}
 
-	boolean S_removeLiquids(PowerHandler tbpp, int x, int y, int z) {
+	boolean S_removeLiquids(APowerTile tbpp, int x, int y, int z) {
 		S_sendNowPacket();
 		if (this.cx != x || this.cy != y || this.cz != z || this.py < this.cy || this.worldObj.getWorldTime() - this.fwt > 200) S_searchLiquid(x, y, z);
 		int count = 0;
@@ -464,7 +464,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 			} else {
 				for (bz = 0; bz < this.block_side_z; bz++) {
 					if (this.blocks[this.py - this.yOffset][this.px][bz] != 0) {
-						drainBlock(this.px, bz, null);
+						drainBlock(this.px, bz, Blocks.air);
 					}
 				}
 			}
@@ -634,20 +634,6 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 	}
 
 	@Override
-	public PowerReceiver getPowerReceiver(ForgeDirection side) {
-		TileBasic tb = G_connected();
-		return tb == null ? null : tb.getPowerReceiver(side);
-	}
-
-	@Override
-	public void doWork(PowerHandler workProvider) {}
-
-	@Override
-	public World getWorld() {
-		return this.worldObj;
-	}
-
-	@Override
 	public byte getEfficiency() {
 		return 0;
 	}
@@ -672,5 +658,19 @@ public class TilePump extends APacketTile implements IFluidHandler, IPowerRecept
 		this.fortune = pfortune;
 		this.unbreaking = punbreaking;
 		this.silktouch = psilktouch;
+	}
+
+	@Override
+	public PowerReceiver getPowerReceiver(ForgeDirection side) {
+		TileBasic tb = G_connected();
+		return tb == null ? null : tb.getPowerReceiver(side);
+	}
+
+	@Override
+	public void doWork(PowerHandler workProvider) {}
+
+	@Override
+	public World getWorld() {
+		return this.worldObj;
 	}
 }

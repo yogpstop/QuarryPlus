@@ -28,7 +28,6 @@ import buildcraft.BuildCraftTransport;
 import buildcraft.api.recipes.BuildcraftRecipes;
 import buildcraft.api.transport.PipeWire;
 import net.minecraft.block.Block;
-import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
@@ -115,7 +114,7 @@ public class QuarryPlus {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		LanguageRegistry.instance().loadLocalization("/lang/yogpstop/quarryplus/en_US.lang", "en_US", false);//TODO
+		LanguageRegistry.instance().loadLocalization("/lang/yogpstop/quarryplus/en_US.lang", "en_US", false);// TODO
 		LanguageRegistry.instance().loadLocalization("/lang/yogpstop/quarryplus/ja_JP.lang", "ja_JP", false);
 		ForgeChunkManager.setForcedChunkLoadingCallback(instance, new ChunkLoadingHandler());
 		MinecraftForge.EVENT_BUS.register(this);
@@ -123,6 +122,7 @@ public class QuarryPlus {
 
 	@Mod.EventHandler
 	public void init(FMLInitializationEvent event) {
+		GameRegistry.registerItem(itemTool, "qpTool");
 		GameRegistry.registerBlock(blockQuarry, ItemBlockQuarry.class, "QuarryPlus");
 		GameRegistry.registerBlock(blockMarker, "MarkerPlus");
 		GameRegistry.registerBlock(blockMover, "EnchantMover");
@@ -294,18 +294,5 @@ public class QuarryPlus {
 			sb.append(is.getDisplayName());
 		}
 		return sb.toString();
-	}
-
-	public static CreativeTabs ct = null;
-	static {
-		final Class<buildcraft.core.CreativeTabBuildCraft> ctc = buildcraft.core.CreativeTabBuildCraft.class;
-		try {
-			ct = (CreativeTabs) ctc.getField("tabBuildCraft").get(null);
-		} catch (Exception e) {}
-		if (ct == null) {
-			try {
-				ct = (CreativeTabs) ctc.getMethod("get", new Class[] {}).invoke(ctc.getField("MACHINES").get(null), new Object[] {});
-			} catch (Exception e) {}
-		}
 	}
 }

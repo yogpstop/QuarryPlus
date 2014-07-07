@@ -113,7 +113,7 @@ public class BlockBreaker extends BlockContainer {
 		int tx = x + fd.offsetX, ty = y + fd.offsetY, tz = z + fd.offsetZ, meta = world.getBlockMetadata(tx, ty, tz);
 		if (ty < 1) return;
 		Block b = world.getBlock(tx, ty, tz);
-		if (b == null) return;
+		if (b == null || b.isAir(world, x, y, z)) return;
 		final EntityPlayer player = CoreProxy.proxy.getBuildCraftPlayer((WorldServer) world).get();
 		b.onBlockHarvested(world, tx, ty, tz, meta, player);
 		if (b.removedByPlayer(world, player, tx, ty, tz)) b.onBlockDestroyedByPlayer(world, tx, ty, tz, meta);

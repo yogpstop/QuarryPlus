@@ -19,6 +19,7 @@ package com.yogpc.qp;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.ChannelHandler.Sharable;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -41,6 +42,7 @@ import cpw.mods.fml.common.network.FMLOutboundHandler.OutboundTarget;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.relauncher.Side;
 
+@Sharable
 public class PacketHandler extends SimpleChannelInboundHandler<QuarryPlusPacket> {
 	public static EnumMap<Side, FMLEmbeddedChannel> channels;
 	public static final byte Tile = 0;

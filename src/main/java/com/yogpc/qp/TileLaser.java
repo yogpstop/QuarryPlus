@@ -20,27 +20,24 @@ package com.yogpc.qp;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.io.ByteArrayDataInput;
+
 import static buildcraft.BuildCraftCore.actionOn;
 import static buildcraft.BuildCraftCore.actionOff;
 import buildcraft.api.core.Position;
 import buildcraft.api.gates.IAction;
 import buildcraft.api.gates.IActionReceptor;
-import buildcraft.api.power.IPowerReceptor;
-import buildcraft.api.power.PowerHandler;
-import buildcraft.api.power.PowerHandler.PowerReceiver;
-import buildcraft.api.power.PowerHandler.Type;
 import buildcraft.core.IMachine;
 import buildcraft.core.LaserData;
 import buildcraft.core.triggers.ActionMachineControl;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
-public class TileLaser extends TileEntity implements IPowerReceptor, IActionReceptor, IMachine, IEnchantableTile {
+public class TileLaser extends APowerTile implements IActionReceptor, IMachine, IEnchantableTile {
 	private LaserData[] lasers;
 	private final List<Object> laserTargets = new ArrayList<Object>();
-	protected final PowerHandler powerHandler = new PowerHandler(this, Type.MACHINE);
 	private ActionMachineControl.Mode lastMode = ActionMachineControl.Mode.Unknown;
 
 	protected byte unbreaking;
@@ -51,7 +48,7 @@ public class TileLaser extends TileEntity implements IPowerReceptor, IActionRece
 	private long from = 38669;
 
 	public TileLaser() {
-		PowerManager.configureL(this.powerHandler, this.efficiency, this.unbreaking);
+		PowerManager.configureL(this, this.efficiency, this.unbreaking);
 	}
 
 	@Override
@@ -68,7 +65,7 @@ public class TileLaser extends TileEntity implements IPowerReceptor, IActionRece
 			findTable();
 		}
 
-		if (!isValidTable() || this.powerHandler.getEnergyStored() == 0) {
+		if (!isValidTable() || this.getStoredEnergy() == 0) {
 			removeLaser();
 			return;
 		}
@@ -76,7 +73,7 @@ public class TileLaser extends TileEntity implements IPowerReceptor, IActionRece
 		if (!isValidLaser()) {// createLaser
 			for (int i = 0; i < this.lasers.length; i++) {
 				this.lasers[i] = new LaserData(new Position(this.xCoord, this.yCoord, this.zCoord), new Position(this.xCoord, this.yCoord, this.zCoord));
-				this.worldObj.spawnEntityInWorld(this.lasers[i]);
+				// TODO this.worldObj.spawnEntityInWorld(this.lasers[i]);
 				this.from = this.worldObj.getWorldTime();
 			}
 		}
@@ -88,17 +85,17 @@ public class TileLaser extends TileEntity implements IPowerReceptor, IActionRece
 				Position tail = new Position(ILaserTargetHelper.getXCoord(this.laserTargets.get(i)) + 0.475 + (this.worldObj.rand.nextFloat() - 0.5) / 5F,
 						ILaserTargetHelper.getYCoord(this.laserTargets.get(i)) + 9F / 16F, ILaserTargetHelper.getZCoord(this.laserTargets.get(i)) + 0.475
 								+ (this.worldObj.rand.nextFloat() - 0.5) / 5F);
-				this.lasers[i].setPositions(head, tail);
+				// TODO this.lasers[i].setPositions(head, tail);
 
-				if (!this.lasers[i].isVisible()) this.lasers[i].show();
+				// TODO if (!this.lasers[i].isVisible()) this.lasers[i].show();
 			}
 		}
 
-		float power = PowerManager.useEnergyL(this.powerHandler, this.unbreaking, this.fortune, this.silktouch, this.efficiency);
+		double power = PowerManager.useEnergyL(this, this.unbreaking, this.fortune, this.silktouch, this.efficiency);
 		for (Object lt : this.laserTargets)
-			ILaserTargetHelper.receiveLaserEnergy(lt, power / this.laserTargets.size());
-		for (LaserData laser : this.lasers)
-			laser.pushPower(power / this.laserTargets.size());
+			ILaserTargetHelper.receiveLaserEnergy(lt, (float) (power / this.laserTargets.size()));
+		// for (LaserData laser : this.lasers)
+		// TODO laser.pushPower(power / this.laserTargets.size());
 	}
 
 	protected boolean isValidLaser() {
@@ -180,22 +177,13 @@ public class TileLaser extends TileEntity implements IPowerReceptor, IActionRece
 	}
 
 	@Override
-	public PowerReceiver getPowerReceiver(ForgeDirection side) {
-		return this.powerHandler.getPowerReceiver();
-	}
-
-	@Override
-	public void doWork(PowerHandler workProvider) {}
-
-	@Override
 	public void readFromNBT(NBTTagCompound nbttc) {
 		super.readFromNBT(nbttc);
 		this.fortune = nbttc.getByte("fortune");
 		this.efficiency = nbttc.getByte("efficiency");
 		this.unbreaking = nbttc.getByte("unbreaking");
 		this.silktouch = nbttc.getBoolean("silktouch");
-		this.powerHandler.readFromNBT(nbttc);
-		PowerManager.configureL(this.powerHandler, this.efficiency, this.unbreaking);
+		PowerManager.configureL(this, this.efficiency, this.unbreaking);
 	}
 
 	@Override
@@ -205,7 +193,6 @@ public class TileLaser extends TileEntity implements IPowerReceptor, IActionRece
 		nbttc.setByte("efficiency", this.efficiency);
 		nbttc.setByte("unbreaking", this.unbreaking);
 		nbttc.setBoolean("silktouch", this.silktouch);
-		this.powerHandler.writeToNBT(nbttc);
 	}
 
 	@Override
@@ -244,11 +231,6 @@ public class TileLaser extends TileEntity implements IPowerReceptor, IActionRece
 	}
 
 	@Override
-	public World getWorld() {
-		return this.worldObj;
-	}
-
-	@Override
 	public byte getEfficiency() {
 		return this.efficiency;
 	}
@@ -278,6 +260,12 @@ public class TileLaser extends TileEntity implements IPowerReceptor, IActionRece
 
 	@Override
 	public void G_reinit() {
-		PowerManager.configureL(this.powerHandler, this.efficiency, this.unbreaking);
+		PowerManager.configureL(this, this.efficiency, this.unbreaking);
 	}
+
+	@Override
+	void S_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {}
+
+	@Override
+	void C_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {}
 }

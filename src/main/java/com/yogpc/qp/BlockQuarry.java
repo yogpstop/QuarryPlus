@@ -20,6 +20,7 @@ package com.yogpc.qp;
 import java.util.ArrayList;
 
 import buildcraft.api.tools.IToolWrench;
+import buildcraft.core.CreativeTabBuildCraft;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
@@ -45,7 +46,7 @@ public class BlockQuarry extends BlockContainer {
 		setHardness(1.5F);
 		setResistance(10F);
 		setStepSound(soundTypeStone);
-		setCreativeTab(QuarryPlus.ct);
+		setCreativeTab(CreativeTabBuildCraft.BLOCKS.get());
 		setBlockName("QuarryPlus");
 	}
 

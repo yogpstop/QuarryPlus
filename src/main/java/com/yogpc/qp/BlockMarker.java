@@ -17,6 +17,7 @@
 
 package com.yogpc.qp;
 
+import buildcraft.core.CreativeTabBuildCraft;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import static buildcraft.BuildCraftCore.markerModel;
@@ -39,7 +40,7 @@ public class BlockMarker extends BlockContainer {
 	public BlockMarker() {
 		super(Material.circuits);
 		setLightLevel(0.5F);
-		setCreativeTab(QuarryPlus.ct);
+		setCreativeTab(CreativeTabBuildCraft.ITEMS.get());
 		setBlockName("MarkerPlus");
 	}
 

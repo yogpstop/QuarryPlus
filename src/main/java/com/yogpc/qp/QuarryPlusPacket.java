@@ -44,7 +44,8 @@ public final class QuarryPlusPacket {
 			}
 		}
 		this.channel = d.readByte();
-		this.data = d.array();
+		this.data = new byte[d.readableBytes()];
+		d.readBytes(this.data);
 	}
 
 	public void writeData(ByteBuf d) {

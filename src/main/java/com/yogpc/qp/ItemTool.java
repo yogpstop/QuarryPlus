@@ -19,6 +19,7 @@ package com.yogpc.qp;
 
 import java.util.List;
 
+import buildcraft.core.CreativeTabBuildCraft;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.renderer.texture.IIconRegister;
@@ -38,7 +39,7 @@ public class ItemTool extends Item implements IEnchantableItem {
 		setMaxStackSize(1);
 		setHasSubtypes(true);
 		this.setMaxDamage(0);
-		setCreativeTab(QuarryPlus.ct);
+		setCreativeTab(CreativeTabBuildCraft.ITEMS.get());
 	}
 
 	@Override

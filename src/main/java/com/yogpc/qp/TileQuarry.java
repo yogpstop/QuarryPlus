@@ -32,7 +32,7 @@ import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.network.FMLOutboundHandler.OutboundTarget;
 import cpw.mods.fml.relauncher.Side;
 import buildcraft.api.core.IAreaProvider;
-import buildcraft.core.LaserKind;
+import buildcraft.core.Box.Kind;
 import static buildcraft.BuildCraftFactory.frameBlock;
 import buildcraft.core.Box;
 import buildcraft.core.proxy.CoreProxy;
@@ -53,6 +53,10 @@ public class TileQuarry extends TileBasic {
 	private int targetX, targetY, targetZ;
 
 	private IAreaProvider iap = null;
+
+	public TileQuarry() {
+		this.box.kind = Kind.STRIPES;
+	}
 
 	private void S_updateEntity() {
 		if (this.iap != null) {
@@ -111,7 +115,7 @@ public class TileQuarry extends TileBasic {
 				sendNowPacket(this, this.now);
 				return true;
 			}
-			if (h < 0) return false;
+			if (b == null || h < 0 || b.isAir(this.worldObj, this.targetX, this.targetY, this.targetZ)) return false;
 			if (this.pump == ForgeDirection.UNKNOWN && this.worldObj.getBlock(this.targetX, this.targetY, this.targetZ).getMaterial().isLiquid()) return false;
 			return true;
 		case NOTNEEDBREAK:
@@ -126,9 +130,9 @@ public class TileQuarry extends TileBasic {
 				sendNowPacket(this, this.now);
 				return S_checkTarget();
 			}
-			if (h < 0) return false;
+			if (b == null || h < 0 || b.isAir(this.worldObj, this.targetX, this.targetY, this.targetZ)) return false;
 			if (this.pump == ForgeDirection.UNKNOWN && this.worldObj.getBlock(this.targetX, this.targetY, this.targetZ).getMaterial().isLiquid()) return false;
-			if (b == frameBlock && this.worldObj.getBlockMetadata(this.targetX, this.targetY, this.targetZ) == 0) {
+			if (b == frameBlock) {
 				byte flag = 0;
 				if (this.targetX == this.box.xMin || this.targetX == this.box.xMax) flag++;
 				if (this.targetY == this.box.yMin || this.targetY == this.box.yMax) flag++;
@@ -152,9 +156,7 @@ public class TileQuarry extends TileBasic {
 				sendNowPacket(this, this.now);
 				return S_checkTarget();
 			}
-			if (b != null && h < 0) return false;
-			if (this.worldObj.getBlock(this.targetX, this.targetY, this.targetZ).getMaterial().isSolid()
-					&& (b != frameBlock || this.worldObj.getBlockMetadata(this.targetX, this.targetY, this.targetZ) != 0)) {
+			if (this.worldObj.getBlock(this.targetX, this.targetY, this.targetZ).getMaterial().isSolid() && b != frameBlock) {
 				this.now = NOTNEEDBREAK;
 				G_renew_powerConfigure();
 				this.targetX = this.box.xMin;
@@ -170,7 +172,7 @@ public class TileQuarry extends TileBasic {
 			if (this.targetY == this.box.yMin || this.targetY == this.box.yMax) flag++;
 			if (this.targetZ == this.box.zMin || this.targetZ == this.box.zMax) flag++;
 			if (flag > 1) {
-				if (b == frameBlock && this.worldObj.getBlockMetadata(this.targetX, this.targetY, this.targetZ) == 0) return false;
+				if (b == frameBlock) return false;
 				return true;
 			}
 			return false;
@@ -260,7 +262,7 @@ public class TileQuarry extends TileBasic {
 
 	private boolean S_makeFrame() {
 		this.digged = true;
-		if (!PowerManager.useEnergyF(this.pp, this.unbreaking)) return false;
+		if (!PowerManager.useEnergyF(this, this.unbreaking)) return false;
 		this.worldObj.setBlock(this.targetX, this.targetY, this.targetZ, frameBlock);
 		S_setNextTarget();
 		return true;
@@ -352,46 +354,12 @@ public class TileQuarry extends TileBasic {
 		this.headPosY = this.box.yMax - 1;
 	}
 
-	private void S_destroyFrames() {
-		if (!this.box.isInitialized()) return;
-		int xn = this.box.xMin;
-		int xx = this.box.xMax;
-		int yn = this.box.yMin;
-		int yx = this.box.yMax;
-		int zn = this.box.zMin;
-		int zx = this.box.zMax;
-		for (int x = xn; x <= xx; x++) {
-			S_setBreakableFrame(x, yn, zn);
-			S_setBreakableFrame(x, yn, zx);
-			S_setBreakableFrame(x, yx, zn);
-			S_setBreakableFrame(x, yx, zx);
-		}
-		for (int y = yn; y <= yx; y++) {
-			S_setBreakableFrame(xn, y, zn);
-			S_setBreakableFrame(xn, y, zx);
-			S_setBreakableFrame(xx, y, zn);
-			S_setBreakableFrame(xx, y, zx);
-		}
-		for (int z = zn; z <= zx; z++) {
-			S_setBreakableFrame(xn, yn, z);
-			S_setBreakableFrame(xn, yx, z);
-			S_setBreakableFrame(xx, yn, z);
-			S_setBreakableFrame(xx, yx, z);
-		}
-	}
-
-	private void S_setBreakableFrame(int x, int y, int z) {
-		if (this.worldObj.getBlock(x, y, z) == frameBlock) {
-			this.worldObj.setBlockMetadataWithNotify(x, y, z, 1, 3);
-		}
-	}
-
 	private boolean S_moveHead() {
 		double x = this.targetX - this.headPosX;
 		double y = this.targetY + 1 - this.headPosY;
 		double z = this.targetZ - this.headPosZ;
 		double distance = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2) + Math.pow(z, 2));
-		double blocks = PowerManager.useEnergyH(this.pp, distance, this.unbreaking);
+		double blocks = PowerManager.useEnergyH(this, distance, this.unbreaking);
 
 		if (blocks * 2 > distance) {
 			this.headPosX = this.targetX;
@@ -419,9 +387,8 @@ public class TileQuarry extends TileBasic {
 			this.heads.setDead();
 			this.heads = null;
 		}
-		this.box.deleteLasers();
+		this.box.isVisible = false;
 		if (!this.worldObj.isRemote) {
-			S_destroyFrames();
 			sendNowPacket(this, this.now);
 		}
 		ForgeChunkManager.releaseTicket(this.chunkTicket);
@@ -546,11 +513,11 @@ public class TileQuarry extends TileBasic {
 	}
 
 	private void G_initEntities() {
-		this.box.deleteLasers();
+		this.box.isVisible = false;
 		switch (this.now) {
 		case NOTNEEDBREAK:
 		case MAKEFRAME:
-			this.box.createLasers(this.worldObj, LaserKind.Stripes);
+			this.box.isVisible = true;
 			break;
 		case MOVEHEAD:
 		case BREAKBLOCK:
@@ -581,8 +548,8 @@ public class TileQuarry extends TileBasic {
 		byte pmp = 0;
 		if (te instanceof TilePump) pmp = ((TilePump) te).unbreaking;
 		else this.pump = ForgeDirection.UNKNOWN;
-		if (this.now == NONE) PowerManager.configure0(this.pp);
-		else if (this.now == MAKEFRAME) PowerManager.configureF(this.pp, this.efficiency, this.unbreaking, pmp);
-		else PowerManager.configureB(this.pp, this.efficiency, this.unbreaking, pmp);
+		if (this.now == NONE) PowerManager.configure0(this);
+		else if (this.now == MAKEFRAME) PowerManager.configureF(this, this.efficiency, this.unbreaking, pmp);
+		else PowerManager.configureB(this, this.efficiency, this.unbreaking, pmp);
 	}
 }

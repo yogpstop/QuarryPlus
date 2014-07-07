@@ -52,8 +52,8 @@ public class TileMiningWell extends TileBasic {
 			if (te instanceof TilePump) pmp = ((TilePump) te).unbreaking;
 			else this.pump = ForgeDirection.UNKNOWN;
 		}
-		if (this.working) PowerManager.configureW(this.pp, this.efficiency, this.unbreaking, pmp);
-		else PowerManager.configure0(this.pp);
+		if (this.working) PowerManager.configureW(this, this.efficiency, this.unbreaking, pmp);
+		else PowerManager.configure0(this);
 	}
 
 	@Override
@@ -76,7 +76,7 @@ public class TileMiningWell extends TileBasic {
 		}
 		Block b = this.worldObj.getBlock(this.xCoord, depth, this.zCoord);
 		float h = b == null ? -1 : b.getBlockHardness(this.worldObj, this.xCoord, depth, this.zCoord);
-		if (h < 0 || b == plainPipeBlock) return false;
+		if (b == null || h < 0 || b == plainPipeBlock || b.isAir(this.worldObj, this.xCoord, depth, this.zCoord)) return false;
 		if (this.pump == ForgeDirection.UNKNOWN && this.worldObj.getBlock(this.xCoord, depth, this.zCoord).getMaterial().isLiquid()) return false;
 		if (!this.working) {
 			this.working = true;

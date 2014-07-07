@@ -41,18 +41,12 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 import buildcraft.api.gates.IAction;
-import buildcraft.api.power.PowerHandler;
-import buildcraft.api.power.IPowerReceptor;
-import buildcraft.api.power.PowerHandler.PowerReceiver;
 import buildcraft.core.IMachine;
 
-public abstract class TileBasic extends APacketTile implements IPowerReceptor, IMachine, IEnchantableTile {
+public abstract class TileBasic extends APowerTile implements IMachine, IEnchantableTile {
 	protected ForgeDirection pump = ForgeDirection.UNKNOWN;
-
-	protected PowerHandler pp = new PowerHandler(this, PowerHandler.Type.MACHINE);
 
 	public final List<ItemStack> fortuneList = new ArrayList<ItemStack>();
 	public final List<ItemStack> silktouchList = new ArrayList<ItemStack>();
@@ -177,7 +171,7 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 	protected boolean S_breakBlock(int x, int y, int z) {
 		Collection<ItemStack> dropped = new LinkedList<ItemStack>();
 		Block b = this.worldObj.getBlock(x, y, z);
-		if (b == null) return true;
+		if (b == null || b.isAir(this.worldObj, x, y, z)) return true;
 		if (TilePump.isLiquid(b, false, null, 0, 0, 0, 0)) {
 			TileEntity te = this.worldObj.getTileEntity(this.xCoord + this.pump.offsetX, this.yCoord + this.pump.offsetY, this.zCoord + this.pump.offsetZ);
 			if (!(te instanceof TilePump)) {
@@ -186,9 +180,9 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 				return true;
 			}
 			if (!TilePump.isLiquid(b, true, this.worldObj, x, y, z, this.worldObj.getBlockMetadata(x, y, z))) return true;
-			return ((TilePump) te).S_removeLiquids(this.pp, x, y, z);
+			return ((TilePump) te).S_removeLiquids(this, x, y, z);
 		}
-		if (!PowerManager.useEnergyB(this.pp, b.getBlockHardness(this.worldObj, x, y, z), S_addDroppedItems(dropped, b, x, y, z), this.unbreaking, this)) return false;
+		if (!PowerManager.useEnergyB(this, b.getBlockHardness(this.worldObj, x, y, z), S_addDroppedItems(dropped, b, x, y, z), this.unbreaking, this)) return false;
 		this.cacheItems.addAll(dropped);
 		this.worldObj.playAuxSFXAtEntity(null, 2001, x, y, z, Block.getIdFromBlock(b) | (this.worldObj.getBlockMetadata(x, y, z) << 12));
 		this.worldObj.setBlockToAir(x, y, z);
@@ -239,11 +233,6 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		return false;
 	}
 
-	@Override
-	public final PowerReceiver getPowerReceiver(ForgeDirection side) {
-		return this.pp.getPowerReceiver();
-	}
-
 	static final Method createStackedBlock;
 
 	static {
@@ -275,7 +264,6 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		this.silktouchInclude = nbttc.getBoolean("silktouchInclude");
 		readLongCollection(nbttc.getTagList("fortuneList", 10), this.fortuneList);
 		readLongCollection(nbttc.getTagList("silktouchList", 10), this.silktouchList);
-		this.pp.readFromNBT(nbttc);
 	}
 
 	private static void readLongCollection(NBTTagList nbttl, Collection<ItemStack> target) {
@@ -295,7 +283,6 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		nbttc.setBoolean("silktouchInclude", this.silktouchInclude);
 		nbttc.setTag("fortuneList", writeLongCollection(this.fortuneList));
 		nbttc.setTag("silktouchList", writeLongCollection(this.silktouchList));
-		this.pp.writeToNBT(nbttc);
 	}
 
 	private static NBTTagList writeLongCollection(Collection<ItemStack> target) {
@@ -303,14 +290,6 @@ public abstract class TileBasic extends APacketTile implements IPowerReceptor, I
 		for (ItemStack l : target)
 			nbttl.appendTag(l.writeToNBT(new NBTTagCompound()));
 		return nbttl;
-	}
-
-	@Override
-	public final void doWork(PowerHandler workProvider) {}
-
-	@Override
-	public World getWorld() {
-		return this.worldObj;
 	}
 
 	@Override
