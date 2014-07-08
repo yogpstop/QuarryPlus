@@ -28,7 +28,6 @@ import com.yogpc.qp.TileLaser;
 import com.yogpc.qp.TileQuarry;
 import com.yogpc.qp.TileRefinery;
 
-import buildcraft.builders.urbanism.RenderBoxProvider;
 import buildcraft.core.render.RenderVoid;
 import cpw.mods.fml.client.registry.ClientRegistry;
 import cpw.mods.fml.client.registry.RenderingRegistry;
@@ -41,8 +40,8 @@ public class ClientProxy extends CommonProxy {
 	public void registerTextures() {
 		RenderingRegistry.registerEntityRenderingHandler(EntityMechanicalArm.class, new RenderVoid());
 		ClientRegistry.bindTileEntitySpecialRenderer(TileRefinery.class, RenderRefinery.INSTANCE);
-		ClientRegistry.bindTileEntitySpecialRenderer(TileQuarry.class, new RenderBoxProvider());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileLaser.class, new RenderLaserData());
+		ClientRegistry.bindTileEntitySpecialRenderer(TileQuarry.class, new RenderQuarry());
+		ClientRegistry.bindTileEntitySpecialRenderer(TileLaser.class, new RenderLaser());
 		RenderingRegistry.registerBlockHandler(RenderRefinery.INSTANCE);
 	}
 

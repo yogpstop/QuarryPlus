@@ -17,7 +17,6 @@
 
 package com.yogpc.qp;
 
-import buildcraft.core.CreativeTabBuildCraft;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.BlockContainer;
@@ -35,7 +34,7 @@ public class BlockInfMJSrc extends BlockContainer {
 		setHardness(1.5F);
 		setResistance(10F);
 		setStepSound(soundTypeStone);
-		setCreativeTab(CreativeTabBuildCraft.BLOCKS.get());
+		setCreativeTab(QuarryPlus.ct);
 		setBlockName("InfMJSrc");
 	}
 

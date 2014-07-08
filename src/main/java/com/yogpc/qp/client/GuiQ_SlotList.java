@@ -17,10 +17,9 @@
 
 package com.yogpc.qp.client;
 
-import static com.yogpc.qp.QuarryPlus.getname;
-
 import java.util.List;
 
+import com.yogpc.qp.QuarryPlus;
 import com.yogpc.qp.QuarryPlus.BlockData;
 
 import cpw.mods.fml.relauncher.Side;
@@ -64,7 +63,7 @@ public class GuiQ_SlotList extends GuiSlot {
 
 	@Override
 	protected void drawSlot(int var1, int var2, int var3, int var4, Tessellator var5, int var6, int var7) {
-		String name = getname(this.target.get(var1));
+		String name = QuarryPlus.getname(this.target.get(var1));
 		Minecraft.getMinecraft().fontRenderer.drawStringWithShadow(name,
 				(this.parent.width * 3 / 5 - Minecraft.getMinecraft().fontRenderer.getStringWidth(name)) / 2, var3 + 1, 0xFFFFFF);
 	}

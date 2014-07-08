@@ -20,7 +20,6 @@ package com.yogpc.qp;
 import java.util.ArrayList;
 
 import buildcraft.api.tools.IToolWrench;
-import buildcraft.core.CreativeTabBuildCraft;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
@@ -44,7 +43,7 @@ public class BlockPump extends BlockContainer {
 	public BlockPump() {
 		super(Material.iron);
 		setHardness(5F);
-		setCreativeTab(CreativeTabBuildCraft.BLOCKS.get());
+		setCreativeTab(QuarryPlus.ct);
 		setBlockName("PumpPlus");
 	}
 

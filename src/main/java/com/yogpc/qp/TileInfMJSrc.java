@@ -24,8 +24,8 @@ import com.google.common.io.ByteArrayDataInput;
 
 import cpw.mods.fml.common.network.FMLOutboundHandler;
 import cpw.mods.fml.relauncher.Side;
-import buildcraft.api.mj.IBatteryObject;
-import buildcraft.api.mj.MjAPI;
+//import buildcraft.api.mj.IBatteryObject;
+//import buildcraft.api.mj.MjAPI;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
@@ -44,10 +44,10 @@ public class TileInfMJSrc extends APacketTile {
 		TileEntity te;
 		for (ForgeDirection d : ForgeDirection.VALID_DIRECTIONS) {
 			te = this.worldObj.getTileEntity(this.xCoord + d.offsetX, this.yCoord + d.offsetY, this.zCoord + d.offsetZ);
-			IBatteryObject ibo = MjAPI.getMjBattery(te);
+			/*IBatteryObject ibo = MjAPI.getMjBattery(te);
 			if (ibo != null) {
 				ibo.addEnergy(this.power);
-			}
+			}*/
 		}
 		this.cInterval = this.interval;
 	}

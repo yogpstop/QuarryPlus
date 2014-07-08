@@ -17,10 +17,9 @@
 
 package com.yogpc.qp;
 
-import buildcraft.core.CreativeTabBuildCraft;
+import buildcraft.BuildCraftCore;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import static buildcraft.BuildCraftCore.markerModel;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
@@ -40,13 +39,13 @@ public class BlockMarker extends BlockContainer {
 	public BlockMarker() {
 		super(Material.circuits);
 		setLightLevel(0.5F);
-		setCreativeTab(CreativeTabBuildCraft.ITEMS.get());
+		setCreativeTab(QuarryPlus.ct);
 		setBlockName("MarkerPlus");
 	}
 
 	@Override
 	public int getRenderType() {
-		return markerModel;
+		return BuildCraftCore.markerModel;
 	}
 
 	@Override
@@ -57,16 +56,22 @@ public class BlockMarker extends BlockContainer {
 		switch (dir) {
 		case DOWN:
 			this.setBlockBounds(0.5F - w, 1F - h, 0.5F - w, 0.5F + w, 1F, 0.5F + w);
+			break;
 		case UP:
 			this.setBlockBounds(0.5F - w, 0F, 0.5F - w, 0.5F + w, h, 0.5F + w);
+			break;
 		case SOUTH:
 			this.setBlockBounds(0.5F - w, 0.5F - w, 0F, 0.5F + w, 0.5F + w, h);
+			break;
 		case NORTH:
 			this.setBlockBounds(0.5F - w, 0.5F - w, 1 - h, 0.5F + w, 0.5F + w, 1);
+			break;
 		case EAST:
 			this.setBlockBounds(0F, 0.5F - w, 0.5F - w, h, 0.5F + w, 0.5F + w);
+			break;
 		default:
 			this.setBlockBounds(1 - h, 0.5F - w, 0.5F - w, 1F, 0.5F + w, 0.5F + w);
+			break;
 		}
 	}
 

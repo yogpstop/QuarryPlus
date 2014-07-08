@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Random;
 
 import buildcraft.api.tools.IToolWrench;
-import buildcraft.core.proxy.CoreProxy;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
@@ -33,7 +32,6 @@ import net.minecraft.block.BlockContainer;
 import net.minecraft.block.BlockPistonBase;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
-import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
@@ -45,6 +43,7 @@ import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.util.FakePlayerFactory;
 import net.minecraftforge.common.util.ForgeDirection;
 
 public class BlockBreaker extends BlockContainer {
@@ -57,7 +56,7 @@ public class BlockBreaker extends BlockContainer {
 
 	protected BlockBreaker() {
 		super(Material.rock);
-		this.setCreativeTab(CreativeTabs.tabRedstone);
+		this.setCreativeTab(QuarryPlus.ct);
 		this.setHardness(3.5F);
 		this.setStepSound(soundTypeStone);
 		this.setBlockName("BreakerPlus");
@@ -114,7 +113,7 @@ public class BlockBreaker extends BlockContainer {
 		if (ty < 1) return;
 		Block b = world.getBlock(tx, ty, tz);
 		if (b == null || b.isAir(world, x, y, z)) return;
-		final EntityPlayer player = CoreProxy.proxy.getBuildCraftPlayer((WorldServer) world).get();
+		final EntityPlayer player = FakePlayerFactory.getMinecraft((WorldServer) world);
 		b.onBlockHarvested(world, tx, ty, tz, meta, player);
 		if (b.removedByPlayer(world, player, tx, ty, tz)) b.onBlockDestroyedByPlayer(world, tx, ty, tz, meta);
 		else return;

@@ -28,6 +28,7 @@ import buildcraft.BuildCraftTransport;
 import buildcraft.api.recipes.BuildcraftRecipes;
 import buildcraft.api.transport.PipeWire;
 import net.minecraft.block.Block;
+import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
@@ -51,6 +52,7 @@ import cpw.mods.fml.common.network.NetworkRegistry;
 
 @Mod(modid = "QuarryPlus", name = "QuarryPlus", version = "@VERSION@", dependencies = "required-after:BuildCraft|Builders;required-after:BuildCraft|Core;required-after:BuildCraft|Energy;required-after:BuildCraft|Factory;required-after:BuildCraft|Silicon;required-after:BuildCraft|Transport")
 public class QuarryPlus {
+	public static final CreativeTabs ct = new CreativeTabQuarryPlus();
 	@SidedProxy(clientSide = "com.yogpc.qp.client.ClientProxy", serverSide = "com.yogpc.qp.CommonProxy")
 	public static CommonProxy proxy;
 	@Mod.Instance("QuarryPlus")

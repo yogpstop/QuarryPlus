@@ -17,7 +17,6 @@
 
 package com.yogpc.qp;
 
-import buildcraft.core.CreativeTabBuildCraft;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
@@ -33,7 +32,7 @@ public class BlockMover extends Block {
 	public BlockMover() {
 		super(Material.iron);
 		setHardness(1.2F);
-		this.setCreativeTab(CreativeTabBuildCraft.BLOCKS.get());
+		this.setCreativeTab(QuarryPlus.ct);
 		setBlockName("EnchantMover");
 	}
 

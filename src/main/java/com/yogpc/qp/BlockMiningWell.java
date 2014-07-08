@@ -20,7 +20,6 @@ package com.yogpc.qp;
 import java.util.ArrayList;
 
 import buildcraft.api.tools.IToolWrench;
-import buildcraft.core.CreativeTabBuildCraft;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
@@ -45,7 +44,7 @@ public class BlockMiningWell extends BlockContainer {
 		super(Material.ground);
 		setHardness(1.5F);
 		setResistance(10F);
-		setCreativeTab(CreativeTabBuildCraft.BLOCKS.get());
+		setCreativeTab(QuarryPlus.ct);
 		setStepSound(soundTypeStone);
 		setBlockName("MiningWellPlus");
 	}

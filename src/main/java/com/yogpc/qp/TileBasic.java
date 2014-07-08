@@ -19,7 +19,6 @@ package com.yogpc.qp;
 
 import static buildcraft.core.utils.Utils.addToRandomInventoryAround;
 import static buildcraft.core.utils.Utils.addToRandomPipeAround;
-import static com.yogpc.qp.PacketHandler.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -67,8 +66,8 @@ public abstract class TileBasic extends APowerTile implements IMachine, IEnchant
 			dos.writeInt(this.yCoord);
 			dos.writeInt(this.zCoord);
 			dos.writeByte(id);
-			dos.writeBoolean(id == StC_OPENGUI_FORTUNE ? this.fortuneInclude : this.silktouchInclude);
-			List<BlockData> target = id == StC_OPENGUI_FORTUNE ? this.fortuneList : this.silktouchList;
+			dos.writeBoolean(id == PacketHandler.StC_OPENGUI_FORTUNE ? this.fortuneInclude : this.silktouchInclude);
+			List<BlockData> target = id == PacketHandler.StC_OPENGUI_FORTUNE ? this.fortuneList : this.silktouchList;
 			dos.writeInt(target.size());
 			for (BlockData l : target) {
 				dos.writeUTF(l.name);
@@ -85,29 +84,29 @@ public abstract class TileBasic extends APowerTile implements IMachine, IEnchant
 	@Override
 	protected void S_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {
 		switch (pattern) {
-		case CtS_ADD_FORTUNE:
+		case PacketHandler.CtS_ADD_FORTUNE:
 			this.fortuneList.add(new BlockData(data.readUTF(), data.readInt()));
-			sendOpenGUI(ep, StC_OPENGUI_FORTUNE);
+			sendOpenGUI(ep, PacketHandler.StC_OPENGUI_FORTUNE);
 			break;
-		case CtS_REMOVE_FORTUNE:
+		case PacketHandler.CtS_REMOVE_FORTUNE:
 			this.fortuneList.remove(new BlockData(data.readUTF(), data.readInt()));
-			sendOpenGUI(ep, StC_OPENGUI_FORTUNE);
+			sendOpenGUI(ep, PacketHandler.StC_OPENGUI_FORTUNE);
 			break;
-		case CtS_ADD_SILKTOUCH:
+		case PacketHandler.CtS_ADD_SILKTOUCH:
 			this.silktouchList.add(new BlockData(data.readUTF(), data.readInt()));
-			sendOpenGUI(ep, StC_OPENGUI_SILKTOUCH);
+			sendOpenGUI(ep, PacketHandler.StC_OPENGUI_SILKTOUCH);
 			break;
-		case CtS_REMOVE_SILKTOUCH:
+		case PacketHandler.CtS_REMOVE_SILKTOUCH:
 			this.silktouchList.remove(new BlockData(data.readUTF(), data.readInt()));
-			sendOpenGUI(ep, StC_OPENGUI_SILKTOUCH);
+			sendOpenGUI(ep, PacketHandler.StC_OPENGUI_SILKTOUCH);
 			break;
-		case CtS_TOGGLE_FORTUNE:
+		case PacketHandler.CtS_TOGGLE_FORTUNE:
 			this.fortuneInclude = !this.fortuneInclude;
-			sendOpenGUI(ep, StC_OPENGUI_FORTUNE);
+			sendOpenGUI(ep, PacketHandler.StC_OPENGUI_FORTUNE);
 			break;
-		case CtS_TOGGLE_SILKTOUCH:
+		case PacketHandler.CtS_TOGGLE_SILKTOUCH:
 			this.silktouchInclude = !this.silktouchInclude;
-			sendOpenGUI(ep, StC_OPENGUI_SILKTOUCH);
+			sendOpenGUI(ep, PacketHandler.StC_OPENGUI_SILKTOUCH);
 			break;
 		}
 	}
@@ -131,7 +130,7 @@ public abstract class TileBasic extends APowerTile implements IMachine, IEnchant
 	@Override
 	protected void C_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {
 		switch (pattern) {
-		case StC_OPENGUI_FORTUNE:
+		case PacketHandler.StC_OPENGUI_FORTUNE:
 			this.fortuneInclude = data.readBoolean();
 			this.fortuneList.clear();
 			int fsize = data.readInt();
@@ -140,7 +139,7 @@ public abstract class TileBasic extends APowerTile implements IMachine, IEnchant
 			}
 			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdFList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
 			break;
-		case StC_OPENGUI_SILKTOUCH:
+		case PacketHandler.StC_OPENGUI_SILKTOUCH:
 			this.silktouchInclude = data.readBoolean();
 			this.silktouchList.clear();
 			int ssize = data.readInt();
@@ -200,7 +199,7 @@ public abstract class TileBasic extends APowerTile implements IMachine, IEnchant
 	private byte S_addDroppedItems(Collection<ItemStack> list, Block b, int x, int y, int z) {
 		int meta = this.worldObj.getBlockMetadata(x, y, z);
 		if (b.canSilkHarvest(this.worldObj, null, x, y, z, meta) && this.silktouch
-				&& (this.silktouchList.contains(new ItemStack(b, meta)) == this.silktouchInclude)) {// TODO
+				&& (this.silktouchList.contains(new ItemStack(b, meta)) == this.silktouchInclude)) {
 			try {
 				list.add((ItemStack) createStackedBlock.invoke(b, meta));
 				return -1;
@@ -210,7 +209,7 @@ public abstract class TileBasic extends APowerTile implements IMachine, IEnchant
 				e.printStackTrace();
 			}
 		}
-		if (this.fortuneList.contains(new ItemStack(b, meta)) == this.fortuneInclude) {// TODO
+		if (this.fortuneList.contains(new ItemStack(b, meta)) == this.fortuneInclude) {
 			list.addAll(b.getDrops(this.worldObj, x, y, z, meta, this.fortune));
 			return this.fortune;
 		}

@@ -21,7 +21,6 @@ import java.util.List;
 
 import com.yogpc.qp.QuarryPlus.BlockData;
 
-import buildcraft.core.CreativeTabBuildCraft;
 import cpw.mods.fml.common.registry.GameData;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -45,7 +44,7 @@ public class ItemTool extends Item implements IEnchantableItem {
 		setMaxStackSize(1);
 		setHasSubtypes(true);
 		this.setMaxDamage(0);
-		setCreativeTab(CreativeTabBuildCraft.ITEMS.get());
+		setCreativeTab(QuarryPlus.ct);
 	}
 
 	@Override

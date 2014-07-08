@@ -17,7 +17,7 @@
 
 package com.yogpc.qp;
 
-import static com.yogpc.qp.PacketHandler.*;
+import buildcraft.BuildCraftFactory;
 
 import com.google.common.io.ByteArrayDataInput;
 
@@ -26,7 +26,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.util.ForgeDirection;
-import static buildcraft.BuildCraftFactory.plainPipeBlock;
 
 public class TileMiningWell extends TileBasic {
 
@@ -62,7 +61,7 @@ public class TileMiningWell extends TileBasic {
 		if (this.worldObj.isRemote) return;
 		int depth = this.yCoord - 1;
 		while (!S_checkTarget(depth)) {
-			if (this.working) this.worldObj.setBlock(this.xCoord, depth, this.zCoord, plainPipeBlock);
+			if (this.working) this.worldObj.setBlock(this.xCoord, depth, this.zCoord, BuildCraftFactory.plainPipeBlock);
 			depth--;
 		}
 		if (this.working) S_breakBlock(this.xCoord, depth, this.zCoord);
@@ -76,12 +75,12 @@ public class TileMiningWell extends TileBasic {
 		}
 		Block b = this.worldObj.getBlock(this.xCoord, depth, this.zCoord);
 		float h = b == null ? -1 : b.getBlockHardness(this.worldObj, this.xCoord, depth, this.zCoord);
-		if (b == null || h < 0 || b == plainPipeBlock || b.isAir(this.worldObj, this.xCoord, depth, this.zCoord)) return false;
+		if (b == null || h < 0 || b == BuildCraftFactory.plainPipeBlock || b.isAir(this.worldObj, this.xCoord, depth, this.zCoord)) return false;
 		if (this.pump == ForgeDirection.UNKNOWN && this.worldObj.getBlock(this.xCoord, depth, this.zCoord).getMaterial().isLiquid()) return false;
 		if (!this.working) {
 			this.working = true;
 			G_renew_powerConfigure();
-			sendNowPacket(this, (byte) 1);
+			PacketHandler.sendNowPacket(this, (byte) 1);
 		}
 		return true;
 	}
@@ -103,7 +102,7 @@ public class TileMiningWell extends TileBasic {
 	public void G_reinit() {
 		this.working = true;
 		G_renew_powerConfigure();
-		sendNowPacket(this, (byte) 1);
+		PacketHandler.sendNowPacket(this, (byte) 1);
 	}
 
 	@Override
@@ -111,9 +110,9 @@ public class TileMiningWell extends TileBasic {
 		if (this.worldObj.isRemote) return;
 		this.working = false;
 		G_renew_powerConfigure();
-		sendNowPacket(this, (byte) 0);
+		PacketHandler.sendNowPacket(this, (byte) 0);
 		for (int depth = this.yCoord - 1; depth > 0; depth--) {
-			if (this.worldObj.getBlock(this.xCoord, depth, this.zCoord) != plainPipeBlock) {
+			if (this.worldObj.getBlock(this.xCoord, depth, this.zCoord) != BuildCraftFactory.plainPipeBlock) {
 				break;
 			}
 			this.worldObj.setBlockToAir(this.xCoord, depth, this.zCoord);

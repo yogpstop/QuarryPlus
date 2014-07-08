@@ -20,7 +20,6 @@ package com.yogpc.qp;
 import java.util.ArrayList;
 
 import buildcraft.api.tools.IToolWrench;
-import buildcraft.core.CreativeTabBuildCraft;
 import buildcraft.core.fluids.FluidUtils;
 import buildcraft.core.utils.Utils;
 import net.minecraft.block.Block;
@@ -41,7 +40,7 @@ public class BlockRefinery extends BlockContainer {
 	public BlockRefinery() {
 		super(Material.iron);
 		setHardness(5F);
-		setCreativeTab(CreativeTabBuildCraft.BLOCKS.get());
+		setCreativeTab(QuarryPlus.ct);
 		setBlockName("RefineryPlus");
 	}
 

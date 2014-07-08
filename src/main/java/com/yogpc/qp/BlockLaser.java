@@ -19,7 +19,6 @@ package com.yogpc.qp;
 
 import java.util.ArrayList;
 
-import buildcraft.core.CreativeTabBuildCraft;
 import buildcraft.silicon.SiliconProxy;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -45,7 +44,7 @@ public class BlockLaser extends BlockContainer {
 	public BlockLaser() {
 		super(Material.iron);
 		setHardness(10F);
-		setCreativeTab(CreativeTabBuildCraft.BLOCKS.get());
+		setCreativeTab(QuarryPlus.ct);
 		this.setBlockName("LaserPlus");
 	}
 

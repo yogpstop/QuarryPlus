@@ -26,30 +26,29 @@ import com.yogpc.qp.client.GuiP_List;
 import com.yogpc.qp.client.GuiQ_List;
 import com.yogpc.qp.client.GuiPlacer;
 
-import static com.yogpc.qp.QuarryPlus.*;
 import cpw.mods.fml.common.network.IGuiHandler;
 
 public class GuiHandler implements IGuiHandler {
 	@Override
 	public Object getClientGuiElement(int ID, EntityPlayer player, World world, int x, int y, int z) {
 		switch (ID) {
-		case guiIdMover:
+		case QuarryPlus.guiIdMover:
 			return new GuiMover(player, world, x, y, z);
-		case guiIdFList:
+		case QuarryPlus.guiIdFList:
 			return new GuiQ_List((byte) 0, (TileBasic) world.getTileEntity(x, y, z));
-		case guiIdSList:
+		case QuarryPlus.guiIdSList:
 			return new GuiQ_List((byte) 1, (TileBasic) world.getTileEntity(x, y, z));
-		case guiIdInfMJSrc:
+		case QuarryPlus.guiIdInfMJSrc:
 			return new GuiInfMJSrc((TileInfMJSrc) world.getTileEntity(x, y, z));
-		case guiIdPlacer:
+		case QuarryPlus.guiIdPlacer:
 			return new GuiPlacer(player.inventory, (TilePlacer) world.getTileEntity(x, y, z));
-		case guiIdPump:
-		case guiIdPump + 1:
-		case guiIdPump + 2:
-		case guiIdPump + 3:
-		case guiIdPump + 4:
-		case guiIdPump + 5:
-			return new GuiP_List((byte) (ID - guiIdPump), (TilePump) world.getTileEntity(x, y, z));
+		case QuarryPlus.guiIdPump:
+		case QuarryPlus.guiIdPump + 1:
+		case QuarryPlus.guiIdPump + 2:
+		case QuarryPlus.guiIdPump + 3:
+		case QuarryPlus.guiIdPump + 4:
+		case QuarryPlus.guiIdPump + 5:
+			return new GuiP_List((byte) (ID - QuarryPlus.guiIdPump), (TilePump) world.getTileEntity(x, y, z));
 		}
 
 		return null;
@@ -58,9 +57,9 @@ public class GuiHandler implements IGuiHandler {
 	@Override
 	public Object getServerGuiElement(int ID, EntityPlayer player, World world, int x, int y, int z) {
 		switch (ID) {
-		case guiIdMover:
+		case QuarryPlus.guiIdMover:
 			return new ContainerMover(player, world, x, y, z, null);
-		case guiIdPlacer:
+		case QuarryPlus.guiIdPlacer:
 			return new ContainerPlacer(player.inventory, (TilePlacer) world.getTileEntity(x, y, z));
 		}
 		return null;

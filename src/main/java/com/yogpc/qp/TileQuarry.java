@@ -17,8 +17,6 @@
 
 package com.yogpc.qp;
 
-import static com.yogpc.qp.PacketHandler.*;
-
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.util.List;
@@ -31,11 +29,8 @@ import cpw.mods.fml.common.network.FMLOutboundHandler;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.network.FMLOutboundHandler.OutboundTarget;
 import cpw.mods.fml.relauncher.Side;
+import buildcraft.BuildCraftFactory;
 import buildcraft.api.core.IAreaProvider;
-import buildcraft.core.Box.Kind;
-import buildcraft.core.IBoxProvider;
-import static buildcraft.BuildCraftFactory.frameBlock;
-import buildcraft.core.Box;
 import buildcraft.core.proxy.CoreProxy;
 import net.minecraft.block.Block;
 import net.minecraft.entity.item.EntityItem;
@@ -50,14 +45,11 @@ import net.minecraftforge.common.ForgeChunkManager.Ticket;
 import net.minecraftforge.common.ForgeChunkManager.Type;
 import net.minecraftforge.common.util.ForgeDirection;
 
-public class TileQuarry extends TileBasic implements IBoxProvider {
+public class TileQuarry extends TileBasic {
 	private int targetX, targetY, targetZ;
+	public int xMin, xMax, yMin, yMax = Integer.MIN_VALUE, zMin, zMax;
 
 	private IAreaProvider iap = null;
-
-	public TileQuarry() {
-		this.box.kind = Kind.STRIPES;
-	}
 
 	private void S_updateEntity() {
 		if (this.iap != null) {
@@ -81,14 +73,14 @@ public class TileQuarry extends TileBasic implements IBoxProvider {
 					dos.writeInt(this.xCoord);
 					dos.writeInt(this.yCoord);
 					dos.writeInt(this.zCoord);
-					dos.writeByte(StC_HEAD_POS);
+					dos.writeByte(PacketHandler.StC_HEAD_POS);
 					dos.writeDouble(this.headPosX);
 					dos.writeDouble(this.headPosY);
 					dos.writeDouble(this.headPosZ);
-					channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.ALLAROUNDPOINT);
-					channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS)
+					PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.ALLAROUNDPOINT);
+					PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS)
 							.set(new NetworkRegistry.TargetPoint(this.getWorldObj().provider.dimensionId, this.xCoord, this.yCoord, this.zCoord, 256));
-					channels.get(Side.SERVER).writeOutbound(new QuarryPlusPacket(Tile, bos.toByteArray()));
+					PacketHandler.channels.get(Side.SERVER).writeOutbound(new QuarryPlusPacket(PacketHandler.Tile, bos.toByteArray()));
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -105,7 +97,7 @@ public class TileQuarry extends TileBasic implements IBoxProvider {
 	}
 
 	private boolean S_checkTarget() {
-		if (this.targetY > this.box.yMax) this.targetY = this.box.yMax;
+		if (this.targetY > this.yMax) this.targetY = this.yMax;
 		Block b = this.worldObj.getBlock(this.targetX, this.targetY, this.targetZ);
 		float h = b == null ? -1 : b.getBlockHardness(this.worldObj, this.targetX, this.targetY, this.targetZ);
 		switch (this.now) {
@@ -113,67 +105,67 @@ public class TileQuarry extends TileBasic implements IBoxProvider {
 		case MOVEHEAD:
 			if (this.targetY < 1) {
 				G_destroy();
-				sendNowPacket(this, this.now);
+				PacketHandler.sendNowPacket(this, this.now);
 				return true;
 			}
 			if (b == null || h < 0 || b.isAir(this.worldObj, this.targetX, this.targetY, this.targetZ)) return false;
 			if (this.pump == ForgeDirection.UNKNOWN && this.worldObj.getBlock(this.targetX, this.targetY, this.targetZ).getMaterial().isLiquid()) return false;
 			return true;
 		case NOTNEEDBREAK:
-			if (this.targetY < this.box.yMin) {
+			if (this.targetY < this.yMin) {
 				this.now = MAKEFRAME;
 				G_renew_powerConfigure();
-				this.targetX = this.box.xMin;
-				this.targetY = this.box.yMax;
-				this.targetZ = this.box.zMin;
+				this.targetX = this.xMin;
+				this.targetY = this.yMax;
+				this.targetZ = this.zMin;
 				this.addX = this.addZ = this.digged = true;
 				this.changeZ = false;
-				sendNowPacket(this, this.now);
+				PacketHandler.sendNowPacket(this, this.now);
 				return S_checkTarget();
 			}
 			if (b == null || h < 0 || b.isAir(this.worldObj, this.targetX, this.targetY, this.targetZ)) return false;
 			if (this.pump == ForgeDirection.UNKNOWN && this.worldObj.getBlock(this.targetX, this.targetY, this.targetZ).getMaterial().isLiquid()) return false;
-			if (b == frameBlock) {
+			if (b == BuildCraftFactory.frameBlock) {
 				byte flag = 0;
-				if (this.targetX == this.box.xMin || this.targetX == this.box.xMax) flag++;
-				if (this.targetY == this.box.yMin || this.targetY == this.box.yMax) flag++;
-				if (this.targetZ == this.box.zMin || this.targetZ == this.box.zMax) flag++;
+				if (this.targetX == this.xMin || this.targetX == this.xMax) flag++;
+				if (this.targetY == this.yMin || this.targetY == this.yMax) flag++;
+				if (this.targetZ == this.zMin || this.targetZ == this.zMax) flag++;
 				if (flag > 1) return false;
 			}
 			return true;
 		case MAKEFRAME:
-			if (this.targetY < this.box.yMin) {
+			if (this.targetY < this.yMin) {
 				this.now = MOVEHEAD;
 				G_renew_powerConfigure();
-				this.targetX = this.box.xMin + 1;
-				this.targetY = this.box.yMin;
-				this.targetZ = this.box.zMin + 1;
+				this.targetX = this.xMin + 1;
+				this.targetY = this.yMin;
+				this.targetZ = this.zMin + 1;
 				this.addX = this.addZ = this.digged = true;
 				this.changeZ = false;
-				this.worldObj.spawnEntityInWorld(new EntityMechanicalArm(this.worldObj, this.box.xMin + 0.75D, this.box.yMax, this.box.zMin + 0.75D, this.box
-						.sizeX() - 1.5D, this.box.sizeZ() - 1.5D, this));
+				this.worldObj.spawnEntityInWorld(new EntityMechanicalArm(this.worldObj, this.xMin + 0.75D, this.yMax, this.zMin + 0.75D,
+						(this.xMax - this.xMin) - 0.5D, (this.zMax - this.zMin) - 0.5D, this));
 				this.heads.setHead(this.headPosX, this.headPosY, this.headPosZ);
 				this.heads.updatePosition();
-				sendNowPacket(this, this.now);
+				PacketHandler.sendNowPacket(this, this.now);
 				return S_checkTarget();
 			}
-			if (this.worldObj.getBlock(this.targetX, this.targetY, this.targetZ).getMaterial().isSolid() && b != frameBlock) {
+			if (this.worldObj.getBlock(this.targetX, this.targetY, this.targetZ).getMaterial().isSolid() && b != BuildCraftFactory.frameBlock) {
 				this.now = NOTNEEDBREAK;
 				G_renew_powerConfigure();
-				this.targetX = this.box.xMin;
-				this.targetZ = this.box.zMin;
-				this.targetY = this.box.yMax;
+				this.targetX = this.xMin;
+				this.targetZ = this.zMin;
+				this.targetY = this.yMax;
 				this.addX = this.addZ = this.digged = true;
 				this.changeZ = false;
-				sendNowPacket(this, this.now);
+				PacketHandler.sendNowPacket(this, this.now);
 				return S_checkTarget();
 			}
 			byte flag = 0;
-			if (this.targetX == this.box.xMin || this.targetX == this.box.xMax) flag++;
-			if (this.targetY == this.box.yMin || this.targetY == this.box.yMax) flag++;
-			if (this.targetZ == this.box.zMin || this.targetZ == this.box.zMax) flag++;
+			if (this.targetX == this.xMin || this.targetX == this.xMax) flag++;
+			if (this.targetY == this.yMin || this.targetY == this.yMax) flag++;
+			if (this.targetZ == this.zMin || this.targetZ == this.zMax) flag++;
 			if (flag > 1) {
-				if (b == frameBlock) return false;
+				if (b == BuildCraftFactory.frameBlock) return false;
 				return true;
 			}
 			return false;
@@ -196,17 +188,17 @@ public class TileQuarry extends TileBasic implements IBoxProvider {
 				if (this.addX) this.targetX++;
 				else this.targetX--;
 			}
-			if (this.targetX < this.box.xMin || this.box.xMax < this.targetX) {
+			if (this.targetX < this.xMin || this.xMax < this.targetX) {
 				this.addX = !this.addX;
 				this.changeZ = true;
-				this.targetX = Math.max(this.box.xMin, Math.min(this.box.xMax, this.targetX));
+				this.targetX = Math.max(this.xMin, Math.min(this.xMax, this.targetX));
 			}
-			if (this.targetZ < this.box.zMin || this.box.zMax < this.targetZ) {
+			if (this.targetZ < this.zMin || this.zMax < this.targetZ) {
 				this.addZ = !this.addZ;
 				this.changeZ = false;
-				this.targetZ = Math.max(this.box.zMin, Math.min(this.box.zMax, this.targetZ));
+				this.targetZ = Math.max(this.zMin, Math.min(this.zMax, this.targetZ));
 			}
-			if (this.box.xMin == this.targetX && this.box.zMin == this.targetZ) {
+			if (this.xMin == this.targetX && this.zMin == this.targetZ) {
 				if (this.digged) this.digged = false;
 				else this.targetY--;
 			}
@@ -214,42 +206,42 @@ public class TileQuarry extends TileBasic implements IBoxProvider {
 			if (this.addX) this.targetX++;
 			else this.targetX--;
 			int out = this.now == NOTNEEDBREAK ? 0 : 1;
-			if (this.targetX < this.box.xMin + out || this.box.xMax - out < this.targetX) {
+			if (this.targetX < this.xMin + out || this.xMax - out < this.targetX) {
 				this.addX = !this.addX;
-				this.targetX = Math.max(this.box.xMin + out, Math.min(this.targetX, this.box.xMax - out));
+				this.targetX = Math.max(this.xMin + out, Math.min(this.targetX, this.xMax - out));
 				if (this.addZ) this.targetZ++;
 				else this.targetZ--;
-				if (this.targetZ < this.box.zMin + out || this.box.zMax - out < this.targetZ) {
+				if (this.targetZ < this.zMin + out || this.zMax - out < this.targetZ) {
 					this.addZ = !this.addZ;
-					this.targetZ = Math.max(this.box.zMin + out, Math.min(this.targetZ, this.box.zMax - out));
+					this.targetZ = Math.max(this.zMin + out, Math.min(this.targetZ, this.zMax - out));
 					if (this.digged) this.digged = false;
 					else {
 						this.targetY--;
-						double aa = S_getDistance(this.box.xMin + 1, this.targetY, this.box.zMin + out);
-						double ad = S_getDistance(this.box.xMin + 1, this.targetY, this.box.zMax - out);
-						double da = S_getDistance(this.box.xMax - 1, this.targetY, this.box.zMin + out);
-						double dd = S_getDistance(this.box.xMax - 1, this.targetY, this.box.zMax - out);
+						double aa = S_getDistance(this.xMin + 1, this.targetY, this.zMin + out);
+						double ad = S_getDistance(this.xMin + 1, this.targetY, this.zMax - out);
+						double da = S_getDistance(this.xMax - 1, this.targetY, this.zMin + out);
+						double dd = S_getDistance(this.xMax - 1, this.targetY, this.zMax - out);
 						double res = Math.min(aa, Math.min(ad, Math.min(da, dd)));
 						if (res == aa) {
 							this.addX = true;
 							this.addZ = true;
-							this.targetX = this.box.xMin + out;
-							this.targetZ = this.box.zMin + out;
+							this.targetX = this.xMin + out;
+							this.targetZ = this.zMin + out;
 						} else if (res == ad) {
 							this.addX = true;
 							this.addZ = false;
-							this.targetX = this.box.xMin + out;
-							this.targetZ = this.box.zMax - out;
+							this.targetX = this.xMin + out;
+							this.targetZ = this.zMax - out;
 						} else if (res == da) {
 							this.addX = false;
 							this.addZ = true;
-							this.targetX = this.box.xMax - out;
-							this.targetZ = this.box.zMin + out;
+							this.targetX = this.xMax - out;
+							this.targetZ = this.zMin + out;
 						} else if (res == dd) {
 							this.addX = false;
 							this.addZ = false;
-							this.targetX = this.box.xMax - out;
-							this.targetZ = this.box.zMax - out;
+							this.targetX = this.xMax - out;
+							this.targetZ = this.zMax - out;
 						}
 					}
 				}
@@ -264,7 +256,7 @@ public class TileQuarry extends TileBasic implements IBoxProvider {
 	private boolean S_makeFrame() {
 		this.digged = true;
 		if (!PowerManager.useEnergyF(this, this.unbreaking)) return false;
-		this.worldObj.setBlock(this.targetX, this.targetY, this.targetZ, frameBlock);
+		this.worldObj.setBlock(this.targetX, this.targetY, this.targetZ, BuildCraftFactory.frameBlock);
 		S_setNextTarget();
 		return true;
 	}
@@ -297,62 +289,85 @@ public class TileQuarry extends TileBasic implements IBoxProvider {
 	}
 
 	private void S_createBox() {
-		if (this.box.isInitialized()) return;
+		if (this.yMax != Integer.MIN_VALUE) return;
 		if (!S_checkIAreaProvider(this.xCoord - 1, this.yCoord, this.zCoord)) if (!S_checkIAreaProvider(this.xCoord + 1, this.yCoord, this.zCoord)) if (!S_checkIAreaProvider(
 				this.xCoord, this.yCoord, this.zCoord - 1)) if (!S_checkIAreaProvider(this.xCoord, this.yCoord, this.zCoord + 1)) if (!S_checkIAreaProvider(
 				this.xCoord, this.yCoord - 1, this.zCoord)) if (!S_checkIAreaProvider(this.xCoord, this.yCoord + 1, this.zCoord)) {
-			int xMin = 0, zMin = 0;
 			ForgeDirection o = ForgeDirection.values()[this.worldObj.getBlockMetadata(this.xCoord, this.yCoord, this.zCoord)].getOpposite();
 			switch (o) {
 			case EAST:
-				xMin = this.xCoord + 1;
-				zMin = this.zCoord - 5;
+				this.xMin = this.xCoord + 1;
+				this.zMin = this.zCoord - 5;
 				break;
 			case WEST:
-				xMin = this.xCoord - 11;
-				zMin = this.zCoord - 5;
+				this.xMin = this.xCoord - 11;
+				this.zMin = this.zCoord - 5;
 				break;
 			case SOUTH:
-				xMin = this.xCoord - 5;
-				zMin = this.zCoord + 1;
+				this.xMin = this.xCoord - 5;
+				this.zMin = this.zCoord + 1;
 				break;
 			case NORTH:
 			default:
-				xMin = this.xCoord - 5;
-				zMin = this.zCoord - 11;
+				this.xMin = this.xCoord - 5;
+				this.zMin = this.zCoord - 11;
 				break;
 			}
-			this.box.initialize(xMin, this.yCoord, zMin, xMin + 10, this.yCoord + 4, zMin + 10);
+			this.yMin = this.yCoord;
+			this.xMax = this.xMin + 10;
+			this.zMax = this.zMin + 10;
+			this.yMax = this.yCoord + 4;
 		}
 	}
 
 	private boolean S_checkIAreaProvider(int x, int y, int z) {
 		TileEntity te = this.worldObj.getTileEntity(x, y, z);
 		if (te instanceof IAreaProvider) {
-			this.box.initialize(((IAreaProvider) te));
-			this.box.reorder();
-			if (this.box.contains(this.xCoord, this.yCoord, this.zCoord)) {
-				this.box.reset();
-				return false;
-			}
-			if (this.box.sizeX() < 3 || this.box.sizeZ() < 3) {
-				this.box.reset();
-				return false;
-			}
-			if (this.box.sizeY() <= 1) this.box.yMax = this.box.yMin + 3;
 			this.iap = (IAreaProvider) te;
+			this.xMin = this.iap.xMin();
+			this.xMax = this.iap.xMax();
+			this.yMin = this.iap.yMin();
+			this.zMin = this.iap.zMin();
+			this.zMax = this.iap.zMax();
+			this.yMax = this.iap.yMax();
+			int tmp;
+			if (this.xMin > this.xMax) {
+				tmp = this.xMin;
+				this.xMin = this.xMax;
+				this.xMax = tmp;
+			}
+			if (this.yMin > this.yMax) {
+				tmp = this.yMin;
+				this.yMin = this.yMax;
+				this.yMax = tmp;
+			}
+			if (this.zMin > this.zMax) {
+				tmp = this.zMin;
+				this.zMin = this.zMax;
+				this.zMax = tmp;
+			}
+			if (this.xCoord >= this.xMin && this.xCoord <= this.xMax && this.yCoord >= this.yMin && this.yCoord <= this.yMax && this.zCoord >= this.zMin
+					&& this.zCoord <= this.zMax) {
+				this.yMax = Integer.MIN_VALUE;
+				return false;
+			}
+			if (this.xMax - this.xMin < 2 || this.zMax - this.zMin < 2) {
+				this.yMax = Integer.MIN_VALUE;
+				return false;
+			}
+			if (this.yMax - this.yMin < 2) this.yMax = this.yMin + 3;
 			return true;
 		}
 		return false;
 	}
 
 	private void S_setFirstPos() {
-		this.targetX = this.box.xMin;
-		this.targetZ = this.box.zMin;
-		this.targetY = this.box.yMax;
-		this.headPosX = this.box.centerX();
-		this.headPosZ = this.box.centerZ();
-		this.headPosY = this.box.yMax - 1;
+		this.targetX = this.xMin;
+		this.targetZ = this.zMin;
+		this.targetY = this.yMax;
+		this.headPosX = (this.xMin + this.xMax + 1) / 2;
+		this.headPosZ = (this.zMin + this.zMax + 1) / 2;
+		this.headPosY = this.yMax - 1;
 	}
 
 	private boolean S_moveHead() {
@@ -376,7 +391,7 @@ public class TileQuarry extends TileBasic implements IBoxProvider {
 		return false;
 	}
 
-	byte G_getNow() {
+	public byte G_getNow() {
 		return this.now;
 	}
 
@@ -388,26 +403,24 @@ public class TileQuarry extends TileBasic implements IBoxProvider {
 			this.heads.setDead();
 			this.heads = null;
 		}
-		this.box.isVisible = false;
 		if (!this.worldObj.isRemote) {
-			sendNowPacket(this, this.now);
+			PacketHandler.sendNowPacket(this, this.now);
 		}
 		ForgeChunkManager.releaseTicket(this.chunkTicket);
 	}
 
 	@Override
 	public void G_reinit() {
-		if (!this.box.isInitialized() && !this.worldObj.isRemote) S_createBox();
+		if (this.yMax == Integer.MIN_VALUE && !this.worldObj.isRemote) S_createBox();
 		this.now = NOTNEEDBREAK;
 		G_renew_powerConfigure();
 		G_initEntities();
 		if (!this.worldObj.isRemote) {
 			S_setFirstPos();
-			channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.ALLAROUNDPOINT);
-			channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS)
+			PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.ALLAROUNDPOINT);
+			PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS)
 					.set(new NetworkRegistry.TargetPoint(this.getWorldObj().provider.dimensionId, this.xCoord, this.yCoord, this.zCoord, 256));
-			channels.get(Side.SERVER).writeOutbound(PacketHandler.getPacketFromNBT(this));
-			sendNowPacket(this, this.now);
+			PacketHandler.channels.get(Side.SERVER).writeOutbound(PacketHandler.getPacketFromNBT(this));
 		}
 	}
 
@@ -450,7 +463,12 @@ public class TileQuarry extends TileBasic implements IBoxProvider {
 	@Override
 	public void readFromNBT(NBTTagCompound nbttc) {
 		super.readFromNBT(nbttc);
-		this.box.initialize(nbttc);
+		this.xMin = nbttc.getInteger("xMin");
+		this.xMax = nbttc.getInteger("xMax");
+		this.yMin = nbttc.getInteger("yMin");
+		this.zMin = nbttc.getInteger("zMin");
+		this.zMax = nbttc.getInteger("zMax");
+		this.yMax = nbttc.getInteger("yMax");
 		this.targetX = nbttc.getInteger("targetX");
 		this.targetY = nbttc.getInteger("targetY");
 		this.targetZ = nbttc.getInteger("targetZ");
@@ -468,7 +486,12 @@ public class TileQuarry extends TileBasic implements IBoxProvider {
 	@Override
 	public void writeToNBT(NBTTagCompound nbttc) {
 		super.writeToNBT(nbttc);
-		this.box.writeToNBT(nbttc);
+		nbttc.setInteger("xMin", this.xMin);
+		nbttc.setInteger("xMax", this.xMax);
+		nbttc.setInteger("yMin", this.yMin);
+		nbttc.setInteger("yMax", this.yMax);
+		nbttc.setInteger("zMin", this.zMin);
+		nbttc.setInteger("zMax", this.zMax);
 		nbttc.setInteger("targetX", this.targetX);
 		nbttc.setInteger("targetY", this.targetY);
 		nbttc.setInteger("targetZ", this.targetZ);
@@ -482,14 +505,13 @@ public class TileQuarry extends TileBasic implements IBoxProvider {
 		nbttc.setDouble("headPosZ", this.headPosZ);
 	}
 
-	static final byte NONE = 0;
-	static final byte NOTNEEDBREAK = 1;
-	static final byte MAKEFRAME = 2;
-	static final byte MOVEHEAD = 4;
-	static final byte BREAKBLOCK = 5;
+	public static final byte NONE = 0;
+	public static final byte NOTNEEDBREAK = 1;
+	public static final byte MAKEFRAME = 2;
+	public static final byte MOVEHEAD = 4;
+	public static final byte BREAKBLOCK = 5;
 
 	private double headPosX, headPosY, headPosZ;
-	final Box box = new Box();
 	private EntityMechanicalArm heads;
 	private boolean initialized = true;
 	private byte now = NONE;
@@ -498,13 +520,13 @@ public class TileQuarry extends TileBasic implements IBoxProvider {
 	protected void C_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {
 		super.C_recievePacket(pattern, data, ep);
 		switch (pattern) {
-		case StC_NOW:
+		case PacketHandler.StC_NOW:
 			this.now = data.readByte();
 			G_renew_powerConfigure();
 			this.worldObj.markBlockForUpdate(this.xCoord, this.yCoord, this.zCoord);
 			G_initEntities();
 			break;
-		case StC_HEAD_POS:
+		case PacketHandler.StC_HEAD_POS:
 			this.headPosX = data.readDouble();
 			this.headPosY = data.readDouble();
 			this.headPosZ = data.readDouble();
@@ -514,16 +536,11 @@ public class TileQuarry extends TileBasic implements IBoxProvider {
 	}
 
 	private void G_initEntities() {
-		this.box.isVisible = false;
 		switch (this.now) {
-		case NOTNEEDBREAK:
-		case MAKEFRAME:
-			this.box.isVisible = true;
-			break;
 		case MOVEHEAD:
 		case BREAKBLOCK:
-			if (this.heads == null) this.worldObj.spawnEntityInWorld(new EntityMechanicalArm(this.worldObj, this.box.xMin + 0.75D, this.box.yMax,
-					this.box.zMin + 0.75D, this.box.sizeX() - 1.5D, this.box.sizeZ() - 1.5D, this));
+			if (this.heads == null) this.worldObj.spawnEntityInWorld(new EntityMechanicalArm(this.worldObj, this.xMin + 0.75D, this.yMax, this.zMin + 0.75D,
+					(this.xMax - this.xMin) - 0.5D, (this.zMax - this.zMin) - 0.5D, this));
 			break;
 		}
 
@@ -552,10 +569,5 @@ public class TileQuarry extends TileBasic implements IBoxProvider {
 		if (this.now == NONE) PowerManager.configure0(this);
 		else if (this.now == MAKEFRAME) PowerManager.configureF(this, this.efficiency, this.unbreaking, pmp);
 		else PowerManager.configureB(this, this.efficiency, this.unbreaking, pmp);
-	}
-
-	@Override
-	public Box getBox() {
-		return this.box;
 	}
 }

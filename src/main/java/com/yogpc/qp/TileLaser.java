@@ -28,13 +28,10 @@ import cpw.mods.fml.common.network.FMLOutboundHandler.OutboundTarget;
 import cpw.mods.fml.relauncher.Side;
 import static buildcraft.BuildCraftCore.actionOn;
 import static buildcraft.BuildCraftCore.actionOff;
-import static com.yogpc.qp.PacketHandler.channels;
-import buildcraft.api.core.Position;
 import buildcraft.api.gates.IAction;
 import buildcraft.api.gates.IActionReceptor;
 import buildcraft.core.EntityLaser;
 import buildcraft.core.IMachine;
-import buildcraft.core.LaserData;
 import buildcraft.core.triggers.ActionMachineControl;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
@@ -44,7 +41,12 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.util.ForgeDirection;
 
 public class TileLaser extends APowerTile implements IActionReceptor, IMachine, IEnchantableTile {
-	public LaserData[] lasers;
+	public static class Position {
+		public double x, y, z;
+		public int l;
+	}
+
+	public Position[] lasers;
 	private final List<Object> laserTargets = new ArrayList<Object>();
 	private ActionMachineControl.Mode lastMode = ActionMachineControl.Mode.Unknown;
 
@@ -79,24 +81,18 @@ public class TileLaser extends APowerTile implements IActionReceptor, IMachine, 
 			return;
 		}
 
-		if (!isValidLaser()) {// createLaser
+		if (!isValidLaser()) {
 			for (int i = 0; i < this.lasers.length; i++) {
-				this.lasers[i] = new LaserData(new Position(this.xCoord, this.yCoord, this.zCoord), new Position(this.xCoord, this.yCoord, this.zCoord));
-				this.lasers[i].isVisible = true;
+				this.lasers[i] = new Position();
 				this.from = this.worldObj.getWorldTime();
 			}
 		}
 
-		if (isValidLaser() && (this.worldObj.getWorldTime() % 10) == (this.from % 10)) {// updateLaser
-			ForgeDirection fd = ForgeDirection.values()[this.worldObj.getBlockMetadata(this.xCoord, this.yCoord, this.zCoord)];
-			Position head = new Position(this.xCoord + 0.5 + 0.3 * fd.offsetX, this.yCoord + 0.5 + 0.3 * fd.offsetY, this.zCoord + 0.5 + 0.3 * fd.offsetZ);
+		if (isValidLaser() && (this.worldObj.getWorldTime() % 10) == (this.from % 10)) {
 			for (int i = 0; i < this.laserTargets.size(); i++) {
-				this.lasers[i].tail = new Position(
-						ILaserTargetHelper.getXCoord(this.laserTargets.get(i)) + 0.475 + (this.worldObj.rand.nextFloat() - 0.5) / 5F,
-						ILaserTargetHelper.getYCoord(this.laserTargets.get(i)) + 9F / 16F, ILaserTargetHelper.getZCoord(this.laserTargets.get(i)) + 0.475
-								+ (this.worldObj.rand.nextFloat() - 0.5) / 5F);
-				this.lasers[i].head = head;
-				this.lasers[i].isVisible = true;
+				this.lasers[i].x = ILaserTargetHelper.getXCoord(this.laserTargets.get(i)) + 0.475 + (this.worldObj.rand.nextFloat() - 0.5) / 5F;
+				this.lasers[i].y = ILaserTargetHelper.getYCoord(this.laserTargets.get(i)) + 9F / 16F;
+				this.lasers[i].z = ILaserTargetHelper.getZCoord(this.laserTargets.get(i)) + 0.475 + (this.worldObj.rand.nextFloat() - 0.5) / 5F;
 			}
 		}
 
@@ -105,16 +101,16 @@ public class TileLaser extends APowerTile implements IActionReceptor, IMachine, 
 			ILaserTargetHelper.receiveLaserEnergy(lt, (float) (power / this.laserTargets.size()));
 		pushPower(power / this.laserTargets.size());
 		if ((this.worldObj.getWorldTime() % 20) == 7) {
-			channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.ALLAROUNDPOINT);
-			channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS)
+			PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.ALLAROUNDPOINT);
+			PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS)
 					.set(new NetworkRegistry.TargetPoint(this.getWorldObj().provider.dimensionId, this.xCoord, this.yCoord, this.zCoord, 256));
-			channels.get(Side.SERVER).writeOutbound(PacketHandler.getPacketFromNBT(this));
+			PacketHandler.channels.get(Side.SERVER).writeOutbound(PacketHandler.getPacketFromNBT(this));
 		}
 	}
 
 	protected boolean isValidLaser() {
 		if (this.lasers == null) return false;
-		for (LaserData laser : this.lasers)
+		for (Position laser : this.lasers)
 			if (laser == null) return false;
 		return true;
 	}
@@ -179,19 +175,16 @@ public class TileLaser extends APowerTile implements IActionReceptor, IMachine, 
 			this.laserTargets.clear();
 			this.laserTargets.add(laserTarget);
 		}
-		this.lasers = new LaserData[this.laserTargets.size()];
+		this.lasers = new Position[this.laserTargets.size()];
 	}
 
 	protected void removeLaser() {
 		if (this.lasers != null) for (int i = 0; i < this.lasers.length; i++)
-			if (this.lasers[i] != null) {
-				this.lasers[i].isVisible = false;
-				this.lasers[i] = null;
-			}
-		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.ALLAROUNDPOINT);
-		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS)
+			this.lasers[i] = null;
+		PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.ALLAROUNDPOINT);
+		PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS)
 				.set(new NetworkRegistry.TargetPoint(this.getWorldObj().provider.dimensionId, this.xCoord, this.yCoord, this.zCoord, 256));
-		channels.get(Side.SERVER).writeOutbound(PacketHandler.getPacketFromNBT(this));
+		PacketHandler.channels.get(Side.SERVER).writeOutbound(PacketHandler.getPacketFromNBT(this));
 	}
 
 	private final double[] tp = new double[100];
@@ -232,10 +225,13 @@ public class TileLaser extends APowerTile implements IActionReceptor, IMachine, 
 		PowerManager.configureL(this, this.efficiency, this.unbreaking);
 		this.pa = nbttc.getDouble("pa");
 		NBTTagList nbttl = nbttc.getTagList("lasers", 10);
-		if (this.lasers == null || this.lasers.length != nbttl.tagCount()) this.lasers = new LaserData[nbttl.tagCount()];
+		if (this.lasers == null || this.lasers.length != nbttl.tagCount()) this.lasers = new Position[nbttl.tagCount()];
 		for (int i = 0; i < nbttl.tagCount(); i++) {
-			if (this.lasers[i] == null) this.lasers[i] = new LaserData();
-			this.lasers[i].readFromNBT(nbttl.getCompoundTagAt(i));
+			if (this.lasers[i] == null) this.lasers[i] = new Position();
+			NBTTagCompound lc = nbttl.getCompoundTagAt(i);
+			this.lasers[i].x = lc.getDouble("x");
+			this.lasers[i].y = lc.getDouble("y");
+			this.lasers[i].z = lc.getDouble("z");
 		}
 	}
 
@@ -249,10 +245,12 @@ public class TileLaser extends APowerTile implements IActionReceptor, IMachine, 
 		nbttc.setDouble("pa", this.pa);
 		NBTTagList nbttl = new NBTTagList();
 		if (this.lasers != null) {
-			for (LaserData l : this.lasers) {
+			for (Position l : this.lasers) {
 				if (l != null) {
 					NBTTagCompound lc = new NBTTagCompound();
-					l.writeToNBT(lc);
+					lc.setDouble("x", l.x);
+					lc.setDouble("y", l.y);
+					lc.setDouble("z", l.z);
 					nbttl.appendTag(lc);
 				}
 			}

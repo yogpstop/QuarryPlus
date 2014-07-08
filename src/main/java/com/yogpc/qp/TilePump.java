@@ -26,11 +26,10 @@ import com.google.common.io.ByteArrayDataInput;
 
 import cpw.mods.fml.common.network.FMLOutboundHandler;
 import cpw.mods.fml.relauncher.Side;
-import static buildcraft.BuildCraftFactory.frameBlock;
+import buildcraft.BuildCraftFactory;
 import buildcraft.api.power.IPowerReceptor;
 import buildcraft.api.power.PowerHandler;
 import buildcraft.api.power.PowerHandler.PowerReceiver;
-import buildcraft.core.Box;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
@@ -315,12 +314,6 @@ public class TilePump extends APacketTile implements IFluidHandler, IEnchantable
 	private static int cp = 0, cg = 0;
 	private long fwt;
 
-	private Box S_getBox() {
-		TileBasic tb = G_connected();
-		if (tb instanceof TileQuarry) return ((TileQuarry) tb).box;
-		return null;
-	}
-
 	void S_changeRange(EntityPlayer ep) {
 		if (this.range >= (this.fortune + 1) * 2) {
 			if (G_connected() instanceof TileQuarry) this.quarryRange = true;
@@ -351,8 +344,10 @@ public class TilePump extends APacketTile implements IFluidHandler, IEnchantable
 		this.yOffset = y & 0xFFFFFFF0;
 		this.py = Y_SIZE - 1;
 		this.px = -1;
-		Box b = S_getBox();
-		if (b != null && b.isInitialized()) {
+		TileBasic tb = G_connected();
+		TileQuarry b = null;
+		if (tb instanceof TileQuarry) b = (TileQuarry) tb;
+		if (b != null && b.yMax != Integer.MIN_VALUE) {
 			chunk_side_x = 1 + (b.xMax >> 4) - (b.xMin >> 4);
 			chunk_side_z = 1 + (b.zMax >> 4) - (b.zMin >> 4);
 			this.xOffset = b.xMin & 0xFFFFFFF0;
@@ -360,12 +355,12 @@ public class TilePump extends APacketTile implements IFluidHandler, IEnchantable
 			int x_add = ((this.range * 2) + 1) - chunk_side_x;
 			if (x_add > 0) {
 				chunk_side_x += x_add;
-				this.xOffset -= ((x_add & 0xFFFFFFFE) << 3) + (((x_add % 2) != 0 && (b.centerX() % 0x10) <= 8) ? 0x10 : 0);
+				this.xOffset -= ((x_add & 0xFFFFFFFE) << 3) + (((x_add % 2) != 0 && (((b.xMax + b.xMin + 1) / 2) % 0x10) <= 8) ? 0x10 : 0);
 			}
 			int z_add = ((this.range * 2) + 1) - chunk_side_z;
 			if (z_add > 0) {
 				chunk_side_z += z_add;
-				this.zOffset -= ((z_add & 0xFFFFFFFE) << 3) + (((z_add % 2) != 0 && (b.centerZ() % 0x10) <= 8) ? 0x10 : 0);
+				this.zOffset -= ((z_add & 0xFFFFFFFE) << 3) + (((z_add % 2) != 0 && (((b.zMax + b.zMin + 1) / 2) % 0x10) <= 8) ? 0x10 : 0);
 			}
 		} else {
 			this.quarryRange = false;
@@ -457,7 +452,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IEnchantable
 				for (bx = 0; bx < this.block_side_x; bx++) {
 					for (bz = 0; bz < this.block_side_z; bz++) {
 						if ((this.blocks[this.py - this.yOffset][bx][bz] & 0x40) != 0) {
-							drainBlock(bx, bz, frameBlock);
+							drainBlock(bx, bz, BuildCraftFactory.frameBlock);
 						}
 					}
 				}

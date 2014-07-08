@@ -18,13 +18,13 @@
 package com.yogpc.qp.client;
 
 import com.yogpc.qp.PacketHandler;
+import com.yogpc.qp.QuarryPlus;
 import com.yogpc.qp.TileBasic;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.util.StatCollector;
-import static com.yogpc.qp.QuarryPlus.getname;
 
 @SideOnly(Side.CLIENT)
 public class GuiQ_List extends GuiScreenA {
@@ -63,8 +63,8 @@ public class GuiQ_List extends GuiScreenA {
 			break;
 		case PacketHandler.CtS_REMOVE_FORTUNE:
 		case PacketHandler.CtS_REMOVE_SILKTOUCH:
-			this.mc.displayGuiScreen(new GuiYesNo(this, StatCollector.translateToLocal("tof.deleteblocksure"),
-					getname((this.targetid == 0 ? this.tile.fortuneList : this.tile.silktouchList).get(this.oreslot.currentore)), par1.id));
+			this.mc.displayGuiScreen(new GuiYesNo(this, StatCollector.translateToLocal("tof.deleteblocksure"), QuarryPlus
+					.getname((this.targetid == 0 ? this.tile.fortuneList : this.tile.silktouchList).get(this.oreslot.currentore)), par1.id));
 			break;
 		default:
 			PacketHandler.sendPacketToServer(this.tile, (byte) par1.id);
