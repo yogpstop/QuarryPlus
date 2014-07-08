@@ -129,7 +129,7 @@ public class ContainerMover extends Container {
 		is = this.craftMatrix.getStackInSlot(1);
 		list = is.getEnchantmentTagList();
 		boolean done = false;
-		if (list == null) {
+		if (list == null || list.tagCount() == 0) {
 			if (!is.hasTagCompound()) is.setTagCompound(new NBTTagCompound());
 			NBTTagCompound nbttc = is.getTagCompound();
 			list = new NBTTagList();

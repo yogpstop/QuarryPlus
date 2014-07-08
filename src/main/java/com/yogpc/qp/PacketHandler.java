@@ -27,14 +27,13 @@ import java.io.IOException;
 import java.util.EnumMap;
 
 import net.minecraft.inventory.Container;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
+import com.yogpc.qp.QuarryPlus.BlockData;
 
 import cpw.mods.fml.common.network.FMLEmbeddedChannel;
 import cpw.mods.fml.common.network.FMLOutboundHandler;
@@ -123,7 +122,7 @@ public class PacketHandler extends SimpleChannelInboundHandler<QuarryPlusPacket>
 		}
 	}
 
-	public static void sendPacketToServer(APacketTile te, byte id, ItemStack is) {// Ljava.lang.String;I
+	public static void sendPacketToServer(APacketTile te, byte id, BlockData bd) {// Ljava.lang.String;I
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		DataOutputStream dos = new DataOutputStream(bos);
 		try {
@@ -131,8 +130,8 @@ public class PacketHandler extends SimpleChannelInboundHandler<QuarryPlusPacket>
 			dos.writeInt(te.yCoord);
 			dos.writeInt(te.zCoord);
 			dos.writeByte(id);
-			dos.writeUTF(Item.itemRegistry.getNameForObject(is.getItem()));
-			dos.writeInt(is.getItemDamage());
+			dos.writeUTF(bd.name);
+			dos.writeInt(bd.meta);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

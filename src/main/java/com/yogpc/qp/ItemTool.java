@@ -19,17 +19,23 @@ package com.yogpc.qp;
 
 import java.util.List;
 
+import com.yogpc.qp.QuarryPlus.BlockData;
+
 import buildcraft.core.CreativeTabBuildCraft;
+import cpw.mods.fml.common.registry.GameData;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import net.minecraft.block.Block;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.World;
+import net.minecraftforge.oredict.OreDictionary;
 
 public class ItemTool extends Item implements IEnchantableItem {
 	IIcon ile, ils;
@@ -69,11 +75,41 @@ public class ItemTool extends Item implements IEnchantableItem {
 				if (id == 33) s = true;
 				if (id == 35) f = true;
 			}
+			NBTTagCompound c = is.getTagCompound();
+			Block b = w.getBlock(x, y, z);
+			BlockData bd = null;
+			if (c != null && c.hasKey("Bname")) {
+				bd = new BlockData(c.getString("Bname"), c.getInteger("Bmeta"));
+				if (b == null || b.isAir(w, x, y, z)) {
+					c.removeTag("Bname");
+					c.removeTag("Bmeta");
+					return true;
+				}
+			}
 			if (w.getTileEntity(x, y, z) instanceof TileBasic && s != f) {
-				if (!w.isRemote) ((TileBasic) w.getTileEntity(x, y, z)).sendOpenGUI(ep, f ? PacketHandler.StC_OPENGUI_FORTUNE
-						: PacketHandler.StC_OPENGUI_SILKTOUCH);
+				TileBasic tb = (TileBasic) w.getTileEntity(x, y, z);
+				if (c != null && bd != null) {
+					if (!w.isRemote) (f ? tb.fortuneList : tb.silktouchList).add(bd);
+					c.removeTag("Bname");
+					c.removeTag("Bmeta");
+				} else if (!w.isRemote) tb.sendOpenGUI(ep, f ? PacketHandler.StC_OPENGUI_FORTUNE : PacketHandler.StC_OPENGUI_SILKTOUCH);
 				return true;
 			}
+			if (b != null && !b.isAir(w, x, y, z)) {
+				if (c == null) {
+					c = new NBTTagCompound();
+					is.setTagCompound(c);
+				}
+				String name = GameData.getBlockRegistry().getNameForObject(b);
+				int meta = w.getBlockMetadata(x, y, z);
+				if (c.hasKey("Bname") && name.equals(c.getString("Bname")) && meta == c.getInteger("Bmeta")) {
+					c.setInteger("Bmeta", OreDictionary.WILDCARD_VALUE);
+				} else {
+					c.setString("Bname", name);
+					c.setInteger("Bmeta", meta);
+				}
+			}
+
 		}
 		return false;
 	}
@@ -87,6 +123,17 @@ public class ItemTool extends Item implements IEnchantableItem {
 			return "item.liquidSelector";
 		}
 		return "item.statusChecker";
+	}
+
+	@Override
+	@SideOnly(Side.CLIENT)
+	public void addInformation(ItemStack is, EntityPlayer ep, List l, boolean b) {
+		NBTTagCompound c = is.getTagCompound();
+		if (c != null && c.hasKey("Bname")) {
+			l.add(c.getString("Bname"));
+			int meta = c.getInteger("Bmeta");
+			if (meta != OreDictionary.WILDCARD_VALUE) l.add(Integer.toString(meta));
+		}
 	}
 
 	@Override
@@ -108,7 +155,8 @@ public class ItemTool extends Item implements IEnchantableItem {
 	@Override
 	public boolean canMove(ItemStack is, int id, int meta) {
 		if (meta != 1) return false;
-		if (is.getEnchantmentTagList() != null) return false;
+		NBTTagList l = is.getEnchantmentTagList();
+		if (l != null && l.tagCount() != 0) return false;
 		return id == 33 || id == 35 || id == -1;
 	}
 }

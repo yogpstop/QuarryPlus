@@ -27,8 +27,6 @@ minecraft {
     replace '@VERSION@', project.version
 }
 
-buildDir = file(new File(projectDir, "../build"))
-
 dependencies {
     compile 'com.mod-buildcraft:buildcraft:6.0.16:dev'
 }

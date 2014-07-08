@@ -33,6 +33,7 @@ import cpw.mods.fml.common.network.FMLOutboundHandler.OutboundTarget;
 import cpw.mods.fml.relauncher.Side;
 import buildcraft.api.core.IAreaProvider;
 import buildcraft.core.Box.Kind;
+import buildcraft.core.IBoxProvider;
 import static buildcraft.BuildCraftFactory.frameBlock;
 import buildcraft.core.Box;
 import buildcraft.core.proxy.CoreProxy;
@@ -49,7 +50,7 @@ import net.minecraftforge.common.ForgeChunkManager.Ticket;
 import net.minecraftforge.common.ForgeChunkManager.Type;
 import net.minecraftforge.common.util.ForgeDirection;
 
-public class TileQuarry extends TileBasic {
+public class TileQuarry extends TileBasic implements IBoxProvider {
 	private int targetX, targetY, targetZ;
 
 	private IAreaProvider iap = null;
@@ -551,5 +552,10 @@ public class TileQuarry extends TileBasic {
 		if (this.now == NONE) PowerManager.configure0(this);
 		else if (this.now == MAKEFRAME) PowerManager.configureF(this, this.efficiency, this.unbreaking, pmp);
 		else PowerManager.configureB(this, this.efficiency, this.unbreaking, pmp);
+	}
+
+	@Override
+	public Box getBox() {
+		return this.box;
 	}
 }

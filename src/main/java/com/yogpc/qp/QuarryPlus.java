@@ -32,18 +32,19 @@ import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.StatCollector;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Property;
 import net.minecraftforge.event.world.WorldEvent;
+import net.minecraftforge.oredict.OreDictionary;
 import cpw.mods.fml.client.registry.RenderingRegistry;
 import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.registry.GameData;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.common.registry.LanguageRegistry;
 import cpw.mods.fml.common.network.NetworkRegistry;
@@ -280,19 +281,37 @@ public class QuarryPlus {
 		proxy.registerTextures();
 	}
 
-	public static String getname(ItemStack is) {
+	public static class BlockData {
+		public final String name;
+		public final int meta;
+
+		public BlockData(String n, int m) {
+			this.name = n;
+			this.meta = m;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (o instanceof BlockData) return this.name.equals(((BlockData) o).name)
+					&& (this.meta == ((BlockData) o).meta || this.meta == OreDictionary.WILDCARD_VALUE || ((BlockData) o).meta == OreDictionary.WILDCARD_VALUE);
+			return false;
+		}
+
+		@Override
+		public int hashCode() {
+			return this.name.hashCode() & this.meta;
+		}
+	}
+
+	public static String getname(BlockData bd) {
 		StringBuffer sb = new StringBuffer();
-		if (is.getItemDamage() != 0) {
-			sb.append(is.getItemDamage());
-			sb.append("  ");
+		sb.append(bd.name);
+		if (bd.meta != OreDictionary.WILDCARD_VALUE) {
+			sb.append(":");
+			sb.append(bd.meta);
 		}
-		if (is.getItem() == null) {
-			sb.append(StatCollector.translateToLocal("tof.nullblock"));
-		} else if (is.getDisplayName() == null) {
-			sb.append(StatCollector.translateToLocal("tof.nullname"));
-		} else {
-			sb.append(is.getDisplayName());
-		}
+		sb.append("  ");
+		sb.append(GameData.getBlockRegistry().getObject(bd.name).getLocalizedName());
 		return sb.toString();
 	}
 }

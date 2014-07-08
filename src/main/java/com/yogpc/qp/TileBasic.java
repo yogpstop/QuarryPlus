@@ -31,12 +31,12 @@ import java.util.List;
 import java.util.Queue;
 
 import com.google.common.io.ByteArrayDataInput;
+import com.yogpc.qp.QuarryPlus.BlockData;
 
 import cpw.mods.fml.common.network.FMLOutboundHandler;
 import cpw.mods.fml.relauncher.Side;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -48,8 +48,8 @@ import buildcraft.core.IMachine;
 public abstract class TileBasic extends APowerTile implements IMachine, IEnchantableTile {
 	protected ForgeDirection pump = ForgeDirection.UNKNOWN;
 
-	public final List<ItemStack> fortuneList = new ArrayList<ItemStack>();
-	public final List<ItemStack> silktouchList = new ArrayList<ItemStack>();
+	public final List<BlockData> fortuneList = new ArrayList<BlockData>();
+	public final List<BlockData> silktouchList = new ArrayList<BlockData>();
 	public boolean fortuneInclude, silktouchInclude;
 
 	protected byte unbreaking;
@@ -68,11 +68,11 @@ public abstract class TileBasic extends APowerTile implements IMachine, IEnchant
 			dos.writeInt(this.zCoord);
 			dos.writeByte(id);
 			dos.writeBoolean(id == StC_OPENGUI_FORTUNE ? this.fortuneInclude : this.silktouchInclude);
-			List<ItemStack> target = id == StC_OPENGUI_FORTUNE ? this.fortuneList : this.silktouchList;
+			List<BlockData> target = id == StC_OPENGUI_FORTUNE ? this.fortuneList : this.silktouchList;
 			dos.writeInt(target.size());
-			for (ItemStack l : target) {
-				dos.writeUTF(Item.itemRegistry.getNameForObject(l.getItem()));
-				dos.writeInt(l.getItemDamage());
+			for (BlockData l : target) {
+				dos.writeUTF(l.name);
+				dos.writeInt(l.meta);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -86,19 +86,19 @@ public abstract class TileBasic extends APowerTile implements IMachine, IEnchant
 	protected void S_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {
 		switch (pattern) {
 		case CtS_ADD_FORTUNE:
-			this.fortuneList.add(new ItemStack((Item) Item.itemRegistry.getObject(data.readUTF()), data.readInt()));
+			this.fortuneList.add(new BlockData(data.readUTF(), data.readInt()));
 			sendOpenGUI(ep, StC_OPENGUI_FORTUNE);
 			break;
 		case CtS_REMOVE_FORTUNE:
-			this.fortuneList.remove(new ItemStack((Item) Item.itemRegistry.getObject(data.readUTF()), data.readInt()));
+			this.fortuneList.remove(new BlockData(data.readUTF(), data.readInt()));
 			sendOpenGUI(ep, StC_OPENGUI_FORTUNE);
 			break;
 		case CtS_ADD_SILKTOUCH:
-			this.silktouchList.add(new ItemStack((Item) Item.itemRegistry.getObject(data.readUTF()), data.readInt()));
+			this.silktouchList.add(new BlockData(data.readUTF(), data.readInt()));
 			sendOpenGUI(ep, StC_OPENGUI_SILKTOUCH);
 			break;
 		case CtS_REMOVE_SILKTOUCH:
-			this.silktouchList.remove(new ItemStack((Item) Item.itemRegistry.getObject(data.readUTF()), data.readInt()));
+			this.silktouchList.remove(new BlockData(data.readUTF(), data.readInt()));
 			sendOpenGUI(ep, StC_OPENGUI_SILKTOUCH);
 			break;
 		case CtS_TOGGLE_FORTUNE:
@@ -136,7 +136,7 @@ public abstract class TileBasic extends APowerTile implements IMachine, IEnchant
 			this.fortuneList.clear();
 			int fsize = data.readInt();
 			for (int i = 0; i < fsize; i++) {
-				this.fortuneList.add(new ItemStack((Item) Item.itemRegistry.getObject(data.readUTF()), data.readInt()));
+				this.fortuneList.add(new BlockData(data.readUTF(), data.readInt()));
 			}
 			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdFList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
 			break;
@@ -145,7 +145,7 @@ public abstract class TileBasic extends APowerTile implements IMachine, IEnchant
 			this.silktouchList.clear();
 			int ssize = data.readInt();
 			for (int i = 0; i < ssize; i++) {
-				this.silktouchList.add(new ItemStack((Item) Item.itemRegistry.getObject(data.readUTF()), data.readInt()));
+				this.silktouchList.add(new BlockData(data.readUTF(), data.readInt()));
 			}
 			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdSList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
 			break;
@@ -266,10 +266,12 @@ public abstract class TileBasic extends APowerTile implements IMachine, IEnchant
 		readLongCollection(nbttc.getTagList("silktouchList", 10), this.silktouchList);
 	}
 
-	private static void readLongCollection(NBTTagList nbttl, Collection<ItemStack> target) {
+	private static void readLongCollection(NBTTagList nbttl, Collection<BlockData> target) {
 		target.clear();
-		for (int i = 0; i < nbttl.tagCount(); i++)
-			target.add(ItemStack.loadItemStackFromNBT(nbttl.getCompoundTagAt(i)));
+		for (int i = 0; i < nbttl.tagCount(); i++) {
+			NBTTagCompound c = nbttl.getCompoundTagAt(i);
+			target.add(new BlockData(c.getString("name"), c.getInteger("meta")));
+		}
 	}
 
 	@Override
@@ -285,10 +287,14 @@ public abstract class TileBasic extends APowerTile implements IMachine, IEnchant
 		nbttc.setTag("silktouchList", writeLongCollection(this.silktouchList));
 	}
 
-	private static NBTTagList writeLongCollection(Collection<ItemStack> target) {
+	private static NBTTagList writeLongCollection(Collection<BlockData> target) {
 		NBTTagList nbttl = new NBTTagList();
-		for (ItemStack l : target)
-			nbttl.appendTag(l.writeToNBT(new NBTTagCompound()));
+		for (BlockData l : target) {
+			NBTTagCompound c = new NBTTagCompound();
+			c.setString("name", l.name);
+			c.setInteger("meta", l.meta);
+			nbttl.appendTag(c);
+		}
 		return nbttl;
 	}
 

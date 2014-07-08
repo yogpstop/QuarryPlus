@@ -47,10 +47,6 @@ public class GuiQ_List extends GuiScreenA {
 	@Override
 	public void initGui() {
 		this.buttonList.add(new GuiButton(-1, this.width / 2 - 125, this.height - 26, 250, 20, StatCollector.translateToLocal("gui.done")));
-		this.buttonList.add(new GuiButton(-2, this.width * 2 / 3 + 10, 80, 100, 20, StatCollector.translateToLocal("tof.addnewore") + "("
-				+ StatCollector.translateToLocal("tof.manualinput") + ")"));
-		this.buttonList.add(new GuiButton(-3, this.width * 2 / 3 + 10, 50, 100, 20, StatCollector.translateToLocal("tof.addnewore") + "("
-				+ StatCollector.translateToLocal("tof.fromlist") + ")"));
 		this.buttonList.add(new GuiButton(PacketHandler.CtS_TOGGLE_FORTUNE + this.targetid, this.width * 2 / 3 + 10, 140, 100, 20, StatCollector
 				.translateToLocal(include() ? "tof.include" : "tof.exclude")));
 		this.buttonList.add(this.delete = new GuiButton(PacketHandler.CtS_REMOVE_FORTUNE + this.targetid, this.width * 2 / 3 + 10, 110, 100, 20, StatCollector
@@ -64,12 +60,6 @@ public class GuiQ_List extends GuiScreenA {
 		switch (par1.id) {
 		case -1:
 			showParent();
-			break;
-		case -2:
-			this.mc.displayGuiScreen(new GuiQ_Manual(this, this.targetid, this.tile));
-			break;
-		case -3:
-			this.mc.displayGuiScreen(new GuiQ_SelectBlock(this, this.tile, this.targetid));
 			break;
 		case PacketHandler.CtS_REMOVE_FORTUNE:
 		case PacketHandler.CtS_REMOVE_SILKTOUCH:

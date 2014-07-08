@@ -22,21 +22,29 @@ import java.util.List;
 
 import com.google.common.io.ByteArrayDataInput;
 
+import cpw.mods.fml.common.network.FMLOutboundHandler;
+import cpw.mods.fml.common.network.NetworkRegistry;
+import cpw.mods.fml.common.network.FMLOutboundHandler.OutboundTarget;
+import cpw.mods.fml.relauncher.Side;
 import static buildcraft.BuildCraftCore.actionOn;
 import static buildcraft.BuildCraftCore.actionOff;
+import static com.yogpc.qp.PacketHandler.channels;
 import buildcraft.api.core.Position;
 import buildcraft.api.gates.IAction;
 import buildcraft.api.gates.IActionReceptor;
+import buildcraft.core.EntityLaser;
 import buildcraft.core.IMachine;
 import buildcraft.core.LaserData;
 import buildcraft.core.triggers.ActionMachineControl;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.util.ForgeDirection;
 
 public class TileLaser extends APowerTile implements IActionReceptor, IMachine, IEnchantableTile {
-	private LaserData[] lasers;
+	public LaserData[] lasers;
 	private final List<Object> laserTargets = new ArrayList<Object>();
 	private ActionMachineControl.Mode lastMode = ActionMachineControl.Mode.Unknown;
 
@@ -44,6 +52,7 @@ public class TileLaser extends APowerTile implements IActionReceptor, IMachine, 
 	protected byte fortune;
 	protected byte efficiency;
 	protected boolean silktouch;
+	private double pa;
 
 	private long from = 38669;
 
@@ -73,7 +82,7 @@ public class TileLaser extends APowerTile implements IActionReceptor, IMachine, 
 		if (!isValidLaser()) {// createLaser
 			for (int i = 0; i < this.lasers.length; i++) {
 				this.lasers[i] = new LaserData(new Position(this.xCoord, this.yCoord, this.zCoord), new Position(this.xCoord, this.yCoord, this.zCoord));
-				// TODO this.worldObj.spawnEntityInWorld(this.lasers[i]);
+				this.lasers[i].isVisible = true;
 				this.from = this.worldObj.getWorldTime();
 			}
 		}
@@ -82,20 +91,25 @@ public class TileLaser extends APowerTile implements IActionReceptor, IMachine, 
 			ForgeDirection fd = ForgeDirection.values()[this.worldObj.getBlockMetadata(this.xCoord, this.yCoord, this.zCoord)];
 			Position head = new Position(this.xCoord + 0.5 + 0.3 * fd.offsetX, this.yCoord + 0.5 + 0.3 * fd.offsetY, this.zCoord + 0.5 + 0.3 * fd.offsetZ);
 			for (int i = 0; i < this.laserTargets.size(); i++) {
-				Position tail = new Position(ILaserTargetHelper.getXCoord(this.laserTargets.get(i)) + 0.475 + (this.worldObj.rand.nextFloat() - 0.5) / 5F,
+				this.lasers[i].tail = new Position(
+						ILaserTargetHelper.getXCoord(this.laserTargets.get(i)) + 0.475 + (this.worldObj.rand.nextFloat() - 0.5) / 5F,
 						ILaserTargetHelper.getYCoord(this.laserTargets.get(i)) + 9F / 16F, ILaserTargetHelper.getZCoord(this.laserTargets.get(i)) + 0.475
 								+ (this.worldObj.rand.nextFloat() - 0.5) / 5F);
-				// TODO this.lasers[i].setPositions(head, tail);
-
-				// TODO if (!this.lasers[i].isVisible()) this.lasers[i].show();
+				this.lasers[i].head = head;
+				this.lasers[i].isVisible = true;
 			}
 		}
 
 		double power = PowerManager.useEnergyL(this, this.unbreaking, this.fortune, this.silktouch, this.efficiency);
 		for (Object lt : this.laserTargets)
 			ILaserTargetHelper.receiveLaserEnergy(lt, (float) (power / this.laserTargets.size()));
-		// for (LaserData laser : this.lasers)
-		// TODO laser.pushPower(power / this.laserTargets.size());
+		pushPower(power / this.laserTargets.size());
+		if ((this.worldObj.getWorldTime() % 20) == 7) {
+			channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.ALLAROUNDPOINT);
+			channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS)
+					.set(new NetworkRegistry.TargetPoint(this.getWorldObj().provider.dimensionId, this.xCoord, this.yCoord, this.zCoord, 256));
+			channels.get(Side.SERVER).writeOutbound(PacketHandler.getPacketFromNBT(this));
+		}
 	}
 
 	protected boolean isValidLaser() {
@@ -174,6 +188,38 @@ public class TileLaser extends APowerTile implements IActionReceptor, IMachine, 
 				this.lasers[i].isVisible = false;
 				this.lasers[i] = null;
 			}
+		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.ALLAROUNDPOINT);
+		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS)
+				.set(new NetworkRegistry.TargetPoint(this.getWorldObj().provider.dimensionId, this.xCoord, this.yCoord, this.zCoord, 256));
+		channels.get(Side.SERVER).writeOutbound(PacketHandler.getPacketFromNBT(this));
+	}
+
+	private final double[] tp = new double[100];
+	private int pi = 0;
+
+	private void pushPower(double received) {
+		this.pa -= this.tp[this.pi];
+		this.pa += received;
+		this.tp[this.pi] = received;
+		this.pi++;
+
+		if (this.pi == this.tp.length) {
+			this.pi = 0;
+		}
+	}
+
+	public ResourceLocation getTexture() {
+		double avg = this.pa / 100;
+
+		if (avg <= 1.0) {
+			return EntityLaser.LASER_TEXTURES[0];
+		} else if (avg <= 2.0) {
+			return EntityLaser.LASER_TEXTURES[1];
+		} else if (avg <= 3.0) {
+			return EntityLaser.LASER_TEXTURES[2];
+		} else {
+			return EntityLaser.LASER_TEXTURES[3];
+		}
 	}
 
 	@Override
@@ -184,6 +230,13 @@ public class TileLaser extends APowerTile implements IActionReceptor, IMachine, 
 		this.unbreaking = nbttc.getByte("unbreaking");
 		this.silktouch = nbttc.getBoolean("silktouch");
 		PowerManager.configureL(this, this.efficiency, this.unbreaking);
+		this.pa = nbttc.getDouble("pa");
+		NBTTagList nbttl = nbttc.getTagList("lasers", 10);
+		if (this.lasers == null || this.lasers.length != nbttl.tagCount()) this.lasers = new LaserData[nbttl.tagCount()];
+		for (int i = 0; i < nbttl.tagCount(); i++) {
+			if (this.lasers[i] == null) this.lasers[i] = new LaserData();
+			this.lasers[i].readFromNBT(nbttl.getCompoundTagAt(i));
+		}
 	}
 
 	@Override
@@ -193,6 +246,18 @@ public class TileLaser extends APowerTile implements IActionReceptor, IMachine, 
 		nbttc.setByte("efficiency", this.efficiency);
 		nbttc.setByte("unbreaking", this.unbreaking);
 		nbttc.setBoolean("silktouch", this.silktouch);
+		nbttc.setDouble("pa", this.pa);
+		NBTTagList nbttl = new NBTTagList();
+		if (this.lasers != null) {
+			for (LaserData l : this.lasers) {
+				if (l != null) {
+					NBTTagCompound lc = new NBTTagCompound();
+					l.writeToNBT(lc);
+					nbttl.appendTag(lc);
+				}
+			}
+		}
+		nbttc.setTag("lasers", nbttl);
 	}
 
 	@Override
