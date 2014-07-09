@@ -33,6 +33,7 @@ import com.google.common.io.ByteArrayDataInput;
 import com.yogpc.qp.QuarryPlus.BlockData;
 
 import cpw.mods.fml.common.network.FMLOutboundHandler;
+import cpw.mods.fml.common.registry.GameData;
 import cpw.mods.fml.relauncher.Side;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
@@ -198,7 +199,7 @@ public abstract class TileBasic extends APowerTile implements IMachine, IEnchant
 	private byte S_addDroppedItems(Collection<ItemStack> list, Block b, int x, int y, int z) {
 		int meta = this.worldObj.getBlockMetadata(x, y, z);
 		if (b.canSilkHarvest(this.worldObj, null, x, y, z, meta) && this.silktouch
-				&& (this.silktouchList.contains(new ItemStack(b, meta)) == this.silktouchInclude)) {
+				&& (this.silktouchList.contains(new BlockData(GameData.getBlockRegistry().getNameForObject(b), meta)) == this.silktouchInclude)) {
 			try {
 				list.add((ItemStack) createStackedBlock.invoke(b, meta));
 				return -1;
@@ -208,7 +209,7 @@ public abstract class TileBasic extends APowerTile implements IMachine, IEnchant
 				e.printStackTrace();
 			}
 		}
-		if (this.fortuneList.contains(new ItemStack(b, meta)) == this.fortuneInclude) {
+		if (this.fortuneList.contains(new BlockData(GameData.getBlockRegistry().getNameForObject(b), meta)) == this.fortuneInclude) {
 			list.addAll(b.getDrops(this.worldObj, x, y, z, meta, this.fortune));
 			return this.fortune;
 		}
@@ -236,16 +237,21 @@ public abstract class TileBasic extends APowerTile implements IMachine, IEnchant
 	static {
 		Method buf = null;
 		try {
-			buf = Block.class.getDeclaredMethod("func_71880_c_", int.class);
+			buf = Block.class.getDeclaredMethod("func_149644_j", int.class);
 			buf.setAccessible(true);
 		} catch (Exception e1) {
 			try {
-				buf = Block.class.getDeclaredMethod("createStackedBlock", int.class);
+				buf = Block.class.getDeclaredMethod("func_71880_c_", int.class);
 				buf.setAccessible(true);
 			} catch (Exception e2) {
-				e1.printStackTrace();
-				e2.printStackTrace();
-				buf = null;
+				try {
+					buf = Block.class.getDeclaredMethod("createStackedBlock", int.class);
+					buf.setAccessible(true);
+				} catch (Exception e3) {
+					e1.printStackTrace();
+					e2.printStackTrace();
+					e3.printStackTrace();
+				}
 			}
 		}
 		createStackedBlock = buf;
