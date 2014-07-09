@@ -169,7 +169,7 @@ public abstract class TileBasic extends APowerTile implements IMachine, IEnchant
 
 	protected boolean S_breakBlock(int x, int y, int z) {
 		Collection<ItemStack> dropped = new LinkedList<ItemStack>();
-		Block b = this.worldObj.getBlock(x, y, z);
+		Block b = this.worldObj.getChunkProvider().loadChunk(x >> 4, z >> 4).getBlock(x & 0xF, y, z & 0xF);
 		if (b == null || b.isAir(this.worldObj, x, y, z)) return true;
 		if (TilePump.isLiquid(b, false, null, 0, 0, 0, 0)) {
 			TileEntity te = this.worldObj.getTileEntity(this.xCoord + this.pump.offsetX, this.yCoord + this.pump.offsetY, this.zCoord + this.pump.offsetZ);

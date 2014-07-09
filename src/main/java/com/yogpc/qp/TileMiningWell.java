@@ -73,10 +73,10 @@ public class TileMiningWell extends TileBasic {
 			G_destroy();
 			return true;
 		}
-		Block b = this.worldObj.getBlock(this.xCoord, depth, this.zCoord);
+		Block b = this.worldObj.getChunkProvider().loadChunk(this.xCoord >> 4, this.zCoord >> 4).getBlock(this.xCoord & 0xF, depth, this.zCoord & 0xF);
 		float h = b == null ? -1 : b.getBlockHardness(this.worldObj, this.xCoord, depth, this.zCoord);
 		if (b == null || h < 0 || b == BuildCraftFactory.plainPipeBlock || b.isAir(this.worldObj, this.xCoord, depth, this.zCoord)) return false;
-		if (this.pump == ForgeDirection.UNKNOWN && this.worldObj.getBlock(this.xCoord, depth, this.zCoord).getMaterial().isLiquid()) return false;
+		if (this.pump == ForgeDirection.UNKNOWN && b.getMaterial().isLiquid()) return false;
 		if (!this.working) {
 			this.working = true;
 			G_renew_powerConfigure();

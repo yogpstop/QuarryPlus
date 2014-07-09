@@ -19,13 +19,16 @@ package com.yogpc.qp;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
+import java.lang.reflect.Method;
+
+import buildcraft.api.power.IPowerReceptor;
+import buildcraft.api.power.PowerHandler.PowerReceiver;
+import buildcraft.api.power.PowerHandler.Type;
 
 import com.google.common.io.ByteArrayDataInput;
 
 import cpw.mods.fml.common.network.FMLOutboundHandler;
 import cpw.mods.fml.relauncher.Side;
-//import buildcraft.api.mj.IBatteryObject;
-//import buildcraft.api.mj.MjAPI;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
@@ -36,6 +39,15 @@ public class TileInfMJSrc extends APacketTile {
 	public int interval = 1;
 	private int cInterval = 1;
 
+	static Method getMjBattery = null;
+	static Method addEnergy = null;
+	static {
+		try {
+			getMjBattery = Class.forName("buildcraft.api.mj.MjAPI").getMethod("getMjBattery", Object.class);
+			addEnergy = Class.forName("buildcraft.api.mj.IBatteryObject").getMethod("addEnergy", double.class);
+		} catch (Exception e) {}
+	}
+
 	@Override
 	public void updateEntity() {
 		if (this.worldObj.isBlockIndirectlyGettingPowered(this.xCoord, this.yCoord, this.zCoord)
@@ -44,10 +56,19 @@ public class TileInfMJSrc extends APacketTile {
 		TileEntity te;
 		for (ForgeDirection d : ForgeDirection.VALID_DIRECTIONS) {
 			te = this.worldObj.getTileEntity(this.xCoord + d.offsetX, this.yCoord + d.offsetY, this.zCoord + d.offsetZ);
-			/*IBatteryObject ibo = MjAPI.getMjBattery(te);
-			if (ibo != null) {
-				ibo.addEnergy(this.power);
-			}*/
+			Object o = null;
+			try {
+				if (getMjBattery != null) o = getMjBattery.invoke(null, te);
+				if (o != null && addEnergy != null) {
+					addEnergy.invoke(o, this.power);
+					break;
+				}
+			} catch (Exception e) {
+			}
+			if (te instanceof IPowerReceptor) {
+				PowerReceiver pr = ((IPowerReceptor) te).getPowerReceiver(d.getOpposite());
+				if (pr != null) pr.receiveEnergy(Type.ENGINE, this.power, d.getOpposite());
+			}
 		}
 		this.cInterval = this.interval;
 	}

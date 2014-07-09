@@ -98,7 +98,8 @@ public class TileQuarry extends TileBasic {
 
 	private boolean S_checkTarget() {
 		if (this.targetY > this.yMax) this.targetY = this.yMax;
-		Block b = this.worldObj.getBlock(this.targetX, this.targetY, this.targetZ);
+		Block b = this.worldObj.getChunkProvider().loadChunk(this.targetX >> 4, this.targetZ >> 4)
+				.getBlock(this.targetX & 0xF, this.targetY, this.targetZ & 0xF);
 		float h = b == null ? -1 : b.getBlockHardness(this.worldObj, this.targetX, this.targetY, this.targetZ);
 		switch (this.now) {
 		case BREAKBLOCK:
@@ -109,7 +110,7 @@ public class TileQuarry extends TileBasic {
 				return true;
 			}
 			if (b == null || h < 0 || b.isAir(this.worldObj, this.targetX, this.targetY, this.targetZ)) return false;
-			if (this.pump == ForgeDirection.UNKNOWN && this.worldObj.getBlock(this.targetX, this.targetY, this.targetZ).getMaterial().isLiquid()) return false;
+			if (this.pump == ForgeDirection.UNKNOWN && TilePump.isLiquid(b, false, null, 0, 0, 0, 0)) return false;
 			return true;
 		case NOTNEEDBREAK:
 			if (this.targetY < this.yMin) {
@@ -124,7 +125,7 @@ public class TileQuarry extends TileBasic {
 				return S_checkTarget();
 			}
 			if (b == null || h < 0 || b.isAir(this.worldObj, this.targetX, this.targetY, this.targetZ)) return false;
-			if (this.pump == ForgeDirection.UNKNOWN && this.worldObj.getBlock(this.targetX, this.targetY, this.targetZ).getMaterial().isLiquid()) return false;
+			if (this.pump == ForgeDirection.UNKNOWN && TilePump.isLiquid(b, false, null, 0, 0, 0, 0)) return false;
 			if (b == BuildCraftFactory.frameBlock) {
 				byte flag = 0;
 				if (this.targetX == this.xMin || this.targetX == this.xMax) flag++;
@@ -149,7 +150,7 @@ public class TileQuarry extends TileBasic {
 				PacketHandler.sendNowPacket(this, this.now);
 				return S_checkTarget();
 			}
-			if (this.worldObj.getBlock(this.targetX, this.targetY, this.targetZ).getMaterial().isSolid() && b != BuildCraftFactory.frameBlock) {
+			if (b != null && b.getMaterial().isSolid() && b != BuildCraftFactory.frameBlock) {
 				this.now = NOTNEEDBREAK;
 				G_renew_powerConfigure();
 				this.targetX = this.xMin;

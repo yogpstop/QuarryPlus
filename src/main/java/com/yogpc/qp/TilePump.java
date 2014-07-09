@@ -323,7 +323,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IEnchantable
 		} else this.range++;
 		ep.addChatMessage(new ChatComponentText(StatCollector.translateToLocalFormatted("chat.pump_rtoggle",
 				this.quarryRange ? "quarry" : Integer.toString(this.range * 2 + 1))));
-		this.fwt = Long.MIN_VALUE;
+		this.fwt = 0;
 	}
 
 	private static void S_put(int x, int y, int z) {
@@ -410,9 +410,18 @@ public class TilePump extends APacketTile implements IFluidHandler, IEnchantable
 		}
 	}
 
-	boolean S_removeLiquids(APowerTile tbpp, int x, int y, int z) {
+	boolean S_removeLiquids(APowerTile tbpp, int x, int y, int z) {// TODO
 		S_sendNowPacket();
 		if (this.cx != x || this.cy != y || this.cz != z || this.py < this.cy || this.worldObj.getWorldTime() - this.fwt > 200) S_searchLiquid(x, y, z);
+		else {
+			this.ebses = new ExtendedBlockStorage[this.ebses.length][this.ebses[0].length][];
+			int kx, kz;
+			for (kx = 0; kx < this.ebses.length; kx++) {
+				for (kz = 0; kz < this.ebses[0].length; kz++) {
+					this.ebses[kx][kz] = this.worldObj.getChunkProvider().loadChunk(kx + (this.xOffset >> 4), kz + (this.zOffset >> 4)).getBlockStorageArray();
+				}
+			}
+		}
 		int count = 0;
 		Block bb;
 		int bz, meta;
@@ -600,7 +609,6 @@ public class TilePump extends APacketTile implements IFluidHandler, IEnchantable
 	 * 
 	 * */
 	static final boolean isLiquid(Block b, boolean s, World w, int x, int y, int z, int m) {
-		if (b == null) return false;
 		if (b instanceof IFluidBlock) return !s || ((IFluidBlock) b).canDrain(w, x, y, z);
 		if (b == Blocks.water || b == Blocks.lava) return !s || m == 0;
 		return false;
