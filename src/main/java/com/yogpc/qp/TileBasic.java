@@ -178,7 +178,6 @@ public abstract class TileBasic extends APowerTile implements IMachine, IEnchant
 				G_renew_powerConfigure();
 				return true;
 			}
-			if (!TilePump.isLiquid(b, true, this.worldObj, x, y, z, this.worldObj.getBlockMetadata(x, y, z))) return true;
 			return ((TilePump) te).S_removeLiquids(this, x, y, z);
 		}
 		if (!PowerManager.useEnergyB(this, b.getBlockHardness(this.worldObj, x, y, z), S_addDroppedItems(dropped, b, x, y, z), this.unbreaking, this)) return false;

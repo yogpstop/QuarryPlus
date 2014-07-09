@@ -410,7 +410,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IEnchantable
 		}
 	}
 
-	boolean S_removeLiquids(APowerTile tbpp, int x, int y, int z) {// TODO
+	boolean S_removeLiquids(APowerTile tbpp, int x, int y, int z) {
 		S_sendNowPacket();
 		if (this.cx != x || this.cy != y || this.cz != z || this.py < this.cy || this.worldObj.getWorldTime() - this.fwt > 200) S_searchLiquid(x, y, z);
 		else {
@@ -444,7 +444,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IEnchantable
 						if (this.blocks[this.py - this.yOffset][this.px][bz] != 0) {
 							bb = this.ebses[this.px >> 4][bz >> 4][this.py >> 4].getBlockByExtId(this.px & 0xF, this.py & 0xF, bz & 0xF);
 							meta = this.ebses[this.px >> 4][bz >> 4][this.py >> 4].getExtBlockMetadata(this.px & 0xF, this.py & 0xF, bz & 0xF);
-							if (isLiquid(bb, true, this.worldObj, this.py + this.xOffset, this.py, bz + this.zOffset, meta)) {
+							if (isLiquid(bb, true, this.worldObj, this.px + this.xOffset, this.py, bz + this.zOffset, meta)) {
 								count++;
 							}
 						}
@@ -610,20 +610,20 @@ public class TilePump extends APacketTile implements IFluidHandler, IEnchantable
 	 * */
 	static final boolean isLiquid(Block b, boolean s, World w, int x, int y, int z, int m) {
 		if (b instanceof IFluidBlock) return !s || ((IFluidBlock) b).canDrain(w, x, y, z);
-		if (b == Blocks.water || b == Blocks.lava) return !s || m == 0;
+		if (b == Blocks.water || b == Blocks.flowing_water || b == Blocks.lava || b == Blocks.flowing_lava) return !s || m == 0;
 		return false;
 	}
 
 	private final void drainBlock(int bx, int bz, Block tb) {
-		Block bb = this.ebses[bx >> 4][bz >> 4][this.py >> 4].getBlockByExtId(bx & 0xF, this.py & 0xF, bz & 0xF);
+		Block b = this.ebses[bx >> 4][bz >> 4][this.py >> 4].getBlockByExtId(bx & 0xF, this.py & 0xF, bz & 0xF);
 		int meta = this.ebses[bx >> 4][bz >> 4][this.py >> 4].getExtBlockMetadata(bx & 0xF, this.py & 0xF, bz & 0xF);
-		if (isLiquid(bb, false, null, 0, 0, 0, 0)) {
+		if (isLiquid(b, false, null, 0, 0, 0, 0)) {
 			FluidStack fs = null;
-			if (bb instanceof IFluidBlock && ((IFluidBlock) bb).canDrain(this.worldObj, bx + this.xOffset, this.py, bz + this.zOffset)) {
-				fs = ((IFluidBlock) bb).drain(this.worldObj, bx + this.xOffset, this.py, bz + this.zOffset, true);
-			} else if ((bb == Blocks.water) && meta == 0) {
+			if (b instanceof IFluidBlock && ((IFluidBlock) b).canDrain(this.worldObj, bx + this.xOffset, this.py, bz + this.zOffset)) {
+				fs = ((IFluidBlock) b).drain(this.worldObj, bx + this.xOffset, this.py, bz + this.zOffset, true);
+			} else if ((b == Blocks.water || b == Blocks.flowing_water) && meta == 0) {
 				fs = new FluidStack(FluidRegistry.WATER, FluidContainerRegistry.BUCKET_VOLUME);
-			} else if ((bb == Blocks.lava) && meta == 0) {
+			} else if ((b == Blocks.lava || b == Blocks.flowing_lava) && meta == 0) {
 				fs = new FluidStack(FluidRegistry.LAVA, FluidContainerRegistry.BUCKET_VOLUME);
 			}
 			if (fs != null) {
