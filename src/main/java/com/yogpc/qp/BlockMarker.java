@@ -17,7 +17,7 @@
 
 package com.yogpc.qp;
 
-import buildcraft.BuildCraftCore;
+import static buildcraft.BuildCraftCore.markerModel;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
@@ -45,7 +45,7 @@ public class BlockMarker extends BlockContainer {
 
 	@Override
 	public int getRenderType() {
-		return BuildCraftCore.markerModel;
+		return markerModel;
 	}
 
 	@Override

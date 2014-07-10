@@ -2,7 +2,7 @@ package com.yogpc.qp.client;
 
 import org.lwjgl.opengl.GL11;
 
-import buildcraft.core.DefaultProps;
+import static buildcraft.core.DefaultProps.TEXTURE_PATH_ENTITIES;
 
 import com.yogpc.qp.TileQuarry;
 
@@ -16,7 +16,7 @@ public class RenderQuarry extends TileEntitySpecialRenderer {
 
 		GL11.glPushMatrix();
 		GL11.glTranslated(0.5F, 0.5F, 0.5F);
-		RenderLaser.renderLaser(fx, fy, fz, tx, ty, tz, 0, new ResourceLocation("buildcraft", DefaultProps.TEXTURE_PATH_ENTITIES + "/stripes.png"));
+		RenderLaser.renderLaser(fx, fy, fz, tx, ty, tz, 0, new ResourceLocation("buildcraft", TEXTURE_PATH_ENTITIES + "/stripes.png"));
 		GL11.glPopMatrix();
 	}
 

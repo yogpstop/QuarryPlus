@@ -17,9 +17,6 @@
 
 package com.yogpc.qp;
 
-import static buildcraft.core.utils.Utils.addToRandomInventoryAround;
-import static buildcraft.core.utils.Utils.addToRandomPipeAround;
-
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Random;
@@ -105,20 +102,20 @@ public class BlockBreaker extends BlockContainer {
 	}
 
 	@Override
-	public void updateTick(World world, int x, int y, int z, Random prandom) {
-		if (world.isRemote) return;
-		TileBreaker tile = (TileBreaker) world.getTileEntity(x, y, z);
-		ForgeDirection fd = ForgeDirection.getOrientation(world.getBlockMetadata(x, y, z) & 7);
-		int tx = x + fd.offsetX, ty = y + fd.offsetY, tz = z + fd.offsetZ, meta = world.getBlockMetadata(tx, ty, tz);
+	public void updateTick(World w, int x, int y, int z, Random r) {
+		if (w.isRemote) return;
+		TileBreaker tile = (TileBreaker) w.getTileEntity(x, y, z);
+		ForgeDirection fd = ForgeDirection.getOrientation(w.getBlockMetadata(x, y, z) & 7);
+		int tx = x + fd.offsetX, ty = y + fd.offsetY, tz = z + fd.offsetZ, meta = w.getBlockMetadata(tx, ty, tz);
 		if (ty < 1) return;
-		Block b = world.getBlock(tx, ty, tz);
-		if (b == null || b.isAir(world, x, y, z)) return;
-		final EntityPlayer player = FakePlayerFactory.getMinecraft((WorldServer) world);
-		b.onBlockHarvested(world, tx, ty, tz, meta, player);
-		if (b.removedByPlayer(world, player, tx, ty, tz)) b.onBlockDestroyedByPlayer(world, tx, ty, tz, meta);
+		Block b = w.getBlock(tx, ty, tz);
+		if (b == null || b.isAir(w, x, y, z)) return;
+		final EntityPlayer player = FakePlayerFactory.getMinecraft((WorldServer) w);
+		b.onBlockHarvested(w, tx, ty, tz, meta, player);
+		if (b.removedByPlayer(w, player, tx, ty, tz)) b.onBlockDestroyedByPlayer(w, tx, ty, tz, meta);
 		else return;
 		ArrayList<ItemStack> alis;
-		if (b.canSilkHarvest(world, player, tx, ty, tz, meta) && tile.silktouch) {
+		if (b.canSilkHarvest(w, player, tx, ty, tz, meta) && tile.silktouch) {
 			alis = new ArrayList<ItemStack>();
 			try {
 				ItemStack is = (ItemStack) TileBasic.createStackedBlock.invoke(b, meta);
@@ -131,23 +128,18 @@ public class BlockBreaker extends BlockContainer {
 				e.printStackTrace();
 			}
 		} else {
-			alis = b.getDrops(world, tx, ty, tz, meta, tile.fortune);
+			alis = b.getDrops(w, tx, ty, tz, meta, tile.fortune);
 		}
 		for (ItemStack is : alis) {
-			int added = addToRandomInventoryAround(world, x, y, z, is);
-			is.stackSize -= added;
+			is.stackSize -= TileBasic.injectToNearTile(w, x, y, z, is);
 			if (is.stackSize > 0) {
-				added = addToRandomPipeAround(world, x, y, z, ForgeDirection.UNKNOWN, is);
-				is.stackSize -= added;
-				if (is.stackSize > 0) {
-					float f = 0.7F;
-					double d0 = world.rand.nextFloat() * f + (1.0F - f) * 0.5D;
-					double d1 = world.rand.nextFloat() * f + (1.0F - f) * 0.5D;
-					double d2 = world.rand.nextFloat() * f + (1.0F - f) * 0.5D;
-					EntityItem entityitem = new EntityItem(world, x + d0, y + d1, z + d2, is);
-					entityitem.delayBeforeCanPickup = 10;
-					world.spawnEntityInWorld(entityitem);
-				}
+				float f = 0.7F;
+				double d0 = w.rand.nextFloat() * f + (1.0F - f) * 0.5D;
+				double d1 = w.rand.nextFloat() * f + (1.0F - f) * 0.5D;
+				double d2 = w.rand.nextFloat() * f + (1.0F - f) * 0.5D;
+				EntityItem entityitem = new EntityItem(w, x + d0, y + d1, z + d2, is);
+				entityitem.delayBeforeCanPickup = 10;
+				w.spawnEntityInWorld(entityitem);
 			}
 		}
 	}

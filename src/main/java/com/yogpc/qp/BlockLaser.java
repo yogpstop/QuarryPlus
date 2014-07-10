@@ -19,7 +19,7 @@ package com.yogpc.qp;
 
 import java.util.ArrayList;
 
-import buildcraft.silicon.SiliconProxy;
+import static buildcraft.silicon.SiliconProxy.laserBlockModel;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
@@ -50,7 +50,7 @@ public class BlockLaser extends BlockContainer {
 
 	@Override
 	public int getRenderType() {
-		return SiliconProxy.laserBlockModel;
+		return laserBlockModel;
 	}
 
 	@Override

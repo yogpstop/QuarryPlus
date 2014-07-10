@@ -17,9 +17,6 @@
 
 package com.yogpc.qp;
 
-import static buildcraft.core.utils.Utils.addToRandomInventoryAround;
-import static buildcraft.core.utils.Utils.addToRandomPipeAround;
-
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.lang.reflect.Method;
@@ -41,9 +38,14 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 import buildcraft.api.gates.IAction;
+import buildcraft.api.transport.IPipeTile;
 import buildcraft.core.IMachine;
+import buildcraft.core.inventory.ITransactor;
+import buildcraft.core.inventory.Transactor;
+import buildcraft.energy.TileEngine;
 
 public abstract class TileBasic extends APowerTile implements IMachine, IEnchantableTile {
 	protected ForgeDirection pump = ForgeDirection.UNKNOWN;
@@ -155,17 +157,42 @@ public abstract class TileBasic extends APowerTile implements IMachine, IEnchant
 	protected void S_pollItems() {
 		ItemStack is;
 		while (null != (is = this.cacheItems.poll())) {
-			int added = addToRandomInventoryAround(this.worldObj, this.xCoord, this.yCoord, this.zCoord, is);
-			is.stackSize -= added;
-			if (is.stackSize > 0) {
-				added = addToRandomPipeAround(this.worldObj, this.xCoord, this.yCoord, this.zCoord, ForgeDirection.UNKNOWN, is);
-				is.stackSize -= added;
-			}
+			is.stackSize -= injectToNearTile(this.worldObj, this.xCoord, this.yCoord, this.zCoord, is);
 			if (is.stackSize > 0) {
 				this.cacheItems.add(is);
 				break;
 			}
 		}
+	}
+
+	static int injectToNearTile(World w, int x, int y, int z, ItemStack is) {
+		List<IPipeTile> pp = new LinkedList<IPipeTile>();
+		List<ForgeDirection> ppd = new LinkedList<ForgeDirection>();
+		List<ITransactor> pi = new LinkedList<ITransactor>();
+		List<ForgeDirection> pid = new LinkedList<ForgeDirection>();
+		for (ForgeDirection d : ForgeDirection.VALID_DIRECTIONS) {
+			TileEntity t = w.getTileEntity(x + d.offsetX, y + d.offsetY, z + d.offsetZ);
+			ITransactor i = Transactor.getTransactorFor(t);
+			if (i != null && !(t instanceof TileEngine) && i.add(is, d.getOpposite(), false).stackSize > 0) {
+				pi.add(i);
+				pid.add(d.getOpposite());
+			}
+			if (t instanceof IPipeTile) {
+				IPipeTile p = (IPipeTile) t;
+				if (p.getPipeType() != IPipeTile.PipeType.ITEM || !p.isPipeConnected(d.getOpposite())) continue;
+				pp.add(p);
+				ppd.add(d.getOpposite());
+			}
+		}
+		if (pi.size() > 0) {
+			int i = w.rand.nextInt(pi.size());
+			return pi.get(i).add(is, pid.get(i), true).stackSize;
+		}
+		if (pp.size() > 0) {
+			int i = w.rand.nextInt(pp.size());
+			return pp.get(i).injectItem(is, true, ppd.get(i));
+		}
+		return 0;
 	}
 
 	protected boolean S_breakBlock(int x, int y, int z) {

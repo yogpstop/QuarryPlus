@@ -20,8 +20,7 @@ package com.yogpc.qp;
 import java.util.ArrayList;
 
 import buildcraft.api.tools.IToolWrench;
-import buildcraft.core.fluids.FluidUtils;
-import buildcraft.core.utils.Utils;
+import static buildcraft.core.fluids.FluidUtils.handleRightClick;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
@@ -31,6 +30,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.FluidContainerRegistry;
@@ -77,8 +77,9 @@ public class BlockRefinery extends BlockContainer {
 	public void onBlockPlacedBy(World w, int x, int y, int z, EntityLivingBase el, ItemStack is) {
 		super.onBlockPlacedBy(w, x, y, z, el, is);
 		EnchantmentHelper.init((IEnchantableTile) w.getTileEntity(x, y, z), is.getEnchantmentTagList());
-		ForgeDirection orientation = Utils.get2dOrientation(el);
-		w.setBlockMetadataWithNotify(x, y, z, orientation.getOpposite().ordinal(), 1);
+		ForgeDirection[] da = { ForgeDirection.NORTH, ForgeDirection.EAST, ForgeDirection.SOUTH, ForgeDirection.WEST };
+		int di = MathHelper.floor_double((el.rotationYaw + 45.0) / 90.0) & 3;
+		w.setBlockMetadataWithNotify(x, y, z, da[di].ordinal(), 1);
 	}
 
 	@Override
@@ -113,7 +114,7 @@ public class BlockRefinery extends BlockContainer {
 			}
 		} else {
 			if (!world.isRemote) {
-				if (FluidUtils.handleRightClick((TileRefinery) world.getTileEntity(x, y, z), ForgeDirection.getOrientation(side), ep, true, false)) { return true; }
+				if (handleRightClick((TileRefinery) world.getTileEntity(x, y, z), ForgeDirection.getOrientation(side), ep, true, false)) { return true; }
 			} else if (FluidContainerRegistry.isContainer(ep.getCurrentEquippedItem())) { return true; }
 		}
 		return false;

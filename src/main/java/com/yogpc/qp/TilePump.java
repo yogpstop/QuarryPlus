@@ -26,10 +26,7 @@ import com.google.common.io.ByteArrayDataInput;
 
 import cpw.mods.fml.common.network.FMLOutboundHandler;
 import cpw.mods.fml.relauncher.Side;
-import buildcraft.BuildCraftFactory;
-import buildcraft.api.power.IPowerReceptor;
-import buildcraft.api.power.PowerHandler;
-import buildcraft.api.power.PowerHandler.PowerReceiver;
+
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
@@ -49,6 +46,11 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidTankInfo;
 import net.minecraftforge.fluids.IFluidBlock;
 import net.minecraftforge.fluids.IFluidHandler;
+
+import static buildcraft.BuildCraftFactory.frameBlock;
+import buildcraft.api.power.IPowerReceptor;
+import buildcraft.api.power.PowerHandler;
+import buildcraft.api.power.PowerHandler.PowerReceiver;
 
 public class TilePump extends APacketTile implements IFluidHandler, IEnchantableTile, IPowerReceptor {
 	private ForgeDirection connectTo = ForgeDirection.UNKNOWN;
@@ -461,7 +463,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IEnchantable
 				for (bx = 0; bx < this.block_side_x; bx++) {
 					for (bz = 0; bz < this.block_side_z; bz++) {
 						if ((this.blocks[this.py - this.yOffset][bx][bz] & 0x40) != 0) {
-							drainBlock(bx, bz, BuildCraftFactory.frameBlock);
+							drainBlock(bx, bz, frameBlock);
 						}
 					}
 				}

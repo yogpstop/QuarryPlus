@@ -44,9 +44,10 @@ import net.minecraft.block.Block;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.ForgeChunkManager.Ticket;
 import net.minecraftforge.common.ForgeChunkManager.Type;
-import buildcraft.BuildCraftCore;
 import buildcraft.api.core.IAreaProvider;
 import buildcraft.core.EntityBlock;
+import static buildcraft.BuildCraftCore.redLaserTexture;
+import static buildcraft.BuildCraftCore.blueLaserTexture;
 
 public class TileMarker extends APacketTile implements IAreaProvider {
 	static final ArrayList<Link> linkList = new ArrayList<Link>();
@@ -107,7 +108,7 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 			for (EntityBlock eb : this.lasers)
 				if (eb != null) {
 					if (FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT) {
-						eb.texture = BuildCraftCore.blueLaserTexture;
+						eb.texture = blueLaserTexture;
 					}
 					eb.worldObj.spawnEntityInWorld(eb);
 				}
@@ -288,7 +289,7 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 			for (EntityBlock eb : this.lasers)
 				if (eb != null) {
 					if (FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT) {
-						eb.texture = BuildCraftCore.redLaserTexture;
+						eb.texture = redLaserTexture;
 					}
 					eb.worldObj.spawnEntityInWorld(eb);
 				}

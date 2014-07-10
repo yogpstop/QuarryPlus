@@ -29,7 +29,6 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidTankInfo;
 import net.minecraftforge.fluids.IFluidHandler;
 import buildcraft.core.recipes.RefineryRecipeManager;
-import buildcraft.core.recipes.RefineryRecipeManager.RefineryRecipe;
 
 import com.google.common.io.ByteArrayDataInput;
 
@@ -102,7 +101,7 @@ public class TileRefinery extends APowerTile implements IFluidHandler, IEnchanta
 		}
 		this.ticks++;
 		for (int i = this.efficiency + 1; i > 0; i--) {
-			RefineryRecipe r = RefineryRecipeManager.INSTANCE.findRefineryRecipe(this.src1, this.src2);
+			RefineryRecipeManager.RefineryRecipe r = RefineryRecipeManager.INSTANCE.findRefineryRecipe(this.src1, this.src2);
 			if (r == null) {
 				decreaseAnimation();
 				this.ticks = 0;

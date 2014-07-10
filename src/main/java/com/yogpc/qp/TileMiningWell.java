@@ -17,7 +17,7 @@
 
 package com.yogpc.qp;
 
-import buildcraft.BuildCraftFactory;
+import static buildcraft.BuildCraftFactory.plainPipeBlock;
 
 import com.google.common.io.ByteArrayDataInput;
 
@@ -61,7 +61,7 @@ public class TileMiningWell extends TileBasic {
 		if (this.worldObj.isRemote) return;
 		int depth = this.yCoord - 1;
 		while (!S_checkTarget(depth)) {
-			if (this.working) this.worldObj.setBlock(this.xCoord, depth, this.zCoord, BuildCraftFactory.plainPipeBlock);
+			if (this.working) this.worldObj.setBlock(this.xCoord, depth, this.zCoord, plainPipeBlock);
 			depth--;
 		}
 		if (this.working) S_breakBlock(this.xCoord, depth, this.zCoord);
@@ -75,7 +75,7 @@ public class TileMiningWell extends TileBasic {
 		}
 		Block b = this.worldObj.getChunkProvider().loadChunk(this.xCoord >> 4, this.zCoord >> 4).getBlock(this.xCoord & 0xF, depth, this.zCoord & 0xF);
 		float h = b == null ? -1 : b.getBlockHardness(this.worldObj, this.xCoord, depth, this.zCoord);
-		if (b == null || h < 0 || b == BuildCraftFactory.plainPipeBlock || b.isAir(this.worldObj, this.xCoord, depth, this.zCoord)) return false;
+		if (b == null || h < 0 || b == plainPipeBlock || b.isAir(this.worldObj, this.xCoord, depth, this.zCoord)) return false;
 		if (this.pump == ForgeDirection.UNKNOWN && b.getMaterial().isLiquid()) return false;
 		if (!this.working) {
 			this.working = true;
@@ -112,7 +112,7 @@ public class TileMiningWell extends TileBasic {
 		G_renew_powerConfigure();
 		PacketHandler.sendNowPacket(this, (byte) 0);
 		for (int depth = this.yCoord - 1; depth > 0; depth--) {
-			if (this.worldObj.getBlock(this.xCoord, depth, this.zCoord) != BuildCraftFactory.plainPipeBlock) {
+			if (this.worldObj.getBlock(this.xCoord, depth, this.zCoord) != plainPipeBlock) {
 				break;
 			}
 			this.worldObj.setBlockToAir(this.xCoord, depth, this.zCoord);

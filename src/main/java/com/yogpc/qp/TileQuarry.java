@@ -29,9 +29,7 @@ import cpw.mods.fml.common.network.FMLOutboundHandler;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.network.FMLOutboundHandler.OutboundTarget;
 import cpw.mods.fml.relauncher.Side;
-import buildcraft.BuildCraftFactory;
-import buildcraft.api.core.IAreaProvider;
-import buildcraft.core.proxy.CoreProxy;
+
 import net.minecraft.block.Block;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
@@ -44,6 +42,9 @@ import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.ForgeChunkManager.Ticket;
 import net.minecraftforge.common.ForgeChunkManager.Type;
 import net.minecraftforge.common.util.ForgeDirection;
+
+import static buildcraft.BuildCraftFactory.frameBlock;
+import buildcraft.api.core.IAreaProvider;
 
 public class TileQuarry extends TileBasic {
 	private int targetX, targetY, targetZ;
@@ -126,7 +127,7 @@ public class TileQuarry extends TileBasic {
 			}
 			if (b == null || h < 0 || b.isAir(this.worldObj, this.targetX, this.targetY, this.targetZ)) return false;
 			if (this.pump == ForgeDirection.UNKNOWN && TilePump.isLiquid(b, false, null, 0, 0, 0, 0)) return false;
-			if (b == BuildCraftFactory.frameBlock) {
+			if (b == frameBlock) {
 				byte flag = 0;
 				if (this.targetX == this.xMin || this.targetX == this.xMax) flag++;
 				if (this.targetY == this.yMin || this.targetY == this.yMax) flag++;
@@ -150,7 +151,7 @@ public class TileQuarry extends TileBasic {
 				PacketHandler.sendNowPacket(this, this.now);
 				return S_checkTarget();
 			}
-			if (b != null && b.getMaterial().isSolid() && b != BuildCraftFactory.frameBlock) {
+			if (b != null && b.getMaterial().isSolid() && b != frameBlock) {
 				this.now = NOTNEEDBREAK;
 				G_renew_powerConfigure();
 				this.targetX = this.xMin;
@@ -166,7 +167,7 @@ public class TileQuarry extends TileBasic {
 			if (this.targetY == this.yMin || this.targetY == this.yMax) flag++;
 			if (this.targetZ == this.zMin || this.targetZ == this.zMax) flag++;
 			if (flag > 1) {
-				if (b == BuildCraftFactory.frameBlock) return false;
+				if (b == frameBlock) return false;
 				return true;
 			}
 			return false;
@@ -257,7 +258,7 @@ public class TileQuarry extends TileBasic {
 	private boolean S_makeFrame() {
 		this.digged = true;
 		if (!PowerManager.useEnergyF(this, this.unbreaking)) return false;
-		this.worldObj.setBlock(this.targetX, this.targetY, this.targetZ, BuildCraftFactory.frameBlock);
+		this.worldObj.setBlock(this.targetX, this.targetY, this.targetZ, frameBlock);
 		S_setNextTarget();
 		return true;
 	}
@@ -283,7 +284,7 @@ public class TileQuarry extends TileBasic {
 				if (entity.isDead) continue;
 				ItemStack drop = entity.getEntityItem();
 				if (drop.stackSize <= 0) continue;
-				CoreProxy.proxy.removeEntity(entity);
+				QuarryPlus.proxy.removeEntity(entity);
 				this.cacheItems.add(drop);
 			}
 		}
