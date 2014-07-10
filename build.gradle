@@ -27,7 +27,7 @@ archivesBaseName = "QuarryPlus"
 
 minecraft {
     version = "1.7.2-10.12.2.1161-mc172"
-    assetDir = new File(projectDir, "../assets").absolutePath
+    runDir = "run"
     replace '@VERSION@', project.version
 }
 
