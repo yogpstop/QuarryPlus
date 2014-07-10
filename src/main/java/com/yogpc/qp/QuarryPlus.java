@@ -301,7 +301,7 @@ public class QuarryPlus {
 
 		@Override
 		public int hashCode() {
-			return this.name.hashCode() & this.meta;
+			return this.name.hashCode();
 		}
 	}
 

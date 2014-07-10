@@ -1,10 +1,7 @@
 package com.yogpc.qp;
 
 import cpw.mods.fml.common.network.NetworkRegistry;
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.network.INetHandler;
-import net.minecraft.network.NetHandlerPlayServer;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 
@@ -33,16 +30,7 @@ public final class QuarryPlusPacket {
 	}
 
 	public void readData(ByteBuf d, ChannelHandlerContext ctx) {
-		INetHandler h = ctx.channel().attr(NetworkRegistry.NET_HANDLER).get();
-		if (h instanceof NetHandlerPlayServer) {
-			this.ep = ((NetHandlerPlayServer) h).playerEntity;
-		} else {
-			try {
-				this.ep = Minecraft.getMinecraft().thePlayer;
-			} catch (Exception e) {
-				this.ep = null;
-			}
-		}
+		this.ep = QuarryPlus.proxy.getPacketPlayer(ctx.channel().attr(NetworkRegistry.NET_HANDLER).get());
 		this.channel = d.readByte();
 		this.data = new byte[d.readableBytes()];
 		d.readBytes(this.data);

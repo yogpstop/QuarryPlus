@@ -404,9 +404,7 @@ public class TileQuarry extends TileBasic {
 			this.heads.setDead();
 			this.heads = null;
 		}
-		if (!this.worldObj.isRemote) {
-			PacketHandler.sendNowPacket(this, this.now);
-		}
+		if (!this.worldObj.isRemote) PacketHandler.sendNowPacket(this, this.now);
 		ForgeChunkManager.releaseTicket(this.chunkTicket);
 	}
 

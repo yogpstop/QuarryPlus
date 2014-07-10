@@ -102,7 +102,7 @@ public class TileMiningWell extends TileBasic {
 	public void G_reinit() {
 		this.working = true;
 		G_renew_powerConfigure();
-		PacketHandler.sendNowPacket(this, (byte) 1);
+		if (!this.worldObj.isRemote) PacketHandler.sendNowPacket(this, (byte) 1);
 	}
 
 	@Override

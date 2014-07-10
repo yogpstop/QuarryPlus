@@ -65,7 +65,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IEnchantable
 				+ this.connectTo.offsetZ);
 		if (te instanceof TileBasic) return (TileBasic) te;
 		this.connectTo = ForgeDirection.UNKNOWN;
-		S_sendNowPacket();
+		if (!this.worldObj.isRemote) S_sendNowPacket();
 		return null;
 	}
 
