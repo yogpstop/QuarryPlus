@@ -111,19 +111,19 @@ public class ContainerMover extends Container {
 				if (list.getCompoundTagAt(i).getShort("id") == eid) {
 					if (lvl > 1) list.getCompoundTagAt(i).setShort("lvl", --lvl);
 					else {
-						NBTTagList nlist = new NBTTagList();
-						for (int j = 0; j < list.tagCount(); j++) {
-							if (i != j) nlist.appendTag(list.getCompoundTagAt(i));
+						{
+							NBTTagList nlist = new NBTTagList();
+							for (int j = 0; j < list.tagCount(); j++) {
+								if (list.getCompoundTagAt(j).getShort("id") != eid) nlist.appendTag(list.getCompoundTagAt(j));
+							}
+							list = nlist;
 						}
-						is.getTagCompound().setTag("ench", nlist);
-						list = is.getEnchantmentTagList();
+						is.getTagCompound().removeTag("ench");
+						if (list.tagCount() > 0) is.getTagCompound().setTag("ench", list);
+						if (is.getTagCompound().hasNoTags()) is.setTagCompound(null);
 					}
 					break;
 				}
-			}
-			if (list.tagCount() == 0) {
-				is.getTagCompound().removeTag("ench");
-				if (is.getTagCompound().hasNoTags()) is.setTagCompound(null);
 			}
 		}
 		is = this.craftMatrix.getStackInSlot(1);
