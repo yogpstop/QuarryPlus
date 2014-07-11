@@ -119,6 +119,7 @@ public class QuarryPlus {
 		}
 		LanguageRegistry.instance().loadLocalization("/lang/yogpstop/quarryplus/en_US.lang", "en_US", false);// TODO
 		LanguageRegistry.instance().loadLocalization("/lang/yogpstop/quarryplus/ja_JP.lang", "ja_JP", false);
+		LanguageRegistry.instance().loadLocalization("/lang/yogpstop/quarryplus/ru_RU.lang", "ru_RU", false);
 		ForgeChunkManager.setForcedChunkLoadingCallback(instance, new ChunkLoadingHandler());
 		MinecraftForge.EVENT_BUS.register(this);
 	}
