@@ -33,8 +33,6 @@ import com.yogpc.qp.ContainerMover;
 import com.yogpc.qp.PacketHandler;
 import com.yogpc.qp.QuarryPlusPacket;
 
-import cpw.mods.fml.common.network.FMLOutboundHandler;
-import cpw.mods.fml.common.network.FMLOutboundHandler.OutboundTarget;
 import cpw.mods.fml.relauncher.SideOnly;
 import cpw.mods.fml.relauncher.Side;
 
@@ -84,7 +82,6 @@ public class GuiMover extends GuiContainer {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		PacketHandler.channels.get(Side.CLIENT).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.TOSERVER);
-		PacketHandler.channels.get(Side.CLIENT).writeOutbound(new QuarryPlusPacket(PacketHandler.BTN, bos.toByteArray()));
+		PacketHandler.sendPacketToServer(new QuarryPlusPacket(PacketHandler.BTN, bos.toByteArray()));
 	}
 }

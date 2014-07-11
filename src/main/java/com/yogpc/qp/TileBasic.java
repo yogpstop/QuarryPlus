@@ -29,9 +29,7 @@ import java.util.Queue;
 import com.google.common.io.ByteArrayDataInput;
 import com.yogpc.qp.QuarryPlus.BlockData;
 
-import cpw.mods.fml.common.network.FMLOutboundHandler;
 import cpw.mods.fml.common.registry.GameData;
-import cpw.mods.fml.relauncher.Side;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -79,9 +77,7 @@ public abstract class TileBasic extends APowerTile implements IMachine, IEnchant
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(FMLOutboundHandler.OutboundTarget.PLAYER);
-		PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS).set(ep);
-		PacketHandler.channels.get(Side.SERVER).writeOutbound(new QuarryPlusPacket(PacketHandler.Tile, bos.toByteArray()));
+		PacketHandler.sendPacketToPlayer(new QuarryPlusPacket(PacketHandler.Tile, bos.toByteArray()), ep);
 	}
 
 	@Override

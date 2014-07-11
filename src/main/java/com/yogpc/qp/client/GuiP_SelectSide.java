@@ -27,8 +27,6 @@ import com.yogpc.qp.TilePump;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.util.StatCollector;
 import net.minecraftforge.common.util.ForgeDirection;
-import cpw.mods.fml.common.network.FMLOutboundHandler;
-import cpw.mods.fml.common.network.FMLOutboundHandler.OutboundTarget;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
@@ -77,8 +75,7 @@ public class GuiP_SelectSide extends GuiScreenA {
 				dos.writeByte(PacketHandler.CtS_RENEW_DIRECTION);
 				dos.writeByte(par1.id);
 			}
-			PacketHandler.channels.get(Side.CLIENT).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.TOSERVER);
-			PacketHandler.channels.get(Side.CLIENT).writeOutbound(new QuarryPlusPacket(PacketHandler.Tile, bos.toByteArray()));
+			PacketHandler.sendPacketToServer(new QuarryPlusPacket(PacketHandler.Tile, bos.toByteArray()));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

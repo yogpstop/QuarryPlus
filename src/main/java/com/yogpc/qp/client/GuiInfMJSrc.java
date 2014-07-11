@@ -22,8 +22,6 @@ import java.io.DataOutputStream;
 
 import org.lwjgl.opengl.GL11;
 
-import cpw.mods.fml.common.network.FMLOutboundHandler;
-import cpw.mods.fml.common.network.FMLOutboundHandler.OutboundTarget;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.gui.GuiButton;
@@ -105,8 +103,7 @@ public class GuiInfMJSrc extends GuiScreenA {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			PacketHandler.channels.get(Side.CLIENT).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.TOSERVER);
-			PacketHandler.channels.get(Side.CLIENT).writeOutbound(new QuarryPlusPacket(PacketHandler.Tile, bos.toByteArray()));
+			PacketHandler.sendPacketToServer(new QuarryPlusPacket(PacketHandler.Tile, bos.toByteArray()));
 			break;
 		}
 	}

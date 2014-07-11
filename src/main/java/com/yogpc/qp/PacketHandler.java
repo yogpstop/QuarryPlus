@@ -26,6 +26,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.EnumMap;
 
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
@@ -99,6 +100,29 @@ public class PacketHandler extends SimpleChannelInboundHandler<QuarryPlusPacket>
 		}
 	}
 
+	public static void sendPacketToServer(QuarryPlusPacket p) {
+		channels.get(Side.CLIENT).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.TOSERVER);
+		channels.get(Side.CLIENT).writeOutbound(p);
+	}
+
+	public static void sendPacketToAround(QuarryPlusPacket p, int d, int x, int y, int z) {
+		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.ALLAROUNDPOINT);
+		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS).set(new NetworkRegistry.TargetPoint(d, x, y, z, 256));
+		channels.get(Side.SERVER).writeOutbound(p);
+	}
+
+	public static void sendPacketToDimension(QuarryPlusPacket p, int d) {
+		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.DIMENSION);
+		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS).set(d);
+		channels.get(Side.SERVER).writeOutbound(p);
+	}
+
+	public static void sendPacketToPlayer(QuarryPlusPacket p, EntityPlayer e) {
+		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(FMLOutboundHandler.OutboundTarget.PLAYER);
+		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS).set(e);
+		channels.get(Side.SERVER).writeOutbound(p);
+	}
+
 	static QuarryPlusPacket getPacketFromNBT(TileEntity te) {
 		try {
 			NBTTagCompound nbttc = new NBTTagCompound();
@@ -135,8 +159,7 @@ public class PacketHandler extends SimpleChannelInboundHandler<QuarryPlusPacket>
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		channels.get(Side.CLIENT).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.TOSERVER);
-		channels.get(Side.CLIENT).writeOutbound(new QuarryPlusPacket(Tile, bos.toByteArray()));
+		sendPacketToServer(new QuarryPlusPacket(Tile, bos.toByteArray()));
 	}
 
 	public static void sendPacketToServer(APacketTile te, byte id, byte pos, String data) {// BLjava.lang.String;
@@ -152,8 +175,7 @@ public class PacketHandler extends SimpleChannelInboundHandler<QuarryPlusPacket>
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		channels.get(Side.CLIENT).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.TOSERVER);
-		channels.get(Side.CLIENT).writeOutbound(new QuarryPlusPacket(Tile, bos.toByteArray()));
+		sendPacketToServer(new QuarryPlusPacket(Tile, bos.toByteArray()));
 	}
 
 	static void sendNowPacket(APacketTile te, byte data) {
@@ -168,10 +190,7 @@ public class PacketHandler extends SimpleChannelInboundHandler<QuarryPlusPacket>
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.ALLAROUNDPOINT);
-		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS)
-				.set(new NetworkRegistry.TargetPoint(te.getWorldObj().provider.dimensionId, te.xCoord, te.yCoord, te.zCoord, 256));
-		channels.get(Side.SERVER).writeOutbound(new QuarryPlusPacket(Tile, bos.toByteArray()));
+		sendPacketToAround(new QuarryPlusPacket(Tile, bos.toByteArray()), te.getWorldObj().provider.dimensionId, te.xCoord, te.yCoord, te.zCoord);
 	}
 
 	public static void sendPacketToServer(APacketTile te, byte id) {
@@ -185,8 +204,7 @@ public class PacketHandler extends SimpleChannelInboundHandler<QuarryPlusPacket>
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		channels.get(Side.CLIENT).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.TOSERVER);
-		channels.get(Side.CLIENT).writeOutbound(new QuarryPlusPacket(Tile, bos.toByteArray()));
+		sendPacketToServer(new QuarryPlusPacket(Tile, bos.toByteArray()));
 	}
 
 	static void sendPacketToAround(APacketTile te, byte id) {
@@ -200,9 +218,6 @@ public class PacketHandler extends SimpleChannelInboundHandler<QuarryPlusPacket>
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.ALLAROUNDPOINT);
-		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS)
-				.set(new NetworkRegistry.TargetPoint(te.getWorldObj().provider.dimensionId, te.xCoord, te.yCoord, te.zCoord, 256));
-		channels.get(Side.SERVER).writeOutbound(new QuarryPlusPacket(Tile, bos.toByteArray()));
+		sendPacketToAround(new QuarryPlusPacket(Tile, bos.toByteArray()), te.getWorldObj().provider.dimensionId, te.xCoord, te.yCoord, te.zCoord);
 	}
 }

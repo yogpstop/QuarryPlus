@@ -24,9 +24,6 @@ import java.util.LinkedList;
 
 import com.google.common.io.ByteArrayDataInput;
 
-import cpw.mods.fml.common.network.FMLOutboundHandler;
-import cpw.mods.fml.relauncher.Side;
-
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
@@ -288,9 +285,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IEnchantable
 			dos.writeInt(this.mapping[d].size());
 			for (String s : this.mapping[d])
 				dos.writeUTF(s);
-			PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(FMLOutboundHandler.OutboundTarget.PLAYER);
-			PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS).set(ep);
-			PacketHandler.channels.get(Side.SERVER).writeOutbound(new QuarryPlusPacket(PacketHandler.Tile, bos.toByteArray()));
+			PacketHandler.sendPacketToPlayer(new QuarryPlusPacket(PacketHandler.Tile, bos.toByteArray()), ep);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

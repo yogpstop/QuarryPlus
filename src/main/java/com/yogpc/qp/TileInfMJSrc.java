@@ -27,8 +27,6 @@ import buildcraft.api.power.PowerHandler.Type;
 
 import com.google.common.io.ByteArrayDataInput;
 
-import cpw.mods.fml.common.network.FMLOutboundHandler;
-import cpw.mods.fml.relauncher.Side;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
@@ -63,8 +61,7 @@ public class TileInfMJSrc extends APacketTile {
 					addEnergy.invoke(o, this.power);
 					continue;
 				}
-			} catch (Exception e) {
-			}
+			} catch (Exception e) {}
 			if (te instanceof IPowerReceptor) {
 				PowerReceiver pr = ((IPowerReceptor) te).getPowerReceiver(d.getOpposite());
 				if (pr != null) pr.receiveEnergy(Type.ENGINE, this.power, d.getOpposite());
@@ -83,9 +80,7 @@ public class TileInfMJSrc extends APacketTile {
 			dos.writeByte(PacketHandler.StC_OPENGUI_INFMJSRC);
 			dos.writeFloat(this.power);
 			dos.writeInt(this.interval);
-			PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(FMLOutboundHandler.OutboundTarget.PLAYER);
-			PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS).set(ep);
-			PacketHandler.channels.get(Side.SERVER).writeOutbound(new QuarryPlusPacket(PacketHandler.Tile, bos.toByteArray()));
+			PacketHandler.sendPacketToPlayer(new QuarryPlusPacket(PacketHandler.Tile, bos.toByteArray()), ep);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

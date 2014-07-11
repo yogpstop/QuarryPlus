@@ -22,10 +22,6 @@ import java.util.List;
 
 import com.google.common.io.ByteArrayDataInput;
 
-import cpw.mods.fml.common.network.FMLOutboundHandler;
-import cpw.mods.fml.common.network.NetworkRegistry;
-import cpw.mods.fml.common.network.FMLOutboundHandler.OutboundTarget;
-import cpw.mods.fml.relauncher.Side;
 import static buildcraft.BuildCraftCore.actionOn;
 import static buildcraft.BuildCraftCore.actionOff;
 import buildcraft.api.gates.IAction;
@@ -101,10 +97,7 @@ public class TileLaser extends APowerTile implements IActionReceptor, IMachine, 
 			ILaserTargetHelper.receiveLaserEnergy(lt, (float) (power / this.laserTargets.size()));
 		pushPower(power / this.laserTargets.size());
 		if ((this.worldObj.getWorldTime() % 20) == 7) {
-			PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.ALLAROUNDPOINT);
-			PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS)
-					.set(new NetworkRegistry.TargetPoint(this.getWorldObj().provider.dimensionId, this.xCoord, this.yCoord, this.zCoord, 256));
-			PacketHandler.channels.get(Side.SERVER).writeOutbound(PacketHandler.getPacketFromNBT(this));
+			PacketHandler.sendPacketToAround(PacketHandler.getPacketFromNBT(this), this.worldObj.provider.dimensionId, this.xCoord, this.yCoord, this.zCoord);
 		}
 	}
 
@@ -182,10 +175,7 @@ public class TileLaser extends APowerTile implements IActionReceptor, IMachine, 
 		if (this.lasers != null) for (int i = 0; i < this.lasers.length; i++)
 			this.lasers[i] = null;
 		if (!this.worldObj.isRemote) {
-			PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.ALLAROUNDPOINT);
-			PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS)
-					.set(new NetworkRegistry.TargetPoint(this.getWorldObj().provider.dimensionId, this.xCoord, this.yCoord, this.zCoord, 256));
-			PacketHandler.channels.get(Side.SERVER).writeOutbound(PacketHandler.getPacketFromNBT(this));
+			PacketHandler.sendPacketToAround(PacketHandler.getPacketFromNBT(this), this.worldObj.provider.dimensionId, this.xCoord, this.yCoord, this.zCoord);
 		}
 	}
 

@@ -29,9 +29,6 @@ import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
 
 import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.network.FMLOutboundHandler;
-import cpw.mods.fml.common.network.NetworkRegistry;
-import cpw.mods.fml.common.network.FMLOutboundHandler.OutboundTarget;
 import cpw.mods.fml.relauncher.Side;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
@@ -129,9 +126,7 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 					dos.writeInt(this.x);
 					dos.writeInt(this.y);
 					dos.writeInt(this.z);
-					PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.DIMENSION);
-					PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS).set(this.w.provider.dimensionId);
-					PacketHandler.channels.get(Side.SERVER).writeOutbound(new QuarryPlusPacket(PacketHandler.Marker, bos.toByteArray()));
+					PacketHandler.sendPacketToDimension(new QuarryPlusPacket(PacketHandler.Marker, bos.toByteArray()), this.w.provider.dimensionId);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -233,9 +228,7 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 					dos.writeInt(this.yn);
 					dos.writeInt(this.zx);
 					dos.writeInt(this.zn);
-					PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.DIMENSION);
-					PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS).set(this.w.provider.dimensionId);
-					PacketHandler.channels.get(Side.SERVER).writeOutbound(new QuarryPlusPacket(PacketHandler.Marker, bos.toByteArray()));
+					PacketHandler.sendPacketToDimension(new QuarryPlusPacket(PacketHandler.Marker, bos.toByteArray()), this.w.provider.dimensionId);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -478,10 +471,8 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 				dos.writeInt(this.link.yn);
 				dos.writeInt(this.link.zx);
 				dos.writeInt(this.link.zn);
-				PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.ALLAROUNDPOINT);
-				PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS)
-						.set(new NetworkRegistry.TargetPoint(this.getWorldObj().provider.dimensionId, this.xCoord, this.yCoord, this.zCoord, 256));
-				PacketHandler.channels.get(Side.SERVER).writeOutbound(new QuarryPlusPacket(PacketHandler.Tile, bos.toByteArray()));
+				PacketHandler.sendPacketToAround(new QuarryPlusPacket(PacketHandler.Tile, bos.toByteArray()), this.worldObj.provider.dimensionId, this.xCoord,
+						this.yCoord, this.zCoord);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -507,9 +498,7 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 					dos.writeInt(this.link.yn);
 					dos.writeInt(this.link.zx);
 					dos.writeInt(this.link.zn);
-					PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.PLAYER);
-					PacketHandler.channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS).set(ep);
-					PacketHandler.channels.get(Side.SERVER).writeOutbound(new QuarryPlusPacket(PacketHandler.Tile, bos.toByteArray()));
+					PacketHandler.sendPacketToPlayer(new QuarryPlusPacket(PacketHandler.Tile, bos.toByteArray()), ep);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
