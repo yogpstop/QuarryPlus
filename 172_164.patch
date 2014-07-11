@@ -1,0 +1,1392 @@
+diff -ru main/java/com/yogpc/qp/APacketTile.java 164/java/com/yogpc/qp/APacketTile.java
+--- main/java/com/yogpc/qp/APacketTile.java	2014-07-11 23:55:15.593178700 +0900
++++ 164/java/com/yogpc/qp/APacketTile.java	2014-07-11 22:07:27.349435500 +0900
+@@ -17,16 +17,12 @@
+ 
+ package com.yogpc.qp;
+ 
+-import io.netty.buffer.ByteBuf;
+-import io.netty.buffer.Unpooled;
+ import net.minecraft.entity.player.EntityPlayer;
+-import net.minecraft.network.Packet;
++import net.minecraft.network.packet.Packet;
+ import net.minecraft.tileentity.TileEntity;
+ 
+ import com.google.common.io.ByteArrayDataInput;
+ 
+-import cpw.mods.fml.common.network.internal.FMLProxyPacket;
+-
+ public abstract class APacketTile extends TileEntity {
+ 	abstract void S_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep);
+ 
+@@ -34,9 +30,6 @@
+ 
+ 	@Override
+ 	public final Packet getDescriptionPacket() {
+-		ByteBuf buf = Unpooled.buffer();
+-		buf.writeByte(0);
+-		PacketHandler.getPacketFromNBT(this).writeData(buf);
+-		return new FMLProxyPacket(buf, "QuarryPlus");
++		return PacketHandler.getPacket(PacketHandler.getPacketFromNBT(this));
+ 	}
+ }
+diff -ru main/java/com/yogpc/qp/APowerTile.java 164/java/com/yogpc/qp/APowerTile.java
+--- main/java/com/yogpc/qp/APowerTile.java	2014-07-11 23:55:15.593820500 +0900
++++ 164/java/com/yogpc/qp/APowerTile.java	2014-07-11 22:07:27.349741300 +0900
+@@ -37,7 +37,7 @@
+ 	}
+ 
+ 	public final double useEnergy(double min, double max, boolean real) {
+-		return this.pp.useEnergy(min, max, real);
++		return this.pp.useEnergy((float) min, (float) max, real);
+ 	}
+ 
+ 	public final double getStoredEnergy() {
+@@ -49,6 +49,6 @@
+ 	}
+ 
+ 	public final void configure(double min, double max, double activate, double maxstored) {
+-		this.pp.configure(0, max, activate, maxstored);
++		this.pp.configure(0, (float) max, (float) activate, (float) maxstored);
+ 	}
+ }
+diff -ru main/java/com/yogpc/qp/BlockBreaker.java 164/java/com/yogpc/qp/BlockBreaker.java
+--- main/java/com/yogpc/qp/BlockBreaker.java	2014-07-11 23:55:15.594531400 +0900
++++ 164/java/com/yogpc/qp/BlockBreaker.java	2014-07-11 22:47:36.231271900 +0900
+@@ -35,11 +35,8 @@
+ import net.minecraft.item.Item;
+ import net.minecraft.item.ItemStack;
+ import net.minecraft.tileentity.TileEntity;
+-
+ import net.minecraft.util.Icon;
+-import net.minecraft.world.IBlockAccess;
+ import net.minecraft.world.World;
+-import net.minecraft.world.WorldServer;
+ import net.minecraftforge.common.FakePlayerFactory;
+ import net.minecraftforge.common.ForgeDirection;
+ 
+@@ -51,8 +48,8 @@
+ 	@SideOnly(Side.CLIENT)
+ 	protected Icon vectrial;
+ 
+-	protected BlockBreaker() {
+-		super(Material.rock);
++	protected BlockBreaker(int id) {
++		super(id, Material.rock);
+ 		this.setCreativeTab(QuarryPlus.ct);
+ 		this.setHardness(3.5F);
+ 		this.setStepSound(soundStoneFootstep);
+@@ -108,9 +105,9 @@
+ 		ForgeDirection fd = ForgeDirection.getOrientation(w.getBlockMetadata(x, y, z) & 7);
+ 		int tx = x + fd.offsetX, ty = y + fd.offsetY, tz = z + fd.offsetZ, meta = w.getBlockMetadata(tx, ty, tz);
+ 		if (ty < 1) return;
+-		Block b = w.getBlock(tx, ty, tz);
++		Block b = Block.blocksList[w.getBlockId(tx, ty, tz)];
+ 		if (b == null || b.isAirBlock(w, x, y, z)) return;
+-		final EntityPlayer player = FakePlayerFactory.getMinecraft((WorldServer) w);
++		final EntityPlayer player = FakePlayerFactory.getMinecraft(w);
+ 		b.onBlockHarvested(w, tx, ty, tz, meta, player);
+ 		if (b.removeBlockByPlayer(w, player, tx, ty, tz)) b.onBlockDestroyedByPlayer(w, tx, ty, tz, meta);
+ 		else return;
+@@ -152,25 +149,25 @@
+ 
+ 	static void setDispenserDefaultDirection(World w, int x, int y, int z) {
+ 		if (!w.isRemote) {
+-			Block b1 = w.getBlock(x, y, z - 1);
+-			Block b2 = w.getBlock(x, y, z + 1);
+-			Block b3 = w.getBlock(x - 1, y, z);
+-			Block b4 = w.getBlock(x + 1, y, z);
++			int b1 = w.getBlockId(x, y, z - 1);
++			int b2 = w.getBlockId(x, y, z + 1);
++			int b3 = w.getBlockId(x - 1, y, z);
++			int b4 = w.getBlockId(x + 1, y, z);
+ 			byte b0 = 3;
+ 
+-			if (b1.func_149730_j() && !b2.func_149730_j()) {
++			if (Block.opaqueCubeLookup[b1] && !Block.opaqueCubeLookup[b2]) {
+ 				b0 = 3;
+ 			}
+ 
+-			if (b2.func_149730_j() && !b1.func_149730_j()) {
++			if (Block.opaqueCubeLookup[b2] && !Block.opaqueCubeLookup[b1]) {
+ 				b0 = 2;
+ 			}
+ 
+-			if (b3.func_149730_j() && !b4.func_149730_j()) {
++			if (Block.opaqueCubeLookup[b3] && !Block.opaqueCubeLookup[b4]) {
+ 				b0 = 5;
+ 			}
+ 
+-			if (b4.func_149730_j() && !b3.func_149730_j()) {
++			if (Block.opaqueCubeLookup[b4] && !Block.opaqueCubeLookup[b3]) {
+ 				b0 = 4;
+ 			}
+ 			w.setBlockMetadataWithNotify(x, y, z, b0, 2);
+@@ -184,11 +181,11 @@
+ 		TileBreaker tile = (TileBreaker) world.getBlockTileEntity(x, y, z);
+ 		this.drop.clear();
+ 		int count = quantityDropped(meta, 0, world.rand);
+-		Item id1;
++		int id1;
+ 		ItemStack is;
+ 		for (int i = 0; i < count; i++) {
+ 			id1 = idDropped(meta, world.rand, 0);
+-			if (id1 != null) {
++			if (id1 != 0) {
+ 				is = new ItemStack(id1, 1, damageDropped(meta));
+ 				EnchantmentHelper.enchantmentToIS(tile, is);
+ 				this.drop.add(is);
+diff -ru main/java/com/yogpc/qp/BlockInfMJSrc.java 164/java/com/yogpc/qp/BlockInfMJSrc.java
+--- main/java/com/yogpc/qp/BlockInfMJSrc.java	2014-07-11 23:55:15.595059800 +0900
++++ 164/java/com/yogpc/qp/BlockInfMJSrc.java	2014-07-11 22:47:59.463776300 +0900
+@@ -29,8 +29,8 @@
+ 
+ public class BlockInfMJSrc extends BlockContainer {
+ 
+-	public BlockInfMJSrc() {
+-		super(Material.iron);
++	public BlockInfMJSrc(int id) {
++		super(id, Material.iron);
+ 		setHardness(1.5F);
+ 		setResistance(10F);
+ 		setStepSound(soundStoneFootstep);
+diff -ru main/java/com/yogpc/qp/BlockLaser.java 164/java/com/yogpc/qp/BlockLaser.java
+--- main/java/com/yogpc/qp/BlockLaser.java	2014-07-11 23:55:15.595685300 +0900
++++ 164/java/com/yogpc/qp/BlockLaser.java	2014-07-11 23:07:07.252199500 +0900
+@@ -22,7 +22,6 @@
+ import static buildcraft.silicon.SiliconProxy.laserBlockModel;
+ import cpw.mods.fml.relauncher.Side;
+ import cpw.mods.fml.relauncher.SideOnly;
+-import net.minecraft.block.Block;
+ import net.minecraft.block.BlockContainer;
+ import net.minecraft.block.material.Material;
+ import net.minecraft.client.renderer.texture.IconRegister;
+@@ -41,8 +40,8 @@
+ 	@SideOnly(Side.CLIENT)
+ 	private Icon textureTop, textureBottom;
+ 
+-	public BlockLaser() {
+-		super(Material.iron);
++	public BlockLaser(int id) {
++		super(id, Material.iron);
+ 		setHardness(10F);
+ 		setCreativeTab(QuarryPlus.ct);
+ 		this.setUnlocalizedName("LaserPlus");
+@@ -106,7 +105,7 @@
+ 		ItemStack is;
+ 		for (int i = 0; i < count; i++) {
+ 			int it = idDropped(meta, world.rand, 0);
+-			if (it != null) {
++			if (it != 0) {
+ 				is = new ItemStack(it, 1, damageDropped(meta));
+ 				EnchantmentHelper.enchantmentToIS(tile, is);
+ 				this.drop.add(is);
+diff -ru main/java/com/yogpc/qp/BlockMarker.java 164/java/com/yogpc/qp/BlockMarker.java
+--- main/java/com/yogpc/qp/BlockMarker.java	2014-07-11 23:55:15.596396500 +0900
++++ 164/java/com/yogpc/qp/BlockMarker.java	2014-07-11 23:07:24.318106000 +0900
+@@ -20,7 +20,6 @@
+ import static buildcraft.BuildCraftCore.markerModel;
+ import cpw.mods.fml.relauncher.Side;
+ import cpw.mods.fml.relauncher.SideOnly;
+-import net.minecraft.block.Block;
+ import net.minecraft.block.BlockContainer;
+ import net.minecraft.block.material.Material;
+ import net.minecraft.client.renderer.texture.IconRegister;
+@@ -36,8 +35,8 @@
+ 
+ public class BlockMarker extends BlockContainer {
+ 
+-	public BlockMarker() {
+-		super(Material.circuits);
++	public BlockMarker(int id) {
++		super(id, Material.circuits);
+ 		setLightValue(0.5F);
+ 		setCreativeTab(QuarryPlus.ct);
+ 		setUnlocalizedName("MarkerPlus");
+diff -ru main/java/com/yogpc/qp/BlockMiningWell.java 164/java/com/yogpc/qp/BlockMiningWell.java
+--- main/java/com/yogpc/qp/BlockMiningWell.java	2014-07-11 23:55:15.597029500 +0900
++++ 164/java/com/yogpc/qp/BlockMiningWell.java	2014-07-11 23:07:42.950731200 +0900
+@@ -22,7 +22,6 @@
+ import buildcraft.api.tools.IToolWrench;
+ import cpw.mods.fml.relauncher.Side;
+ import cpw.mods.fml.relauncher.SideOnly;
+-import net.minecraft.block.Block;
+ import net.minecraft.block.BlockContainer;
+ import net.minecraft.block.material.Material;
+ import net.minecraft.client.renderer.texture.IconRegister;
+@@ -40,8 +39,8 @@
+ public class BlockMiningWell extends BlockContainer {
+ 	Icon textureFront, textureBack, textureTop, texW;
+ 
+-	public BlockMiningWell() {
+-		super(Material.ground);
++	public BlockMiningWell(int id) {
++		super(id, Material.ground);
+ 		setHardness(1.5F);
+ 		setResistance(10F);
+ 		setCreativeTab(QuarryPlus.ct);
+@@ -69,7 +68,7 @@
+ 	public Icon getBlockTexture(IBlockAccess ba, int x, int y, int z, int side) {
+ 		TileEntity tile = ba.getBlockTileEntity(x, y, z);
+ 		if (tile instanceof TileMiningWell && side == 1 && ((TileMiningWell) tile).isActive()) return this.texW;
+-		return super.getIcon(ba, x, y, z, side);
++		return super.getBlockTexture(ba, x, y, z, side);
+ 	}
+ 
+ 	@Override
+@@ -111,7 +110,7 @@
+ 		if (world.isRemote || tile == null) return;
+ 		int count = quantityDropped(meta, 0, world.rand);
+ 		int it = idDropped(meta, world.rand, 0);
+-		if (it != null) {
++		if (it != 0) {
+ 			for (int i = 0; i < count; i++) {
+ 				ItemStack is = new ItemStack(it, 1, damageDropped(meta));
+ 				EnchantmentHelper.enchantmentToIS(tile, is);
+diff -ru main/java/com/yogpc/qp/BlockMover.java 164/java/com/yogpc/qp/BlockMover.java
+--- main/java/com/yogpc/qp/BlockMover.java	2014-07-11 23:55:15.597571100 +0900
++++ 164/java/com/yogpc/qp/BlockMover.java	2014-07-11 22:07:27.351908500 +0900
+@@ -29,8 +29,8 @@
+ public class BlockMover extends Block {
+ 	Icon textureTop, textureBottom;
+ 
+-	public BlockMover() {
+-		super(Material.iron);
++	public BlockMover(int id) {
++		super(id, Material.iron);
+ 		setHardness(1.2F);
+ 		this.setCreativeTab(QuarryPlus.ct);
+ 		setUnlocalizedName("EnchantMover");
+diff -ru main/java/com/yogpc/qp/BlockPlacer.java 164/java/com/yogpc/qp/BlockPlacer.java
+--- main/java/com/yogpc/qp/BlockPlacer.java	2014-07-11 23:55:15.598362700 +0900
++++ 164/java/com/yogpc/qp/BlockPlacer.java	2014-07-11 22:07:27.352337000 +0900
+@@ -35,9 +35,7 @@
+ import net.minecraft.nbt.NBTTagCompound;
+ import net.minecraft.tileentity.TileEntity;
+ import net.minecraft.util.Icon;
+-import net.minecraft.world.IBlockAccess;
+ import net.minecraft.world.World;
+-import net.minecraft.world.WorldServer;
+ import net.minecraftforge.common.FakePlayerFactory;
+ import net.minecraftforge.common.ForgeDirection;
+ 
+@@ -50,8 +48,8 @@
+ 	@SideOnly(Side.CLIENT)
+ 	protected Icon vectrial;
+ 
+-	protected BlockPlacer() {
+-		super(Material.rock);
++	protected BlockPlacer(int id) {
++		super(id, Material.rock);
+ 		this.setCreativeTab(QuarryPlus.ct);
+ 		this.setHardness(3.5F);
+ 		this.setStepSound(soundStoneFootstep);
+@@ -94,7 +92,7 @@
+ 		boolean flag1 = (i1 & 8) != 0;
+ 
+ 		if (flag && !flag1) {
+-			par1World.scheduleBlockUpdate(par2, par3, par4, this, 0);
++			par1World.scheduleBlockUpdate(par2, par3, par4, this.blockID, 0);
+ 			par1World.setBlockMetadataWithNotify(par2, par3, par4, i1 | 8, 4);
+ 		} else if (!flag && flag1) {
+ 			par1World.setBlockMetadataWithNotify(par2, par3, par4, i1 & -9, 4);
+@@ -131,7 +129,7 @@
+ 			tz = z + fd2.offsetZ;
+ 			ItemStack is;
+ 			Block k;
+-			final EntityPlayer player = FakePlayerFactory.getMinecraft((WorldServer) world);
++			final EntityPlayer player = FakePlayerFactory.getMinecraft(world);
+ 			for (; i < j; i++) {
+ 				is = tile.getStackInSlot(i);
+ 				if (is.getItem().onItemUseFirst(is, player, world, tx, ty, tz, sd1, 0.5F, 0.5F, 0.5F)) break;
+@@ -141,7 +139,7 @@
+ 				if (is.getItem().onItemUseFirst(is, player, world, tx + fd4.offsetX, ty + fd4.offsetY, tz + fd4.offsetZ, sd3, 0.5F, 0.5F, 0.5F)) break;
+ 				if (is.getItem().onItemUseFirst(is, player, world, tx + fd5.offsetX, ty + fd5.offsetY, tz + fd5.offsetZ, sd6, 0.5F, 0.5F, 0.5F)) break;
+ 				if (is.getItem().onItemUseFirst(is, player, world, tx + fd6.offsetX, ty + fd6.offsetY, tz + fd6.offsetZ, sd5, 0.5F, 0.5F, 0.5F)) break;
+-				k = world.getBlock(tx, ty, tz);
++				k = Block.blocksList[world.getBlockId(tx, ty, tz)];
+ 				if (k != null && k.onBlockActivated(world, tx, ty, tz, player, sd1, 0.5F, 0.5F, 0.5F)) break;
+ 				if (is.tryPlaceItemIntoWorld(player, world, tx, ty, tz, sd1, 0.5F, 0.5F, 0.5F)) break;
+ 				if (is.tryPlaceItemIntoWorld(player, world, tx + fd1.offsetX, ty + fd1.offsetY, tz + fd1.offsetZ, sd2, 0.5F, 0.5F, 0.5F)) break;
+@@ -197,7 +195,7 @@
+ 				}
+ 			}
+ 
+-			world.func_147453_f(x, y, z, b);
++			world.func_96440_m(x, y, z, b);
+ 		}
+ 
+ 		super.breakBlock(world, x, y, z, b, meta);
+diff -ru main/java/com/yogpc/qp/BlockPump.java 164/java/com/yogpc/qp/BlockPump.java
+--- main/java/com/yogpc/qp/BlockPump.java	2014-07-11 23:55:15.598984500 +0900
++++ 164/java/com/yogpc/qp/BlockPump.java	2014-07-11 23:18:00.673194200 +0900
+@@ -22,7 +22,6 @@
+ import buildcraft.api.tools.IToolWrench;
+ import cpw.mods.fml.relauncher.Side;
+ import cpw.mods.fml.relauncher.SideOnly;
+-import net.minecraft.block.Block;
+ import net.minecraft.block.BlockContainer;
+ import net.minecraft.block.material.Material;
+ import net.minecraft.client.renderer.texture.IconRegister;
+@@ -40,8 +39,8 @@
+ 
+ 	private Icon textureTop, textureBottom, textureSide, texW, texC;
+ 
+-	public BlockPump() {
+-		super(Material.iron);
++	public BlockPump(int id) {
++		super(id, Material.iron);
+ 		setHardness(5F);
+ 		setCreativeTab(QuarryPlus.ct);
+ 		setUnlocalizedName("PumpPlus");
+@@ -73,7 +72,7 @@
+ 			if (((TilePump) tile).G_working()) return this.texW;
+ 			if (((TilePump) tile).G_connected() != null) return this.texC;
+ 		}
+-		return super.getIcon(ba, x, y, z, side);
++		return super.getBlockTexture(ba, x, y, z, side);
+ 	}
+ 
+ 	@Override
+@@ -95,7 +94,7 @@
+ 		if (world.isRemote || tile == null) return;
+ 		int count = quantityDropped(meta, 0, world.rand);
+ 		int it = idDropped(meta, world.rand, 0);
+-		if (it != null) {
++		if (it != 0) {
+ 			for (int i = 0; i < count; i++) {
+ 				ItemStack is = new ItemStack(it, 1, damageDropped(meta));
+ 				EnchantmentHelper.enchantmentToIS(tile, is);
+diff -ru main/java/com/yogpc/qp/BlockQuarry.java 164/java/com/yogpc/qp/BlockQuarry.java
+--- main/java/com/yogpc/qp/BlockQuarry.java	2014-07-11 23:55:15.599630400 +0900
++++ 164/java/com/yogpc/qp/BlockQuarry.java	2014-07-11 23:18:15.706034000 +0900
+@@ -22,7 +22,6 @@
+ import buildcraft.api.tools.IToolWrench;
+ import cpw.mods.fml.relauncher.Side;
+ import cpw.mods.fml.relauncher.SideOnly;
+-import net.minecraft.block.Block;
+ import net.minecraft.block.BlockContainer;
+ import net.minecraft.block.material.Material;
+ import net.minecraft.client.renderer.texture.IconRegister;
+@@ -40,8 +39,8 @@
+ public class BlockQuarry extends BlockContainer {
+ 	Icon textureTop, textureFront, texBB, texNNB, texMF;
+ 
+-	public BlockQuarry() {
+-		super(Material.iron);
++	public BlockQuarry(int id) {
++		super(id, Material.iron);
+ 		setHardness(1.5F);
+ 		setResistance(10F);
+ 		setStepSound(soundStoneFootstep);
+@@ -58,7 +57,7 @@
+ 		if (world.isRemote || tile == null) return;
+ 		int count = quantityDropped(meta, 0, world.rand);
+ 		int it = idDropped(meta, world.rand, 0);
+-		if (it != null) {
++		if (it != 0) {
+ 			for (int i = 0; i < count; i++) {
+ 				ItemStack is = new ItemStack(it, 1, damageDropped(meta));
+ 				EnchantmentHelper.enchantmentToIS(tile, is);
+@@ -90,7 +89,7 @@
+ 				}
+ 			}
+ 		}
+-		return super.getIcon(ba, x, y, z, side);
++		return super.getBlockTexture(ba, x, y, z, side);
+ 	}
+ 
+ 	@Override
+diff -ru main/java/com/yogpc/qp/BlockRefinery.java 164/java/com/yogpc/qp/BlockRefinery.java
+--- main/java/com/yogpc/qp/BlockRefinery.java	2014-07-11 23:55:15.600268600 +0900
++++ 164/java/com/yogpc/qp/BlockRefinery.java	2014-07-11 22:07:27.353406500 +0900
+@@ -21,7 +21,6 @@
+ 
+ import buildcraft.api.tools.IToolWrench;
+ import static buildcraft.core.fluids.FluidUtils.handleRightClick;
+-import net.minecraft.block.Block;
+ import net.minecraft.block.BlockContainer;
+ import net.minecraft.block.material.Material;
+ import net.minecraft.entity.EntityLivingBase;
+@@ -37,8 +36,8 @@
+ 
+ public class BlockRefinery extends BlockContainer {
+ 
+-	public BlockRefinery() {
+-		super(Material.iron);
++	public BlockRefinery(int id) {
++		super(id, Material.iron);
+ 		setHardness(5F);
+ 		setCreativeTab(QuarryPlus.ct);
+ 		setUnlocalizedName("RefineryPlus");
+@@ -58,7 +57,7 @@
+ 		if (world.isRemote || tile == null) return;
+ 		int count = quantityDropped(meta, 0, world.rand);
+ 		int it = idDropped(meta, world.rand, 0);
+-		if (it != null) {
++		if (it != 0) {
+ 			for (int i = 0; i < count; i++) {
+ 				ItemStack is = new ItemStack(it, 1, damageDropped(meta));
+ 				EnchantmentHelper.enchantmentToIS(tile, is);
+diff -ru main/java/com/yogpc/qp/ChunkLoadingHandler.java 164/java/com/yogpc/qp/ChunkLoadingHandler.java
+--- main/java/com/yogpc/qp/ChunkLoadingHandler.java	2014-07-11 23:55:15.600940400 +0900
++++ 164/java/com/yogpc/qp/ChunkLoadingHandler.java	2014-07-11 22:07:27.353717800 +0900
+@@ -19,7 +19,6 @@
+ 
+ import java.util.List;
+ 
+-import net.minecraft.block.Block;
+ import net.minecraft.tileentity.TileEntity;
+ import net.minecraft.world.World;
+ import net.minecraftforge.common.ForgeChunkManager;
+@@ -48,8 +47,8 @@
+ 			int quarryY = ticket.getModData().getInteger("quarryY");
+ 			int quarryZ = ticket.getModData().getInteger("quarryZ");
+ 
+-			Block b = world.getBlock(quarryX, quarryY, quarryZ);
+-			if (b == QuarryPlus.blockQuarry || b == QuarryPlus.blockMarker) {
++			int b = world.getBlockId(quarryX, quarryY, quarryZ);
++			if (b == QuarryPlus.blockQuarry.blockID || b == QuarryPlus.blockMarker.blockID) {
+ 				validTickets.add(ticket);
+ 			}
+ 		}
+diff -ru main/java/com/yogpc/qp/CommonProxy.java 164/java/com/yogpc/qp/CommonProxy.java
+--- main/java/com/yogpc/qp/CommonProxy.java	2014-07-11 23:55:15.612162700 +0900
++++ 164/java/com/yogpc/qp/CommonProxy.java	2014-07-11 23:44:42.442090500 +0900
+@@ -18,9 +18,6 @@
+ package com.yogpc.qp;
+ 
+ import net.minecraft.entity.Entity;
+-import net.minecraft.entity.player.EntityPlayer;
+-import net.minecraft.network.INetHandler;
+-import net.minecraft.network.NetHandlerPlayServer;
+ import net.minecraft.world.World;
+ 
+ public class CommonProxy {
+@@ -33,9 +30,4 @@
+ 	public World getClientWorld() {
+ 		return null;
+ 	}
+-
+-	public EntityPlayer getPacketPlayer(INetHandler inh) {
+-		if (inh instanceof NetHandlerPlayServer) return ((NetHandlerPlayServer) inh).playerEntity;
+-		return null;
+-	}
+ }
+diff -ru main/java/com/yogpc/qp/ContainerMover.java 164/java/com/yogpc/qp/ContainerMover.java
+--- main/java/com/yogpc/qp/ContainerMover.java	2014-07-11 23:55:15.612860700 +0900
++++ 164/java/com/yogpc/qp/ContainerMover.java	2014-07-11 22:07:27.349107400 +0900
+@@ -80,7 +80,7 @@
+ 
+ 	@Override
+ 	public boolean canInteractWith(EntityPlayer var1) {
+-		return this.worldObj.getBlock(this.posX, this.posY, this.posZ) != QuarryPlus.blockMover ? false : var1.getDistanceSq(this.posX + 0.5D,
++		return this.worldObj.getBlockId(this.posX, this.posY, this.posZ) != QuarryPlus.blockMover.blockID ? false : var1.getDistanceSq(this.posX + 0.5D,
+ 				this.posY + 0.5D, this.posZ + 0.5D) <= 64.0D;
+ 	}
+ 
+@@ -106,15 +106,15 @@
+ 			list = is.getEnchantmentTagList();
+ 			if (list == null) return;
+ 			for (int i = 0; i < list.tagCount(); i++) {
+-				short lvl = list.tagAt(i).getShort("lvl");
++				short lvl = ((NBTTagCompound) list.tagAt(i)).getShort("lvl");
+ 				if (lvl < 1) continue;
+-				if (list.tagAt(i).getShort("id") == eid) {
+-					if (lvl > 1) list.tagAt(i).setShort("lvl", --lvl);
++				if (((NBTTagCompound) list.tagAt(i)).getShort("id") == eid) {
++					if (lvl > 1) ((NBTTagCompound) list.tagAt(i)).setShort("lvl", --lvl);
+ 					else {
+ 						{
+ 							NBTTagList nlist = new NBTTagList();
+ 							for (int j = 0; j < list.tagCount(); j++) {
+-								if (list.tagAt(j).getShort("id") != eid) nlist.appendTag(list.tagAt(j));
++								if (((NBTTagCompound) list.tagAt(j)).getShort("id") != eid) nlist.appendTag(list.tagAt(j));
+ 							}
+ 							list = nlist;
+ 						}
+@@ -136,11 +136,11 @@
+ 			nbttc.setTag("ench", list);
+ 		} else {
+ 			for (int i = 0; i < list.tagCount(); i++) {
+-				short id = list.tagAt(i).getShort("id");
+-				short lvl = list.tagAt(i).getShort("lvl");
++				short id = ((NBTTagCompound) list.tagAt(i)).getShort("id");
++				short lvl = ((NBTTagCompound) list.tagAt(i)).getShort("lvl");
+ 				if (lvl < 1) continue;
+ 				if (id == eid) {
+-					list.tagAt(i).setShort("lvl", ++lvl);
++					((NBTTagCompound) list.tagAt(i)).setShort("lvl", ++lvl);
+ 					done = true;
+ 					break;
+ 				}
+@@ -161,8 +161,8 @@
+ 		if (pickaxeIs != null) {
+ 			NBTTagList pickaxeE = pickaxeIs.getEnchantmentTagList();
+ 			if (pickaxeE != null) for (int i = 0; i < pickaxeE.tagCount(); i++) {
+-				short id = (pickaxeE.tagAt(i)).getShort("id");
+-				short lvl = (pickaxeE.tagAt(i)).getShort("lvl");
++				short id = ((NBTTagCompound) pickaxeE.tagAt(i)).getShort("id");
++				short lvl = ((NBTTagCompound) pickaxeE.tagAt(i)).getShort("lvl");
+ 				if (!checkTo(id)) continue;
+ 				if (lvl < 1) continue;
+ 				switch (id) {
+@@ -195,8 +195,8 @@
+ 			if (!(target.getItem() instanceof IEnchantableItem) || !((IEnchantableItem) target.getItem()).canMove(target, id, target.getItemDamage())) return false;
+ 			NBTTagList quarryE = target.getEnchantmentTagList();
+ 			if (quarryE != null) for (int i = 0; i < quarryE.tagCount(); i++) {
+-				if (id == quarryE.tagAt(i).getShort("id")) {
+-					if (Enchantment.enchantmentsList[id].getMaxLevel() > quarryE.tagAt(i).getShort("lvl")) return true;
++				if (id == ((NBTTagCompound) quarryE.tagAt(i)).getShort("id")) {
++					if (Enchantment.enchantmentsList[id].getMaxLevel() > ((NBTTagCompound) quarryE.tagAt(i)).getShort("lvl")) return true;
+ 					return false;
+ 				}
+ 			}
+diff -ru main/java/com/yogpc/qp/CreativeTabQuarryPlus.java 164/java/com/yogpc/qp/CreativeTabQuarryPlus.java
+--- main/java/com/yogpc/qp/CreativeTabQuarryPlus.java	2014-07-11 23:55:15.613353900 +0900
++++ 164/java/com/yogpc/qp/CreativeTabQuarryPlus.java	2014-07-11 22:07:27.362195600 +0900
+@@ -11,7 +11,7 @@
+ 
+ 	@Override
+ 	public Item getTabIconItem() {
+-		return Item.getItemFromBlock(QuarryPlus.blockQuarry);
++		return Item.itemsList[QuarryPlus.blockQuarry.blockID - 256];
+ 	}
+ 
+ }
+diff -ru main/java/com/yogpc/qp/EnchantmentHelper.java 164/java/com/yogpc/qp/EnchantmentHelper.java
+--- main/java/com/yogpc/qp/EnchantmentHelper.java	2014-07-11 23:55:15.613894900 +0900
++++ 164/java/com/yogpc/qp/EnchantmentHelper.java	2014-07-11 22:07:27.362513800 +0900
+@@ -22,6 +22,7 @@
+ 
+ import net.minecraft.enchantment.Enchantment;
+ import net.minecraft.item.ItemStack;
++import net.minecraft.nbt.NBTTagCompound;
+ import net.minecraft.nbt.NBTTagList;
+ import net.minecraft.util.StatCollector;
+ 
+@@ -30,8 +31,8 @@
+ 		byte efficiency = 0, unbreaking = 0, fortune = 0;
+ 		boolean silktouch = false;
+ 		if (nbttl != null) for (int i = 0; i < nbttl.tagCount(); i++) {
+-			short id = nbttl.tagAt(i).getShort("id");
+-			short lvl = nbttl.tagAt(i).getShort("lvl");
++			short id = ((NBTTagCompound) nbttl.tagAt(i)).getShort("id");
++			short lvl = ((NBTTagCompound) nbttl.tagAt(i)).getShort("lvl");
+ 			if (id == 32) efficiency = (byte) lvl;
+ 			if (id == 33) silktouch = true;
+ 			if (id == 34) unbreaking = (byte) lvl;
+diff -ru main/java/com/yogpc/qp/ItemBlockBreaker.java 164/java/com/yogpc/qp/ItemBlockBreaker.java
+--- main/java/com/yogpc/qp/ItemBlockBreaker.java	2014-07-11 23:55:15.617256000 +0900
++++ 164/java/com/yogpc/qp/ItemBlockBreaker.java	2014-07-11 22:07:27.364709300 +0900
+@@ -17,13 +17,12 @@
+ 
+ package com.yogpc.qp;
+ 
+-import net.minecraft.block.Block;
+ import net.minecraft.item.ItemBlock;
+ import net.minecraft.item.ItemStack;
+ 
+ public class ItemBlockBreaker extends ItemBlock implements IEnchantableItem {
+ 
+-	public ItemBlockBreaker(Block b) {
++	public ItemBlockBreaker(int b) {
+ 		super(b);
+ 	}
+ 
+diff -ru main/java/com/yogpc/qp/ItemBlockPump.java 164/java/com/yogpc/qp/ItemBlockPump.java
+--- main/java/com/yogpc/qp/ItemBlockPump.java	2014-07-11 23:55:15.617874700 +0900
++++ 164/java/com/yogpc/qp/ItemBlockPump.java	2014-07-11 22:07:27.365034800 +0900
+@@ -17,13 +17,12 @@
+ 
+ package com.yogpc.qp;
+ 
+-import net.minecraft.block.Block;
+ import net.minecraft.item.ItemBlock;
+ import net.minecraft.item.ItemStack;
+ 
+ public class ItemBlockPump extends ItemBlock implements IEnchantableItem {
+ 
+-	public ItemBlockPump(Block b) {
++	public ItemBlockPump(int b) {
+ 		super(b);
+ 	}
+ 
+diff -ru main/java/com/yogpc/qp/ItemBlockQuarry.java 164/java/com/yogpc/qp/ItemBlockQuarry.java
+--- main/java/com/yogpc/qp/ItemBlockQuarry.java	2014-07-11 23:55:15.618539700 +0900
++++ 164/java/com/yogpc/qp/ItemBlockQuarry.java	2014-07-11 22:07:27.365368800 +0900
+@@ -17,13 +17,12 @@
+ 
+ package com.yogpc.qp;
+ 
+-import net.minecraft.block.Block;
+ import net.minecraft.item.ItemBlock;
+ import net.minecraft.item.ItemStack;
+ 
+ public class ItemBlockQuarry extends ItemBlock implements IEnchantableItem {
+ 
+-	public ItemBlockQuarry(Block b) {
++	public ItemBlockQuarry(int b) {
+ 		super(b);
+ 	}
+ 
+diff -ru main/java/com/yogpc/qp/ItemBlockRefinery.java 164/java/com/yogpc/qp/ItemBlockRefinery.java
+--- main/java/com/yogpc/qp/ItemBlockRefinery.java	2014-07-11 23:55:15.619050500 +0900
++++ 164/java/com/yogpc/qp/ItemBlockRefinery.java	2014-07-11 22:07:27.365706100 +0900
+@@ -17,13 +17,12 @@
+ 
+ package com.yogpc.qp;
+ 
+-import net.minecraft.block.Block;
+ import net.minecraft.item.ItemBlock;
+ import net.minecraft.item.ItemStack;
+ 
+ public class ItemBlockRefinery extends ItemBlock implements IEnchantableItem {
+ 
+-	public ItemBlockRefinery(Block b) {
++	public ItemBlockRefinery(int b) {
+ 		super(b);
+ 	}
+ 
+diff -ru main/java/com/yogpc/qp/ItemTool.java 164/java/com/yogpc/qp/ItemTool.java
+--- main/java/com/yogpc/qp/ItemTool.java	2014-07-11 23:55:15.619719400 +0900
++++ 164/java/com/yogpc/qp/ItemTool.java	2014-07-11 22:07:27.366167600 +0900
+@@ -21,7 +21,6 @@
+ 
+ import com.yogpc.qp.QuarryPlus.BlockData;
+ 
+-import cpw.mods.fml.common.registry.GameData;
+ import cpw.mods.fml.relauncher.Side;
+ import cpw.mods.fml.relauncher.SideOnly;
+ import net.minecraft.block.Block;
+@@ -39,8 +38,8 @@
+ public class ItemTool extends Item implements IEnchantableItem {
+ 	Icon ile, ils;
+ 
+-	public ItemTool() {
+-		super();
++	public ItemTool(int id) {
++		super(id);
+ 		setMaxStackSize(1);
+ 		setHasSubtypes(true);
+ 		this.setMaxDamage(0);
+@@ -70,12 +69,12 @@
+ 			boolean s = false, f = false;
+ 			NBTTagList nbttl = is.getEnchantmentTagList();
+ 			if (nbttl != null) for (int i = 0; i < nbttl.tagCount(); i++) {
+-				short id = nbttl.tagAt(i).getShort("id");
++				short id = ((NBTTagCompound) nbttl.tagAt(i)).getShort("id");
+ 				if (id == 33) s = true;
+ 				if (id == 35) f = true;
+ 			}
+ 			NBTTagCompound c = is.getTagCompound();
+-			Block b = w.getBlock(x, y, z);
++			Block b = Block.blocksList[w.getBlockId(x, y, z)];
+ 			BlockData bd = null;
+ 			if (c != null && c.hasKey("Bname")) {
+ 				bd = new BlockData(c.getString("Bname"), c.getInteger("Bmeta"));
+@@ -99,7 +98,7 @@
+ 					c = new NBTTagCompound();
+ 					is.setTagCompound(c);
+ 				}
+-				String name = GameData.getBlockRegistry().getNameForObject(b);
++				String name = Integer.toString(b.blockID);
+ 				int meta = w.getBlockMetadata(x, y, z);
+ 				if (c.hasKey("Bname") && name.equals(c.getString("Bname")) && meta == c.getInteger("Bmeta")) {
+ 					c.setInteger("Bmeta", OreDictionary.WILDCARD_VALUE);
+diff -ru main/java/com/yogpc/qp/PacketHandler.java 164/java/com/yogpc/qp/PacketHandler.java
+--- main/java/com/yogpc/qp/PacketHandler.java	2014-07-11 23:55:15.620507300 +0900
++++ 164/java/com/yogpc/qp/PacketHandler.java	2014-07-11 22:07:27.366572300 +0900
+@@ -17,34 +17,27 @@
+ 
+ package com.yogpc.qp;
+ 
+-import io.netty.channel.ChannelHandlerContext;
+-import io.netty.channel.SimpleChannelInboundHandler;
+-import io.netty.channel.ChannelHandler.Sharable;
+-
+ import java.io.ByteArrayOutputStream;
+ import java.io.DataOutputStream;
+ import java.io.IOException;
+-import java.util.EnumMap;
+ 
+ import net.minecraft.entity.player.EntityPlayer;
+ import net.minecraft.inventory.Container;
+ import net.minecraft.nbt.CompressedStreamTools;
+ import net.minecraft.nbt.NBTTagCompound;
++import net.minecraft.network.INetworkManager;
++import net.minecraft.network.packet.Packet250CustomPayload;
+ import net.minecraft.tileentity.TileEntity;
+ 
+ import com.google.common.io.ByteArrayDataInput;
+ import com.google.common.io.ByteStreams;
+ import com.yogpc.qp.QuarryPlus.BlockData;
+ 
+-import cpw.mods.fml.common.network.FMLEmbeddedChannel;
+-import cpw.mods.fml.common.network.FMLOutboundHandler;
+-import cpw.mods.fml.common.network.FMLOutboundHandler.OutboundTarget;
+-import cpw.mods.fml.common.network.NetworkRegistry;
+-import cpw.mods.fml.relauncher.Side;
+-
+-@Sharable
+-public class PacketHandler extends SimpleChannelInboundHandler<QuarryPlusPacket> {
+-	public static EnumMap<Side, FMLEmbeddedChannel> channels;
++import cpw.mods.fml.common.network.IPacketHandler;
++import cpw.mods.fml.common.network.PacketDispatcher;
++import cpw.mods.fml.common.network.Player;
++
++public class PacketHandler implements IPacketHandler {
+ 	public static final byte Tile = 0;
+ 	public static final byte NBT = 1;
+ 	public static final byte BTN = 2;
+@@ -80,7 +73,9 @@
+ 	public static final byte remove_laser = 1;
+ 
+ 	@Override
+-	protected void channelRead0(ChannelHandlerContext ctx, QuarryPlusPacket packet) throws Exception {
++	public void onPacketData(INetworkManager network, Packet250CustomPayload _packet, Player player) {
++		QuarryPlusPacket packet = new QuarryPlusPacket();
++		packet.readData(_packet.data, player);
+ 		if (packet.getChannel() == NBT) {
+ 			setNBTFromPacket(packet);
+ 		} else if (packet.getChannel() == BTN) {
+@@ -100,27 +95,28 @@
+ 		}
+ 	}
+ 
++	public static Packet250CustomPayload getPacket(QuarryPlusPacket p) {
++		Packet250CustomPayload pkt = new Packet250CustomPayload();
++		pkt.channel = "QuarryPlus";
++		pkt.data = p.writeData();
++		pkt.length = pkt.data.length;
++		return pkt;
++	}
++
+ 	public static void sendPacketToServer(QuarryPlusPacket p) {
+-		channels.get(Side.CLIENT).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.TOSERVER);
+-		channels.get(Side.CLIENT).writeOutbound(p);
++		PacketDispatcher.sendPacketToServer(getPacket(p));
+ 	}
+ 
+ 	public static void sendPacketToAround(QuarryPlusPacket p, int d, int x, int y, int z) {
+-		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.ALLAROUNDPOINT);
+-		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS).set(new NetworkRegistry.TargetPoint(d, x, y, z, 256));
+-		channels.get(Side.SERVER).writeOutbound(p);
++		PacketDispatcher.sendPacketToAllAround(x, y, z, 256, d, getPacket(p));
+ 	}
+ 
+ 	public static void sendPacketToDimension(QuarryPlusPacket p, int d) {
+-		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.DIMENSION);
+-		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS).set(d);
+-		channels.get(Side.SERVER).writeOutbound(p);
++		PacketDispatcher.sendPacketToAllInDimension(getPacket(p), d);
+ 	}
+ 
+ 	public static void sendPacketToPlayer(QuarryPlusPacket p, EntityPlayer e) {
+-		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(FMLOutboundHandler.OutboundTarget.PLAYER);
+-		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS).set(e);
+-		channels.get(Side.SERVER).writeOutbound(p);
++		PacketDispatcher.sendPacketToPlayer(getPacket(p), (Player) e);
+ 	}
+ 
+ 	static QuarryPlusPacket getPacketFromNBT(TileEntity te) {
+diff -ru main/java/com/yogpc/qp/QuarryPlus.java 164/java/com/yogpc/qp/QuarryPlus.java
+--- main/java/com/yogpc/qp/QuarryPlus.java	2014-07-11 23:55:15.622617000 +0900
++++ 164/java/com/yogpc/qp/QuarryPlus.java	2014-07-11 23:42:30.966078800 +0900
+@@ -25,12 +25,9 @@
+ import buildcraft.BuildCraftFactory;
+ import buildcraft.BuildCraftSilicon;
+ import buildcraft.BuildCraftTransport;
+-import buildcraft.api.recipes.BuildcraftRecipes;
+-import buildcraft.api.transport.PipeWire;
++import buildcraft.api.recipes.AssemblyRecipe;
+ import net.minecraft.block.Block;
+ import net.minecraft.creativetab.CreativeTabs;
+-import net.minecraft.block.Block;
+-import net.minecraft.item.Item;
+ import net.minecraft.item.Item;
+ import net.minecraft.item.ItemStack;
+ import net.minecraftforge.common.Configuration;
+@@ -45,12 +42,13 @@
+ import cpw.mods.fml.common.event.FMLInitializationEvent;
+ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+ import net.minecraftforge.event.ForgeSubscribe;
+-import cpw.mods.fml.common.registry.GameData;
+ import cpw.mods.fml.common.registry.GameRegistry;
+ import cpw.mods.fml.common.registry.LanguageRegistry;
++import cpw.mods.fml.common.network.NetworkMod;
+ import cpw.mods.fml.common.network.NetworkRegistry;
+ 
+ @Mod(modid = "QuarryPlus", name = "QuarryPlus", version = "@VERSION@", dependencies = "required-after:BuildCraft|Builders;required-after:BuildCraft|Core;required-after:BuildCraft|Energy;required-after:BuildCraft|Factory;required-after:BuildCraft|Silicon;required-after:BuildCraft|Transport")
++@NetworkMod(clientSideRequired = true, serverSideRequired = false, channels = { "QuarryPlus" }, packetHandler = PacketHandler.class)
+ public class QuarryPlus {
+ 	public static final CreativeTabs ct = new CreativeTabQuarryPlus();
+ 	@SidedProxy(clientSide = "com.yogpc.qp.client.ClientProxy", serverSide = "com.yogpc.qp.CommonProxy")
+@@ -91,8 +89,20 @@
+ 	@Mod.EventHandler
+ 	public void preInit(FMLPreInitializationEvent event) {
+ 		Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
++		int[] id = new int[11];
+ 		try {
+ 			cfg.load();
++			id[0] = cfg.getBlock("Quarry", 1970).getInt();
++			id[1] = cfg.getBlock("Marker", 1971).getInt();
++			id[2] = cfg.getBlock("EnchantMover", 1972).getInt();
++			id[3] = cfg.getBlock("MiningWell", 1973).getInt();
++			id[4] = cfg.getBlock("Pump", 1974).getInt();
++			id[5] = cfg.getBlock("InfMJSrc", 1975).getInt();
++			id[6] = cfg.getBlock("Refinery", 1976).getInt();
++			id[7] = cfg.getBlock("Placer", 1977).getInt();
++			id[8] = cfg.getBlock("Breaker", 1978).getInt();
++			id[9] = cfg.getBlock("Laser", 1979).getInt();
++			id[10] = cfg.getItem("Tools", 18463).getInt();
+ 			Property RD = cfg.get(Configuration.CATEGORY_GENERAL, "RecipeDifficulty", 2);
+ 			RD.comment = "0:AsCheatRecipe,1:EasyRecipe,2:NormalRecipe(Default),3:HardRecipe,other:NormalRecipe";
+ 			RecipeDifficulty = RD.getInt(2);
+@@ -103,17 +113,17 @@
+ 			cfg.save();
+ 		}
+ 		try {
+-			blockQuarry = (new BlockQuarry());
+-			blockMarker = (new BlockMarker());
+-			blockMover = (new BlockMover());
+-			blockMiningWell = (new BlockMiningWell());
+-			blockPump = (new BlockPump());
+-			blockInfMJSrc = (new BlockInfMJSrc());
+-			blockRefinery = (new BlockRefinery());
+-			blockPlacer = (new BlockPlacer());
+-			blockBreaker = (new BlockBreaker());
+-			blockLaser = (new BlockLaser());
+-			itemTool = (new ItemTool());
++			blockQuarry = (new BlockQuarry(id[0]));
++			blockMarker = (new BlockMarker(id[1]));
++			blockMover = (new BlockMover(id[2]));
++			blockMiningWell = (new BlockMiningWell(id[3]));
++			blockPump = (new BlockPump(id[4]));
++			blockInfMJSrc = (new BlockInfMJSrc(id[5]));
++			blockRefinery = (new BlockRefinery(id[6]));
++			blockPlacer = (new BlockPlacer(id[7]));
++			blockBreaker = (new BlockBreaker(id[8]));
++			blockLaser = (new BlockLaser(id[9]));
++			itemTool = (new ItemTool(id[10]));
+ 		} catch (Exception e) {
+ 			e.printStackTrace();
+ 		}
+@@ -125,7 +135,7 @@
+ 	}
+ 
+ 	private static final void addAssemblyRecipe(int a, ItemStack b, Object... c) {
+-		BuildcraftRecipes.assemblyTable.addRecipe(a, b, c);
++		AssemblyRecipe.assemblyRecipes.add(new AssemblyRecipe(a, b, c));
+ 	}
+ 
+ 	@Mod.EventHandler
+@@ -187,7 +197,7 @@
+ 			break;
+ 		case 1:
+ 			addAssemblyRecipe(160000, new ItemStack(blockQuarry, 1), new ItemStack(BuildCraftFactory.quarryBlock, 1), new ItemStack(redstoneChipset, 1, 3),
+-					new ItemStack(BuildCraftTransport.pipeWire, 8, PipeWire.YELLOW.ordinal()));
++					new ItemStack(BuildCraftTransport.yellowPipeWire, 8));
+ 			addAssemblyRecipe(40000, new ItemStack(blockMover, 1), new ItemStack(Block.enchantmentTable, 1), new ItemStack(
+ 					BuildCraftFactory.autoWorkbenchBlock, 1), new ItemStack(Block.anvil, 1), new ItemStack(BuildCraftSilicon.laserBlock, 2), new ItemStack(
+ 					BuildCraftSilicon.assemblyTableBlock, 1));
+@@ -203,7 +213,7 @@
+ 			addAssemblyRecipe(160000, new ItemStack(itemTool, 1, 2), new ItemStack(BuildCraftCore.wrenchItem, 2), new ItemStack(Item.bucketEmpty, 2),
+ 					new ItemStack(Item.bucketWater, 1), new ItemStack(Item.bucketLava, 1));
+ 			addAssemblyRecipe(80000, new ItemStack(blockMiningWell, 1), new ItemStack(BuildCraftFactory.miningWellBlock, 1), new ItemStack(redstoneChipset, 1,
+-					3), new ItemStack(BuildCraftTransport.pipeWire, 8, PipeWire.YELLOW.ordinal()));
++					3), new ItemStack(BuildCraftTransport.yellowPipeWire, 8));
+ 			addAssemblyRecipe(40000, new ItemStack(blockBreaker, 1), new ItemStack(Block.dispenser, 1), new ItemStack(Item.pickaxeDiamond, 1),
+ 					new ItemStack(BuildCraftEnergy.engineBlock, 1, 1));
+ 			addAssemblyRecipe(80000, new ItemStack(blockPlacer, 1), new ItemStack(Block.dispenser, 1), new ItemStack(BuildCraftBuilders.fillerBlock, 1),
+@@ -213,7 +223,7 @@
+ 			break;
+ 		case 3:
+ 			addAssemblyRecipe(800000, new ItemStack(blockQuarry, 1), new ItemStack(BuildCraftFactory.quarryBlock, 2), new ItemStack(redstoneChipset, 8, 3),
+-					new ItemStack(BuildCraftTransport.pipeWire, 16, PipeWire.YELLOW.ordinal()), new ItemStack(redstoneChipset, 2, 4), new ItemStack(
++					new ItemStack(BuildCraftTransport.yellowPipeWire, 16), new ItemStack(redstoneChipset, 2, 4), new ItemStack(
+ 							Block.chest, 32));
+ 			addAssemblyRecipe(640000, new ItemStack(blockMover, 1), new ItemStack(Block.enchantmentTable, 1), new ItemStack(
+ 					BuildCraftSilicon.assemblyTableBlock, 1, 1), new ItemStack(Block.anvil, 2), new ItemStack(BuildCraftSilicon.laserBlock, 4), new ItemStack(
+@@ -235,7 +245,7 @@
+ 					new ItemStack(Item.bucketWater, 1), new ItemStack(Item.bucketLava, 1), new ItemStack(BuildCraftEnergy.bucketOil, 1), new ItemStack(
+ 							BuildCraftEnergy.bucketFuel, 1), new ItemStack(BuildCraftEnergy.engineBlock, 1, 2));
+ 			addAssemblyRecipe(500000, new ItemStack(blockMiningWell, 1), new ItemStack(BuildCraftFactory.miningWellBlock, 2), new ItemStack(redstoneChipset, 8,
+-					3), new ItemStack(BuildCraftTransport.pipeWire, 16, PipeWire.YELLOW.ordinal()), new ItemStack(redstoneChipset, 1, 4), new ItemStack(
++					3), new ItemStack(BuildCraftTransport.yellowPipeWire, 16), new ItemStack(redstoneChipset, 1, 4), new ItemStack(
+ 					Block.chest, 16));
+ 			addAssemblyRecipe(640000, new ItemStack(blockBreaker, 1), new ItemStack(Block.dispenser, 2), new ItemStack(Block.blockDiamond, 2),
+ 					new ItemStack(Item.redstone, 64), new ItemStack(blockQuarry, 1), new ItemStack(blockMiningWell, 1), new ItemStack(
+@@ -248,7 +258,7 @@
+ 			break;
+ 		default:
+ 			addAssemblyRecipe(320000, new ItemStack(blockQuarry, 1), new ItemStack(BuildCraftFactory.quarryBlock, 1), new ItemStack(redstoneChipset, 2, 3),
+-					new ItemStack(BuildCraftTransport.pipeWire, 16, PipeWire.YELLOW.ordinal()), new ItemStack(redstoneChipset, 1, 4), new ItemStack(
++					new ItemStack(BuildCraftTransport.yellowPipeWire, 16), new ItemStack(redstoneChipset, 1, 4), new ItemStack(
+ 							Block.chest, 8));
+ 			addAssemblyRecipe(320000, new ItemStack(blockMover, 1), new ItemStack(Block.enchantmentTable, 1), new ItemStack(
+ 					BuildCraftSilicon.assemblyTableBlock, 1, 1), new ItemStack(Block.anvil, 1), new ItemStack(BuildCraftSilicon.assemblyTableBlock, 1),
+@@ -269,7 +279,7 @@
+ 					new ItemStack(Item.bucketWater, 1), new ItemStack(Item.bucketLava, 1), new ItemStack(BuildCraftEnergy.bucketOil, 1), new ItemStack(
+ 							BuildCraftEnergy.bucketFuel, 1));
+ 			addAssemblyRecipe(160000, new ItemStack(blockMiningWell, 1), new ItemStack(BuildCraftFactory.miningWellBlock, 1), new ItemStack(redstoneChipset, 2,
+-					3), new ItemStack(BuildCraftTransport.pipeWire, 16, PipeWire.YELLOW.ordinal()), new ItemStack(redstoneChipset, 1, 4), new ItemStack(
++					3), new ItemStack(BuildCraftTransport.yellowPipeWire, 16), new ItemStack(redstoneChipset, 1, 4), new ItemStack(
+ 					Block.chest, 8));
+ 			addAssemblyRecipe(320000, new ItemStack(blockBreaker, 1), new ItemStack(Block.dispenser, 2), new ItemStack(Block.blockDiamond, 1),
+ 					new ItemStack(Item.redstone, 32), new ItemStack(blockQuarry, 1), new ItemStack(BuildCraftEnergy.engineBlock, 1, 2));
+@@ -280,7 +290,6 @@
+ 					new ItemStack(BuildCraftTransport.pipePowerGold, 64), new ItemStack(Item.glowstone, 32));
+ 		}
+ 		NetworkRegistry.instance().registerGuiHandler(this, new GuiHandler());
+-		PacketHandler.channels = NetworkRegistry.instance().newChannel("QuarryPlus", new QuarryPlusPacketCodec(), new PacketHandler());
+ 		proxy.registerTextures();
+ 	}
+ 
+@@ -314,7 +323,7 @@
+ 			sb.append(bd.meta);
+ 		}
+ 		sb.append("  ");
+-		sb.append(GameData.getBlockRegistry().getObject(bd.name).getLocalizedName());
++		sb.append(Block.blocksList[Integer.valueOf(bd.name)].getLocalizedName());
+ 		return sb.toString();
+ 	}
+ }
+diff -ru main/java/com/yogpc/qp/QuarryPlusPacket.java 164/java/com/yogpc/qp/QuarryPlusPacket.java
+--- main/java/com/yogpc/qp/QuarryPlusPacket.java	2014-07-11 23:55:15.623137000 +0900
++++ 164/java/com/yogpc/qp/QuarryPlusPacket.java	2014-07-11 22:07:27.368285000 +0900
+@@ -1,9 +1,7 @@
+ package com.yogpc.qp;
+ 
+-import cpw.mods.fml.common.network.NetworkRegistry;
++import cpw.mods.fml.common.network.Player;
+ import net.minecraft.entity.player.EntityPlayer;
+-import io.netty.buffer.ByteBuf;
+-import io.netty.channel.ChannelHandlerContext;
+ 
+ public final class QuarryPlusPacket {
+ 	private byte channel;
+@@ -29,15 +27,17 @@
+ 		return this.data;
+ 	}
+ 
+-	public void readData(ByteBuf d, ChannelHandlerContext ctx) {
+-		this.ep = QuarryPlus.proxy.getPacketPlayer(ctx.channel().attr(NetworkRegistry.NET_HANDLER).get());
+-		this.channel = d.readByte();
+-		this.data = new byte[d.readableBytes()];
+-		d.readBytes(this.data);
++	public void readData(byte[] d, Player p) {
++		this.ep = (EntityPlayer) p;
++		this.channel = d[0];
++		this.data = new byte[d.length - 1];
++		System.arraycopy(d, 1, this.data, 0, d.length - 1);
+ 	}
+ 
+-	public void writeData(ByteBuf d) {
+-		d.writeByte(this.channel);
+-		d.writeBytes(this.data);
++	public byte[] writeData() {
++		byte[] d = new byte[this.data.length + 1];
++		d[0] = this.channel;
++		System.arraycopy(this.data, 0, d, 1, this.data.length + 1);
++		return d;
+ 	}
+ }
+diff -ru main/java/com/yogpc/qp/TileBasic.java 164/java/com/yogpc/qp/TileBasic.java
+--- main/java/com/yogpc/qp/TileBasic.java	2014-07-11 23:55:15.624571400 +0900
++++ 164/java/com/yogpc/qp/TileBasic.java	2014-07-11 22:07:27.369033500 +0900
+@@ -29,7 +29,6 @@
+ import com.google.common.io.ByteArrayDataInput;
+ import com.yogpc.qp.QuarryPlus.BlockData;
+ 
+-import cpw.mods.fml.common.registry.GameData;
+ import net.minecraft.block.Block;
+ import net.minecraft.entity.player.EntityPlayer;
+ import net.minecraft.item.ItemStack;
+@@ -193,7 +192,7 @@
+ 
+ 	protected boolean S_breakBlock(int x, int y, int z) {
+ 		Collection<ItemStack> dropped = new LinkedList<ItemStack>();
+-		Block b = this.worldObj.getChunkProvider().loadChunk(x >> 4, z >> 4).getBlock(x & 0xF, y, z & 0xF);
++		Block b = Block.blocksList[this.worldObj.getChunkProvider().loadChunk(x >> 4, z >> 4).getBlockID(x & 0xF, y, z & 0xF)];
+ 		if (b == null || b.isAirBlock(this.worldObj, x, y, z)) return true;
+ 		if (TilePump.isLiquid(b, false, null, 0, 0, 0, 0)) {
+ 			TileEntity te = this.worldObj.getBlockTileEntity(this.xCoord + this.pump.offsetX, this.yCoord + this.pump.offsetY, this.zCoord + this.pump.offsetZ);
+@@ -206,7 +205,7 @@
+ 		}
+ 		if (!PowerManager.useEnergyB(this, b.getBlockHardness(this.worldObj, x, y, z), S_addDroppedItems(dropped, b, x, y, z), this.unbreaking, this)) return false;
+ 		this.cacheItems.addAll(dropped);
+-		this.worldObj.playAuxSFXAtEntity(null, 2001, x, y, z, Block.getIdFromBlock(b) | (this.worldObj.getBlockMetadata(x, y, z) << 12));
++		this.worldObj.playAuxSFXAtEntity(null, 2001, x, y, z, b.blockID | (this.worldObj.getBlockMetadata(x, y, z) << 12));
+ 		this.worldObj.setBlockToAir(x, y, z);
+ 		return true;
+ 	}
+@@ -222,7 +221,7 @@
+ 	private byte S_addDroppedItems(Collection<ItemStack> list, Block b, int x, int y, int z) {
+ 		int meta = this.worldObj.getBlockMetadata(x, y, z);
+ 		if (b.canSilkHarvest(this.worldObj, null, x, y, z, meta) && this.silktouch
+-				&& (this.silktouchList.contains(new BlockData(GameData.getBlockRegistry().getNameForObject(b), meta)) == this.silktouchInclude)) {
++				&& (this.silktouchList.contains(new BlockData(Integer.toString(b.blockID), meta)) == this.silktouchInclude)) {
+ 			try {
+ 				list.add((ItemStack) createStackedBlock.invoke(b, meta));
+ 				return -1;
+@@ -232,7 +231,7 @@
+ 				e.printStackTrace();
+ 			}
+ 		}
+-		if (this.fortuneList.contains(new BlockData(GameData.getBlockRegistry().getNameForObject(b), meta)) == this.fortuneInclude) {
++		if (this.fortuneList.contains(new BlockData(Integer.toString(b.blockID), meta)) == this.fortuneInclude) {
+ 			list.addAll(b.getBlockDropped(this.worldObj, x, y, z, meta, this.fortune));
+ 			return this.fortune;
+ 		}
+@@ -289,14 +288,14 @@
+ 		this.unbreaking = nbttc.getByte("unbreaking");
+ 		this.fortuneInclude = nbttc.getBoolean("fortuneInclude");
+ 		this.silktouchInclude = nbttc.getBoolean("silktouchInclude");
+-		readLongCollection(nbttc.getTagList("fortuneList", 10), this.fortuneList);
+-		readLongCollection(nbttc.getTagList("silktouchList", 10), this.silktouchList);
++		readLongCollection(nbttc.getTagList("fortuneList"), this.fortuneList);
++		readLongCollection(nbttc.getTagList("silktouchList"), this.silktouchList);
+ 	}
+ 
+ 	private static void readLongCollection(NBTTagList nbttl, Collection<BlockData> target) {
+ 		target.clear();
+ 		for (int i = 0; i < nbttl.tagCount(); i++) {
+-			NBTTagCompound c = nbttl.tagAt(i);
++			NBTTagCompound c = (NBTTagCompound) nbttl.tagAt(i);
+ 			target.add(new BlockData(c.getString("name"), c.getInteger("meta")));
+ 		}
+ 	}
+diff -ru main/java/com/yogpc/qp/TileLaser.java 164/java/com/yogpc/qp/TileLaser.java
+--- main/java/com/yogpc/qp/TileLaser.java	2014-07-11 23:55:15.626752800 +0900
++++ 164/java/com/yogpc/qp/TileLaser.java	2014-07-11 22:07:27.370261400 +0900
+@@ -216,11 +216,11 @@
+ 		this.silktouch = nbttc.getBoolean("silktouch");
+ 		PowerManager.configureL(this, this.efficiency, this.unbreaking);
+ 		this.pa = nbttc.getDouble("pa");
+-		NBTTagList nbttl = nbttc.getTagList("lasers", 10);
++		NBTTagList nbttl = nbttc.getTagList("lasers");
+ 		if (this.lasers == null || this.lasers.length != nbttl.tagCount()) this.lasers = new Position[nbttl.tagCount()];
+ 		for (int i = 0; i < nbttl.tagCount(); i++) {
+ 			if (this.lasers[i] == null) this.lasers[i] = new Position();
+-			NBTTagCompound lc = nbttl.tagAt(i);
++			NBTTagCompound lc = (NBTTagCompound) nbttl.tagAt(i);
+ 			this.lasers[i].x = lc.getDouble("x");
+ 			this.lasers[i].y = lc.getDouble("y");
+ 			this.lasers[i].z = lc.getDouble("z");
+diff -ru main/java/com/yogpc/qp/TileMarker.java 164/java/com/yogpc/qp/TileMarker.java
+--- main/java/com/yogpc/qp/TileMarker.java	2014-07-11 23:55:15.628052600 +0900
++++ 164/java/com/yogpc/qp/TileMarker.java	2014-07-11 22:07:27.370813500 +0900
+@@ -191,7 +191,7 @@
+ 		private final ArrayList<ItemStack> removeLink(final int x, final int y, final int z, final boolean bb) {
+ 			final ArrayList<ItemStack> ret = new ArrayList<ItemStack>();
+ 			final TileEntity te = this.w.getBlockTileEntity(x, y, z);
+-			final Block b = this.w.getBlock(x, y, z);
++			final Block b = Block.blocksList[this.w.getBlockId(x, y, z)];
+ 			if (b instanceof BlockMarker) {
+ 				if (te instanceof TileMarker) ((TileMarker) te).link = null;
+ 				ret.addAll(b.getBlockDropped(this.w, x, y, z, this.w.getBlockMetadata(x, y, z), 0));
+@@ -376,16 +376,16 @@
+ 
+ 	private static void S_renewConnection(final Link l, final World w, final int x, final int y, final int z) {
+ 		int tx = 0, ty = 0, tz = 0;
+-		Block b;
++		int b;
+ 		if (l.xx == l.xn) {
+ 			for (tx = 1; tx <= MAX_SIZE; tx++) {
+-				b = w.getBlock(x + tx, y, z);
+-				if (b instanceof BlockMarker && !linkList.contains(new BlockIndex(w, x + tx, y, z))) {
++				b = w.getBlockId(x + tx, y, z);
++				if (b == QuarryPlus.blockMarker.blockID && !linkList.contains(new BlockIndex(w, x + tx, y, z))) {
+ 					l.xx = x + tx;
+ 					break;
+ 				}
+-				b = w.getBlock(x - tx, y, z);
+-				if (b instanceof BlockMarker && !linkList.contains(new BlockIndex(w, x - tx, y, z))) {
++				b = w.getBlockId(x - tx, y, z);
++				if (b == QuarryPlus.blockMarker.blockID && !linkList.contains(new BlockIndex(w, x - tx, y, z))) {
+ 					tx = -tx;
+ 					l.xn = x + tx;
+ 					break;
+@@ -395,13 +395,13 @@
+ 		}
+ 		if (l.yx == l.yn) {
+ 			for (ty = 1; ty <= MAX_SIZE; ty++) {
+-				b = w.getBlock(x, y + ty, z);
+-				if (b instanceof BlockMarker && !linkList.contains(new BlockIndex(w, x, y + ty, z))) {
++				b = w.getBlockId(x, y + ty, z);
++				if (b == QuarryPlus.blockMarker.blockID && !linkList.contains(new BlockIndex(w, x, y + ty, z))) {
+ 					l.yx = y + ty;
+ 					break;
+ 				}
+-				b = w.getBlock(x, y - ty, z);
+-				if (b instanceof BlockMarker && !linkList.contains(new BlockIndex(w, x, y - ty, z))) {
++				b = w.getBlockId(x, y - ty, z);
++				if (b == QuarryPlus.blockMarker.blockID && !linkList.contains(new BlockIndex(w, x, y - ty, z))) {
+ 					ty = -ty;
+ 					l.yn = y + ty;
+ 					break;
+@@ -411,13 +411,13 @@
+ 		}
+ 		if (l.zx == l.zn) {
+ 			for (tz = 1; tz <= MAX_SIZE; tz++) {
+-				b = w.getBlock(x, y, z + tz);
+-				if (b instanceof BlockMarker && !linkList.contains(new BlockIndex(w, x, y, z + tz))) {
++				b = w.getBlockId(x, y, z + tz);
++				if (b == QuarryPlus.blockMarker.blockID && !linkList.contains(new BlockIndex(w, x, y, z + tz))) {
+ 					l.zx = z + tz;
+ 					break;
+ 				}
+-				b = w.getBlock(x, y, z - tz);
+-				if (b instanceof BlockMarker && !linkList.contains(new BlockIndex(w, x, y, z - tz))) {
++				b = w.getBlockId(x, y, z - tz);
++				if (b == QuarryPlus.blockMarker.blockID && !linkList.contains(new BlockIndex(w, x, y, z - tz))) {
+ 					tz = -tz;
+ 					l.zn = z + tz;
+ 					break;
+@@ -572,6 +572,6 @@
+ 	@Override
+ 	public void invalidate() {
+ 		super.invalidate();
+-		if (this.worldObj.getBlock(this.xCoord, this.yCoord, this.zCoord) != QuarryPlus.blockMarker) G_destroy();
++		if (this.worldObj.getBlockId(this.xCoord, this.yCoord, this.zCoord) != QuarryPlus.blockMarker.blockID) G_destroy();
+ 	}
+ }
+diff -ru main/java/com/yogpc/qp/TileMiningWell.java 164/java/com/yogpc/qp/TileMiningWell.java
+--- main/java/com/yogpc/qp/TileMiningWell.java	2014-07-11 23:55:15.632170000 +0900
++++ 164/java/com/yogpc/qp/TileMiningWell.java	2014-07-11 22:07:27.371216600 +0900
+@@ -61,7 +61,7 @@
+ 		if (this.worldObj.isRemote) return;
+ 		int depth = this.yCoord - 1;
+ 		while (!S_checkTarget(depth)) {
+-			if (this.working) this.worldObj.setBlock(this.xCoord, depth, this.zCoord, plainPipeBlock);
++			if (this.working) this.worldObj.setBlock(this.xCoord, depth, this.zCoord, plainPipeBlock.blockID);
+ 			depth--;
+ 		}
+ 		if (this.working) S_breakBlock(this.xCoord, depth, this.zCoord);
+@@ -73,10 +73,11 @@
+ 			G_destroy();
+ 			return true;
+ 		}
+-		Block b = this.worldObj.getChunkProvider().loadChunk(this.xCoord >> 4, this.zCoord >> 4).getBlock(this.xCoord & 0xF, depth, this.zCoord & 0xF);
++		Block b = Block.blocksList[this.worldObj.getChunkProvider().loadChunk(this.xCoord >> 4, this.zCoord >> 4)
++				.getBlockID(this.xCoord & 0xF, depth, this.zCoord & 0xF)];
+ 		float h = b == null ? -1 : b.getBlockHardness(this.worldObj, this.xCoord, depth, this.zCoord);
+ 		if (b == null || h < 0 || b == plainPipeBlock || b.isAirBlock(this.worldObj, this.xCoord, depth, this.zCoord)) return false;
+-		if (this.pump == ForgeDirection.UNKNOWN && b.getMaterial().isLiquid()) return false;
++		if (this.pump == ForgeDirection.UNKNOWN && this.worldObj.getBlockMaterial(this.xCoord, depth, this.zCoord).isLiquid()) return false;
+ 		if (!this.working) {
+ 			this.working = true;
+ 			G_renew_powerConfigure();
+@@ -112,7 +113,7 @@
+ 		G_renew_powerConfigure();
+ 		PacketHandler.sendNowPacket(this, (byte) 0);
+ 		for (int depth = this.yCoord - 1; depth > 0; depth--) {
+-			if (this.worldObj.getBlock(this.xCoord, depth, this.zCoord) != plainPipeBlock) {
++			if (this.worldObj.getBlockId(this.xCoord, depth, this.zCoord) != plainPipeBlock.blockID) {
+ 				break;
+ 			}
+ 			this.worldObj.setBlockToAir(this.xCoord, depth, this.zCoord);
+diff -ru main/java/com/yogpc/qp/TilePlacer.java 164/java/com/yogpc/qp/TilePlacer.java
+--- main/java/com/yogpc/qp/TilePlacer.java	2014-07-11 23:55:15.634018600 +0900
++++ 164/java/com/yogpc/qp/TilePlacer.java	2014-07-11 22:07:27.371596400 +0900
+@@ -116,10 +116,10 @@
+ 	@Override
+ 	public void readFromNBT(NBTTagCompound par1NBTTagCompound) {
+ 		super.readFromNBT(par1NBTTagCompound);
+-		NBTTagList nbttaglist = par1NBTTagCompound.getTagList("Items", 10);
++		NBTTagList nbttaglist = par1NBTTagCompound.getTagList("Items");
+ 
+ 		for (int i = 0; i < nbttaglist.tagCount(); ++i) {
+-			NBTTagCompound nbttagcompound1 = nbttaglist.tagAt(i);
++			NBTTagCompound nbttagcompound1 = (NBTTagCompound) nbttaglist.tagAt(i);
+ 			int j = nbttagcompound1.getByte("Slot") & 255;
+ 
+ 			if (j >= 0 && j < this.stack.length) {
+diff -ru main/java/com/yogpc/qp/TilePump.java 164/java/com/yogpc/qp/TilePump.java
+--- main/java/com/yogpc/qp/TilePump.java	2014-07-11 23:55:15.635508300 +0900
++++ 164/java/com/yogpc/qp/TilePump.java	2014-07-11 23:58:37.807169000 +0900
+@@ -26,7 +26,6 @@
+ 
+ import net.minecraft.block.Block;
+ import net.minecraft.entity.player.EntityPlayer;
+-import net.minecraft.block.Block;
+ import net.minecraft.nbt.NBTTagCompound;
+ import net.minecraft.nbt.NBTTagList;
+ import net.minecraft.nbt.NBTTagString;
+@@ -80,15 +79,15 @@
+ 		this.unbreaking = nbttc.getByte("unbreaking");
+ 		this.connectTo = ForgeDirection.values()[nbttc.getByte("connectTo")];
+ 		if (nbttc.getTag("mapping0") instanceof NBTTagList) for (int i = 0; i < this.mapping.length; i++)
+-			readStringCollection(nbttc.getTagList(String.format("mapping%d", i), 8), this.mapping[i]);
++			readStringCollection(nbttc.getTagList(String.format("mapping%d", i)), this.mapping[i]);
+ 		this.range = nbttc.getByte("range");
+ 		this.quarryRange = nbttc.getBoolean("quarryRange");
+ 		this.prev = (byte) (this.connectTo.ordinal() | (G_working() ? 0x80 : 0));
+ 		if (this.silktouch) {
+ 			this.liquids.clear();
+-			NBTTagList nbttl = nbttc.getTagList("liquids", 10);
++			NBTTagList nbttl = nbttc.getTagList("liquids");
+ 			for (int i = 0; i < nbttl.tagCount(); i++) {
+-				this.liquids.add(FluidStack.loadFluidStackFromNBT(nbttl.tagAt(i)));
++				this.liquids.add(FluidStack.loadFluidStackFromNBT((NBTTagCompound) nbttl.tagAt(i)));
+ 			}
+ 		}
+ 	}
+@@ -96,7 +95,7 @@
+ 	private static void readStringCollection(NBTTagList nbttl, Collection<String> target) {
+ 		target.clear();
+ 		for (int i = 0; i < nbttl.tagCount(); i++)
+-			target.add(nbttl.getStringTagAt(i));
++			target.add(((NBTTagString) nbttl.tagAt(i)).data);
+ 	}
+ 
+ 	@Override
+@@ -383,7 +382,7 @@
+ 		while (cp != cg) {
+ 			ebs_c = this.ebses[xb[cg] >> 4][zb[cg] >> 4][yb[cg] >> 4];
+ 			if (ebs_c != null) {
+-				b_c = ebs_c.getBlockByExtId(xb[cg] & 0xF, yb[cg] & 0xF, zb[cg] & 0xF);
++				b_c = Block.blocksList[ebs_c.getExtBlockID(xb[cg] & 0xF, yb[cg] & 0xF, zb[cg] & 0xF)];
+ 				if (this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] == 0 && isLiquid(b_c, false, null, 0, 0, 0, 0)) {
+ 					this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] = 0x3F;
+ 
+@@ -429,7 +428,7 @@
+ 					for (bx = 0; bx < this.block_side_x; bx++) {
+ 						for (bz = 0; bz < this.block_side_z; bz++) {
+ 							if ((this.blocks[this.py - this.yOffset][bx][bz] & 0x40) != 0) {
+-								bb = this.ebses[bx >> 4][bz >> 4][this.py >> 4].getBlockByExtId(bx & 0xF, this.py & 0xF, bz & 0xF);
++								bb = Block.blocksList[this.ebses[bx >> 4][bz >> 4][this.py >> 4].getExtBlockID(bx & 0xF, this.py & 0xF, bz & 0xF)];
+ 								if (isLiquid(bb, false, null, 0, 0, 0, 0)) {
+ 									count++;
+ 								}
+@@ -439,7 +438,7 @@
+ 				} else {
+ 					for (bz = 0; bz < this.block_side_z; bz++) {
+ 						if (this.blocks[this.py - this.yOffset][this.px][bz] != 0) {
+-							bb = this.ebses[this.px >> 4][bz >> 4][this.py >> 4].getBlockByExtId(this.px & 0xF, this.py & 0xF, bz & 0xF);
++							bb = Block.blocksList[this.ebses[this.px >> 4][bz >> 4][this.py >> 4].getExtBlockID(this.px & 0xF, this.py & 0xF, bz & 0xF)];
+ 							meta = this.ebses[this.px >> 4][bz >> 4][this.py >> 4].getExtBlockMetadata(this.px & 0xF, this.py & 0xF, bz & 0xF);
+ 							if (isLiquid(bb, true, this.worldObj, this.px + this.xOffset, this.py, bz + this.zOffset, meta)) {
+ 								count++;
+@@ -458,14 +457,14 @@
+ 				for (bx = 0; bx < this.block_side_x; bx++) {
+ 					for (bz = 0; bz < this.block_side_z; bz++) {
+ 						if ((this.blocks[this.py - this.yOffset][bx][bz] & 0x40) != 0) {
+-							drainBlock(bx, bz, frameBlock);
++							drainBlock(bx, bz, frameBlock.blockID);
+ 						}
+ 					}
+ 				}
+ 			} else {
+ 				for (bz = 0; bz < this.block_side_z; bz++) {
+ 					if (this.blocks[this.py - this.yOffset][this.px][bz] != 0) {
+-						drainBlock(this.px, bz, Blocks.air);
++						drainBlock(this.px, bz, 0);
+ 					}
+ 				}
+ 			}
+@@ -611,8 +610,8 @@
+ 		return false;
+ 	}
+ 
+-	private final void drainBlock(int bx, int bz, Block tb) {
+-		Block b = this.ebses[bx >> 4][bz >> 4][this.py >> 4].getBlockByExtId(bx & 0xF, this.py & 0xF, bz & 0xF);
++	private final void drainBlock(int bx, int bz, int tb) {
++		Block b = Block.blocksList[this.ebses[bx >> 4][bz >> 4][this.py >> 4].getExtBlockID(bx & 0xF, this.py & 0xF, bz & 0xF)];
+ 		int meta = this.ebses[bx >> 4][bz >> 4][this.py >> 4].getExtBlockMetadata(bx & 0xF, this.py & 0xF, bz & 0xF);
+ 		if (isLiquid(b, false, null, 0, 0, 0, 0)) {
+ 			FluidStack fs = null;
+diff -ru main/java/com/yogpc/qp/TileQuarry.java 164/java/com/yogpc/qp/TileQuarry.java
+--- main/java/com/yogpc/qp/TileQuarry.java	2014-07-11 23:55:15.636830800 +0900
++++ 164/java/com/yogpc/qp/TileQuarry.java	2014-07-11 22:07:27.372751100 +0900
+@@ -92,8 +92,8 @@
+ 
+ 	private boolean S_checkTarget() {
+ 		if (this.targetY > this.yMax) this.targetY = this.yMax;
+-		Block b = this.worldObj.getChunkProvider().loadChunk(this.targetX >> 4, this.targetZ >> 4)
+-				.getBlock(this.targetX & 0xF, this.targetY, this.targetZ & 0xF);
++		Block b = Block.blocksList[this.worldObj.getChunkProvider().loadChunk(this.targetX >> 4, this.targetZ >> 4)
++				.getBlockID(this.targetX & 0xF, this.targetY, this.targetZ & 0xF)];
+ 		float h = b == null ? -1 : b.getBlockHardness(this.worldObj, this.targetX, this.targetY, this.targetZ);
+ 		switch (this.now) {
+ 		case BREAKBLOCK:
+@@ -144,7 +144,7 @@
+ 				PacketHandler.sendNowPacket(this, this.now);
+ 				return S_checkTarget();
+ 			}
+-			if (b != null && b.getMaterial().isSolid() && b != frameBlock) {
++			if (b != null && this.worldObj.getBlockMaterial(this.targetX, this.targetY, this.targetZ).isSolid() && b != frameBlock) {
+ 				this.now = NOTNEEDBREAK;
+ 				G_renew_powerConfigure();
+ 				this.targetX = this.xMin;
+@@ -251,7 +251,7 @@
+ 	private boolean S_makeFrame() {
+ 		this.digged = true;
+ 		if (!PowerManager.useEnergyF(this, this.unbreaking)) return false;
+-		this.worldObj.setBlock(this.targetX, this.targetY, this.targetZ, frameBlock);
++		this.worldObj.setBlock(this.targetX, this.targetY, this.targetZ, frameBlock.blockID);
+ 		S_setNextTarget();
+ 		return true;
+ 	}
+diff -ru main/java/com/yogpc/qp/TileRefinery.java 164/java/com/yogpc/qp/TileRefinery.java
+--- main/java/com/yogpc/qp/TileRefinery.java	2014-07-11 23:55:15.637465600 +0900
++++ 164/java/com/yogpc/qp/TileRefinery.java	2014-07-11 22:07:27.373307300 +0900
+@@ -103,9 +103,9 @@
+ 				decreaseAnimation();
+ 				return;
+ 			}
+-			if (r.timeRequired > this.ticks) return;
++			if (r.delay > this.ticks) return;
+ 			if (i == 1) this.ticks = 0;
+-			if (!PowerManager.useEnergyR(this, r.energyCost, this.unbreaking)) {
++			if (!PowerManager.useEnergyR(this, r.energy, this.unbreaking)) {
+ 				decreaseAnimation();
+ 				return;
+ 			}
+diff -ru main/java/com/yogpc/qp/client/ClientProxy.java 164/java/com/yogpc/qp/client/ClientProxy.java
+--- main/java/com/yogpc/qp/client/ClientProxy.java	2014-07-11 23:55:15.601490600 +0900
++++ 164/java/com/yogpc/qp/client/ClientProxy.java	2014-07-11 23:20:30.579038000 +0900
+@@ -20,9 +20,6 @@
+ import net.minecraft.client.Minecraft;
+ import net.minecraft.client.multiplayer.WorldClient;
+ import net.minecraft.entity.Entity;
+-import net.minecraft.entity.player.EntityPlayer;
+-import net.minecraft.network.INetHandler;
+-import net.minecraft.network.NetHandlerPlayServer;
+ import net.minecraft.world.World;
+ 
+ import com.yogpc.qp.CommonProxy;
+@@ -58,10 +55,4 @@
+ 	public World getClientWorld() {
+ 		return Minecraft.getMinecraft().theWorld;
+ 	}
+-
+-	@Override
+-	public EntityPlayer getPacketPlayer(INetHandler inh) {
+-		if (inh instanceof NetHandlerPlayServer) return ((NetHandlerPlayServer) inh).playerEntity;
+-		return Minecraft.getMinecraft().thePlayer;
+-	}
+ }
+diff -ru main/java/com/yogpc/qp/client/RenderRefinery.java 164/java/com/yogpc/qp/client/RenderRefinery.java
+--- main/java/com/yogpc/qp/client/RenderRefinery.java	2014-07-11 23:55:15.611652900 +0900
++++ 164/java/com/yogpc/qp/client/RenderRefinery.java	2014-07-11 22:07:27.361200700 +0900
+@@ -21,7 +21,7 @@
+ import net.minecraft.client.model.ModelBase;
+ import net.minecraft.client.model.ModelRenderer;
+ import net.minecraft.client.renderer.RenderBlocks;
+-import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
++import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
+ import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+ import net.minecraft.tileentity.TileEntity;
+ import net.minecraft.util.ResourceLocation;
+@@ -61,8 +61,7 @@
+ 			this.magnet[i].rotationPointY = 8;
+ 			this.magnet[i].rotationPointZ = 8;
+ 		}
+-
+-		this.tileEntityRenderer = TileEntityRendererDispatcher.instance;
++		setTileEntityRenderer(TileEntityRenderer.instance);
+ 	}
+ 
+ 	@Override
