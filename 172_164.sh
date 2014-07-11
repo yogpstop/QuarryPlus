@@ -122,4 +122,4 @@ method_declaration boolean boolean isSideSolid isBlockSolidOnSide IBlockAccess W
 simple_replace "isSideSolid" "isBlockSolidOnSide"
 cat ../../../172_164.patch | patch -p2
 VERSION=`cat ../../../VERSION`
-echo -e "[pj]\nsrc = src/main/java/\nversion = $VERSION\nres = src/main/resources/\napi = BuildCraft422\nmcv = 1.6.4-9.11.1.965" >../../../build.cfg
+echo -e "[pj]\nsrc = src/main/java/\nversion = 1.6.4-$VERSION\nres = src/main/resources/\napi = BuildCraft422\nmcv = 1.6.4-9.11.1.965" >../../../build.cfg
