@@ -6,7 +6,7 @@ import com.yogpc.qp.TileLaser;
 
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
-import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
+import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
@@ -31,14 +31,14 @@ public class RenderLaser extends TileEntitySpecialRenderer {
 		return box[index];
 	}
 
-	public static void renderLaser(double fx, double fy, double fz, double tx, double ty, double tz, int b, ResourceLocation tex) {
+	public static void renderLaser(TextureManager tm, double fx, double fy, double fz, double tx, double ty, double tz, int b, ResourceLocation tex) {
 		GL11.glPushMatrix();
 		GL11.glTranslated(tx, ty, tz);
 		double dx = tx - fx, dy = ty - fy, dz = tz - fz;
 		double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
 		GL11.glRotated(360 - (Math.atan2(dz, dx) * 180.0 / Math.PI + 180.0), 0, 1, 0);
 		GL11.glRotated(-Math.atan2(dy, Math.sqrt(len * len - dy * dy)) * 180.0 / Math.PI, 0, 0, 1);
-		TileEntityRendererDispatcher.instance.field_147553_e.bindTexture(tex);
+		tm.bindTexture(tex);
 		float lasti = 0;
 		if (len - 1 > 0) {
 			for (float i = 0; i <= len - 1; i += 1) {
@@ -74,8 +74,8 @@ public class RenderLaser extends TileEntitySpecialRenderer {
 			for (TileLaser.Position l : laser.lasers) {
 				l.l = (l.l + 1) % 40;
 				ForgeDirection fd = ForgeDirection.values()[te.getWorldObj().getBlockMetadata(te.xCoord, te.yCoord, te.zCoord)];
-				renderLaser(l.x, l.y, l.z, te.xCoord + 0.5 + 0.3 * fd.offsetX, te.yCoord + 0.5 + 0.3 * fd.offsetY, te.zCoord + 0.5 + 0.3 * fd.offsetZ, l.l,
-						laser.getTexture());
+				renderLaser(this.field_147501_a.field_147553_e, l.x, l.y, l.z, te.xCoord + 0.5 + 0.3 * fd.offsetX, te.yCoord + 0.5 + 0.3 * fd.offsetY,
+						te.zCoord + 0.5 + 0.3 * fd.offsetZ, l.l, laser.getTexture());
 			}
 			GL11.glPopMatrix();
 			GL11.glPopAttrib();

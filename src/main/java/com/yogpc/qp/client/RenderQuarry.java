@@ -12,11 +12,11 @@ import net.minecraft.util.ResourceLocation;
 
 public class RenderQuarry extends TileEntitySpecialRenderer {
 
-	private static void render(double fx, double fy, double fz, double tx, double ty, double tz) {
-
+	private void render(double fx, double fy, double fz, double tx, double ty, double tz) {
 		GL11.glPushMatrix();
 		GL11.glTranslated(0.5F, 0.5F, 0.5F);
-		RenderLaser.renderLaser(fx, fy, fz, tx, ty, tz, 0, new ResourceLocation("buildcraft", TEXTURE_PATH_ENTITIES + "/stripes.png"));
+		RenderLaser.renderLaser(this.field_147501_a.field_147553_e, fx, fy, fz, tx, ty, tz, 0, new ResourceLocation("buildcraft", TEXTURE_PATH_ENTITIES
+				+ "/stripes.png"));
 		GL11.glPopMatrix();
 	}
 
