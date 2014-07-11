@@ -120,6 +120,6 @@ method_declaration void void breakBlock breakBlock World World int int int int i
 method_declaration Icon Icon getIcon getBlockTexture IBlockAccess IBlockAccess int int int int int int int int
 method_declaration boolean boolean isSideSolid isBlockSolidOnSide IBlockAccess World int int int int int int ForgeDirection ForgeDirection
 simple_replace "isSideSolid" "isBlockSolidOnSide"
-cat ../../../172_164.patch | patch -p1
-VERSION=`cat VERSION`
+cat ../../../172_164.patch | patch -p2
+VERSION=`cat ../../../VERSION`
 echo -e "[pj]\nsrc = src/main/java/\nversion = $VERSION\nres = src/main/resources/\napi = BuildCraft422\nmcv = 1.6.4-9.11.1.965" >../../../build.cfg
