@@ -84,6 +84,7 @@ public class TileRefinery extends APowerTile implements IFluidHandler, IEnchanta
 
 	@Override
 	public void updateEntity() {
+		super.updateEntity();
 		if (this.worldObj.isRemote) {
 			simpleAnimationIterate();
 			return;

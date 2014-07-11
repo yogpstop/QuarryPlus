@@ -23,11 +23,11 @@ import net.minecraftforge.common.config.Property;
 
 public class PowerManager {
 	static double B_CF, B_CS, W_CF, W_CS;
-	private static double B_BP, B_CE, B_CU, B_NR, B_XR, B_MS;// Quarry:BreakBlock
-	private static double F_BP, F_CE, F_CU, F_NR, F_XR, F_MS;// Quarry:MakeFrame
-	private static double W_BP, W_CE, W_CU, W_NR, W_XR, W_MS;// MiningWell
-	private static double L_BP, L_CE, L_CU, L_NR, L_XR, L_MS, L_CF, L_CS;// Laser
-	private static double R_CE, R_CU, R_NR, R_XR, R_MS;// Refinery
+	private static double B_BP, B_CE, B_CU, B_XR, B_MS;// Quarry:BreakBlock
+	private static double F_BP, F_CE, F_CU, F_XR, F_MS;// Quarry:MakeFrame
+	private static double W_BP, W_CE, W_CU, W_XR, W_MS;// MiningWell
+	private static double L_BP, L_CE, L_CU, L_XR, L_MS, L_CF, L_CS;// Laser
+	private static double R_CE, R_CU, R_XR, R_MS;// Refinery
 	private static double PF_BP, PF_CU;// Pump:Frame
 	private static double PL_BP, PL_CU;// Pump:Liquid
 	private static double H_BP, H_CU;// Quarry:MoveHead
@@ -57,7 +57,6 @@ public class PowerManager {
 		B_CU = get(c, "UnbreakingCoefficient", 1);
 		B_CF = get(c, "FortuneCoefficient", 1.3);
 		B_CS = get(c, "SilktouchCoefficient", 2);
-		B_NR = get(c, "BaseMinRecieve", 100);
 		B_XR = get(c, "BaseMaxRecieve", 300);
 		B_MS = get(c, "BaseMaxStored", 15000);
 
@@ -69,7 +68,6 @@ public class PowerManager {
 		F_BP = get(c, "BasePower", 25);
 		F_CE = get(c, "EfficiencyCoefficient", 1.3);
 		F_CU = get(c, "UnbreakingCoefficient", 1);
-		F_NR = get(c, "BaseMinRecieve", 50);
 		F_XR = get(c, "BaseMaxRecieve", 100);
 		F_MS = get(c, "BaseMaxStored", 15000);
 
@@ -88,7 +86,6 @@ public class PowerManager {
 		W_CU = get(c, "UnbreakingCoefficient", 1);
 		W_CF = get(c, "FortuneCoefficient", 1.3);
 		W_CS = get(c, "SilktouchCoefficient", 2);
-		W_NR = get(c, "BaseMinRecieve", 100);
 		W_XR = get(c, "BaseMaxRecieve", 100);
 		W_MS = get(c, "BaseMaxStored", 1000);
 
@@ -98,14 +95,12 @@ public class PowerManager {
 		L_CU = get(c, "UnbreakingCoefficient", 0.1);
 		L_CF = get(c, "FortuneCoefficient", 1.05);
 		L_CS = get(c, "SilktouchCoefficient", 1.1);
-		L_NR = get(c, "BaseMinRecieve", 25);
 		L_XR = get(c, "BaseMaxRecieve", 100);
 		L_MS = get(c, "BaseMaxStored", 1000);
 
 		c = cg.getCategory(new StringBuilder().append(cn).append("Refinery").toString());
 		R_CE = get(c, "EfficiencyCoefficient", 1.3);
 		R_CU = get(c, "UnbreakingCoefficient", 1);
-		R_NR = get(c, "BaseMinRecieve", 25);
 		R_XR = get(c, "BaseMaxRecieve", 100);
 		R_MS = get(c, "BaseMaxStored", 1000);
 
@@ -116,8 +111,6 @@ public class PowerManager {
 		if (B_CU < 0) sb.append("general.PowerSetting.Quarry.BreakBlock.UnbreakingCoefficient value is bad.\n");
 		if (B_CF < 0) sb.append("general.PowerSetting.Quarry.BreakBlock.FortuneCoefficient value is bad.\n");
 		if (B_CS < 0) sb.append("general.PowerSetting.Quarry.BreakBlock.SilktouchCoefficient value is bad.\n");
-		if (B_NR < 0) sb.append("general.PowerSetting.Quarry.BreakBlock.BaseMinRecieve value is bad.\n");
-		if (B_XR <= 0 || B_XR < B_NR) sb.append("general.PowerSetting.Quarry.BreakBlock.BaseMaxRecieve value is bad.\n");
 		if (B_MS <= 0) sb.append("general.PowerSetting.Quarry.BreakBlock.BaseMaxStored value is bad.\n");
 
 		if (H_BP < 0) sb.append("general.PowerSetting.Quarry.BreakBlock.MoveHead.BasePower value is bad.\n");
@@ -126,8 +119,6 @@ public class PowerManager {
 		if (F_BP < 0) sb.append("general.PowerSetting.Quarry.MakeFrame.BasePower value is bad.\n");
 		if (F_CE < 0) sb.append("general.PowerSetting.Quarry.MakeFrame.EfficiencyCoefficient value is bad.\n");
 		if (F_CU < 0) sb.append("general.PowerSetting.Quarry.MakeFrame.UnbreakingCoefficient value is bad.\n");
-		if (F_NR < 0) sb.append("general.PowerSetting.Quarry.MakeFrame.BaseMinRecieve value is bad.\n");
-		if (F_XR <= 0 || F_XR < F_NR) sb.append("general.PowerSetting.Quarry.MakeFrame.BaseMaxRecieve value is bad.\n");
 		if (F_MS <= 0) sb.append("general.PowerSetting.Quarry.MakeFrame.BaseMaxStored value is bad.\n");
 
 		if (PL_BP < 0) sb.append("general.PowerSetting.Pump.DrainLiquid.BasePower value is bad.\n");
@@ -141,8 +132,6 @@ public class PowerManager {
 		if (W_CU < 0) sb.append("general.PowerSetting.MiningWell.UnbreakingCoefficient value is bad.\n");
 		if (W_CF < 0) sb.append("general.PowerSetting.MiningWell.FortuneCoefficient value is bad.\n");
 		if (W_CS < 0) sb.append("general.PowerSetting.MiningWell.SilktouchCoefficient value is bad.\n");
-		if (W_NR < 0) sb.append("general.PowerSetting.MiningWell.BaseMinRecieve value is bad.\n");
-		if (W_XR <= 0 || W_XR < W_NR) sb.append("general.PowerSetting.MiningWell.BaseMaxRecieve value is bad.\n");
 		if (W_MS <= 0) sb.append("general.PowerSetting.MiningWell.BaseMaxStored value is bad.\n");
 
 		if (L_BP < 0) sb.append("general.PowerSetting.Laser.BasePower value is bad.\n");
@@ -150,51 +139,47 @@ public class PowerManager {
 		if (L_CU < 0) sb.append("general.PowerSetting.Laser.UnbreakingCoefficient value is bad.\n");
 		if (L_CF < 0) sb.append("general.PowerSetting.Laser.FortuneCoefficient value is bad.\n");
 		if (L_CS < 0) sb.append("general.PowerSetting.Laser.SilktouchCoefficient value is bad.\n");
-		if (L_NR < 0) sb.append("general.PowerSetting.Laser.BaseMinRecieve value is bad.\n");
-		if (L_XR <= 0 || W_XR < W_NR) sb.append("general.PowerSetting.Laser.BaseMaxRecieve value is bad.\n");
 		if (L_MS <= 0) sb.append("general.PowerSetting.Laser.BaseMaxStored value is bad.\n");
 
 		if (R_CE < 0) sb.append("general.PowerSetting.Refinery.EfficiencyCoefficient value is bad.\n");
 		if (R_CU < 0) sb.append("general.PowerSetting.Refinery.UnbreakingCoefficient value is bad.\n");
-		if (R_NR < 0) sb.append("general.PowerSetting.Refinery.BaseMinRecieve value is bad.\n");
-		if (R_XR <= 0 || R_XR < R_NR) sb.append("general.PowerSetting.Refinery.BaseMaxRecieve value is bad.\n");
 		if (R_MS <= 0) sb.append("general.PowerSetting.Refinery.BaseMaxStored value is bad.\n");
 
 		if (sb.length() != 0) throw new RuntimeException(sb.toString());
 	}
 
 	static void configure0(APowerTile pp) {
-		pp.configure(0, 0, 0, pp.getMaxStored());
+		pp.configure(0, pp.getMaxStored());
 	}
 
-	private static void configure(APowerTile pp, double CE, byte E, byte U, double CU, double NR, double XR, double BP, double MS, byte pump) {
-		pp.configure(NR / (U * CU + 1), XR * Math.pow(CE, E) / (U * CU + 1), BP * Math.pow(CE, E) / (U * CU + 1), MS * Math.pow(CE, E) / (U * CU + 1)
+	private static void configure(APowerTile pp, double CE, byte E, byte U, double CU, double XR, double MS, byte pump) {
+		pp.configure(XR * Math.pow(CE, E) / (U * CU + 1), MS * Math.pow(CE, E) / (U * CU + 1)
 				+ (pump > 0 ? ((65536 * PL_BP / ((pump * PL_CU + 1))) + (1020 * PF_BP / ((pump * PF_CU + 1)))) : 0));
 	}
 
-	private static void configure15(APowerTile pp, double CE, byte E, byte U, double CU, double NR, double XR, double BP, double MS, byte pump) {
-		pp.configure(NR / (U * CU + 1), XR * Math.pow(CE, E) / (U * CU + 1), BP * 1.5 * Math.pow(CE, E) / (U * CU + 1), MS * Math.pow(CE, E) / (U * CU + 1)
+	private static void configure15(APowerTile pp, double CE, byte E, byte U, double CU, double XR, double MS, byte pump) {
+		pp.configure(XR * Math.pow(CE, E) / (U * CU + 1), MS * Math.pow(CE, E) / (U * CU + 1)
 				+ (pump > 0 ? ((65536 * PL_BP / ((pump * PL_CU + 1))) + (1020 * PF_BP / ((pump * PF_CU + 1)))) : 0));
 	}
 
 	static void configureB(APowerTile pp, byte E, byte U, byte pump) {
-		configure15(pp, B_CE, E, U, B_CU, B_NR, B_XR, B_BP, B_MS, pump);
+		configure15(pp, B_CE, E, U, B_CU, B_XR, B_MS, pump);
 	}
 
 	static void configureW(APowerTile pp, byte E, byte U, byte pump) {
-		configure15(pp, W_CE, E, U, W_CU, W_NR, W_XR, W_BP, W_MS, pump);
+		configure15(pp, W_CE, E, U, W_CU, W_XR, W_MS, pump);
 	}
 
 	static void configureL(APowerTile pp, byte E, byte U) {
-		configure(pp, L_CE, E, U, L_CU, L_NR, L_XR, L_BP, L_MS, (byte) 0);
+		configure(pp, L_CE, E, U, L_CU, L_XR, L_MS, (byte) 0);
 	}
 
 	static void configureF(APowerTile pp, byte E, byte U, byte pump) {
-		configure(pp, F_CE, E, U, F_CU, F_NR, F_XR, F_BP, F_MS, pump);
+		configure(pp, F_CE, E, U, F_CU, F_XR, F_MS, pump);
 	}
 
 	static void configureR(APowerTile pp, byte E, byte U) {
-		configure(pp, R_CE, E, U, R_CU, R_NR, R_XR, 25, R_MS, (byte) 0);
+		configure(pp, R_CE, E, U, R_CU, R_XR, R_MS, (byte) 0);
 	}
 
 	private static boolean useEnergy(APowerTile pp, double BP, float H, double CSP, byte U, double CU) {

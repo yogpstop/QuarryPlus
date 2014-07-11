@@ -10,6 +10,17 @@ import buildcraft.api.power.PowerHandler.Type;
 
 public abstract class APowerTile extends APacketTile implements IPowerReceptor {
 	private final PowerHandler pp = new PowerHandler(this, Type.MACHINE);
+	private double stored, recv_max, stored_max;
+
+	@Override
+	public void updateEntity() {
+		super.updateEntity();
+		double tick_received = 0;
+		double remain_receive;
+		remain_receive = Math.min(this.recv_max - tick_received, this.stored_max - this.stored - tick_received);
+		tick_received += this.pp.useEnergy(0, remain_receive, true);
+		this.stored += tick_received;
+	}
 
 	@Override
 	public final PowerReceiver getPowerReceiver(ForgeDirection side) {
@@ -27,28 +38,45 @@ public abstract class APowerTile extends APacketTile implements IPowerReceptor {
 	@Override
 	public void readFromNBT(NBTTagCompound nbttc) {
 		super.readFromNBT(nbttc);
-		this.pp.readFromNBT(nbttc);
+		this.stored = nbttc.getDouble("storedEnergy");
+		this.stored_max = nbttc.getDouble("MAX_stored");
+		this.recv_max = nbttc.getDouble("MAX_receive");
+		this.pp.configure(0, this.recv_max, 0, this.stored_max);
 	}
 
 	@Override
 	public void writeToNBT(NBTTagCompound nbttc) {
 		super.writeToNBT(nbttc);
-		this.pp.writeToNBT(nbttc);
+		nbttc.setDouble("storedEnergy", this.stored);
+		nbttc.setDouble("MAX_stored", this.stored_max);
+		nbttc.setDouble("MAX_receive", this.recv_max);
 	}
 
 	public final double useEnergy(double min, double max, boolean real) {
-		return this.pp.useEnergy(min, max, real);
+		double res = 0;
+		if (this.stored >= min) {
+			if (this.stored <= max) {
+				res = this.stored;
+				if (real) this.stored = 0;
+			} else {
+				res = max;
+				if (real) this.stored -= max;
+			}
+		}
+		return res;
 	}
 
 	public final double getStoredEnergy() {
-		return this.pp.getEnergyStored();
+		return this.stored;
 	}
 
 	public final double getMaxStored() {
-		return this.pp.getMaxEnergyStored();
+		return this.stored_max;
 	}
 
-	public final void configure(double min, double max, double activate, double maxstored) {
-		this.pp.configure(0, max, activate, maxstored);
+	public final void configure(double max, double maxstored) {
+		this.recv_max = max;
+		this.stored_max = maxstored;
+		this.pp.configure(0, this.recv_max, 0, this.stored_max);
 	}
 }

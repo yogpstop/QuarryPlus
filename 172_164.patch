@@ -33,21 +33,30 @@ diff -ru main/java/com/yogpc/qp/APacketTile.java 164/java/com/yogpc/qp/APacketTi
 diff -ru main/java/com/yogpc/qp/APowerTile.java 164/java/com/yogpc/qp/APowerTile.java
 --- main/java/com/yogpc/qp/APowerTile.java	2014-07-11 23:55:15.593820500 +0900
 +++ 164/java/com/yogpc/qp/APowerTile.java	2014-07-11 22:07:27.349741300 +0900
-@@ -37,7 +37,7 @@
+@@ -18,7 +18,7 @@
+ 		double tick_received = 0;
+ 		double remain_receive;
+ 		remain_receive = Math.min(this.recv_max - tick_received, this.stored_max - this.stored - tick_received);
+-		tick_received += this.pp.useEnergy(0, remain_receive, true);
++		tick_received += this.pp.useEnergy(0, (float) remain_receive, true);
+ 		this.stored += tick_received;
  	}
  
- 	public final double useEnergy(double min, double max, boolean real) {
--		return this.pp.useEnergy(min, max, real);
-+		return this.pp.useEnergy((float) min, (float) max, real);
+@@ -41,7 +41,7 @@
+ 		this.stored = nbttc.getDouble("storedEnergy");
+ 		this.stored_max = nbttc.getDouble("MAX_stored");
+ 		this.recv_max = nbttc.getDouble("MAX_receive");
+-		this.pp.configure(0, this.recv_max, 0, this.stored_max);
++		this.pp.configure(0, (float) this.recv_max, 0, (float) this.stored_max);
  	}
  
- 	public final double getStoredEnergy() {
-@@ -49,6 +49,6 @@
- 	}
- 
- 	public final void configure(double min, double max, double activate, double maxstored) {
--		this.pp.configure(0, max, activate, maxstored);
-+		this.pp.configure(0, (float) max, (float) activate, (float) maxstored);
+ 	@Override
+@@ -77,6 +77,6 @@
+ 	public final void configure(double max, double maxstored) {
+ 		this.recv_max = max;
+ 		this.stored_max = maxstored;
+-		this.pp.configure(0, this.recv_max, 0, this.stored_max);
++		this.pp.configure(0, (float) this.recv_max, 0, (float) this.stored_max);
  	}
  }
 diff -ru main/java/com/yogpc/qp/BlockBreaker.java 164/java/com/yogpc/qp/BlockBreaker.java
@@ -550,7 +559,7 @@ diff -ru main/java/com/yogpc/qp/CreativeTabQuarryPlus.java 164/java/com/yogpc/qp
  	@Override
  	public Item getTabIconItem() {
 -		return Item.getItemFromBlock(QuarryPlus.blockQuarry);
-+		return Item.itemsList[QuarryPlus.blockQuarry.blockID - 256];
++		return Item.itemsList[QuarryPlus.blockQuarry.blockID];
  	}
  
  }
@@ -988,7 +997,7 @@ diff -ru main/java/com/yogpc/qp/QuarryPlusPacket.java 164/java/com/yogpc/qp/Quar
 +	public byte[] writeData() {
 +		byte[] d = new byte[this.data.length + 1];
 +		d[0] = this.channel;
-+		System.arraycopy(this.data, 0, d, 1, this.data.length + 1);
++		System.arraycopy(this.data, 0, d, 1, this.data.length);
 +		return d;
  	}
  }
@@ -1332,7 +1341,7 @@ diff -ru main/java/com/yogpc/qp/TileQuarry.java 164/java/com/yogpc/qp/TileQuarry
 diff -ru main/java/com/yogpc/qp/TileRefinery.java 164/java/com/yogpc/qp/TileRefinery.java
 --- main/java/com/yogpc/qp/TileRefinery.java	2014-07-11 23:55:15.637465600 +0900
 +++ 164/java/com/yogpc/qp/TileRefinery.java	2014-07-11 22:07:27.373307300 +0900
-@@ -103,9 +103,9 @@
+@@ -104,9 +104,9 @@
  				decreaseAnimation();
  				return;
  			}
