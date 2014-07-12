@@ -184,10 +184,9 @@ public class BlockBreaker extends BlockContainer {
 		TileBreaker tile = (TileBreaker) world.getTileEntity(x, y, z);
 		this.drop.clear();
 		int count = quantityDropped(meta, 0, world.rand);
-		Item id1;
 		ItemStack is;
 		for (int i = 0; i < count; i++) {
-			id1 = getItemDropped(meta, world.rand, 0);
+			Item id1 = getItemDropped(meta, world.rand, 0);
 			if (id1 != null) {
 				is = new ItemStack(id1, 1, damageDropped(meta));
 				EnchantmentHelper.enchantmentToIS(tile, is);

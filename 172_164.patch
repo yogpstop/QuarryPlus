@@ -1,25 +1,7 @@
-diff -ru main/java/com/yogpc/qp/APacketTile.java 164/java/com/yogpc/qp/APacketTile.java
---- main/java/com/yogpc/qp/APacketTile.java	2014-07-11 23:55:15.593178700 +0900
-+++ 164/java/com/yogpc/qp/APacketTile.java	2014-07-11 22:07:27.349435500 +0900
-@@ -17,16 +17,12 @@
- 
- package com.yogpc.qp;
- 
--import io.netty.buffer.ByteBuf;
--import io.netty.buffer.Unpooled;
- import net.minecraft.entity.player.EntityPlayer;
--import net.minecraft.network.Packet;
-+import net.minecraft.network.packet.Packet;
- import net.minecraft.tileentity.TileEntity;
- 
- import com.google.common.io.ByteArrayDataInput;
- 
--import cpw.mods.fml.common.network.internal.FMLProxyPacket;
--
- public abstract class APacketTile extends TileEntity {
- 	abstract void S_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep);
- 
-@@ -34,9 +30,6 @@
+diff -rNu 164a/java/com/yogpc/qp/APacketTile.java 164/java/com/yogpc/qp/APacketTile.java
+--- 164a/java/com/yogpc/qp/APacketTile.java	2014-07-12 11:25:15.548563000 +0900
++++ 164/java/com/yogpc/qp/APacketTile.java	2014-07-12 10:49:44.129805600 +0900
+@@ -31,9 +31,6 @@
  
  	@Override
  	public final Packet getDescriptionPacket() {
@@ -30,9 +12,9 @@ diff -ru main/java/com/yogpc/qp/APacketTile.java 164/java/com/yogpc/qp/APacketTi
 +		return PacketHandler.getPacket(PacketHandler.getPacketFromNBT(this));
  	}
  }
-diff -ru main/java/com/yogpc/qp/APowerTile.java 164/java/com/yogpc/qp/APowerTile.java
---- main/java/com/yogpc/qp/APowerTile.java	2014-07-11 23:55:15.593820500 +0900
-+++ 164/java/com/yogpc/qp/APowerTile.java	2014-07-11 22:07:27.349741300 +0900
+diff -rNu 164a/java/com/yogpc/qp/APowerTile.java 164/java/com/yogpc/qp/APowerTile.java
+--- 164a/java/com/yogpc/qp/APowerTile.java	2014-07-12 11:25:15.549119600 +0900
++++ 164/java/com/yogpc/qp/APowerTile.java	2014-07-12 10:25:34.554310800 +0900
 @@ -18,7 +18,7 @@
  		double tick_received = 0;
  		double remain_receive;
@@ -59,14 +41,12 @@ diff -ru main/java/com/yogpc/qp/APowerTile.java 164/java/com/yogpc/qp/APowerTile
 +		this.pp.configure(0, (float) this.recv_max, 0, (float) this.stored_max);
  	}
  }
-diff -ru main/java/com/yogpc/qp/BlockBreaker.java 164/java/com/yogpc/qp/BlockBreaker.java
---- main/java/com/yogpc/qp/BlockBreaker.java	2014-07-11 23:55:15.594531400 +0900
-+++ 164/java/com/yogpc/qp/BlockBreaker.java	2014-07-11 22:47:36.231271900 +0900
-@@ -35,11 +35,8 @@
- import net.minecraft.item.Item;
+diff -rNu 164a/java/com/yogpc/qp/BlockBreaker.java 164/java/com/yogpc/qp/BlockBreaker.java
+--- 164a/java/com/yogpc/qp/BlockBreaker.java	2014-07-12 11:25:15.549853600 +0900
++++ 164/java/com/yogpc/qp/BlockBreaker.java	2014-07-12 11:03:33.150224800 +0900
+@@ -36,9 +36,7 @@
  import net.minecraft.item.ItemStack;
  import net.minecraft.tileentity.TileEntity;
--
  import net.minecraft.util.Icon;
 -import net.minecraft.world.IBlockAccess;
  import net.minecraft.world.World;
@@ -74,7 +54,7 @@ diff -ru main/java/com/yogpc/qp/BlockBreaker.java 164/java/com/yogpc/qp/BlockBre
  import net.minecraftforge.common.FakePlayerFactory;
  import net.minecraftforge.common.ForgeDirection;
  
-@@ -51,8 +48,8 @@
+@@ -50,8 +48,8 @@
  	@SideOnly(Side.CLIENT)
  	protected Icon vectrial;
  
@@ -85,7 +65,7 @@ diff -ru main/java/com/yogpc/qp/BlockBreaker.java 164/java/com/yogpc/qp/BlockBre
  		this.setCreativeTab(QuarryPlus.ct);
  		this.setHardness(3.5F);
  		this.setStepSound(soundStoneFootstep);
-@@ -108,9 +105,9 @@
+@@ -107,9 +105,9 @@
  		ForgeDirection fd = ForgeDirection.getOrientation(w.getBlockMetadata(x, y, z) & 7);
  		int tx = x + fd.offsetX, ty = y + fd.offsetY, tz = z + fd.offsetZ, meta = w.getBlockMetadata(tx, ty, tz);
  		if (ty < 1) return;
@@ -97,7 +77,7 @@ diff -ru main/java/com/yogpc/qp/BlockBreaker.java 164/java/com/yogpc/qp/BlockBre
  		b.onBlockHarvested(w, tx, ty, tz, meta, player);
  		if (b.removeBlockByPlayer(w, player, tx, ty, tz)) b.onBlockDestroyedByPlayer(w, tx, ty, tz, meta);
  		else return;
-@@ -152,25 +149,25 @@
+@@ -151,25 +149,25 @@
  
  	static void setDispenserDefaultDirection(World w, int x, int y, int z) {
  		if (!w.isRemote) {
@@ -131,23 +111,18 @@ diff -ru main/java/com/yogpc/qp/BlockBreaker.java 164/java/com/yogpc/qp/BlockBre
  				b0 = 4;
  			}
  			w.setBlockMetadataWithNotify(x, y, z, b0, 2);
-@@ -184,11 +181,11 @@
- 		TileBreaker tile = (TileBreaker) world.getBlockTileEntity(x, y, z);
- 		this.drop.clear();
- 		int count = quantityDropped(meta, 0, world.rand);
--		Item id1;
-+		int id1;
+@@ -186,7 +184,7 @@
  		ItemStack is;
  		for (int i = 0; i < count; i++) {
- 			id1 = idDropped(meta, world.rand, 0);
+ 			int id1 = idDropped(meta, world.rand, 0);
 -			if (id1 != null) {
 +			if (id1 != 0) {
  				is = new ItemStack(id1, 1, damageDropped(meta));
  				EnchantmentHelper.enchantmentToIS(tile, is);
  				this.drop.add(is);
-diff -ru main/java/com/yogpc/qp/BlockInfMJSrc.java 164/java/com/yogpc/qp/BlockInfMJSrc.java
---- main/java/com/yogpc/qp/BlockInfMJSrc.java	2014-07-11 23:55:15.595059800 +0900
-+++ 164/java/com/yogpc/qp/BlockInfMJSrc.java	2014-07-11 22:47:59.463776300 +0900
+diff -rNu 164a/java/com/yogpc/qp/BlockInfMJSrc.java 164/java/com/yogpc/qp/BlockInfMJSrc.java
+--- 164a/java/com/yogpc/qp/BlockInfMJSrc.java	2014-07-12 11:25:15.550390500 +0900
++++ 164/java/com/yogpc/qp/BlockInfMJSrc.java	2014-07-12 10:25:34.555932200 +0900
 @@ -29,8 +29,8 @@
  
  public class BlockInfMJSrc extends BlockContainer {
@@ -159,9 +134,9 @@ diff -ru main/java/com/yogpc/qp/BlockInfMJSrc.java 164/java/com/yogpc/qp/BlockIn
  		setHardness(1.5F);
  		setResistance(10F);
  		setStepSound(soundStoneFootstep);
-diff -ru main/java/com/yogpc/qp/BlockLaser.java 164/java/com/yogpc/qp/BlockLaser.java
---- main/java/com/yogpc/qp/BlockLaser.java	2014-07-11 23:55:15.595685300 +0900
-+++ 164/java/com/yogpc/qp/BlockLaser.java	2014-07-11 23:07:07.252199500 +0900
+diff -rNu 164a/java/com/yogpc/qp/BlockLaser.java 164/java/com/yogpc/qp/BlockLaser.java
+--- 164a/java/com/yogpc/qp/BlockLaser.java	2014-07-12 11:25:15.551003400 +0900
++++ 164/java/com/yogpc/qp/BlockLaser.java	2014-07-12 10:50:43.613242300 +0900
 @@ -22,7 +22,6 @@
  import static buildcraft.silicon.SiliconProxy.laserBlockModel;
  import cpw.mods.fml.relauncher.Side;
@@ -170,7 +145,7 @@ diff -ru main/java/com/yogpc/qp/BlockLaser.java 164/java/com/yogpc/qp/BlockLaser
  import net.minecraft.block.BlockContainer;
  import net.minecraft.block.material.Material;
  import net.minecraft.client.renderer.texture.IconRegister;
-@@ -41,8 +40,8 @@
+@@ -40,8 +39,8 @@
  	@SideOnly(Side.CLIENT)
  	private Icon textureTop, textureBottom;
  
@@ -181,7 +156,7 @@ diff -ru main/java/com/yogpc/qp/BlockLaser.java 164/java/com/yogpc/qp/BlockLaser
  		setHardness(10F);
  		setCreativeTab(QuarryPlus.ct);
  		this.setUnlocalizedName("LaserPlus");
-@@ -106,7 +105,7 @@
+@@ -105,7 +104,7 @@
  		ItemStack is;
  		for (int i = 0; i < count; i++) {
  			int it = idDropped(meta, world.rand, 0);
@@ -190,9 +165,9 @@ diff -ru main/java/com/yogpc/qp/BlockLaser.java 164/java/com/yogpc/qp/BlockLaser
  				is = new ItemStack(it, 1, damageDropped(meta));
  				EnchantmentHelper.enchantmentToIS(tile, is);
  				this.drop.add(is);
-diff -ru main/java/com/yogpc/qp/BlockMarker.java 164/java/com/yogpc/qp/BlockMarker.java
---- main/java/com/yogpc/qp/BlockMarker.java	2014-07-11 23:55:15.596396500 +0900
-+++ 164/java/com/yogpc/qp/BlockMarker.java	2014-07-11 23:07:24.318106000 +0900
+diff -rNu 164a/java/com/yogpc/qp/BlockMarker.java 164/java/com/yogpc/qp/BlockMarker.java
+--- 164a/java/com/yogpc/qp/BlockMarker.java	2014-07-12 11:25:15.551643200 +0900
++++ 164/java/com/yogpc/qp/BlockMarker.java	2014-07-12 10:51:20.357967000 +0900
 @@ -20,7 +20,6 @@
  import static buildcraft.BuildCraftCore.markerModel;
  import cpw.mods.fml.relauncher.Side;
@@ -201,7 +176,7 @@ diff -ru main/java/com/yogpc/qp/BlockMarker.java 164/java/com/yogpc/qp/BlockMark
  import net.minecraft.block.BlockContainer;
  import net.minecraft.block.material.Material;
  import net.minecraft.client.renderer.texture.IconRegister;
-@@ -36,8 +35,8 @@
+@@ -35,8 +34,8 @@
  
  public class BlockMarker extends BlockContainer {
  
@@ -212,9 +187,9 @@ diff -ru main/java/com/yogpc/qp/BlockMarker.java 164/java/com/yogpc/qp/BlockMark
  		setLightValue(0.5F);
  		setCreativeTab(QuarryPlus.ct);
  		setUnlocalizedName("MarkerPlus");
-diff -ru main/java/com/yogpc/qp/BlockMiningWell.java 164/java/com/yogpc/qp/BlockMiningWell.java
---- main/java/com/yogpc/qp/BlockMiningWell.java	2014-07-11 23:55:15.597029500 +0900
-+++ 164/java/com/yogpc/qp/BlockMiningWell.java	2014-07-11 23:07:42.950731200 +0900
+diff -rNu 164a/java/com/yogpc/qp/BlockMiningWell.java 164/java/com/yogpc/qp/BlockMiningWell.java
+--- 164a/java/com/yogpc/qp/BlockMiningWell.java	2014-07-12 11:25:15.552318100 +0900
++++ 164/java/com/yogpc/qp/BlockMiningWell.java	2014-07-12 10:52:34.093703200 +0900
 @@ -22,7 +22,6 @@
  import buildcraft.api.tools.IToolWrench;
  import cpw.mods.fml.relauncher.Side;
@@ -223,7 +198,7 @@ diff -ru main/java/com/yogpc/qp/BlockMiningWell.java 164/java/com/yogpc/qp/Block
  import net.minecraft.block.BlockContainer;
  import net.minecraft.block.material.Material;
  import net.minecraft.client.renderer.texture.IconRegister;
-@@ -40,8 +39,8 @@
+@@ -39,8 +38,8 @@
  public class BlockMiningWell extends BlockContainer {
  	Icon textureFront, textureBack, textureTop, texW;
  
@@ -234,16 +209,7 @@ diff -ru main/java/com/yogpc/qp/BlockMiningWell.java 164/java/com/yogpc/qp/Block
  		setHardness(1.5F);
  		setResistance(10F);
  		setCreativeTab(QuarryPlus.ct);
-@@ -69,7 +68,7 @@
- 	public Icon getBlockTexture(IBlockAccess ba, int x, int y, int z, int side) {
- 		TileEntity tile = ba.getBlockTileEntity(x, y, z);
- 		if (tile instanceof TileMiningWell && side == 1 && ((TileMiningWell) tile).isActive()) return this.texW;
--		return super.getIcon(ba, x, y, z, side);
-+		return super.getBlockTexture(ba, x, y, z, side);
- 	}
- 
- 	@Override
-@@ -111,7 +110,7 @@
+@@ -110,7 +109,7 @@
  		if (world.isRemote || tile == null) return;
  		int count = quantityDropped(meta, 0, world.rand);
  		int it = idDropped(meta, world.rand, 0);
@@ -252,9 +218,9 @@ diff -ru main/java/com/yogpc/qp/BlockMiningWell.java 164/java/com/yogpc/qp/Block
  			for (int i = 0; i < count; i++) {
  				ItemStack is = new ItemStack(it, 1, damageDropped(meta));
  				EnchantmentHelper.enchantmentToIS(tile, is);
-diff -ru main/java/com/yogpc/qp/BlockMover.java 164/java/com/yogpc/qp/BlockMover.java
---- main/java/com/yogpc/qp/BlockMover.java	2014-07-11 23:55:15.597571100 +0900
-+++ 164/java/com/yogpc/qp/BlockMover.java	2014-07-11 22:07:27.351908500 +0900
+diff -rNu 164a/java/com/yogpc/qp/BlockMover.java 164/java/com/yogpc/qp/BlockMover.java
+--- 164a/java/com/yogpc/qp/BlockMover.java	2014-07-12 11:25:15.552860100 +0900
++++ 164/java/com/yogpc/qp/BlockMover.java	2014-07-12 10:25:34.559114900 +0900
 @@ -29,8 +29,8 @@
  public class BlockMover extends Block {
  	Icon textureTop, textureBottom;
@@ -266,9 +232,9 @@ diff -ru main/java/com/yogpc/qp/BlockMover.java 164/java/com/yogpc/qp/BlockMover
  		setHardness(1.2F);
  		this.setCreativeTab(QuarryPlus.ct);
  		setUnlocalizedName("EnchantMover");
-diff -ru main/java/com/yogpc/qp/BlockPlacer.java 164/java/com/yogpc/qp/BlockPlacer.java
---- main/java/com/yogpc/qp/BlockPlacer.java	2014-07-11 23:55:15.598362700 +0900
-+++ 164/java/com/yogpc/qp/BlockPlacer.java	2014-07-11 22:07:27.352337000 +0900
+diff -rNu 164a/java/com/yogpc/qp/BlockPlacer.java 164/java/com/yogpc/qp/BlockPlacer.java
+--- 164a/java/com/yogpc/qp/BlockPlacer.java	2014-07-12 11:25:15.553654400 +0900
++++ 164/java/com/yogpc/qp/BlockPlacer.java	2014-07-12 10:25:34.560019300 +0900
 @@ -35,9 +35,7 @@
  import net.minecraft.nbt.NBTTagCompound;
  import net.minecraft.tileentity.TileEntity;
@@ -317,18 +283,9 @@ diff -ru main/java/com/yogpc/qp/BlockPlacer.java 164/java/com/yogpc/qp/BlockPlac
  				if (k != null && k.onBlockActivated(world, tx, ty, tz, player, sd1, 0.5F, 0.5F, 0.5F)) break;
  				if (is.tryPlaceItemIntoWorld(player, world, tx, ty, tz, sd1, 0.5F, 0.5F, 0.5F)) break;
  				if (is.tryPlaceItemIntoWorld(player, world, tx + fd1.offsetX, ty + fd1.offsetY, tz + fd1.offsetZ, sd2, 0.5F, 0.5F, 0.5F)) break;
-@@ -197,7 +195,7 @@
- 				}
- 			}
- 
--			world.func_147453_f(x, y, z, b);
-+			world.func_96440_m(x, y, z, b);
- 		}
- 
- 		super.breakBlock(world, x, y, z, b, meta);
-diff -ru main/java/com/yogpc/qp/BlockPump.java 164/java/com/yogpc/qp/BlockPump.java
---- main/java/com/yogpc/qp/BlockPump.java	2014-07-11 23:55:15.598984500 +0900
-+++ 164/java/com/yogpc/qp/BlockPump.java	2014-07-11 23:18:00.673194200 +0900
+diff -rNu 164a/java/com/yogpc/qp/BlockPump.java 164/java/com/yogpc/qp/BlockPump.java
+--- 164a/java/com/yogpc/qp/BlockPump.java	2014-07-12 11:25:15.554321900 +0900
++++ 164/java/com/yogpc/qp/BlockPump.java	2014-07-12 10:52:41.177260200 +0900
 @@ -22,7 +22,6 @@
  import buildcraft.api.tools.IToolWrench;
  import cpw.mods.fml.relauncher.Side;
@@ -337,7 +294,7 @@ diff -ru main/java/com/yogpc/qp/BlockPump.java 164/java/com/yogpc/qp/BlockPump.j
  import net.minecraft.block.BlockContainer;
  import net.minecraft.block.material.Material;
  import net.minecraft.client.renderer.texture.IconRegister;
-@@ -40,8 +39,8 @@
+@@ -39,8 +38,8 @@
  
  	private Icon textureTop, textureBottom, textureSide, texW, texC;
  
@@ -348,16 +305,7 @@ diff -ru main/java/com/yogpc/qp/BlockPump.java 164/java/com/yogpc/qp/BlockPump.j
  		setHardness(5F);
  		setCreativeTab(QuarryPlus.ct);
  		setUnlocalizedName("PumpPlus");
-@@ -73,7 +72,7 @@
- 			if (((TilePump) tile).G_working()) return this.texW;
- 			if (((TilePump) tile).G_connected() != null) return this.texC;
- 		}
--		return super.getIcon(ba, x, y, z, side);
-+		return super.getBlockTexture(ba, x, y, z, side);
- 	}
- 
- 	@Override
-@@ -95,7 +94,7 @@
+@@ -94,7 +93,7 @@
  		if (world.isRemote || tile == null) return;
  		int count = quantityDropped(meta, 0, world.rand);
  		int it = idDropped(meta, world.rand, 0);
@@ -366,9 +314,9 @@ diff -ru main/java/com/yogpc/qp/BlockPump.java 164/java/com/yogpc/qp/BlockPump.j
  			for (int i = 0; i < count; i++) {
  				ItemStack is = new ItemStack(it, 1, damageDropped(meta));
  				EnchantmentHelper.enchantmentToIS(tile, is);
-diff -ru main/java/com/yogpc/qp/BlockQuarry.java 164/java/com/yogpc/qp/BlockQuarry.java
---- main/java/com/yogpc/qp/BlockQuarry.java	2014-07-11 23:55:15.599630400 +0900
-+++ 164/java/com/yogpc/qp/BlockQuarry.java	2014-07-11 23:18:15.706034000 +0900
+diff -rNu 164a/java/com/yogpc/qp/BlockQuarry.java 164/java/com/yogpc/qp/BlockQuarry.java
+--- 164a/java/com/yogpc/qp/BlockQuarry.java	2014-07-12 11:25:15.554987100 +0900
++++ 164/java/com/yogpc/qp/BlockQuarry.java	2014-07-12 10:52:47.865909000 +0900
 @@ -22,7 +22,6 @@
  import buildcraft.api.tools.IToolWrench;
  import cpw.mods.fml.relauncher.Side;
@@ -377,7 +325,7 @@ diff -ru main/java/com/yogpc/qp/BlockQuarry.java 164/java/com/yogpc/qp/BlockQuar
  import net.minecraft.block.BlockContainer;
  import net.minecraft.block.material.Material;
  import net.minecraft.client.renderer.texture.IconRegister;
-@@ -40,8 +39,8 @@
+@@ -39,8 +38,8 @@
  public class BlockQuarry extends BlockContainer {
  	Icon textureTop, textureFront, texBB, texNNB, texMF;
  
@@ -388,7 +336,7 @@ diff -ru main/java/com/yogpc/qp/BlockQuarry.java 164/java/com/yogpc/qp/BlockQuar
  		setHardness(1.5F);
  		setResistance(10F);
  		setStepSound(soundStoneFootstep);
-@@ -58,7 +57,7 @@
+@@ -57,7 +56,7 @@
  		if (world.isRemote || tile == null) return;
  		int count = quantityDropped(meta, 0, world.rand);
  		int it = idDropped(meta, world.rand, 0);
@@ -397,18 +345,9 @@ diff -ru main/java/com/yogpc/qp/BlockQuarry.java 164/java/com/yogpc/qp/BlockQuar
  			for (int i = 0; i < count; i++) {
  				ItemStack is = new ItemStack(it, 1, damageDropped(meta));
  				EnchantmentHelper.enchantmentToIS(tile, is);
-@@ -90,7 +89,7 @@
- 				}
- 			}
- 		}
--		return super.getIcon(ba, x, y, z, side);
-+		return super.getBlockTexture(ba, x, y, z, side);
- 	}
- 
- 	@Override
-diff -ru main/java/com/yogpc/qp/BlockRefinery.java 164/java/com/yogpc/qp/BlockRefinery.java
---- main/java/com/yogpc/qp/BlockRefinery.java	2014-07-11 23:55:15.600268600 +0900
-+++ 164/java/com/yogpc/qp/BlockRefinery.java	2014-07-11 22:07:27.353406500 +0900
+diff -rNu 164a/java/com/yogpc/qp/BlockRefinery.java 164/java/com/yogpc/qp/BlockRefinery.java
+--- 164a/java/com/yogpc/qp/BlockRefinery.java	2014-07-12 11:25:15.555625100 +0900
++++ 164/java/com/yogpc/qp/BlockRefinery.java	2014-07-12 11:12:35.168280600 +0900
 @@ -21,7 +21,6 @@
  
  import buildcraft.api.tools.IToolWrench;
@@ -417,7 +356,7 @@ diff -ru main/java/com/yogpc/qp/BlockRefinery.java 164/java/com/yogpc/qp/BlockRe
  import net.minecraft.block.BlockContainer;
  import net.minecraft.block.material.Material;
  import net.minecraft.entity.EntityLivingBase;
-@@ -37,8 +36,8 @@
+@@ -36,8 +35,8 @@
  
  public class BlockRefinery extends BlockContainer {
  
@@ -428,7 +367,7 @@ diff -ru main/java/com/yogpc/qp/BlockRefinery.java 164/java/com/yogpc/qp/BlockRe
  		setHardness(5F);
  		setCreativeTab(QuarryPlus.ct);
  		setUnlocalizedName("RefineryPlus");
-@@ -58,7 +57,7 @@
+@@ -57,7 +56,7 @@
  		if (world.isRemote || tile == null) return;
  		int count = quantityDropped(meta, 0, world.rand);
  		int it = idDropped(meta, world.rand, 0);
@@ -437,9 +376,9 @@ diff -ru main/java/com/yogpc/qp/BlockRefinery.java 164/java/com/yogpc/qp/BlockRe
  			for (int i = 0; i < count; i++) {
  				ItemStack is = new ItemStack(it, 1, damageDropped(meta));
  				EnchantmentHelper.enchantmentToIS(tile, is);
-diff -ru main/java/com/yogpc/qp/ChunkLoadingHandler.java 164/java/com/yogpc/qp/ChunkLoadingHandler.java
---- main/java/com/yogpc/qp/ChunkLoadingHandler.java	2014-07-11 23:55:15.600940400 +0900
-+++ 164/java/com/yogpc/qp/ChunkLoadingHandler.java	2014-07-11 22:07:27.353717800 +0900
+diff -rNu 164a/java/com/yogpc/qp/ChunkLoadingHandler.java 164/java/com/yogpc/qp/ChunkLoadingHandler.java
+--- 164a/java/com/yogpc/qp/ChunkLoadingHandler.java	2014-07-12 11:25:15.556181500 +0900
++++ 164/java/com/yogpc/qp/ChunkLoadingHandler.java	2014-07-12 10:25:34.566843300 +0900
 @@ -19,7 +19,6 @@
  
  import java.util.List;
@@ -459,9 +398,9 @@ diff -ru main/java/com/yogpc/qp/ChunkLoadingHandler.java 164/java/com/yogpc/qp/C
  				validTickets.add(ticket);
  			}
  		}
-diff -ru main/java/com/yogpc/qp/CommonProxy.java 164/java/com/yogpc/qp/CommonProxy.java
---- main/java/com/yogpc/qp/CommonProxy.java	2014-07-11 23:55:15.612162700 +0900
-+++ 164/java/com/yogpc/qp/CommonProxy.java	2014-07-11 23:44:42.442090500 +0900
+diff -rNu 164a/java/com/yogpc/qp/CommonProxy.java 164/java/com/yogpc/qp/CommonProxy.java
+--- 164a/java/com/yogpc/qp/CommonProxy.java	2014-07-12 11:25:15.567509900 +0900
++++ 164/java/com/yogpc/qp/CommonProxy.java	2014-07-12 10:25:34.567566100 +0900
 @@ -18,9 +18,6 @@
  package com.yogpc.qp;
  
@@ -482,9 +421,9 @@ diff -ru main/java/com/yogpc/qp/CommonProxy.java 164/java/com/yogpc/qp/CommonPro
 -		return null;
 -	}
  }
-diff -ru main/java/com/yogpc/qp/ContainerMover.java 164/java/com/yogpc/qp/ContainerMover.java
---- main/java/com/yogpc/qp/ContainerMover.java	2014-07-11 23:55:15.612860700 +0900
-+++ 164/java/com/yogpc/qp/ContainerMover.java	2014-07-11 22:07:27.349107400 +0900
+diff -rNu 164a/java/com/yogpc/qp/ContainerMover.java 164/java/com/yogpc/qp/ContainerMover.java
+--- 164a/java/com/yogpc/qp/ContainerMover.java	2014-07-12 11:25:15.568205300 +0900
++++ 164/java/com/yogpc/qp/ContainerMover.java	2014-07-12 11:18:29.689454400 +0900
 @@ -80,7 +80,7 @@
  
  	@Override
@@ -494,66 +433,9 @@ diff -ru main/java/com/yogpc/qp/ContainerMover.java 164/java/com/yogpc/qp/Contai
  				this.posY + 0.5D, this.posZ + 0.5D) <= 64.0D;
  	}
  
-@@ -106,15 +106,15 @@
- 			list = is.getEnchantmentTagList();
- 			if (list == null) return;
- 			for (int i = 0; i < list.tagCount(); i++) {
--				short lvl = list.tagAt(i).getShort("lvl");
-+				short lvl = ((NBTTagCompound) list.tagAt(i)).getShort("lvl");
- 				if (lvl < 1) continue;
--				if (list.tagAt(i).getShort("id") == eid) {
--					if (lvl > 1) list.tagAt(i).setShort("lvl", --lvl);
-+				if (((NBTTagCompound) list.tagAt(i)).getShort("id") == eid) {
-+					if (lvl > 1) ((NBTTagCompound) list.tagAt(i)).setShort("lvl", --lvl);
- 					else {
- 						{
- 							NBTTagList nlist = new NBTTagList();
- 							for (int j = 0; j < list.tagCount(); j++) {
--								if (list.tagAt(j).getShort("id") != eid) nlist.appendTag(list.tagAt(j));
-+								if (((NBTTagCompound) list.tagAt(j)).getShort("id") != eid) nlist.appendTag(list.tagAt(j));
- 							}
- 							list = nlist;
- 						}
-@@ -136,11 +136,11 @@
- 			nbttc.setTag("ench", list);
- 		} else {
- 			for (int i = 0; i < list.tagCount(); i++) {
--				short id = list.tagAt(i).getShort("id");
--				short lvl = list.tagAt(i).getShort("lvl");
-+				short id = ((NBTTagCompound) list.tagAt(i)).getShort("id");
-+				short lvl = ((NBTTagCompound) list.tagAt(i)).getShort("lvl");
- 				if (lvl < 1) continue;
- 				if (id == eid) {
--					list.tagAt(i).setShort("lvl", ++lvl);
-+					((NBTTagCompound) list.tagAt(i)).setShort("lvl", ++lvl);
- 					done = true;
- 					break;
- 				}
-@@ -161,8 +161,8 @@
- 		if (pickaxeIs != null) {
- 			NBTTagList pickaxeE = pickaxeIs.getEnchantmentTagList();
- 			if (pickaxeE != null) for (int i = 0; i < pickaxeE.tagCount(); i++) {
--				short id = (pickaxeE.tagAt(i)).getShort("id");
--				short lvl = (pickaxeE.tagAt(i)).getShort("lvl");
-+				short id = ((NBTTagCompound) pickaxeE.tagAt(i)).getShort("id");
-+				short lvl = ((NBTTagCompound) pickaxeE.tagAt(i)).getShort("lvl");
- 				if (!checkTo(id)) continue;
- 				if (lvl < 1) continue;
- 				switch (id) {
-@@ -195,8 +195,8 @@
- 			if (!(target.getItem() instanceof IEnchantableItem) || !((IEnchantableItem) target.getItem()).canMove(target, id, target.getItemDamage())) return false;
- 			NBTTagList quarryE = target.getEnchantmentTagList();
- 			if (quarryE != null) for (int i = 0; i < quarryE.tagCount(); i++) {
--				if (id == quarryE.tagAt(i).getShort("id")) {
--					if (Enchantment.enchantmentsList[id].getMaxLevel() > quarryE.tagAt(i).getShort("lvl")) return true;
-+				if (id == ((NBTTagCompound) quarryE.tagAt(i)).getShort("id")) {
-+					if (Enchantment.enchantmentsList[id].getMaxLevel() > ((NBTTagCompound) quarryE.tagAt(i)).getShort("lvl")) return true;
- 					return false;
- 				}
- 			}
-diff -ru main/java/com/yogpc/qp/CreativeTabQuarryPlus.java 164/java/com/yogpc/qp/CreativeTabQuarryPlus.java
---- main/java/com/yogpc/qp/CreativeTabQuarryPlus.java	2014-07-11 23:55:15.613353900 +0900
-+++ 164/java/com/yogpc/qp/CreativeTabQuarryPlus.java	2014-07-11 22:07:27.362195600 +0900
+diff -rNu 164a/java/com/yogpc/qp/CreativeTabQuarryPlus.java 164/java/com/yogpc/qp/CreativeTabQuarryPlus.java
+--- 164a/java/com/yogpc/qp/CreativeTabQuarryPlus.java	2014-07-12 11:25:15.568694800 +0900
++++ 164/java/com/yogpc/qp/CreativeTabQuarryPlus.java	2014-07-12 10:25:34.569385700 +0900
 @@ -11,7 +11,7 @@
  
  	@Override
@@ -563,9 +445,9 @@ diff -ru main/java/com/yogpc/qp/CreativeTabQuarryPlus.java 164/java/com/yogpc/qp
  	}
  
  }
-diff -ru main/java/com/yogpc/qp/EnchantmentHelper.java 164/java/com/yogpc/qp/EnchantmentHelper.java
---- main/java/com/yogpc/qp/EnchantmentHelper.java	2014-07-11 23:55:15.613894900 +0900
-+++ 164/java/com/yogpc/qp/EnchantmentHelper.java	2014-07-11 22:07:27.362513800 +0900
+diff -rNu 164a/java/com/yogpc/qp/EnchantmentHelper.java 164/java/com/yogpc/qp/EnchantmentHelper.java
+--- 164a/java/com/yogpc/qp/EnchantmentHelper.java	2014-07-12 11:25:15.569249500 +0900
++++ 164/java/com/yogpc/qp/EnchantmentHelper.java	2014-07-12 11:07:48.600904900 +0900
 @@ -22,6 +22,7 @@
  
  import net.minecraft.enchantment.Enchantment;
@@ -574,20 +456,9 @@ diff -ru main/java/com/yogpc/qp/EnchantmentHelper.java 164/java/com/yogpc/qp/Enc
  import net.minecraft.nbt.NBTTagList;
  import net.minecraft.util.StatCollector;
  
-@@ -30,8 +31,8 @@
- 		byte efficiency = 0, unbreaking = 0, fortune = 0;
- 		boolean silktouch = false;
- 		if (nbttl != null) for (int i = 0; i < nbttl.tagCount(); i++) {
--			short id = nbttl.tagAt(i).getShort("id");
--			short lvl = nbttl.tagAt(i).getShort("lvl");
-+			short id = ((NBTTagCompound) nbttl.tagAt(i)).getShort("id");
-+			short lvl = ((NBTTagCompound) nbttl.tagAt(i)).getShort("lvl");
- 			if (id == 32) efficiency = (byte) lvl;
- 			if (id == 33) silktouch = true;
- 			if (id == 34) unbreaking = (byte) lvl;
-diff -ru main/java/com/yogpc/qp/ItemBlockBreaker.java 164/java/com/yogpc/qp/ItemBlockBreaker.java
---- main/java/com/yogpc/qp/ItemBlockBreaker.java	2014-07-11 23:55:15.617256000 +0900
-+++ 164/java/com/yogpc/qp/ItemBlockBreaker.java	2014-07-11 22:07:27.364709300 +0900
+diff -rNu 164a/java/com/yogpc/qp/ItemBlockBreaker.java 164/java/com/yogpc/qp/ItemBlockBreaker.java
+--- 164a/java/com/yogpc/qp/ItemBlockBreaker.java	2014-07-12 11:25:15.572762100 +0900
++++ 164/java/com/yogpc/qp/ItemBlockBreaker.java	2014-07-12 10:25:34.570858500 +0900
 @@ -17,13 +17,12 @@
  
  package com.yogpc.qp;
@@ -603,9 +474,9 @@ diff -ru main/java/com/yogpc/qp/ItemBlockBreaker.java 164/java/com/yogpc/qp/Item
  		super(b);
  	}
  
-diff -ru main/java/com/yogpc/qp/ItemBlockPump.java 164/java/com/yogpc/qp/ItemBlockPump.java
---- main/java/com/yogpc/qp/ItemBlockPump.java	2014-07-11 23:55:15.617874700 +0900
-+++ 164/java/com/yogpc/qp/ItemBlockPump.java	2014-07-11 22:07:27.365034800 +0900
+diff -rNu 164a/java/com/yogpc/qp/ItemBlockPump.java 164/java/com/yogpc/qp/ItemBlockPump.java
+--- 164a/java/com/yogpc/qp/ItemBlockPump.java	2014-07-12 11:25:15.573293100 +0900
++++ 164/java/com/yogpc/qp/ItemBlockPump.java	2014-07-12 10:25:34.571568500 +0900
 @@ -17,13 +17,12 @@
  
  package com.yogpc.qp;
@@ -621,9 +492,9 @@ diff -ru main/java/com/yogpc/qp/ItemBlockPump.java 164/java/com/yogpc/qp/ItemBlo
  		super(b);
  	}
  
-diff -ru main/java/com/yogpc/qp/ItemBlockQuarry.java 164/java/com/yogpc/qp/ItemBlockQuarry.java
---- main/java/com/yogpc/qp/ItemBlockQuarry.java	2014-07-11 23:55:15.618539700 +0900
-+++ 164/java/com/yogpc/qp/ItemBlockQuarry.java	2014-07-11 22:07:27.365368800 +0900
+diff -rNu 164a/java/com/yogpc/qp/ItemBlockQuarry.java 164/java/com/yogpc/qp/ItemBlockQuarry.java
+--- 164a/java/com/yogpc/qp/ItemBlockQuarry.java	2014-07-12 11:25:15.573802400 +0900
++++ 164/java/com/yogpc/qp/ItemBlockQuarry.java	2014-07-12 10:25:34.572269400 +0900
 @@ -17,13 +17,12 @@
  
  package com.yogpc.qp;
@@ -639,9 +510,9 @@ diff -ru main/java/com/yogpc/qp/ItemBlockQuarry.java 164/java/com/yogpc/qp/ItemB
  		super(b);
  	}
  
-diff -ru main/java/com/yogpc/qp/ItemBlockRefinery.java 164/java/com/yogpc/qp/ItemBlockRefinery.java
---- main/java/com/yogpc/qp/ItemBlockRefinery.java	2014-07-11 23:55:15.619050500 +0900
-+++ 164/java/com/yogpc/qp/ItemBlockRefinery.java	2014-07-11 22:07:27.365706100 +0900
+diff -rNu 164a/java/com/yogpc/qp/ItemBlockRefinery.java 164/java/com/yogpc/qp/ItemBlockRefinery.java
+--- 164a/java/com/yogpc/qp/ItemBlockRefinery.java	2014-07-12 11:25:15.574321800 +0900
++++ 164/java/com/yogpc/qp/ItemBlockRefinery.java	2014-07-12 10:25:34.572952600 +0900
 @@ -17,13 +17,12 @@
  
  package com.yogpc.qp;
@@ -657,9 +528,9 @@ diff -ru main/java/com/yogpc/qp/ItemBlockRefinery.java 164/java/com/yogpc/qp/Ite
  		super(b);
  	}
  
-diff -ru main/java/com/yogpc/qp/ItemTool.java 164/java/com/yogpc/qp/ItemTool.java
---- main/java/com/yogpc/qp/ItemTool.java	2014-07-11 23:55:15.619719400 +0900
-+++ 164/java/com/yogpc/qp/ItemTool.java	2014-07-11 22:07:27.366167600 +0900
+diff -rNu 164a/java/com/yogpc/qp/ItemTool.java 164/java/com/yogpc/qp/ItemTool.java
+--- 164a/java/com/yogpc/qp/ItemTool.java	2014-07-12 11:25:15.574976100 +0900
++++ 164/java/com/yogpc/qp/ItemTool.java	2014-07-12 11:08:10.500351700 +0900
 @@ -21,7 +21,6 @@
  
  import com.yogpc.qp.QuarryPlus.BlockData;
@@ -679,13 +550,7 @@ diff -ru main/java/com/yogpc/qp/ItemTool.java 164/java/com/yogpc/qp/ItemTool.jav
  		setMaxStackSize(1);
  		setHasSubtypes(true);
  		this.setMaxDamage(0);
-@@ -70,12 +69,12 @@
- 			boolean s = false, f = false;
- 			NBTTagList nbttl = is.getEnchantmentTagList();
- 			if (nbttl != null) for (int i = 0; i < nbttl.tagCount(); i++) {
--				short id = nbttl.tagAt(i).getShort("id");
-+				short id = ((NBTTagCompound) nbttl.tagAt(i)).getShort("id");
- 				if (id == 33) s = true;
+@@ -75,7 +74,7 @@
  				if (id == 35) f = true;
  			}
  			NBTTagCompound c = is.getTagCompound();
@@ -703,16 +568,13 @@ diff -ru main/java/com/yogpc/qp/ItemTool.java 164/java/com/yogpc/qp/ItemTool.jav
  				int meta = w.getBlockMetadata(x, y, z);
  				if (c.hasKey("Bname") && name.equals(c.getString("Bname")) && meta == c.getInteger("Bmeta")) {
  					c.setInteger("Bmeta", OreDictionary.WILDCARD_VALUE);
-diff -ru main/java/com/yogpc/qp/PacketHandler.java 164/java/com/yogpc/qp/PacketHandler.java
---- main/java/com/yogpc/qp/PacketHandler.java	2014-07-11 23:55:15.620507300 +0900
-+++ 164/java/com/yogpc/qp/PacketHandler.java	2014-07-11 22:07:27.366572300 +0900
-@@ -17,34 +17,27 @@
+diff -rNu 164a/java/com/yogpc/qp/PacketHandler.java 164/java/com/yogpc/qp/PacketHandler.java
+--- 164a/java/com/yogpc/qp/PacketHandler.java	2014-07-12 11:25:15.575765000 +0900
++++ 164/java/com/yogpc/qp/PacketHandler.java	2014-07-12 10:25:34.574742800 +0900
+@@ -17,31 +17,27 @@
  
  package com.yogpc.qp;
  
--import io.netty.channel.ChannelHandlerContext;
--import io.netty.channel.SimpleChannelInboundHandler;
--import io.netty.channel.ChannelHandler.Sharable;
 -
  import java.io.ByteArrayOutputStream;
  import java.io.DataOutputStream;
@@ -748,7 +610,7 @@ diff -ru main/java/com/yogpc/qp/PacketHandler.java 164/java/com/yogpc/qp/PacketH
  	public static final byte Tile = 0;
  	public static final byte NBT = 1;
  	public static final byte BTN = 2;
-@@ -80,7 +73,9 @@
+@@ -77,7 +73,9 @@
  	public static final byte remove_laser = 1;
  
  	@Override
@@ -759,7 +621,7 @@ diff -ru main/java/com/yogpc/qp/PacketHandler.java 164/java/com/yogpc/qp/PacketH
  		if (packet.getChannel() == NBT) {
  			setNBTFromPacket(packet);
  		} else if (packet.getChannel() == BTN) {
-@@ -100,27 +95,28 @@
+@@ -97,27 +95,28 @@
  		}
  	}
  
@@ -799,9 +661,9 @@ diff -ru main/java/com/yogpc/qp/PacketHandler.java 164/java/com/yogpc/qp/PacketH
  	}
  
  	static QuarryPlusPacket getPacketFromNBT(TileEntity te) {
-diff -ru main/java/com/yogpc/qp/QuarryPlus.java 164/java/com/yogpc/qp/QuarryPlus.java
---- main/java/com/yogpc/qp/QuarryPlus.java	2014-07-11 23:55:15.622617000 +0900
-+++ 164/java/com/yogpc/qp/QuarryPlus.java	2014-07-11 23:42:30.966078800 +0900
+diff -rNu 164a/java/com/yogpc/qp/QuarryPlus.java 164/java/com/yogpc/qp/QuarryPlus.java
+--- 164a/java/com/yogpc/qp/QuarryPlus.java	2014-07-12 11:25:15.577574400 +0900
++++ 164/java/com/yogpc/qp/QuarryPlus.java	2014-07-12 10:25:34.576201700 +0900
 @@ -25,12 +25,9 @@
  import buildcraft.BuildCraftFactory;
  import buildcraft.BuildCraftSilicon;
@@ -961,21 +823,18 @@ diff -ru main/java/com/yogpc/qp/QuarryPlus.java 164/java/com/yogpc/qp/QuarryPlus
  		return sb.toString();
  	}
  }
-diff -ru main/java/com/yogpc/qp/QuarryPlusPacket.java 164/java/com/yogpc/qp/QuarryPlusPacket.java
---- main/java/com/yogpc/qp/QuarryPlusPacket.java	2014-07-11 23:55:15.623137000 +0900
-+++ 164/java/com/yogpc/qp/QuarryPlusPacket.java	2014-07-11 22:07:27.368285000 +0900
-@@ -1,9 +1,7 @@
+diff -rNu 164a/java/com/yogpc/qp/QuarryPlusPacket.java 164/java/com/yogpc/qp/QuarryPlusPacket.java
+--- 164a/java/com/yogpc/qp/QuarryPlusPacket.java	2014-07-12 11:25:15.578093800 +0900
++++ 164/java/com/yogpc/qp/QuarryPlusPacket.java	2014-07-12 10:25:34.578306400 +0900
+@@ -1,6 +1,6 @@
  package com.yogpc.qp;
  
 -import cpw.mods.fml.common.network.NetworkRegistry;
 +import cpw.mods.fml.common.network.Player;
  import net.minecraft.entity.player.EntityPlayer;
--import io.netty.buffer.ByteBuf;
--import io.netty.channel.ChannelHandlerContext;
  
  public final class QuarryPlusPacket {
- 	private byte channel;
-@@ -29,15 +27,17 @@
+@@ -27,15 +27,17 @@
  		return this.data;
  	}
  
@@ -1001,9 +860,9 @@ diff -ru main/java/com/yogpc/qp/QuarryPlusPacket.java 164/java/com/yogpc/qp/Quar
 +		return d;
  	}
  }
-diff -ru main/java/com/yogpc/qp/TileBasic.java 164/java/com/yogpc/qp/TileBasic.java
---- main/java/com/yogpc/qp/TileBasic.java	2014-07-11 23:55:15.624571400 +0900
-+++ 164/java/com/yogpc/qp/TileBasic.java	2014-07-11 22:07:27.369033500 +0900
+diff -rNu 164a/java/com/yogpc/qp/TileBasic.java 164/java/com/yogpc/qp/TileBasic.java
+--- 164a/java/com/yogpc/qp/TileBasic.java	2014-07-12 11:25:15.579545500 +0900
++++ 164/java/com/yogpc/qp/TileBasic.java	2014-07-12 11:13:29.889713700 +0900
 @@ -29,7 +29,6 @@
  import com.google.common.io.ByteArrayDataInput;
  import com.yogpc.qp.QuarryPlus.BlockData;
@@ -1048,44 +907,9 @@ diff -ru main/java/com/yogpc/qp/TileBasic.java 164/java/com/yogpc/qp/TileBasic.j
  			list.addAll(b.getBlockDropped(this.worldObj, x, y, z, meta, this.fortune));
  			return this.fortune;
  		}
-@@ -289,14 +288,14 @@
- 		this.unbreaking = nbttc.getByte("unbreaking");
- 		this.fortuneInclude = nbttc.getBoolean("fortuneInclude");
- 		this.silktouchInclude = nbttc.getBoolean("silktouchInclude");
--		readLongCollection(nbttc.getTagList("fortuneList", 10), this.fortuneList);
--		readLongCollection(nbttc.getTagList("silktouchList", 10), this.silktouchList);
-+		readLongCollection(nbttc.getTagList("fortuneList"), this.fortuneList);
-+		readLongCollection(nbttc.getTagList("silktouchList"), this.silktouchList);
- 	}
- 
- 	private static void readLongCollection(NBTTagList nbttl, Collection<BlockData> target) {
- 		target.clear();
- 		for (int i = 0; i < nbttl.tagCount(); i++) {
--			NBTTagCompound c = nbttl.tagAt(i);
-+			NBTTagCompound c = (NBTTagCompound) nbttl.tagAt(i);
- 			target.add(new BlockData(c.getString("name"), c.getInteger("meta")));
- 		}
- 	}
-diff -ru main/java/com/yogpc/qp/TileLaser.java 164/java/com/yogpc/qp/TileLaser.java
---- main/java/com/yogpc/qp/TileLaser.java	2014-07-11 23:55:15.626752800 +0900
-+++ 164/java/com/yogpc/qp/TileLaser.java	2014-07-11 22:07:27.370261400 +0900
-@@ -216,11 +216,11 @@
- 		this.silktouch = nbttc.getBoolean("silktouch");
- 		PowerManager.configureL(this, this.efficiency, this.unbreaking);
- 		this.pa = nbttc.getDouble("pa");
--		NBTTagList nbttl = nbttc.getTagList("lasers", 10);
-+		NBTTagList nbttl = nbttc.getTagList("lasers");
- 		if (this.lasers == null || this.lasers.length != nbttl.tagCount()) this.lasers = new Position[nbttl.tagCount()];
- 		for (int i = 0; i < nbttl.tagCount(); i++) {
- 			if (this.lasers[i] == null) this.lasers[i] = new Position();
--			NBTTagCompound lc = nbttl.tagAt(i);
-+			NBTTagCompound lc = (NBTTagCompound) nbttl.tagAt(i);
- 			this.lasers[i].x = lc.getDouble("x");
- 			this.lasers[i].y = lc.getDouble("y");
- 			this.lasers[i].z = lc.getDouble("z");
-diff -ru main/java/com/yogpc/qp/TileMarker.java 164/java/com/yogpc/qp/TileMarker.java
---- main/java/com/yogpc/qp/TileMarker.java	2014-07-11 23:55:15.628052600 +0900
-+++ 164/java/com/yogpc/qp/TileMarker.java	2014-07-11 22:07:27.370813500 +0900
+diff -rNu 164a/java/com/yogpc/qp/TileMarker.java 164/java/com/yogpc/qp/TileMarker.java
+--- 164a/java/com/yogpc/qp/TileMarker.java	2014-07-12 11:25:15.582786600 +0900
++++ 164/java/com/yogpc/qp/TileMarker.java	2014-07-12 10:25:34.585298500 +0900
 @@ -191,7 +191,7 @@
  		private final ArrayList<ItemStack> removeLink(final int x, final int y, final int z, final boolean bb) {
  			final ArrayList<ItemStack> ret = new ArrayList<ItemStack>();
@@ -1161,9 +985,9 @@ diff -ru main/java/com/yogpc/qp/TileMarker.java 164/java/com/yogpc/qp/TileMarker
 +		if (this.worldObj.getBlockId(this.xCoord, this.yCoord, this.zCoord) != QuarryPlus.blockMarker.blockID) G_destroy();
  	}
  }
-diff -ru main/java/com/yogpc/qp/TileMiningWell.java 164/java/com/yogpc/qp/TileMiningWell.java
---- main/java/com/yogpc/qp/TileMiningWell.java	2014-07-11 23:55:15.632170000 +0900
-+++ 164/java/com/yogpc/qp/TileMiningWell.java	2014-07-11 22:07:27.371216600 +0900
+diff -rNu 164a/java/com/yogpc/qp/TileMiningWell.java 164/java/com/yogpc/qp/TileMiningWell.java
+--- 164a/java/com/yogpc/qp/TileMiningWell.java	2014-07-12 11:25:15.583378300 +0900
++++ 164/java/com/yogpc/qp/TileMiningWell.java	2014-07-12 10:25:34.586137900 +0900
 @@ -61,7 +61,7 @@
  		if (this.worldObj.isRemote) return;
  		int depth = this.yCoord - 1;
@@ -1196,25 +1020,9 @@ diff -ru main/java/com/yogpc/qp/TileMiningWell.java 164/java/com/yogpc/qp/TileMi
  				break;
  			}
  			this.worldObj.setBlockToAir(this.xCoord, depth, this.zCoord);
-diff -ru main/java/com/yogpc/qp/TilePlacer.java 164/java/com/yogpc/qp/TilePlacer.java
---- main/java/com/yogpc/qp/TilePlacer.java	2014-07-11 23:55:15.634018600 +0900
-+++ 164/java/com/yogpc/qp/TilePlacer.java	2014-07-11 22:07:27.371596400 +0900
-@@ -116,10 +116,10 @@
- 	@Override
- 	public void readFromNBT(NBTTagCompound par1NBTTagCompound) {
- 		super.readFromNBT(par1NBTTagCompound);
--		NBTTagList nbttaglist = par1NBTTagCompound.getTagList("Items", 10);
-+		NBTTagList nbttaglist = par1NBTTagCompound.getTagList("Items");
- 
- 		for (int i = 0; i < nbttaglist.tagCount(); ++i) {
--			NBTTagCompound nbttagcompound1 = nbttaglist.tagAt(i);
-+			NBTTagCompound nbttagcompound1 = (NBTTagCompound) nbttaglist.tagAt(i);
- 			int j = nbttagcompound1.getByte("Slot") & 255;
- 
- 			if (j >= 0 && j < this.stack.length) {
-diff -ru main/java/com/yogpc/qp/TilePump.java 164/java/com/yogpc/qp/TilePump.java
---- main/java/com/yogpc/qp/TilePump.java	2014-07-11 23:55:15.635508300 +0900
-+++ 164/java/com/yogpc/qp/TilePump.java	2014-07-11 23:58:37.807169000 +0900
+diff -rNu 164a/java/com/yogpc/qp/TilePump.java 164/java/com/yogpc/qp/TilePump.java
+--- 164a/java/com/yogpc/qp/TilePump.java	2014-07-12 11:25:15.585323700 +0900
++++ 164/java/com/yogpc/qp/TilePump.java	2014-07-12 11:10:45.161372400 +0900
 @@ -26,7 +26,6 @@
  
  import net.minecraft.block.Block;
@@ -1223,7 +1031,7 @@ diff -ru main/java/com/yogpc/qp/TilePump.java 164/java/com/yogpc/qp/TilePump.jav
  import net.minecraft.nbt.NBTTagCompound;
  import net.minecraft.nbt.NBTTagList;
  import net.minecraft.nbt.NBTTagString;
-@@ -80,15 +79,15 @@
+@@ -79,7 +78,7 @@
  		this.unbreaking = nbttc.getByte("unbreaking");
  		this.connectTo = ForgeDirection.values()[nbttc.getByte("connectTo")];
  		if (nbttc.getTag("mapping0") instanceof NBTTagList) for (int i = 0; i < this.mapping.length; i++)
@@ -1232,26 +1040,7 @@ diff -ru main/java/com/yogpc/qp/TilePump.java 164/java/com/yogpc/qp/TilePump.jav
  		this.range = nbttc.getByte("range");
  		this.quarryRange = nbttc.getBoolean("quarryRange");
  		this.prev = (byte) (this.connectTo.ordinal() | (G_working() ? 0x80 : 0));
- 		if (this.silktouch) {
- 			this.liquids.clear();
--			NBTTagList nbttl = nbttc.getTagList("liquids", 10);
-+			NBTTagList nbttl = nbttc.getTagList("liquids");
- 			for (int i = 0; i < nbttl.tagCount(); i++) {
--				this.liquids.add(FluidStack.loadFluidStackFromNBT(nbttl.tagAt(i)));
-+				this.liquids.add(FluidStack.loadFluidStackFromNBT((NBTTagCompound) nbttl.tagAt(i)));
- 			}
- 		}
- 	}
-@@ -96,7 +95,7 @@
- 	private static void readStringCollection(NBTTagList nbttl, Collection<String> target) {
- 		target.clear();
- 		for (int i = 0; i < nbttl.tagCount(); i++)
--			target.add(nbttl.getStringTagAt(i));
-+			target.add(((NBTTagString) nbttl.tagAt(i)).data);
- 	}
- 
- 	@Override
-@@ -383,7 +382,7 @@
+@@ -382,7 +381,7 @@
  		while (cp != cg) {
  			ebs_c = this.ebses[xb[cg] >> 4][zb[cg] >> 4][yb[cg] >> 4];
  			if (ebs_c != null) {
@@ -1260,7 +1049,7 @@ diff -ru main/java/com/yogpc/qp/TilePump.java 164/java/com/yogpc/qp/TilePump.jav
  				if (this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] == 0 && isLiquid(b_c, false, null, 0, 0, 0, 0)) {
  					this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] = 0x3F;
  
-@@ -429,7 +428,7 @@
+@@ -428,7 +427,7 @@
  					for (bx = 0; bx < this.block_side_x; bx++) {
  						for (bz = 0; bz < this.block_side_z; bz++) {
  							if ((this.blocks[this.py - this.yOffset][bx][bz] & 0x40) != 0) {
@@ -1269,7 +1058,7 @@ diff -ru main/java/com/yogpc/qp/TilePump.java 164/java/com/yogpc/qp/TilePump.jav
  								if (isLiquid(bb, false, null, 0, 0, 0, 0)) {
  									count++;
  								}
-@@ -439,7 +438,7 @@
+@@ -438,7 +437,7 @@
  				} else {
  					for (bz = 0; bz < this.block_side_z; bz++) {
  						if (this.blocks[this.py - this.yOffset][this.px][bz] != 0) {
@@ -1278,7 +1067,7 @@ diff -ru main/java/com/yogpc/qp/TilePump.java 164/java/com/yogpc/qp/TilePump.jav
  							meta = this.ebses[this.px >> 4][bz >> 4][this.py >> 4].getExtBlockMetadata(this.px & 0xF, this.py & 0xF, bz & 0xF);
  							if (isLiquid(bb, true, this.worldObj, this.px + this.xOffset, this.py, bz + this.zOffset, meta)) {
  								count++;
-@@ -458,14 +457,14 @@
+@@ -457,14 +456,14 @@
  				for (bx = 0; bx < this.block_side_x; bx++) {
  					for (bz = 0; bz < this.block_side_z; bz++) {
  						if ((this.blocks[this.py - this.yOffset][bx][bz] & 0x40) != 0) {
@@ -1295,7 +1084,7 @@ diff -ru main/java/com/yogpc/qp/TilePump.java 164/java/com/yogpc/qp/TilePump.jav
  					}
  				}
  			}
-@@ -611,8 +610,8 @@
+@@ -610,8 +609,8 @@
  		return false;
  	}
  
@@ -1306,9 +1095,9 @@ diff -ru main/java/com/yogpc/qp/TilePump.java 164/java/com/yogpc/qp/TilePump.jav
  		int meta = this.ebses[bx >> 4][bz >> 4][this.py >> 4].getExtBlockMetadata(bx & 0xF, this.py & 0xF, bz & 0xF);
  		if (isLiquid(b, false, null, 0, 0, 0, 0)) {
  			FluidStack fs = null;
-diff -ru main/java/com/yogpc/qp/TileQuarry.java 164/java/com/yogpc/qp/TileQuarry.java
---- main/java/com/yogpc/qp/TileQuarry.java	2014-07-11 23:55:15.636830800 +0900
-+++ 164/java/com/yogpc/qp/TileQuarry.java	2014-07-11 22:07:27.372751100 +0900
+diff -rNu 164a/java/com/yogpc/qp/TileQuarry.java 164/java/com/yogpc/qp/TileQuarry.java
+--- 164a/java/com/yogpc/qp/TileQuarry.java	2014-07-12 11:25:15.586468800 +0900
++++ 164/java/com/yogpc/qp/TileQuarry.java	2014-07-12 10:25:34.589279300 +0900
 @@ -92,8 +92,8 @@
  
  	private boolean S_checkTarget() {
@@ -1338,9 +1127,9 @@ diff -ru main/java/com/yogpc/qp/TileQuarry.java 164/java/com/yogpc/qp/TileQuarry
  		S_setNextTarget();
  		return true;
  	}
-diff -ru main/java/com/yogpc/qp/TileRefinery.java 164/java/com/yogpc/qp/TileRefinery.java
---- main/java/com/yogpc/qp/TileRefinery.java	2014-07-11 23:55:15.637465600 +0900
-+++ 164/java/com/yogpc/qp/TileRefinery.java	2014-07-11 22:07:27.373307300 +0900
+diff -rNu 164a/java/com/yogpc/qp/TileRefinery.java 164/java/com/yogpc/qp/TileRefinery.java
+--- 164a/java/com/yogpc/qp/TileRefinery.java	2014-07-12 11:25:15.587111900 +0900
++++ 164/java/com/yogpc/qp/TileRefinery.java	2014-07-12 10:25:34.590182500 +0900
 @@ -104,9 +104,9 @@
  				decreaseAnimation();
  				return;
@@ -1353,9 +1142,9 @@ diff -ru main/java/com/yogpc/qp/TileRefinery.java 164/java/com/yogpc/qp/TileRefi
  				decreaseAnimation();
  				return;
  			}
-diff -ru main/java/com/yogpc/qp/client/ClientProxy.java 164/java/com/yogpc/qp/client/ClientProxy.java
---- main/java/com/yogpc/qp/client/ClientProxy.java	2014-07-11 23:55:15.601490600 +0900
-+++ 164/java/com/yogpc/qp/client/ClientProxy.java	2014-07-11 23:20:30.579038000 +0900
+diff -rNu 164a/java/com/yogpc/qp/client/ClientProxy.java 164/java/com/yogpc/qp/client/ClientProxy.java
+--- 164a/java/com/yogpc/qp/client/ClientProxy.java	2014-07-12 11:25:15.556746000 +0900
++++ 164/java/com/yogpc/qp/client/ClientProxy.java	2014-07-12 10:25:34.590940300 +0900
 @@ -20,9 +20,6 @@
  import net.minecraft.client.Minecraft;
  import net.minecraft.client.multiplayer.WorldClient;
@@ -1377,9 +1166,9 @@ diff -ru main/java/com/yogpc/qp/client/ClientProxy.java 164/java/com/yogpc/qp/cl
 -		return Minecraft.getMinecraft().thePlayer;
 -	}
  }
-diff -ru main/java/com/yogpc/qp/client/RenderRefinery.java 164/java/com/yogpc/qp/client/RenderRefinery.java
---- main/java/com/yogpc/qp/client/RenderRefinery.java	2014-07-11 23:55:15.611652900 +0900
-+++ 164/java/com/yogpc/qp/client/RenderRefinery.java	2014-07-11 22:07:27.361200700 +0900
+diff -rNu 164a/java/com/yogpc/qp/client/RenderRefinery.java 164/java/com/yogpc/qp/client/RenderRefinery.java
+--- 164a/java/com/yogpc/qp/client/RenderRefinery.java	2014-07-12 11:25:15.566983000 +0900
++++ 164/java/com/yogpc/qp/client/RenderRefinery.java	2014-07-12 10:25:34.591936800 +0900
 @@ -21,7 +21,7 @@
  import net.minecraft.client.model.ModelBase;
  import net.minecraft.client.model.ModelRenderer;

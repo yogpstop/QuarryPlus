@@ -1,61 +1,20 @@
 #!/bin/bash
 set -eu
-cd src/main/java
+. replace_helper.sh
+cd src
+rm -rf 164a
+cp -r main 164a
+cd 164a/java
 rm com/yogpc/qp/QuarryPlusPacketCodec.java
 FILES=`find -type f`
-simple_replace() {
-	perl -i -pe "s/$1/$2/g" $FILES
-}
-method_declaration() {
-	if [[ $# -lt 4 ]] ; then
-		return
-	fi
-	REP1="$1 +$3 *\\( *"
-	REP2="$2 $4("
-	shift 4
-	I=0
-	J1=false
-	J2=false
-	K=0
-	while [[ $# -ge 2 ]] ; do
-		if $J1 ; then
-			if [[ $2 != @SKIP@ ]] ; then
-				I=`expr $I + 1`
-			else
-				K=`expr $K + 1`
-			fi
-			REP1="$REP1([^,]*), *"
-		fi
-		if $J2 && [[ $2 != @SKIP@ ]] ; then
-			J2=false
-			REP2="$REP2\\$I, "
-			I=`expr $I + $K`
-			K=0
-		fi
-		J1=true
-		REP1="$REP1$1 +"
-		if [[ $2 != @SKIP@ ]] ; then
-			J2=true
-			REP2="$REP2$2 "
-		fi
-		shift 2
-	done
-	if $J1 ; then
-		I=`expr $I + 1`
-		REP1="$REP1([^\\)]*)"
-	fi
-	if $J2 ; then
-		REP2="$REP2\\$I"
-	fi
-	REP1="$REP1\\)"
-	REP2="$REP2)"
-	simple_replace "$REP1" "$REP2"
-}
 simple_replace "net\\.minecraftforge\\.common\\.util" "net.minecraftforge.common"
 simple_replace "net\\.minecraftforge\\.common\\.config" "net.minecraftforge.common"
+simple_replace "net\\.minecraft\\.network\\.Packet" "net\\.minecraft\\.network\\.packet\\.Packet"
 simple_replace "new ChatComponentText" ""
 simple_replace "getEntityId\(\)" "entityId"
-simple_replace "import +net\\.minecraft\\.util\\.ChatComponentText *;" ""
+simple_replace "import +net\\.minecraft\\.util\\.ChatComponentText *; *\n" ""
+simple_replace "import +cpw\\.mods\\.fml\\.common\\.network\\.internal\\.FMLProxyPacket *; *\n" ""
+simple_replace "import +io\\.netty\\.[^;]+; *\n" ""
 simple_replace "net\\.minecraft\\.init\\.Blocks" "net.minecraft.block.Block"
 simple_replace "net\\.minecraft\\.init\\.Items" "net.minecraft.item.Item"
 simple_replace "cpw\\.mods\\.fml\\.common\\.eventhandler\\.SubscribeEvent" "net.minecraftforge.event.ForgeSubscribe"
@@ -68,7 +27,9 @@ simple_replace "registerBlockIcons" "registerIcons"
 simple_replace "getDrops" "getBlockDropped"
 simple_replace "Item +([^ ]*) *= *getItemDropped" "int \\1 = idDropped"
 simple_replace "getItemDropped" "idDropped"
-simple_replace "getCompoundTagAt" "tagAt"
+simple_replace "([a-zA-Z\\. ]+)getCompoundTagAt(\\([^\\(\\)]+\\))" "((NBTTagCompound)\1tagAt\2)"
+simple_replace "([a-zA-Z\\. ]+)getStringTagAt(\\([^\\(\\)]+\\))" "(((NBTTagString)\1tagAt\2).data)"
+simple_replace "getTagList *\\(([^\\(\\),]+),[^\\(\\),]+\\)" "getTagList(\1)"
 simple_replace "isAir([^B])" "isAirBlock\1"
 simple_replace "markDirty" "onInventoryChanged"
 simple_replace "fontRendererObj" "fontRenderer"
@@ -120,6 +81,12 @@ method_declaration void void breakBlock breakBlock World World int int int int i
 method_declaration Icon Icon getIcon getBlockTexture IBlockAccess IBlockAccess int int int int int int int int
 method_declaration boolean boolean isSideSolid isBlockSolidOnSide IBlockAccess World int int int int int int ForgeDirection ForgeDirection
 simple_replace "isSideSolid" "isBlockSolidOnSide"
-cat ../../../172_164.patch | patch -p2
-VERSION=`cat ../../../VERSION`
-echo -e "[pj]\nsrc = src/main/java/\nversion = 1.6.4-$VERSION\nres = src/main/resources/\napi = BuildCraft422\nmcv = 1.6.4-9.11.1.965" >../../../build.cfg
+simple_replace "func_147453_f" "func_96440_m"
+simple_replace "getIcon *(\\([^,\\)]+,[^,\\)]+,[^,\\)]+,[^,\\)]+,[^,\\)]+\\))" "getBlockTexture\1"
+cd ../..
+rm -r 164
+cp -r 164a 164
+cd 164
+cat ../../172_164.patch | patch -p1
+cd ../..
+echo -e "[pj]\nsrc = src/164/java/\nversion = 1.6.4-`cat VERSION`\nres = src/164/resources/\napi = BuildCraft422\nmcv = 1.6.4-9.11.1.965" >build.cfg
