@@ -124,7 +124,7 @@ public class QuarryPlus {
 		MinecraftForge.EVENT_BUS.register(this);
 	}
 
-	private static final void addAssemblyRecipe(int a, ItemStack b, Object... c) {
+	private static final void addAssemblyRecipe(int a, ItemStack b, ItemStack... c) {
 		BuildcraftRecipes.assemblyTable.addRecipe(a, b, c);
 	}
 

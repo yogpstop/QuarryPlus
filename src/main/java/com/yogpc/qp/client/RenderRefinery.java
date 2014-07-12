@@ -120,7 +120,7 @@ public class RenderRefinery extends TileEntitySpecialRenderer implements ISimple
 
 		GL11.glRotatef(angle, 0, 1, 0);
 
-		bindTexture(TEXTURE);
+		this.field_147501_a.field_147553_e.bindTexture(TEXTURE);
 
 		GL11.glPushMatrix();
 		GL11.glTranslatef(-0.5F, -0.5F, -0.5F);
@@ -176,7 +176,7 @@ public class RenderRefinery extends TileEntitySpecialRenderer implements ISimple
 				int[] list1 = FluidRenderer.getFluidDisplayLists(liquid1, tile.getWorldObj(), false);
 
 				if (list1 != null) {
-					bindTexture(FluidRenderer.getFluidSheet(liquid1));
+					this.field_147501_a.field_147553_e.bindTexture(FluidRenderer.getFluidSheet(liquid1));
 					FluidRenderer.setColorForFluidStack(liquid1);
 					GL11.glCallList(list1[(int) (liquid1.amount / (float) tile.buf * (FluidRenderer.DISPLAY_STAGES - 1))]);
 				}
@@ -188,7 +188,7 @@ public class RenderRefinery extends TileEntitySpecialRenderer implements ISimple
 				if (list2 != null) {
 					GL11.glPushMatrix();
 					GL11.glTranslatef(0, 0, 1);
-					bindTexture(FluidRenderer.getFluidSheet(liquid2));
+					this.field_147501_a.field_147553_e.bindTexture(FluidRenderer.getFluidSheet(liquid2));
 					FluidRenderer.setColorForFluidStack(liquid2);
 					GL11.glCallList(list2[(int) (liquid2.amount / (float) tile.buf * (FluidRenderer.DISPLAY_STAGES - 1))]);
 					GL11.glPopMatrix();
@@ -201,7 +201,7 @@ public class RenderRefinery extends TileEntitySpecialRenderer implements ISimple
 				if (list3 != null) {
 					GL11.glPushMatrix();
 					GL11.glTranslatef(1, 0, 0.5F);
-					bindTexture(FluidRenderer.getFluidSheet(liquidResult));
+					this.field_147501_a.field_147553_e.bindTexture(FluidRenderer.getFluidSheet(liquidResult));
 					FluidRenderer.setColorForFluidStack(liquidResult);
 					GL11.glCallList(list3[(int) (liquidResult.amount / (float) tile.buf * (FluidRenderer.DISPLAY_STAGES - 1))]);
 					GL11.glPopMatrix();

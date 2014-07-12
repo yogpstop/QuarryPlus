@@ -84,7 +84,7 @@ simple_replace "isSideSolid" "isBlockSolidOnSide"
 simple_replace "func_147453_f" "func_96440_m"
 simple_replace "getIcon *(\\([^,\\)]+,[^,\\)]+,[^,\\)]+,[^,\\)]+,[^,\\)]+\\))" "getBlockTexture\1"
 cd ../..
-rm -r 164
+rm -rf 164
 cp -r 164a 164
 cd 164
 cat ../../172_164.patch | patch -p1

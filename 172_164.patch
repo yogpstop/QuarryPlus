@@ -746,7 +746,7 @@ diff -rNu 164a/java/com/yogpc/qp/QuarryPlus.java 164/java/com/yogpc/qp/QuarryPlu
 @@ -125,7 +135,7 @@
  	}
  
- 	private static final void addAssemblyRecipe(int a, ItemStack b, Object... c) {
+ 	private static final void addAssemblyRecipe(int a, ItemStack b, ItemStack... c) {
 -		BuildcraftRecipes.assemblyTable.addRecipe(a, b, c);
 +		AssemblyRecipe.assemblyRecipes.add(new AssemblyRecipe(a, b, c));
  	}

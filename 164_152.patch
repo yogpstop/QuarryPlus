@@ -1,0 +1,515 @@
+diff -rNu 152a/java/com/yogpc/qp/APowerTile.java 152/java/com/yogpc/qp/APowerTile.java
+--- 152a/java/com/yogpc/qp/APowerTile.java	2014-07-12 13:31:03.706960600 +0900
++++ 152/java/com/yogpc/qp/APowerTile.java	2014-07-12 12:48:10.024821500 +0900
+@@ -1,13 +1,13 @@
+ package com.yogpc.qp;
+ 
+ import net.minecraft.nbt.NBTTagCompound;
+-import net.minecraft.world.World;
+ import net.minecraftforge.common.ForgeDirection;
+ import buildcraft.api.power.IPowerReceptor;
+ import buildcraft.api.power.IPowerProvider;
++import buildcraft.api.power.PowerFramework;
+ 
+ public abstract class APowerTile extends APacketTile implements IPowerReceptor {
+-	private final IPowerProvider pp = new IPowerProvider(this, Type.MACHINE);
++	private final IPowerProvider pp = PowerFramework.currentFramework.createPowerProvider();
+ 	private double stored, recv_max, stored_max;
+ 
+ 	@Override
+@@ -29,8 +29,13 @@
+ 	public final void doWork() {}
+ 
+ 	@Override
+-	public final World getWorld() {
+-		return this.worldObj;
++	public final int powerRequest(ForgeDirection d) {
++		return (int) Math.ceil(Math.min(this.recv_max, this.stored_max - this.stored));
++	}
++
++	@Override
++	public final void setPowerProvider(IPowerProvider p) {
++		return;
+ 	}
+ 
+ 	@Override
+@@ -39,7 +44,7 @@
+ 		this.stored = nbttc.getDouble("storedEnergy");
+ 		this.stored_max = nbttc.getDouble("MAX_stored");
+ 		this.recv_max = nbttc.getDouble("MAX_receive");
+-		this.pp.configure(0, (float) this.recv_max, 0, (float) this.stored_max);
++		this.pp.configure(0, 0, (int) this.recv_max, 0, (int) this.stored_max);
+ 	}
+ 
+ 	@Override
+@@ -75,6 +80,6 @@
+ 	public final void configure(double max, double maxstored) {
+ 		this.recv_max = max;
+ 		this.stored_max = maxstored;
+-		this.pp.configure(0, (float) this.recv_max, 0, (float) this.stored_max);
++		this.pp.configure(0, 0, (int) this.recv_max, 0, (int) this.stored_max);
+ 	}
+ }
+diff -rNu 152a/java/com/yogpc/qp/QuarryPlus.java 152/java/com/yogpc/qp/QuarryPlus.java
+--- 152a/java/com/yogpc/qp/QuarryPlus.java	2014-07-12 13:31:03.735039900 +0900
++++ 152/java/com/yogpc/qp/QuarryPlus.java	2014-07-12 13:18:43.041206700 +0900
+@@ -86,7 +86,7 @@
+ 			if (l.w == event.world) l.destructor();
+ 	}
+ 
+-	@Mod.EventHandler
++	@Mod.PreInit
+ 	public void preInit(FMLPreInitializationEvent event) {
+ 		Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
+ 		int[] id = new int[11];
+@@ -135,10 +135,10 @@
+ 	}
+ 
+ 	private static final void addAssemblyRecipe(int a, ItemStack b, ItemStack... c) {
+-		AssemblyRecipe.assemblyRecipes.add(new AssemblyRecipe(a, b, c));
++		AssemblyRecipe.assemblyRecipes.add(new AssemblyRecipe((ItemStack[]) c, a, b));
+ 	}
+ 
+-	@Mod.EventHandler
++	@Mod.Init
+ 	public void init(FMLInitializationEvent event) {
+ 		GameRegistry.registerItem(itemTool, "qpTool");
+ 		GameRegistry.registerBlock(blockQuarry, ItemBlockQuarry.class, "QuarryPlus");
+diff -rNu 152a/java/com/yogpc/qp/TileBasic.java 152/java/com/yogpc/qp/TileBasic.java
+--- 152a/java/com/yogpc/qp/TileBasic.java	2014-07-12 13:31:03.737131300 +0900
++++ 152/java/com/yogpc/qp/TileBasic.java	2014-07-12 13:21:20.190384400 +0900
+@@ -38,7 +38,10 @@
+ import net.minecraft.world.World;
+ import net.minecraftforge.common.ForgeDirection;
+ import buildcraft.api.gates.IAction;
+-import buildcraft.api.transport.IPipeTile;
++import buildcraft.api.transport.IPipeConnection;
++import buildcraft.api.transport.IPipeEntry;
++import buildcraft.api.transport.IPipedItem;
++import buildcraft.core.EntityPassiveItem;
+ import buildcraft.core.IMachine;
+ import buildcraft.core.inventory.ITransactor;
+ import buildcraft.core.inventory.Transactor;
+@@ -161,7 +164,7 @@
+ 	}
+ 
+ 	static int injectToNearTile(World w, int x, int y, int z, ItemStack is) {
+-		List<IPipeTile> pp = new LinkedList<IPipeTile>();
++		List<TileEntity> pp = new LinkedList<TileEntity>();
+ 		List<ForgeDirection> ppd = new LinkedList<ForgeDirection>();
+ 		List<ITransactor> pi = new LinkedList<ITransactor>();
+ 		List<ForgeDirection> pid = new LinkedList<ForgeDirection>();
+@@ -172,10 +175,9 @@
+ 				pi.add(i);
+ 				pid.add(d.getOpposite());
+ 			}
+-			if (t instanceof IPipeTile) {
+-				IPipeTile p = (IPipeTile) t;
+-				if (p.getPipeType() != IPipeTile.PipeType.ITEM || !p.isPipeConnected(d.getOpposite())) continue;
+-				pp.add(p);
++			if (t instanceof IPipeEntry && ((IPipeEntry) t).acceptItems()) {
++				if (t instanceof IPipeConnection && !((IPipeConnection) t).isPipeConnected(d.getOpposite())) continue;
++				pp.add(t);
+ 				ppd.add(d.getOpposite());
+ 			}
+ 		}
+@@ -185,7 +187,10 @@
+ 		}
+ 		if (pp.size() > 0) {
+ 			int i = w.rand.nextInt(pp.size());
+-			return pp.get(i).injectItem(is, true, ppd.get(i));
++			IPipeEntry p = (IPipeEntry) pp.get(i);
++			IPipedItem entity = new EntityPassiveItem(w, pp.get(i).xCoord, pp.get(i).yCoord, pp.get(i).zCoord, is);
++			p.entityEntering(entity, ppd.get(i));
++			return is.stackSize;
+ 		}
+ 		return 0;
+ 	}
+diff -rNu 152a/java/com/yogpc/qp/TileInfMJSrc.java 152/java/com/yogpc/qp/TileInfMJSrc.java
+--- 152a/java/com/yogpc/qp/TileInfMJSrc.java	2014-07-12 13:31:03.738259700 +0900
++++ 152/java/com/yogpc/qp/TileInfMJSrc.java	2014-07-12 12:57:54.905680800 +0900
+@@ -21,6 +21,7 @@
+ import java.io.DataOutputStream;
+ import java.lang.reflect.Method;
+ 
++import buildcraft.api.power.IPowerProvider;
+ import buildcraft.api.power.IPowerReceptor;
+ 
+ import com.google.common.io.ByteArrayDataInput;
+@@ -61,8 +62,8 @@
+ 				}
+ 			} catch (Exception e) {}
+ 			if (te instanceof IPowerReceptor) {
+-				IPowerProvider pr = ((IPowerReceptor) te).getPowerProvider(d.getOpposite());
+-				if (pr != null) pr.receiveEnergy(Type.ENGINE, this.power, d.getOpposite());
++				IPowerProvider pr = ((IPowerReceptor) te).getPowerProvider();
++				if (pr != null) pr.receiveEnergy(this.power, d.getOpposite());
+ 			}
+ 		}
+ 		this.cInterval = this.interval;
+diff -rNu 152a/java/com/yogpc/qp/TileLaser.java 152/java/com/yogpc/qp/TileLaser.java
+--- 152a/java/com/yogpc/qp/TileLaser.java	2014-07-12 13:31:03.739087800 +0900
++++ 152/java/com/yogpc/qp/TileLaser.java	2014-07-12 12:48:19.145032400 +0900
+@@ -26,7 +26,6 @@
+ import static buildcraft.BuildCraftCore.actionOff;
+ import buildcraft.api.gates.IAction;
+ import buildcraft.api.gates.IActionReceptor;
+-import buildcraft.core.EntityLaser;
+ import buildcraft.core.IMachine;
+ import buildcraft.core.triggers.ActionMachineControl;
+ import net.minecraft.entity.player.EntityPlayer;
+@@ -196,13 +195,13 @@
+ 		double avg = this.pa / 100;
+ 
+ 		if (avg <= 1.0) {
+-			return EntityLaser.LASER_TEXTURES[0];
++			return "/gfx/buildcraft/entities/laser_1.png";
+ 		} else if (avg <= 2.0) {
+-			return EntityLaser.LASER_TEXTURES[1];
++			return "/gfx/buildcraft/entities/laser_2.png";
+ 		} else if (avg <= 3.0) {
+-			return EntityLaser.LASER_TEXTURES[2];
++			return "/gfx/buildcraft/entities/laser_3.png";
+ 		} else {
+-			return EntityLaser.LASER_TEXTURES[3];
++			return "/gfx/buildcraft/entities/laser_4.png";
+ 		}
+ 	}
+ 
+diff -rNu 152a/java/com/yogpc/qp/TilePump.java 152/java/com/yogpc/qp/TilePump.java
+--- 152a/java/com/yogpc/qp/TilePump.java	2014-07-12 13:31:03.742914100 +0900
++++ 152/java/com/yogpc/qp/TilePump.java	2014-07-12 13:22:19.004102700 +0900
+@@ -34,14 +34,13 @@
+ import net.minecraft.world.World;
+ import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
+ import net.minecraftforge.common.ForgeDirection;
+-import net.minecraftforge.liquids.Fluid;
++import net.minecraftforge.liquids.ILiquidTank;
+ import net.minecraftforge.liquids.LiquidContainerRegistry;
+ import net.minecraftforge.liquids.LiquidDictionary;
+ import net.minecraftforge.liquids.LiquidStack;
+ import net.minecraftforge.liquids.LiquidTank;
+ import net.minecraftforge.liquids.ILiquid;
+ import net.minecraftforge.liquids.ITankContainer;
+-
+ import static buildcraft.BuildCraftFactory.frameBlock;
+ import buildcraft.api.power.IPowerReceptor;
+ import buildcraft.api.power.IPowerProvider;
+@@ -132,7 +131,7 @@
+ 			te = this.worldObj.getBlockTileEntity(this.xCoord + fd.offsetX, this.yCoord + fd.offsetY, this.zCoord + fd.offsetZ);
+ 			if (te instanceof ITankContainer) {
+ 				for (String s : this.mapping[fd.ordinal()]) {
+-					pZ = this.liquids.indexOf(LiquidDictionary.getLiquidStack(s, 0));
++					pZ = this.liquids.indexOf(LiquidDictionary.getCanonicalLiquid(s));
+ 					if (pZ == -1) continue;
+ 					fs = this.liquids.get(pZ);
+ 					fs.amount -= ((ITankContainer) te).fill(fd.getOpposite(), fs, true);
+@@ -485,7 +484,7 @@
+ 		if (this.liquids.size() > 0) {
+ 			ret[0] = StatCollector.translateToLocal("chat.pumpcontain");
+ 			for (int i = 0; i < this.liquids.size(); i++) {
+-				ret[i + 1] = new StringBuilder().append("    ").append(this.liquids.get(i).getFluid().getLocalizedName()).append(": ")
++				ret[i + 1] = new StringBuilder().append("    ").append(LiquidDictionary.findLiquidName(this.liquids.get(i))).append(": ")
+ 						.append(this.liquids.get(i).amount).append("mB").toString();
+ 			}
+ 		} else {
+@@ -519,6 +518,10 @@
+ 	}
+ 
+ 	@Override
++	public LiquidStack drain(int id, int maxDrain, boolean doDrain) {
++		return null;// TODO
++	}
++
+ 	public LiquidStack drain(ForgeDirection fd, LiquidStack resource, boolean doDrain) {
+ 		if (resource == null) return null;
+ 		int index = this.liquids.indexOf(resource);
+@@ -534,13 +537,8 @@
+ 	}
+ 
+ 	@Override
+-	public boolean canFill(ForgeDirection from, Fluid fluid) {
+-		return false;
+-	}
+-
+-	@Override
+-	public boolean canDrain(ForgeDirection from, Fluid fluid) {
+-		return true;
++	public int fill(int id, LiquidStack resource, boolean doFill) {
++		return 0;
+ 	}
+ 
+ 	@Override
+@@ -549,8 +547,8 @@
+ 		LinkedList<LiquidTank> ret = new LinkedList<LiquidTank>();
+ 		if (this.mapping[fd.ordinal()].size() <= 0) {
+ 			if (this.liquids.size() <= 0) {
+-				for (Integer i : LiquidDictionary.getLiquids().values())
+-					ret.add(new LiquidTank(new LiquidStack(i, 0), Integer.MAX_VALUE));
++				for (LiquidStack i : LiquidDictionary.getLiquids().values())
++					ret.add(new LiquidTank(i, Integer.MAX_VALUE));
+ 			} else {
+ 				for (LiquidStack fs : this.liquids)
+ 					ret.add(new LiquidTank(fs, Integer.MAX_VALUE));
+@@ -559,7 +557,7 @@
+ 			int index;
+ 			LiquidStack fs;
+ 			for (String s : this.mapping[fd.ordinal()]) {
+-				fs = LiquidDictionary.getLiquidStack(s, 0);
++				fs = LiquidDictionary.getCanonicalLiquid(s);
+ 				if (fs == null) continue;
+ 				index = this.liquids.indexOf(fs);
+ 				if (index != -1) ret.add(new LiquidTank(this.liquids.get(index), Integer.MAX_VALUE));
+@@ -570,6 +568,16 @@
+ 	}
+ 
+ 	@Override
++	public ILiquidTank getTank(ForgeDirection d, LiquidStack t) {
++		ILiquidTank[] ilda = getTanks(d);
++		if (ilda == null) return null;
++		if (t == null) return ilda[0];
++		for (ILiquidTank ild : ilda)
++			if (ild.getLiquid().isLiquidEqual(t)) return ild;
++		return null;
++	}
++
++	@Override
+ 	public LiquidStack drain(ForgeDirection fd, int maxDrain, boolean doDrain) {
+ 		if (fd.ordinal() < 0 || fd.ordinal() >= this.mapping.length) return drain(ForgeDirection.UP, maxDrain, doDrain);
+ 		if (this.mapping[fd.ordinal()].size() <= 0) {
+@@ -579,7 +587,7 @@
+ 		int index;
+ 		LiquidStack fs;
+ 		for (String s : this.mapping[fd.ordinal()]) {
+-			fs = LiquidDictionary.getLiquidStack(s, maxDrain);
++			fs = LiquidDictionary.getLiquid(s, maxDrain);
+ 			if (fs == null) continue;
+ 			index = this.liquids.indexOf(fs);
+ 			if (index == -1) continue;
+@@ -603,7 +611,7 @@
+ 	 * 
+ 	 * */
+ 	static final boolean isLiquid(Block b, boolean s, World w, int x, int y, int z, int m) {
+-		if (b instanceof ILiquid) return !s || ((ILiquid) b).canDrain(w, x, y, z);
++		if (b instanceof ILiquid) return !s || ((ILiquid) b).stillLiquidMeta() == m;
+ 		if (b == Block.waterStill || b == Block.waterMoving || b == Block.lavaStill || b == Block.lavaMoving) return !s || m == 0;
+ 		return false;
+ 	}
+@@ -613,12 +621,12 @@
+ 		int meta = this.ebses[bx >> 4][bz >> 4][this.py >> 4].getExtBlockMetadata(bx & 0xF, this.py & 0xF, bz & 0xF);
+ 		if (isLiquid(b, false, null, 0, 0, 0, 0)) {
+ 			LiquidStack fs = null;
+-			if (b instanceof ILiquid && ((ILiquid) b).canDrain(this.worldObj, bx + this.xOffset, this.py, bz + this.zOffset)) {
+-				fs = ((ILiquid) b).drain(this.worldObj, bx + this.xOffset, this.py, bz + this.zOffset, true);
++			if (b instanceof ILiquid && ((ILiquid) b).stillLiquidMeta() == meta) {
++				fs = new LiquidStack(((ILiquid) b).stillLiquidId(), LiquidContainerRegistry.BUCKET_VOLUME, ((ILiquid) b).stillLiquidMeta());
+ 			} else if ((b == Block.waterStill || b == Block.waterMoving) && meta == 0) {
+-				fs = new LiquidStack(LiquidDictionary.WATER, LiquidContainerRegistry.BUCKET_VOLUME);
++				fs = new LiquidStack(Block.waterStill, LiquidContainerRegistry.BUCKET_VOLUME);
+ 			} else if ((b == Block.lavaStill || b == Block.lavaMoving) && meta == 0) {
+-				fs = new LiquidStack(LiquidDictionary.LAVA, LiquidContainerRegistry.BUCKET_VOLUME);
++				fs = new LiquidStack(Block.lavaStill, LiquidContainerRegistry.BUCKET_VOLUME);
+ 			}
+ 			if (fs != null) {
+ 				int index = this.liquids.indexOf(fs);
+@@ -667,7 +675,13 @@
+ 	public void doWork() {}
+ 
+ 	@Override
+-	public World getWorld() {
+-		return this.worldObj;
++	public void setPowerProvider(IPowerProvider provider) {
++		return;
++	}
++
++	@Override
++	public int powerRequest(ForgeDirection d) {
++		TileBasic tb = G_connected();
++		return tb == null ? 0 : tb.powerRequest(d);
+ 	}
+ }
+diff -rNu 152a/java/com/yogpc/qp/TileRefinery.java 152/java/com/yogpc/qp/TileRefinery.java
+--- 152a/java/com/yogpc/qp/TileRefinery.java	2014-07-12 13:31:03.744660500 +0900
++++ 152/java/com/yogpc/qp/TileRefinery.java	2014-07-12 13:14:23.586487400 +0900
+@@ -23,7 +23,7 @@
+ import net.minecraft.entity.player.EntityPlayer;
+ import net.minecraft.nbt.NBTTagCompound;
+ import net.minecraftforge.common.ForgeDirection;
+-import net.minecraftforge.liquids.Fluid;
++import net.minecraftforge.liquids.ILiquidTank;
+ import net.minecraftforge.liquids.LiquidContainerRegistry;
+ import net.minecraftforge.liquids.LiquidStack;
+ import net.minecraftforge.liquids.LiquidTank;
+@@ -232,7 +232,6 @@
+ 		return 0;
+ 	}
+ 
+-	@Override
+ 	public LiquidStack drain(ForgeDirection from, LiquidStack resource, boolean doDrain) {
+ 		// if (resource == null) return null;
+ 		if (resource.equals(this.res)) return drain(from, resource.amount, doDrain);
+@@ -270,13 +269,13 @@
+ 	}
+ 
+ 	@Override
+-	public boolean canFill(ForgeDirection from, Fluid fluid) {
+-		return true;
++	public int fill(int i, LiquidStack f, boolean d) {
++		return fill(ForgeDirection.UNKNOWN, f, d);
+ 	}
+ 
+ 	@Override
+-	public boolean canDrain(ForgeDirection from, Fluid fluid) {
+-		return true;
++	public LiquidStack drain(int i, int x, boolean d) {
++		return drain(ForgeDirection.UNKNOWN, x, d);
+ 	}
+ 
+ 	@Override
+@@ -285,6 +284,15 @@
+ 	}
+ 
+ 	@Override
++	public ILiquidTank getTank(ForgeDirection direction, LiquidStack type) {
++		if (type == null) return null;
++		if (type.isLiquidEqual(this.src1)) return new LiquidTank(this.src1, this.buf);
++		if (type.isLiquidEqual(this.src2)) return new LiquidTank(this.src2, this.buf);
++		if (type.isLiquidEqual(this.res)) return new LiquidTank(this.res, this.buf);
++		return null;
++	}
++
++	@Override
+ 	public byte getEfficiency() {
+ 		return this.efficiency;
+ 	}
+diff -rNu 152a/java/com/yogpc/qp/client/GuiInfMJSrc.java 152/java/com/yogpc/qp/client/GuiInfMJSrc.java
+--- 152a/java/com/yogpc/qp/client/GuiInfMJSrc.java	2014-07-12 13:31:03.715560300 +0900
++++ 152/java/com/yogpc/qp/client/GuiInfMJSrc.java	2014-07-12 13:32:39.725157400 +0900
+@@ -34,7 +34,7 @@
+ 
+ @SideOnly(Side.CLIENT)
+ public class GuiInfMJSrc extends GuiScreenA {
+-	private static final String gui = new String("yogpstop_qp", "textures/gui/infmjsrc.png");
++	private static final String gui = "/mods/yogpstop_qp/textures/gui/infmjsrc.png";
+ 	private TileInfMJSrc tile;
+ 	private GuiTextField eng;
+ 	private GuiTextField itv;
+diff -rNu 152a/java/com/yogpc/qp/client/GuiMover.java 152/java/com/yogpc/qp/client/GuiMover.java
+--- 152a/java/com/yogpc/qp/client/GuiMover.java	2014-07-12 13:31:03.716139800 +0900
++++ 152/java/com/yogpc/qp/client/GuiMover.java	2014-07-12 12:58:54.211969800 +0900
+@@ -38,7 +38,7 @@
+ @SideOnly(Side.CLIENT)
+ public class GuiMover extends GuiContainer {
+ 	public GuiButton b32, b33, b34, b35;
+-	private static final String gui = new String("yogpstop_qp", "textures/gui/mover.png");
++	private static final String gui = "/mods/yogpstop_qp/textures/gui/mover.png";
+ 
+ 	public GuiMover(EntityPlayer player, World world, int x, int y, int z) {
+ 		super(null);
+diff -rNu 152a/java/com/yogpc/qp/client/GuiP_List.java 152/java/com/yogpc/qp/client/GuiP_List.java
+--- 152a/java/com/yogpc/qp/client/GuiP_List.java	2014-07-12 13:31:03.717373400 +0900
++++ 152/java/com/yogpc/qp/client/GuiP_List.java	2014-07-12 12:58:36.166149900 +0900
+@@ -25,7 +25,6 @@
+ import net.minecraft.client.gui.GuiButton;
+ import net.minecraft.util.StatCollector;
+ import net.minecraftforge.common.ForgeDirection;
+-import net.minecraftforge.liquids.LiquidDictionary;
+ 
+ @SideOnly(Side.CLIENT)
+ public class GuiP_List extends GuiScreenA {
+@@ -80,7 +79,6 @@
+ 			break;
+ 		case PacketHandler.CtS_REMOVE_MAPPING:
+ 			String name = this.tile.mapping[this.dir].get(this.oreslot.currentore);
+-			if (LiquidDictionary.isFluidRegistered(name)) name = LiquidDictionary.getFluid(name).getLocalizedName();
+ 			this.mc.displayGuiScreen(new GuiYesNo(this, StatCollector.translateToLocal("tof.deletefluidsure"), name, par1.id));
+ 			break;
+ 		default:
+diff -rNu 152a/java/com/yogpc/qp/client/GuiP_Manual.java 152/java/com/yogpc/qp/client/GuiP_Manual.java
+--- 152a/java/com/yogpc/qp/client/GuiP_Manual.java	2014-07-12 13:31:03.718153200 +0900
++++ 152/java/com/yogpc/qp/client/GuiP_Manual.java	2014-07-12 12:58:26.103300400 +0900
+@@ -26,7 +26,6 @@
+ import net.minecraft.client.gui.GuiScreen;
+ import net.minecraft.client.gui.GuiTextField;
+ import net.minecraft.util.StatCollector;
+-import net.minecraftforge.liquids.LiquidDictionary;
+ 
+ @SideOnly(Side.CLIENT)
+ public class GuiP_Manual extends GuiScreenA {
+@@ -55,11 +54,9 @@
+ 			String name = this.blockid.getText();
+ 			if (name.length() == 0) return;
+ 			if (this.tile.mapping[this.targetid].contains(name)) {
+-				if (LiquidDictionary.isFluidRegistered(name)) name = LiquidDictionary.getFluid(name).getLocalizedName();
+ 				this.mc.displayGuiScreen(new GuiError(this, StatCollector.translateToLocal("tof.alreadyerror"), name));
+ 				return;
+ 			}
+-			if (LiquidDictionary.isFluidRegistered(name)) name = LiquidDictionary.getFluid(name).getLocalizedName();
+ 			this.mc.displayGuiScreen(new GuiYesNo(this, StatCollector.translateToLocal("tof.addfluidsure"), name, -1));
+ 			break;
+ 		case -2:
+diff -rNu 152a/java/com/yogpc/qp/client/GuiP_SlotBlockList.java 152/java/com/yogpc/qp/client/GuiP_SlotBlockList.java
+--- 152a/java/com/yogpc/qp/client/GuiP_SlotBlockList.java	2014-07-12 13:31:03.719883400 +0900
++++ 152/java/com/yogpc/qp/client/GuiP_SlotBlockList.java	2014-07-12 12:42:42.405651900 +0900
+@@ -77,7 +77,7 @@
+ 
+ 	@Override
+ 	protected void drawSlot(int var1, int var2, int var3, int var4, Tessellator var5) {
+-		String name = LiquidDictionary.getFluid(this.blocklist.get(var1)).getLocalizedName();
++		String name = this.blocklist.get(var1);
+ 		Minecraft.getMinecraft().fontRenderer.drawStringWithShadow(name, (this.parent.width - Minecraft.getMinecraft().fontRenderer.getStringWidth(name)) / 2,
+ 				var3 + 1, 0xFFFFFF);
+ 	}
+diff -rNu 152a/java/com/yogpc/qp/client/GuiP_SlotList.java 152/java/com/yogpc/qp/client/GuiP_SlotList.java
+--- 152a/java/com/yogpc/qp/client/GuiP_SlotList.java	2014-07-12 13:31:03.720476200 +0900
++++ 152/java/com/yogpc/qp/client/GuiP_SlotList.java	2014-07-12 12:42:17.795585400 +0900
+@@ -25,7 +25,6 @@
+ import net.minecraft.client.gui.GuiScreen;
+ import net.minecraft.client.gui.GuiSlot;
+ import net.minecraft.client.renderer.Tessellator;
+-import net.minecraftforge.liquids.LiquidDictionary;
+ 
+ @SideOnly(Side.CLIENT)
+ public class GuiP_SlotList extends GuiSlot {
+@@ -62,7 +61,6 @@
+ 	@Override
+ 	protected void drawSlot(int var1, int var2, int var3, int var4, Tessellator var5) {
+ 		String name = this.target.get(var1);
+-		if (LiquidDictionary.isFluidRegistered(name)) name = LiquidDictionary.getFluid(name).getLocalizedName();
+ 		Minecraft.getMinecraft().fontRenderer.drawStringWithShadow(name,
+ 				(this.parent.width * 3 / 5 - Minecraft.getMinecraft().fontRenderer.getStringWidth(name)) / 2, var3 + 1, 0xFFFFFF);
+ 	}
+diff -rNu 152a/java/com/yogpc/qp/client/RenderQuarry.java 152/java/com/yogpc/qp/client/RenderQuarry.java
+--- 152a/java/com/yogpc/qp/client/RenderQuarry.java	2014-07-12 13:31:03.723964600 +0900
++++ 152/java/com/yogpc/qp/client/RenderQuarry.java	2014-07-12 12:41:42.247086500 +0900
+@@ -2,8 +2,6 @@
+ 
+ import org.lwjgl.opengl.GL11;
+ 
+-import static buildcraft.core.DefaultProps.TEXTURE_PATH_ENTITIES;
+-
+ import com.yogpc.qp.TileQuarry;
+ 
+ import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+@@ -14,8 +12,7 @@
+ 	private void render(double fx, double fy, double fz, double tx, double ty, double tz) {
+ 		GL11.glPushMatrix();
+ 		GL11.glTranslated(0.5F, 0.5F, 0.5F);
+-		RenderLaser.renderLaser(this.tileEntityRenderer.renderEngine, fx, fy, fz, tx, ty, tz, 0, new String("buildcraft", TEXTURE_PATH_ENTITIES
+-				+ "/stripes.png"));
++		RenderLaser.renderLaser(this.tileEntityRenderer.renderEngine, fx, fy, fz, tx, ty, tz, 0, "/gfx/buildcraft/entities/stripes.png");
+ 		GL11.glPopMatrix();
+ 	}
+ 
+diff -rNu 152a/java/com/yogpc/qp/client/RenderRefinery.java 152/java/com/yogpc/qp/client/RenderRefinery.java
+--- 152a/java/com/yogpc/qp/client/RenderRefinery.java	2014-07-12 13:31:03.724696000 +0900
++++ 152/java/com/yogpc/qp/client/RenderRefinery.java	2014-07-12 13:24:42.487780500 +0900
+@@ -40,7 +40,7 @@
+ @SideOnly(Side.CLIENT)
+ public class RenderRefinery extends TileEntitySpecialRenderer implements ISimpleBlockRenderingHandler {
+ 	public static final RenderRefinery INSTANCE = new RenderRefinery();
+-	private static final String TEXTURE = new String("yogpstop_qp", "textures/blocks/refinery.png");
++	private static final String TEXTURE = "/mods/yogpstop_qp/textures/blocks/refinery.png";
+ 	private static final float pixel = (float) (1.0 / 16.0);
+ 	private final ModelRenderer tank;
+ 	private final ModelRenderer magnet[] = new ModelRenderer[4];
