@@ -107,8 +107,9 @@ public class BlockPlacer extends BlockContainer {
 		TilePlacer tile = (TilePlacer) world.getTileEntity(x, y, z);
 
 		if (tile != null) {
-			int i = 0, j = tile.getSizeInventory(), tx, ty, tz, sd1, sd2, sd3, sd4, sd5, sd6;
+			int tx, ty, tz, sd1, sd2, sd3, sd4, sd5, sd6;
 			ForgeDirection fd1, fd2, fd3, fd4, fd5, fd6;
+
 			sd2 = world.getBlockMetadata(x, y, z) & 7;
 			fd2 = ForgeDirection.getOrientation(sd2);
 			fd1 = fd2.getOpposite();
@@ -129,29 +130,34 @@ public class BlockPlacer extends BlockContainer {
 			tx = x + fd2.offsetX;
 			ty = y + fd2.offsetY;
 			tz = z + fd2.offsetZ;
-			ItemStack is;
-			Block k;
+
 			final EntityPlayer player = FakePlayerFactory.getMinecraft((WorldServer) world);
-			for (; i < j; i++) {
+			ItemStack is = null;
+			int i = 0;
+			for (; i < tile.getSizeInventory(); i++) {
 				is = tile.getStackInSlot(i);
-				if (is.getItem().onItemUseFirst(is, player, world, tx, ty, tz, sd1, 0.5F, 0.5F, 0.5F)) break;
-				if (is.getItem().onItemUseFirst(is, player, world, tx + fd1.offsetX, ty + fd1.offsetY, tz + fd1.offsetZ, sd2, 0.5F, 0.5F, 0.5F)) break;
-				if (is.getItem().onItemUseFirst(is, player, world, tx + fd2.offsetX, ty + fd2.offsetY, tz + fd2.offsetZ, sd1, 0.5F, 0.5F, 0.5F)) break;
-				if (is.getItem().onItemUseFirst(is, player, world, tx + fd3.offsetX, ty + fd3.offsetY, tz + fd3.offsetZ, sd4, 0.5F, 0.5F, 0.5F)) break;
-				if (is.getItem().onItemUseFirst(is, player, world, tx + fd4.offsetX, ty + fd4.offsetY, tz + fd4.offsetZ, sd3, 0.5F, 0.5F, 0.5F)) break;
-				if (is.getItem().onItemUseFirst(is, player, world, tx + fd5.offsetX, ty + fd5.offsetY, tz + fd5.offsetZ, sd6, 0.5F, 0.5F, 0.5F)) break;
-				if (is.getItem().onItemUseFirst(is, player, world, tx + fd6.offsetX, ty + fd6.offsetY, tz + fd6.offsetZ, sd5, 0.5F, 0.5F, 0.5F)) break;
-				k = world.getBlock(tx, ty, tz);
+				if (is != null && is.getItem() != null) {
+					if (is.getItem().onItemUseFirst(is, player, world, tx, ty, tz, sd1, 0.5F, 0.5F, 0.5F)) break;
+					if (is.getItem().onItemUseFirst(is, player, world, tx + fd1.offsetX, ty + fd1.offsetY, tz + fd1.offsetZ, sd2, 0.5F, 0.5F, 0.5F)) break;
+					if (is.getItem().onItemUseFirst(is, player, world, tx + fd2.offsetX, ty + fd2.offsetY, tz + fd2.offsetZ, sd1, 0.5F, 0.5F, 0.5F)) break;
+					if (is.getItem().onItemUseFirst(is, player, world, tx + fd3.offsetX, ty + fd3.offsetY, tz + fd3.offsetZ, sd4, 0.5F, 0.5F, 0.5F)) break;
+					if (is.getItem().onItemUseFirst(is, player, world, tx + fd4.offsetX, ty + fd4.offsetY, tz + fd4.offsetZ, sd3, 0.5F, 0.5F, 0.5F)) break;
+					if (is.getItem().onItemUseFirst(is, player, world, tx + fd5.offsetX, ty + fd5.offsetY, tz + fd5.offsetZ, sd6, 0.5F, 0.5F, 0.5F)) break;
+					if (is.getItem().onItemUseFirst(is, player, world, tx + fd6.offsetX, ty + fd6.offsetY, tz + fd6.offsetZ, sd5, 0.5F, 0.5F, 0.5F)) break;
+				}
+				Block k = world.getBlock(tx, ty, tz);
 				if (k != null && k.onBlockActivated(world, tx, ty, tz, player, sd1, 0.5F, 0.5F, 0.5F)) break;
-				if (is.tryPlaceItemIntoWorld(player, world, tx, ty, tz, sd1, 0.5F, 0.5F, 0.5F)) break;
-				if (is.tryPlaceItemIntoWorld(player, world, tx + fd1.offsetX, ty + fd1.offsetY, tz + fd1.offsetZ, sd2, 0.5F, 0.5F, 0.5F)) break;
-				if (is.tryPlaceItemIntoWorld(player, world, tx + fd2.offsetX, ty + fd2.offsetY, tz + fd2.offsetZ, sd1, 0.5F, 0.5F, 0.5F)) break;
-				if (is.tryPlaceItemIntoWorld(player, world, tx + fd3.offsetX, ty + fd3.offsetY, tz + fd3.offsetZ, sd4, 0.5F, 0.5F, 0.5F)) break;
-				if (is.tryPlaceItemIntoWorld(player, world, tx + fd4.offsetX, ty + fd4.offsetY, tz + fd4.offsetZ, sd3, 0.5F, 0.5F, 0.5F)) break;
-				if (is.tryPlaceItemIntoWorld(player, world, tx + fd5.offsetX, ty + fd5.offsetY, tz + fd5.offsetZ, sd6, 0.5F, 0.5F, 0.5F)) break;
-				if (is.tryPlaceItemIntoWorld(player, world, tx + fd6.offsetX, ty + fd6.offsetY, tz + fd6.offsetZ, sd5, 0.5F, 0.5F, 0.5F)) break;
-				if (is.stackSize <= 0) tile.setInventorySlotContents(i, null);
+				if (is != null) {
+					if (is.tryPlaceItemIntoWorld(player, world, tx, ty, tz, sd1, 0.5F, 0.5F, 0.5F)) break;
+					if (is.tryPlaceItemIntoWorld(player, world, tx + fd1.offsetX, ty + fd1.offsetY, tz + fd1.offsetZ, sd2, 0.5F, 0.5F, 0.5F)) break;
+					if (is.tryPlaceItemIntoWorld(player, world, tx + fd2.offsetX, ty + fd2.offsetY, tz + fd2.offsetZ, sd1, 0.5F, 0.5F, 0.5F)) break;
+					if (is.tryPlaceItemIntoWorld(player, world, tx + fd3.offsetX, ty + fd3.offsetY, tz + fd3.offsetZ, sd4, 0.5F, 0.5F, 0.5F)) break;
+					if (is.tryPlaceItemIntoWorld(player, world, tx + fd4.offsetX, ty + fd4.offsetY, tz + fd4.offsetZ, sd3, 0.5F, 0.5F, 0.5F)) break;
+					if (is.tryPlaceItemIntoWorld(player, world, tx + fd5.offsetX, ty + fd5.offsetY, tz + fd5.offsetZ, sd6, 0.5F, 0.5F, 0.5F)) break;
+					if (is.tryPlaceItemIntoWorld(player, world, tx + fd6.offsetX, ty + fd6.offsetY, tz + fd6.offsetZ, sd5, 0.5F, 0.5F, 0.5F)) break;
+				}
 			}
+			if (is != null && is.stackSize <= 0) tile.setInventorySlotContents(i, null);
 		}
 	}
 

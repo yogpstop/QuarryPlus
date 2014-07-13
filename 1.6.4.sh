@@ -1,10 +1,3 @@
-#!/bin/bash
-set -eu
-. replace_helper.sh
-cd src
-rm -rf 164a
-cp -r main 164a
-cd 164a/java
 rm com/yogpc/qp/QuarryPlusPacketCodec.java
 FILES=`find -type f`
 simple_replace "net\\.minecraftforge\\.common\\.util" "net.minecraftforge.common"
@@ -83,10 +76,3 @@ method_declaration boolean boolean isSideSolid isBlockSolidOnSide IBlockAccess W
 simple_replace "isSideSolid" "isBlockSolidOnSide"
 simple_replace "func_147453_f" "func_96440_m"
 simple_replace "getIcon *(\\([^,\\)]+,[^,\\)]+,[^,\\)]+,[^,\\)]+,[^,\\)]+\\))" "getBlockTexture\1"
-cd ../..
-rm -rf 164
-cp -r 164a 164
-cd 164
-cat ../../172_164.patch | patch -p1
-cd ../..
-echo -e "[pj]\nsrc = src/164/java/\nversion = 1.6.4-`cat VERSION`\nres = src/164/resources/\napi = BuildCraft422\nmcv = 1.6.4-9.11.1.965" >build.cfg

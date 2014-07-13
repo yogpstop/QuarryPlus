@@ -1,11 +1,3 @@
-#!/bin/bash
-set -eu
-. replace_helper.sh
-cd src
-rm -rf 152a
-cp -r 164 152a
-mv 152a/resources/assets 152a/resources/mods
-cd 152a/java
 FILES=`find -type f`
 simple_replace "buildcraft\\.core\\.fluids\\.FluidUtils" "buildcraft.core.liquids.LiquidUtils"
 simple_replace "RefineryRecipes" "RefineryRecipe"
@@ -47,10 +39,3 @@ simple_replace "getTextureManager\\( *\\)" "renderEngine"
 simple_replace "(texture\\.|)TextureManager" "RenderEngine"
 simple_replace "import +net\\.minecraft\\.util\\.ResourceLocation *; *\n" ""
 simple_replace "ResourceLocation" "String"
-cd ../..
-rm -rf 152
-cp -r 152a 152
-cd 152
-cat ../../164_152.patch | patch -p1
-cd ../..
-echo -e "[pj]\nsrc = src/152/java/\nversion = 1.5.2-`cat VERSION`\nres = src/152/resources/\napi = BuildCraft372\nmcv = 1.5.2-7.8.1.738" >build.cfg

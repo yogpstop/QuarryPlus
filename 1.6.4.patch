@@ -1,6 +1,5 @@
-diff -rNu 164a/java/com/yogpc/qp/APacketTile.java 164/java/com/yogpc/qp/APacketTile.java
---- 164a/java/com/yogpc/qp/APacketTile.java	2014-07-12 11:25:15.548563000 +0900
-+++ 164/java/com/yogpc/qp/APacketTile.java	2014-07-12 10:49:44.129805600 +0900
+--- 164a/java/com/yogpc/qp/APacketTile.java
++++ 164/java/com/yogpc/qp/APacketTile.java
 @@ -31,9 +31,6 @@
  
  	@Override
@@ -12,9 +11,8 @@ diff -rNu 164a/java/com/yogpc/qp/APacketTile.java 164/java/com/yogpc/qp/APacketT
 +		return PacketHandler.getPacket(PacketHandler.getPacketFromNBT(this));
  	}
  }
-diff -rNu 164a/java/com/yogpc/qp/APowerTile.java 164/java/com/yogpc/qp/APowerTile.java
---- 164a/java/com/yogpc/qp/APowerTile.java	2014-07-12 11:25:15.549119600 +0900
-+++ 164/java/com/yogpc/qp/APowerTile.java	2014-07-12 10:25:34.554310800 +0900
+--- 164a/java/com/yogpc/qp/APowerTile.java
++++ 164/java/com/yogpc/qp/APowerTile.java
 @@ -18,7 +18,7 @@
  		double tick_received = 0;
  		double remain_receive;
@@ -41,9 +39,8 @@ diff -rNu 164a/java/com/yogpc/qp/APowerTile.java 164/java/com/yogpc/qp/APowerTil
 +		this.pp.configure(0, (float) this.recv_max, 0, (float) this.stored_max);
  	}
  }
-diff -rNu 164a/java/com/yogpc/qp/BlockBreaker.java 164/java/com/yogpc/qp/BlockBreaker.java
---- 164a/java/com/yogpc/qp/BlockBreaker.java	2014-07-12 11:25:15.549853600 +0900
-+++ 164/java/com/yogpc/qp/BlockBreaker.java	2014-07-12 11:03:33.150224800 +0900
+--- 164a/java/com/yogpc/qp/BlockBreaker.java
++++ 164/java/com/yogpc/qp/BlockBreaker.java
 @@ -36,9 +36,7 @@
  import net.minecraft.item.ItemStack;
  import net.minecraft.tileentity.TileEntity;
@@ -120,9 +117,8 @@ diff -rNu 164a/java/com/yogpc/qp/BlockBreaker.java 164/java/com/yogpc/qp/BlockBr
  				is = new ItemStack(id1, 1, damageDropped(meta));
  				EnchantmentHelper.enchantmentToIS(tile, is);
  				this.drop.add(is);
-diff -rNu 164a/java/com/yogpc/qp/BlockInfMJSrc.java 164/java/com/yogpc/qp/BlockInfMJSrc.java
---- 164a/java/com/yogpc/qp/BlockInfMJSrc.java	2014-07-12 11:25:15.550390500 +0900
-+++ 164/java/com/yogpc/qp/BlockInfMJSrc.java	2014-07-12 10:25:34.555932200 +0900
+--- 164a/java/com/yogpc/qp/BlockInfMJSrc.java
++++ 164/java/com/yogpc/qp/BlockInfMJSrc.java
 @@ -29,8 +29,8 @@
  
  public class BlockInfMJSrc extends BlockContainer {
@@ -134,9 +130,8 @@ diff -rNu 164a/java/com/yogpc/qp/BlockInfMJSrc.java 164/java/com/yogpc/qp/BlockI
  		setHardness(1.5F);
  		setResistance(10F);
  		setStepSound(soundStoneFootstep);
-diff -rNu 164a/java/com/yogpc/qp/BlockLaser.java 164/java/com/yogpc/qp/BlockLaser.java
---- 164a/java/com/yogpc/qp/BlockLaser.java	2014-07-12 11:25:15.551003400 +0900
-+++ 164/java/com/yogpc/qp/BlockLaser.java	2014-07-12 10:50:43.613242300 +0900
+--- 164a/java/com/yogpc/qp/BlockLaser.java
++++ 164/java/com/yogpc/qp/BlockLaser.java
 @@ -22,7 +22,6 @@
  import static buildcraft.silicon.SiliconProxy.laserBlockModel;
  import cpw.mods.fml.relauncher.Side;
@@ -165,9 +160,8 @@ diff -rNu 164a/java/com/yogpc/qp/BlockLaser.java 164/java/com/yogpc/qp/BlockLase
  				is = new ItemStack(it, 1, damageDropped(meta));
  				EnchantmentHelper.enchantmentToIS(tile, is);
  				this.drop.add(is);
-diff -rNu 164a/java/com/yogpc/qp/BlockMarker.java 164/java/com/yogpc/qp/BlockMarker.java
---- 164a/java/com/yogpc/qp/BlockMarker.java	2014-07-12 11:25:15.551643200 +0900
-+++ 164/java/com/yogpc/qp/BlockMarker.java	2014-07-12 10:51:20.357967000 +0900
+--- 164a/java/com/yogpc/qp/BlockMarker.java
++++ 164/java/com/yogpc/qp/BlockMarker.java
 @@ -20,7 +20,6 @@
  import static buildcraft.BuildCraftCore.markerModel;
  import cpw.mods.fml.relauncher.Side;
@@ -187,9 +181,8 @@ diff -rNu 164a/java/com/yogpc/qp/BlockMarker.java 164/java/com/yogpc/qp/BlockMar
  		setLightValue(0.5F);
  		setCreativeTab(QuarryPlus.ct);
  		setUnlocalizedName("MarkerPlus");
-diff -rNu 164a/java/com/yogpc/qp/BlockMiningWell.java 164/java/com/yogpc/qp/BlockMiningWell.java
---- 164a/java/com/yogpc/qp/BlockMiningWell.java	2014-07-12 11:25:15.552318100 +0900
-+++ 164/java/com/yogpc/qp/BlockMiningWell.java	2014-07-12 10:52:34.093703200 +0900
+--- 164a/java/com/yogpc/qp/BlockMiningWell.java
++++ 164/java/com/yogpc/qp/BlockMiningWell.java
 @@ -22,7 +22,6 @@
  import buildcraft.api.tools.IToolWrench;
  import cpw.mods.fml.relauncher.Side;
@@ -218,9 +211,8 @@ diff -rNu 164a/java/com/yogpc/qp/BlockMiningWell.java 164/java/com/yogpc/qp/Bloc
  			for (int i = 0; i < count; i++) {
  				ItemStack is = new ItemStack(it, 1, damageDropped(meta));
  				EnchantmentHelper.enchantmentToIS(tile, is);
-diff -rNu 164a/java/com/yogpc/qp/BlockMover.java 164/java/com/yogpc/qp/BlockMover.java
---- 164a/java/com/yogpc/qp/BlockMover.java	2014-07-12 11:25:15.552860100 +0900
-+++ 164/java/com/yogpc/qp/BlockMover.java	2014-07-12 10:25:34.559114900 +0900
+--- 164a/java/com/yogpc/qp/BlockMover.java
++++ 164/java/com/yogpc/qp/BlockMover.java
 @@ -29,8 +29,8 @@
  public class BlockMover extends Block {
  	Icon textureTop, textureBottom;
@@ -232,9 +224,8 @@ diff -rNu 164a/java/com/yogpc/qp/BlockMover.java 164/java/com/yogpc/qp/BlockMove
  		setHardness(1.2F);
  		this.setCreativeTab(QuarryPlus.ct);
  		setUnlocalizedName("EnchantMover");
-diff -rNu 164a/java/com/yogpc/qp/BlockPlacer.java 164/java/com/yogpc/qp/BlockPlacer.java
---- 164a/java/com/yogpc/qp/BlockPlacer.java	2014-07-12 11:25:15.553654400 +0900
-+++ 164/java/com/yogpc/qp/BlockPlacer.java	2014-07-12 10:25:34.560019300 +0900
+--- 164a/java/com/yogpc/qp/BlockPlacer.java
++++ 164/java/com/yogpc/qp/BlockPlacer.java
 @@ -35,9 +35,7 @@
  import net.minecraft.nbt.NBTTagCompound;
  import net.minecraft.tileentity.TileEntity;
@@ -266,26 +257,25 @@ diff -rNu 164a/java/com/yogpc/qp/BlockPlacer.java 164/java/com/yogpc/qp/BlockPla
  		} else if (!flag && flag1) {
  			par1World.setBlockMetadataWithNotify(par2, par3, par4, i1 & -9, 4);
 @@ -131,7 +129,7 @@
+ 			ty = y + fd2.offsetY;
  			tz = z + fd2.offsetZ;
- 			ItemStack is;
- 			Block k;
+ 
 -			final EntityPlayer player = FakePlayerFactory.getMinecraft((WorldServer) world);
 +			final EntityPlayer player = FakePlayerFactory.getMinecraft(world);
- 			for (; i < j; i++) {
- 				is = tile.getStackInSlot(i);
- 				if (is.getItem().onItemUseFirst(is, player, world, tx, ty, tz, sd1, 0.5F, 0.5F, 0.5F)) break;
-@@ -141,7 +139,7 @@
- 				if (is.getItem().onItemUseFirst(is, player, world, tx + fd4.offsetX, ty + fd4.offsetY, tz + fd4.offsetZ, sd3, 0.5F, 0.5F, 0.5F)) break;
- 				if (is.getItem().onItemUseFirst(is, player, world, tx + fd5.offsetX, ty + fd5.offsetY, tz + fd5.offsetZ, sd6, 0.5F, 0.5F, 0.5F)) break;
- 				if (is.getItem().onItemUseFirst(is, player, world, tx + fd6.offsetX, ty + fd6.offsetY, tz + fd6.offsetZ, sd5, 0.5F, 0.5F, 0.5F)) break;
--				k = world.getBlock(tx, ty, tz);
-+				k = Block.blocksList[world.getBlockId(tx, ty, tz)];
+ 			ItemStack is = null;
+ 			int i = 0;
+ 			for (; i < tile.getSizeInventory(); i++) {
+@@ -145,7 +143,7 @@
+ 					if (is.getItem().onItemUseFirst(is, player, world, tx + fd5.offsetX, ty + fd5.offsetY, tz + fd5.offsetZ, sd6, 0.5F, 0.5F, 0.5F)) break;
+ 					if (is.getItem().onItemUseFirst(is, player, world, tx + fd6.offsetX, ty + fd6.offsetY, tz + fd6.offsetZ, sd5, 0.5F, 0.5F, 0.5F)) break;
+ 				}
+-				Block k = world.getBlock(tx, ty, tz);
++				Block k = Block.blocksList[world.getBlockId(tx, ty, tz)];
  				if (k != null && k.onBlockActivated(world, tx, ty, tz, player, sd1, 0.5F, 0.5F, 0.5F)) break;
- 				if (is.tryPlaceItemIntoWorld(player, world, tx, ty, tz, sd1, 0.5F, 0.5F, 0.5F)) break;
- 				if (is.tryPlaceItemIntoWorld(player, world, tx + fd1.offsetX, ty + fd1.offsetY, tz + fd1.offsetZ, sd2, 0.5F, 0.5F, 0.5F)) break;
-diff -rNu 164a/java/com/yogpc/qp/BlockPump.java 164/java/com/yogpc/qp/BlockPump.java
---- 164a/java/com/yogpc/qp/BlockPump.java	2014-07-12 11:25:15.554321900 +0900
-+++ 164/java/com/yogpc/qp/BlockPump.java	2014-07-12 10:52:41.177260200 +0900
+ 				if (is != null) {
+ 					if (is.tryPlaceItemIntoWorld(player, world, tx, ty, tz, sd1, 0.5F, 0.5F, 0.5F)) break;
+--- 164a/java/com/yogpc/qp/BlockPump.java
++++ 164/java/com/yogpc/qp/BlockPump.java
 @@ -22,7 +22,6 @@
  import buildcraft.api.tools.IToolWrench;
  import cpw.mods.fml.relauncher.Side;
@@ -314,9 +304,8 @@ diff -rNu 164a/java/com/yogpc/qp/BlockPump.java 164/java/com/yogpc/qp/BlockPump.
  			for (int i = 0; i < count; i++) {
  				ItemStack is = new ItemStack(it, 1, damageDropped(meta));
  				EnchantmentHelper.enchantmentToIS(tile, is);
-diff -rNu 164a/java/com/yogpc/qp/BlockQuarry.java 164/java/com/yogpc/qp/BlockQuarry.java
---- 164a/java/com/yogpc/qp/BlockQuarry.java	2014-07-12 11:25:15.554987100 +0900
-+++ 164/java/com/yogpc/qp/BlockQuarry.java	2014-07-12 10:52:47.865909000 +0900
+--- 164a/java/com/yogpc/qp/BlockQuarry.java
++++ 164/java/com/yogpc/qp/BlockQuarry.java
 @@ -22,7 +22,6 @@
  import buildcraft.api.tools.IToolWrench;
  import cpw.mods.fml.relauncher.Side;
@@ -345,9 +334,8 @@ diff -rNu 164a/java/com/yogpc/qp/BlockQuarry.java 164/java/com/yogpc/qp/BlockQua
  			for (int i = 0; i < count; i++) {
  				ItemStack is = new ItemStack(it, 1, damageDropped(meta));
  				EnchantmentHelper.enchantmentToIS(tile, is);
-diff -rNu 164a/java/com/yogpc/qp/BlockRefinery.java 164/java/com/yogpc/qp/BlockRefinery.java
---- 164a/java/com/yogpc/qp/BlockRefinery.java	2014-07-12 11:25:15.555625100 +0900
-+++ 164/java/com/yogpc/qp/BlockRefinery.java	2014-07-12 11:12:35.168280600 +0900
+--- 164a/java/com/yogpc/qp/BlockRefinery.java
++++ 164/java/com/yogpc/qp/BlockRefinery.java
 @@ -21,7 +21,6 @@
  
  import buildcraft.api.tools.IToolWrench;
@@ -376,9 +364,8 @@ diff -rNu 164a/java/com/yogpc/qp/BlockRefinery.java 164/java/com/yogpc/qp/BlockR
  			for (int i = 0; i < count; i++) {
  				ItemStack is = new ItemStack(it, 1, damageDropped(meta));
  				EnchantmentHelper.enchantmentToIS(tile, is);
-diff -rNu 164a/java/com/yogpc/qp/ChunkLoadingHandler.java 164/java/com/yogpc/qp/ChunkLoadingHandler.java
---- 164a/java/com/yogpc/qp/ChunkLoadingHandler.java	2014-07-12 11:25:15.556181500 +0900
-+++ 164/java/com/yogpc/qp/ChunkLoadingHandler.java	2014-07-12 10:25:34.566843300 +0900
+--- 164a/java/com/yogpc/qp/ChunkLoadingHandler.java
++++ 164/java/com/yogpc/qp/ChunkLoadingHandler.java
 @@ -19,7 +19,6 @@
  
  import java.util.List;
@@ -398,9 +385,8 @@ diff -rNu 164a/java/com/yogpc/qp/ChunkLoadingHandler.java 164/java/com/yogpc/qp/
  				validTickets.add(ticket);
  			}
  		}
-diff -rNu 164a/java/com/yogpc/qp/CommonProxy.java 164/java/com/yogpc/qp/CommonProxy.java
---- 164a/java/com/yogpc/qp/CommonProxy.java	2014-07-12 11:25:15.567509900 +0900
-+++ 164/java/com/yogpc/qp/CommonProxy.java	2014-07-12 10:25:34.567566100 +0900
+--- 164a/java/com/yogpc/qp/CommonProxy.java
++++ 164/java/com/yogpc/qp/CommonProxy.java
 @@ -18,9 +18,6 @@
  package com.yogpc.qp;
  
@@ -421,9 +407,8 @@ diff -rNu 164a/java/com/yogpc/qp/CommonProxy.java 164/java/com/yogpc/qp/CommonPr
 -		return null;
 -	}
  }
-diff -rNu 164a/java/com/yogpc/qp/ContainerMover.java 164/java/com/yogpc/qp/ContainerMover.java
---- 164a/java/com/yogpc/qp/ContainerMover.java	2014-07-12 11:25:15.568205300 +0900
-+++ 164/java/com/yogpc/qp/ContainerMover.java	2014-07-12 11:18:29.689454400 +0900
+--- 164a/java/com/yogpc/qp/ContainerMover.java
++++ 164/java/com/yogpc/qp/ContainerMover.java
 @@ -80,7 +80,7 @@
  
  	@Override
@@ -433,9 +418,8 @@ diff -rNu 164a/java/com/yogpc/qp/ContainerMover.java 164/java/com/yogpc/qp/Conta
  				this.posY + 0.5D, this.posZ + 0.5D) <= 64.0D;
  	}
  
-diff -rNu 164a/java/com/yogpc/qp/CreativeTabQuarryPlus.java 164/java/com/yogpc/qp/CreativeTabQuarryPlus.java
---- 164a/java/com/yogpc/qp/CreativeTabQuarryPlus.java	2014-07-12 11:25:15.568694800 +0900
-+++ 164/java/com/yogpc/qp/CreativeTabQuarryPlus.java	2014-07-12 10:25:34.569385700 +0900
+--- 164a/java/com/yogpc/qp/CreativeTabQuarryPlus.java
++++ 164/java/com/yogpc/qp/CreativeTabQuarryPlus.java
 @@ -11,7 +11,7 @@
  
  	@Override
@@ -445,9 +429,8 @@ diff -rNu 164a/java/com/yogpc/qp/CreativeTabQuarryPlus.java 164/java/com/yogpc/q
  	}
  
  }
-diff -rNu 164a/java/com/yogpc/qp/EnchantmentHelper.java 164/java/com/yogpc/qp/EnchantmentHelper.java
---- 164a/java/com/yogpc/qp/EnchantmentHelper.java	2014-07-12 11:25:15.569249500 +0900
-+++ 164/java/com/yogpc/qp/EnchantmentHelper.java	2014-07-12 11:07:48.600904900 +0900
+--- 164a/java/com/yogpc/qp/EnchantmentHelper.java
++++ 164/java/com/yogpc/qp/EnchantmentHelper.java
 @@ -22,6 +22,7 @@
  
  import net.minecraft.enchantment.Enchantment;
@@ -456,9 +439,8 @@ diff -rNu 164a/java/com/yogpc/qp/EnchantmentHelper.java 164/java/com/yogpc/qp/En
  import net.minecraft.nbt.NBTTagList;
  import net.minecraft.util.StatCollector;
  
-diff -rNu 164a/java/com/yogpc/qp/ItemBlockBreaker.java 164/java/com/yogpc/qp/ItemBlockBreaker.java
---- 164a/java/com/yogpc/qp/ItemBlockBreaker.java	2014-07-12 11:25:15.572762100 +0900
-+++ 164/java/com/yogpc/qp/ItemBlockBreaker.java	2014-07-12 10:25:34.570858500 +0900
+--- 164a/java/com/yogpc/qp/ItemBlockBreaker.java
++++ 164/java/com/yogpc/qp/ItemBlockBreaker.java
 @@ -17,13 +17,12 @@
  
  package com.yogpc.qp;
@@ -474,9 +456,8 @@ diff -rNu 164a/java/com/yogpc/qp/ItemBlockBreaker.java 164/java/com/yogpc/qp/Ite
  		super(b);
  	}
  
-diff -rNu 164a/java/com/yogpc/qp/ItemBlockPump.java 164/java/com/yogpc/qp/ItemBlockPump.java
---- 164a/java/com/yogpc/qp/ItemBlockPump.java	2014-07-12 11:25:15.573293100 +0900
-+++ 164/java/com/yogpc/qp/ItemBlockPump.java	2014-07-12 10:25:34.571568500 +0900
+--- 164a/java/com/yogpc/qp/ItemBlockPump.java
++++ 164/java/com/yogpc/qp/ItemBlockPump.java
 @@ -17,13 +17,12 @@
  
  package com.yogpc.qp;
@@ -492,9 +473,8 @@ diff -rNu 164a/java/com/yogpc/qp/ItemBlockPump.java 164/java/com/yogpc/qp/ItemBl
  		super(b);
  	}
  
-diff -rNu 164a/java/com/yogpc/qp/ItemBlockQuarry.java 164/java/com/yogpc/qp/ItemBlockQuarry.java
---- 164a/java/com/yogpc/qp/ItemBlockQuarry.java	2014-07-12 11:25:15.573802400 +0900
-+++ 164/java/com/yogpc/qp/ItemBlockQuarry.java	2014-07-12 10:25:34.572269400 +0900
+--- 164a/java/com/yogpc/qp/ItemBlockQuarry.java
++++ 164/java/com/yogpc/qp/ItemBlockQuarry.java
 @@ -17,13 +17,12 @@
  
  package com.yogpc.qp;
@@ -510,9 +490,8 @@ diff -rNu 164a/java/com/yogpc/qp/ItemBlockQuarry.java 164/java/com/yogpc/qp/Item
  		super(b);
  	}
  
-diff -rNu 164a/java/com/yogpc/qp/ItemBlockRefinery.java 164/java/com/yogpc/qp/ItemBlockRefinery.java
---- 164a/java/com/yogpc/qp/ItemBlockRefinery.java	2014-07-12 11:25:15.574321800 +0900
-+++ 164/java/com/yogpc/qp/ItemBlockRefinery.java	2014-07-12 10:25:34.572952600 +0900
+--- 164a/java/com/yogpc/qp/ItemBlockRefinery.java
++++ 164/java/com/yogpc/qp/ItemBlockRefinery.java
 @@ -17,13 +17,12 @@
  
  package com.yogpc.qp;
@@ -528,9 +507,8 @@ diff -rNu 164a/java/com/yogpc/qp/ItemBlockRefinery.java 164/java/com/yogpc/qp/It
  		super(b);
  	}
  
-diff -rNu 164a/java/com/yogpc/qp/ItemTool.java 164/java/com/yogpc/qp/ItemTool.java
---- 164a/java/com/yogpc/qp/ItemTool.java	2014-07-12 11:25:15.574976100 +0900
-+++ 164/java/com/yogpc/qp/ItemTool.java	2014-07-12 11:08:10.500351700 +0900
+--- 164a/java/com/yogpc/qp/ItemTool.java
++++ 164/java/com/yogpc/qp/ItemTool.java
 @@ -21,7 +21,6 @@
  
  import com.yogpc.qp.QuarryPlus.BlockData;
@@ -568,9 +546,8 @@ diff -rNu 164a/java/com/yogpc/qp/ItemTool.java 164/java/com/yogpc/qp/ItemTool.ja
  				int meta = w.getBlockMetadata(x, y, z);
  				if (c.hasKey("Bname") && name.equals(c.getString("Bname")) && meta == c.getInteger("Bmeta")) {
  					c.setInteger("Bmeta", OreDictionary.WILDCARD_VALUE);
-diff -rNu 164a/java/com/yogpc/qp/PacketHandler.java 164/java/com/yogpc/qp/PacketHandler.java
---- 164a/java/com/yogpc/qp/PacketHandler.java	2014-07-12 11:25:15.575765000 +0900
-+++ 164/java/com/yogpc/qp/PacketHandler.java	2014-07-12 10:25:34.574742800 +0900
+--- 164a/java/com/yogpc/qp/PacketHandler.java
++++ 164/java/com/yogpc/qp/PacketHandler.java
 @@ -17,31 +17,27 @@
  
  package com.yogpc.qp;
@@ -598,14 +575,13 @@ diff -rNu 164a/java/com/yogpc/qp/PacketHandler.java 164/java/com/yogpc/qp/Packet
 -import cpw.mods.fml.common.network.FMLOutboundHandler.OutboundTarget;
 -import cpw.mods.fml.common.network.NetworkRegistry;
 -import cpw.mods.fml.relauncher.Side;
--
--@Sharable
--public class PacketHandler extends SimpleChannelInboundHandler<QuarryPlusPacket> {
--	public static EnumMap<Side, FMLEmbeddedChannel> channels;
 +import cpw.mods.fml.common.network.IPacketHandler;
 +import cpw.mods.fml.common.network.PacketDispatcher;
 +import cpw.mods.fml.common.network.Player;
-+
+ 
+-@Sharable
+-public class PacketHandler extends SimpleChannelInboundHandler<QuarryPlusPacket> {
+-	public static EnumMap<Side, FMLEmbeddedChannel> channels;
 +public class PacketHandler implements IPacketHandler {
  	public static final byte Tile = 0;
  	public static final byte NBT = 1;
@@ -661,9 +637,8 @@ diff -rNu 164a/java/com/yogpc/qp/PacketHandler.java 164/java/com/yogpc/qp/Packet
  	}
  
  	static QuarryPlusPacket getPacketFromNBT(TileEntity te) {
-diff -rNu 164a/java/com/yogpc/qp/QuarryPlus.java 164/java/com/yogpc/qp/QuarryPlus.java
---- 164a/java/com/yogpc/qp/QuarryPlus.java	2014-07-12 11:25:15.577574400 +0900
-+++ 164/java/com/yogpc/qp/QuarryPlus.java	2014-07-12 10:25:34.576201700 +0900
+--- 164a/java/com/yogpc/qp/QuarryPlus.java
++++ 164/java/com/yogpc/qp/QuarryPlus.java
 @@ -25,12 +25,9 @@
  import buildcraft.BuildCraftFactory;
  import buildcraft.BuildCraftSilicon;
@@ -823,9 +798,8 @@ diff -rNu 164a/java/com/yogpc/qp/QuarryPlus.java 164/java/com/yogpc/qp/QuarryPlu
  		return sb.toString();
  	}
  }
-diff -rNu 164a/java/com/yogpc/qp/QuarryPlusPacket.java 164/java/com/yogpc/qp/QuarryPlusPacket.java
---- 164a/java/com/yogpc/qp/QuarryPlusPacket.java	2014-07-12 11:25:15.578093800 +0900
-+++ 164/java/com/yogpc/qp/QuarryPlusPacket.java	2014-07-12 10:25:34.578306400 +0900
+--- 164a/java/com/yogpc/qp/QuarryPlusPacket.java
++++ 164/java/com/yogpc/qp/QuarryPlusPacket.java
 @@ -1,6 +1,6 @@
  package com.yogpc.qp;
  
@@ -860,9 +834,8 @@ diff -rNu 164a/java/com/yogpc/qp/QuarryPlusPacket.java 164/java/com/yogpc/qp/Qua
 +		return d;
  	}
  }
-diff -rNu 164a/java/com/yogpc/qp/TileBasic.java 164/java/com/yogpc/qp/TileBasic.java
---- 164a/java/com/yogpc/qp/TileBasic.java	2014-07-12 11:25:15.579545500 +0900
-+++ 164/java/com/yogpc/qp/TileBasic.java	2014-07-12 11:13:29.889713700 +0900
+--- 164a/java/com/yogpc/qp/TileBasic.java
++++ 164/java/com/yogpc/qp/TileBasic.java
 @@ -29,7 +29,6 @@
  import com.google.common.io.ByteArrayDataInput;
  import com.yogpc.qp.QuarryPlus.BlockData;
@@ -907,9 +880,8 @@ diff -rNu 164a/java/com/yogpc/qp/TileBasic.java 164/java/com/yogpc/qp/TileBasic.
  			list.addAll(b.getBlockDropped(this.worldObj, x, y, z, meta, this.fortune));
  			return this.fortune;
  		}
-diff -rNu 164a/java/com/yogpc/qp/TileMarker.java 164/java/com/yogpc/qp/TileMarker.java
---- 164a/java/com/yogpc/qp/TileMarker.java	2014-07-12 11:25:15.582786600 +0900
-+++ 164/java/com/yogpc/qp/TileMarker.java	2014-07-12 10:25:34.585298500 +0900
+--- 164a/java/com/yogpc/qp/TileMarker.java
++++ 164/java/com/yogpc/qp/TileMarker.java
 @@ -191,7 +191,7 @@
  		private final ArrayList<ItemStack> removeLink(final int x, final int y, final int z, final boolean bb) {
  			final ArrayList<ItemStack> ret = new ArrayList<ItemStack>();
@@ -985,9 +957,8 @@ diff -rNu 164a/java/com/yogpc/qp/TileMarker.java 164/java/com/yogpc/qp/TileMarke
 +		if (this.worldObj.getBlockId(this.xCoord, this.yCoord, this.zCoord) != QuarryPlus.blockMarker.blockID) G_destroy();
  	}
  }
-diff -rNu 164a/java/com/yogpc/qp/TileMiningWell.java 164/java/com/yogpc/qp/TileMiningWell.java
---- 164a/java/com/yogpc/qp/TileMiningWell.java	2014-07-12 11:25:15.583378300 +0900
-+++ 164/java/com/yogpc/qp/TileMiningWell.java	2014-07-12 10:25:34.586137900 +0900
+--- 164a/java/com/yogpc/qp/TileMiningWell.java
++++ 164/java/com/yogpc/qp/TileMiningWell.java
 @@ -61,7 +61,7 @@
  		if (this.worldObj.isRemote) return;
  		int depth = this.yCoord - 1;
@@ -1020,9 +991,8 @@ diff -rNu 164a/java/com/yogpc/qp/TileMiningWell.java 164/java/com/yogpc/qp/TileM
  				break;
  			}
  			this.worldObj.setBlockToAir(this.xCoord, depth, this.zCoord);
-diff -rNu 164a/java/com/yogpc/qp/TilePump.java 164/java/com/yogpc/qp/TilePump.java
---- 164a/java/com/yogpc/qp/TilePump.java	2014-07-12 11:25:15.585323700 +0900
-+++ 164/java/com/yogpc/qp/TilePump.java	2014-07-12 11:10:45.161372400 +0900
+--- 164a/java/com/yogpc/qp/TilePump.java
++++ 164/java/com/yogpc/qp/TilePump.java
 @@ -26,7 +26,6 @@
  
  import net.minecraft.block.Block;
@@ -1095,9 +1065,8 @@ diff -rNu 164a/java/com/yogpc/qp/TilePump.java 164/java/com/yogpc/qp/TilePump.ja
  		int meta = this.ebses[bx >> 4][bz >> 4][this.py >> 4].getExtBlockMetadata(bx & 0xF, this.py & 0xF, bz & 0xF);
  		if (isLiquid(b, false, null, 0, 0, 0, 0)) {
  			FluidStack fs = null;
-diff -rNu 164a/java/com/yogpc/qp/TileQuarry.java 164/java/com/yogpc/qp/TileQuarry.java
---- 164a/java/com/yogpc/qp/TileQuarry.java	2014-07-12 11:25:15.586468800 +0900
-+++ 164/java/com/yogpc/qp/TileQuarry.java	2014-07-12 10:25:34.589279300 +0900
+--- 164a/java/com/yogpc/qp/TileQuarry.java
++++ 164/java/com/yogpc/qp/TileQuarry.java
 @@ -92,8 +92,8 @@
  
  	private boolean S_checkTarget() {
@@ -1127,9 +1096,8 @@ diff -rNu 164a/java/com/yogpc/qp/TileQuarry.java 164/java/com/yogpc/qp/TileQuarr
  		S_setNextTarget();
  		return true;
  	}
-diff -rNu 164a/java/com/yogpc/qp/TileRefinery.java 164/java/com/yogpc/qp/TileRefinery.java
---- 164a/java/com/yogpc/qp/TileRefinery.java	2014-07-12 11:25:15.587111900 +0900
-+++ 164/java/com/yogpc/qp/TileRefinery.java	2014-07-12 10:25:34.590182500 +0900
+--- 164a/java/com/yogpc/qp/TileRefinery.java
++++ 164/java/com/yogpc/qp/TileRefinery.java
 @@ -104,9 +104,9 @@
  				decreaseAnimation();
  				return;
@@ -1142,9 +1110,8 @@ diff -rNu 164a/java/com/yogpc/qp/TileRefinery.java 164/java/com/yogpc/qp/TileRef
  				decreaseAnimation();
  				return;
  			}
-diff -rNu 164a/java/com/yogpc/qp/client/ClientProxy.java 164/java/com/yogpc/qp/client/ClientProxy.java
---- 164a/java/com/yogpc/qp/client/ClientProxy.java	2014-07-12 11:25:15.556746000 +0900
-+++ 164/java/com/yogpc/qp/client/ClientProxy.java	2014-07-12 10:25:34.590940300 +0900
+--- 164a/java/com/yogpc/qp/client/ClientProxy.java
++++ 164/java/com/yogpc/qp/client/ClientProxy.java
 @@ -20,9 +20,6 @@
  import net.minecraft.client.Minecraft;
  import net.minecraft.client.multiplayer.WorldClient;
@@ -1166,9 +1133,8 @@ diff -rNu 164a/java/com/yogpc/qp/client/ClientProxy.java 164/java/com/yogpc/qp/c
 -		return Minecraft.getMinecraft().thePlayer;
 -	}
  }
-diff -rNu 164a/java/com/yogpc/qp/client/RenderRefinery.java 164/java/com/yogpc/qp/client/RenderRefinery.java
---- 164a/java/com/yogpc/qp/client/RenderRefinery.java	2014-07-12 11:25:15.566983000 +0900
-+++ 164/java/com/yogpc/qp/client/RenderRefinery.java	2014-07-12 10:25:34.591936800 +0900
+--- 164a/java/com/yogpc/qp/client/RenderRefinery.java
++++ 164/java/com/yogpc/qp/client/RenderRefinery.java
 @@ -21,7 +21,7 @@
  import net.minecraft.client.model.ModelBase;
  import net.minecraft.client.model.ModelRenderer;
