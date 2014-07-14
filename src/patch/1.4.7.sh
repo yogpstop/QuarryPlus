@@ -1,3 +1,7 @@
+cd ../resources
+find mods/yogpstop_qp/textures -type f -not -path "mods/yogpstop_qp/textures/gui*" -not -path "mods/yogpstop_qp/textures/blocks/refinery.png" -exec rm "{}" \;
+cp ../../patch/textures.png mods/yogpstop_qp/textures/
+cd ../java
 FILES=`find -type f`
 simple_replace "^import +buildcraft\\.core\\.render\\.LiquidRenderer *; *\n" ""
 simple_replace "LiquidRenderer\\." ""

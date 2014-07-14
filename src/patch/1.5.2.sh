@@ -1,3 +1,6 @@
+cd ../resources
+mv assets mods
+cd ../java
 FILES=`find -type f`
 simple_replace "buildcraft\\.core\\.fluids\\.FluidUtils" "buildcraft.core.liquids.LiquidUtils"
 simple_replace "RefineryRecipes" "RefineryRecipe"
