@@ -62,6 +62,8 @@ simple_replace "Items\\.glowstone_dust" "Item.glowstone"
 simple_replace "Blocks\\.enchanting_table" "Block.enchantmentTable"
 simple_replace "field_147501_a" "tileEntityRenderer"
 simple_replace "field_147553_e" "renderEngine"
+simple_replace "func_147453_f" "func_96440_m"
+simple_replace "isSideSolid" "isBlockSolidOnSide"
 method_declaration boolean boolean shouldRender3DInInventory shouldRender3DInInventory int @SKIP@
 method_declaration void void elementClicked elementClicked int int boolean boolean int @SKIP@ int @SKIP@
 method_declaration void void drawSlot drawSlot int int int int int int int int Tessellator Tessellator int @SKIP@ int @SKIP@
@@ -72,7 +74,4 @@ method_declaration TileEntity TileEntity createNewTileEntity createNewTileEntity
 method_declaration void void onNeighborBlockChange onNeighborBlockChange World World int int int int int int Block int
 method_declaration void void breakBlock breakBlock World World int int int int int int Block int int int
 method_declaration Icon Icon getIcon getBlockTexture IBlockAccess IBlockAccess int int int int int int int int
-method_declaration boolean boolean isSideSolid isBlockSolidOnSide IBlockAccess World int int int int int int ForgeDirection ForgeDirection
-simple_replace "isSideSolid" "isBlockSolidOnSide"
-simple_replace "func_147453_f" "func_96440_m"
-simple_replace "getIcon *(\\([^,\\)]+,[^,\\)]+,[^,\\)]+,[^,\\)]+,[^,\\)]+\\))" "getBlockTexture\1"
+method_declaration boolean boolean isBlockSolidOnSide isBlockSolidOnSide IBlockAccess World int int int int int int ForgeDirection ForgeDirection

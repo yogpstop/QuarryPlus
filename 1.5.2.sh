@@ -15,12 +15,10 @@ simple_replace "PowerHandler" "IPowerProvider"
 simple_replace "\\. *getPowerReceiver *\\( *\\) *" ""
 simple_replace "FluidTankInfo" "LiquidTank"
 simple_replace "(PowerHandler\\.|)PowerReceiver" "IPowerProvider"
-method_declaration IPowerProvider IPowerProvider getIPowerProvider getPowerProvider ForgeDirection @SKIP@
 simple_replace "getIPowerProvider" "getPowerProvider"
-simple_replace "\\. *getPowerProvider *\\([^\\(\\),]+\\) *" ".getPowerProvider()"
+method_declaration IPowerProvider IPowerProvider getPowerProvider getPowerProvider ForgeDirection @SKIP@
 method_declaration void void doWork doWork IPowerProvider @SKIP@
 method_declaration "LiquidTank\\[\\]" "ILiquidTank\\[\\]" getTankInfo getTanks ForgeDirection ForgeDirection
-simple_replace getTankInfo getTanks
 simple_replace "net\\.minecraft\\.client\\.resources\\.I18n" "net.minecraft.util.StatCollector"
 simple_replace "I18n\\.getString" "StatCollector.translateToLocal"
 simple_replace "FluidRenderer\\.setColorForFluidStack *\\([^\\(\\),]+\\) *;? *" ""
