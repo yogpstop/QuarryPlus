@@ -21,3 +21,5 @@ convert 1.6.4 9.11.1.965 main 422
 ../AMCFP.sh -b `basename \`pwd -P\``
 convert 1.5.2 7.8.1.738 1.6.4 372
 ../AMCFP.sh -b `basename \`pwd -P\``
+convert 1.4.7 6.6.2.534 1.5.2 342
+../AMCFP.sh -b `basename \`pwd -P\``

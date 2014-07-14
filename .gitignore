@@ -6,6 +6,8 @@
 /.gradle
 /.settings
 /build.cfg
+/src/1.4.7
+/src/1.4.7a
 /src/1.5.2
 /src/1.5.2a
 /src/1.6.4

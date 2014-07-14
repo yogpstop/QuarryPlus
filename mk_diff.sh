@@ -1,6 +1,9 @@
 #!/bin/bash
 set -eu
 backup() {
+	if [[ ! -e "$1" ]] ; then
+		return
+	fi
 	if [[ -e "${1}.bak" ]] ; then
 		backup "${1}.bak"
 	fi
