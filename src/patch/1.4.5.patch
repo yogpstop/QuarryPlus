@@ -1,0 +1,20 @@
+--- 1.4.5a/java/com/yogpc/qp/client/RenderRefinery.java
++++ 1.4.5/java/com/yogpc/qp/client/RenderRefinery.java
+@@ -247,7 +247,7 @@
+ 	private static final HashMap<Integer, HashMap<Integer, int[]>> stage = new HashMap<Integer, HashMap<Integer, int[]>>();
+ 
+ 	private static final int[] getLiquidDisplayLists(LiquidStack liquid, World world, boolean b) {
+-		int liquidId = liquid.shiftedIndex;
++		int liquidId = liquid.itemID;
+ 		int damage = liquid.itemMeta;
+ 		if (stage.containsKey(liquidId)) {
+ 			HashMap<Integer, int[]> x = stage.get(liquidId);
+@@ -289,7 +289,7 @@
+ 	}
+ 
+ 	private static final int getLiquidSheet(LiquidStack liquid) {
+-		int liquidId = liquid.shiftedIndex;
++		int liquidId = liquid.itemID;
+ 		if (liquidId < Block.blocksList.length && Block.blocksList[liquidId] != null) { return Minecraft.getMinecraft().renderEngine
+ 				.getTexture(Block.blocksList[liquidId].getTextureFile()); }
+ 		return Minecraft.getMinecraft().renderEngine.getTexture(Item.itemsList[liquidId].getTextureFile());
