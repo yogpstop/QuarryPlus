@@ -25,11 +25,12 @@ import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
+import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.util.StatCollector;
 import net.minecraftforge.fluids.FluidRegistry;
 
 @SideOnly(Side.CLIENT)
-public class GuiP_Manual extends GuiScreenA {
+public class GuiP_Manual extends GuiScreenA implements GuiYesNoCallback {
 	private GuiTextField blockid;
 	private byte targetid;
 	private TilePump tile;
@@ -55,11 +56,11 @@ public class GuiP_Manual extends GuiScreenA {
 			String name = this.blockid.getText();
 			if (name.length() == 0) return;
 			if (this.tile.mapping[this.targetid].contains(name)) {
-				if (FluidRegistry.isFluidRegistered(name)) name = FluidRegistry.getFluid(name).getLocalizedName();
+				if (FluidRegistry.isFluidRegistered(name)) name = FluidRegistry.getFluid(name).getLocalizedName(FluidRegistry.getFluidStack(name, 0));
 				this.mc.displayGuiScreen(new GuiError(this, StatCollector.translateToLocal("tof.alreadyerror"), name));
 				return;
 			}
-			if (FluidRegistry.isFluidRegistered(name)) name = FluidRegistry.getFluid(name).getLocalizedName();
+			if (FluidRegistry.isFluidRegistered(name)) name = FluidRegistry.getFluid(name).getLocalizedName(FluidRegistry.getFluidStack(name, 0));
 			this.mc.displayGuiScreen(new GuiYesNo(this, StatCollector.translateToLocal("tof.addfluidsure"), name, -1));
 			break;
 		case -2:

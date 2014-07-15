@@ -62,7 +62,7 @@ public class GuiP_SlotList extends GuiSlot {
 	@Override
 	protected void drawSlot(int var1, int var2, int var3, int var4, Tessellator var5, int var6, int var7) {
 		String name = this.target.get(var1);
-		if (FluidRegistry.isFluidRegistered(name)) name = FluidRegistry.getFluid(name).getLocalizedName();
+		if (FluidRegistry.isFluidRegistered(name)) name = FluidRegistry.getFluid(name).getLocalizedName(FluidRegistry.getFluidStack(name, 0));
 		Minecraft.getMinecraft().fontRenderer.drawStringWithShadow(name,
 				(this.parent.width * 3 / 5 - Minecraft.getMinecraft().fontRenderer.getStringWidth(name)) / 2, var3 + 1, 0xFFFFFF);
 	}

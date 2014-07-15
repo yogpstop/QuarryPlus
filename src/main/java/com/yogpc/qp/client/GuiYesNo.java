@@ -19,16 +19,16 @@ package com.yogpc.qp.client;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.GuiYesNoCallback;
 
 @SideOnly(Side.CLIENT)
 public class GuiYesNo extends net.minecraft.client.gui.GuiYesNo {
 
-	public GuiYesNo(GuiScreen par1GuiScreen, String par2Str, String par3Str, int par4) {
+	public GuiYesNo(GuiYesNoCallback par1GuiScreen, String par2Str, String par3Str, int par4) {
 		super(par1GuiScreen, par2Str, par3Str, par4);
 	}
 
-	public GuiYesNo(GuiScreen par1GuiScreen, String par2Str, String par3Str, String par4Str, String par5Str, int par6) {
+	public GuiYesNo(GuiYesNoCallback par1GuiScreen, String par2Str, String par3Str, String par4Str, String par5Str, int par6) {
 		super(par1GuiScreen, par2Str, par3Str, par4Str, par5Str, par6);
 	}
 

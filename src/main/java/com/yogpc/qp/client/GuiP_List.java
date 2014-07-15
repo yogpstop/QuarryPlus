@@ -23,12 +23,13 @@ import com.yogpc.qp.TilePump;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.util.StatCollector;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.FluidRegistry;
 
 @SideOnly(Side.CLIENT)
-public class GuiP_List extends GuiScreenA {
+public class GuiP_List extends GuiScreenA implements GuiYesNoCallback {
 	private GuiP_SlotList oreslot;
 	private GuiButton delete, top, up, down, bottom;
 	private TilePump tile;
@@ -80,7 +81,7 @@ public class GuiP_List extends GuiScreenA {
 			break;
 		case PacketHandler.CtS_REMOVE_MAPPING:
 			String name = this.tile.mapping[this.dir].get(this.oreslot.currentore);
-			if (FluidRegistry.isFluidRegistered(name)) name = FluidRegistry.getFluid(name).getLocalizedName();
+			if (FluidRegistry.isFluidRegistered(name)) name = FluidRegistry.getFluid(name).getLocalizedName(FluidRegistry.getFluidStack(name, 0));
 			this.mc.displayGuiScreen(new GuiYesNo(this, StatCollector.translateToLocal("tof.deletefluidsure"), name, par1.id));
 			break;
 		default:

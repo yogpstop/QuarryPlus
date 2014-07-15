@@ -24,10 +24,11 @@ import com.yogpc.qp.TileBasic;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.util.StatCollector;
 
 @SideOnly(Side.CLIENT)
-public class GuiQ_List extends GuiScreenA {
+public class GuiQ_List extends GuiScreenA implements GuiYesNoCallback {
 	private GuiQ_SlotList oreslot;
 	private GuiButton delete;
 	private TileBasic tile;

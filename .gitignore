@@ -6,6 +6,10 @@
 /.gradle
 /.settings
 /build.cfg
+/MCV
+/ForgeV
+/BCV
+/SDIR
 /src/1.4.5
 /src/1.4.5a
 /src/1.4.7
@@ -14,3 +18,5 @@
 /src/1.5.2a
 /src/1.6.4
 /src/1.6.4a
+/src/1.7.2
+/src/1.7.2a

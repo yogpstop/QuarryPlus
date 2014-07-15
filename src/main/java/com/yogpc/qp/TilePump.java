@@ -488,7 +488,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IEnchantable
 		if (this.liquids.size() > 0) {
 			ret[0] = StatCollector.translateToLocal("chat.pumpcontain");
 			for (int i = 0; i < this.liquids.size(); i++) {
-				ret[i + 1] = new StringBuilder().append("    ").append(this.liquids.get(i).getFluid().getLocalizedName()).append(": ")
+				ret[i + 1] = new StringBuilder().append("    ").append(this.liquids.get(i).getFluid().getLocalizedName(this.liquids.get(i))).append(": ")
 						.append(this.liquids.get(i).amount).append("mB").toString();
 			}
 		} else {

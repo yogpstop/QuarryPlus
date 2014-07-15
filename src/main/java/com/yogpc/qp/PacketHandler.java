@@ -29,6 +29,7 @@ import java.util.EnumMap;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.nbt.CompressedStreamTools;
+import net.minecraft.nbt.NBTSizeTracker;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 
@@ -138,7 +139,7 @@ public class PacketHandler extends SimpleChannelInboundHandler<QuarryPlusPacket>
 	private static void setNBTFromPacket(QuarryPlusPacket p) {
 		try {
 			NBTTagCompound cache;
-			cache = CompressedStreamTools.decompress(p.getData());
+			cache = CompressedStreamTools.func_152457_a(p.getData(), NBTSizeTracker.field_152451_a);
 			TileEntity te = p.getPlayer().worldObj.getTileEntity(cache.getInteger("x"), cache.getInteger("y"), cache.getInteger("z"));
 			if (te != null) te.readFromNBT(cache);
 		} catch (IOException e) {
