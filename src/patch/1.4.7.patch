@@ -1,3 +1,13 @@
+--- 1.4.7a/java/com/yogpc/qp/APowerTile.java
++++ 1.4.7/java/com/yogpc/qp/APowerTile.java
+@@ -1,7 +1,6 @@
+ package com.yogpc.qp;
+ 
+ import net.minecraft.nbt.NBTTagCompound;
+-import net.minecraftforge.common.ForgeDirection;
+ import buildcraft.api.power.IPowerReceptor;
+ import buildcraft.api.power.IPowerProvider;
+ import buildcraft.api.power.PowerFramework;
 --- 1.4.7a/java/com/yogpc/qp/BlockBreaker.java
 +++ 1.4.7/java/com/yogpc/qp/BlockBreaker.java
 @@ -22,6 +22,7 @@
@@ -429,7 +439,15 @@
  		world.spawnEntityInWorld(this.xArm);
 --- 1.4.7a/java/com/yogpc/qp/ItemTool.java
 +++ 1.4.7/java/com/yogpc/qp/ItemTool.java
-@@ -42,6 +42,9 @@
+@@ -31,7 +31,6 @@
+ import net.minecraft.nbt.NBTTagCompound;
+ import net.minecraft.nbt.NBTTagList;
+ import net.minecraft.world.World;
+-import net.minecraftforge.oredict.OreDictionary;
+ 
+ public class ItemTool extends Item implements IEnchantableItem {
+ 	int ile, ils;
+@@ -42,6 +41,9 @@
  		setHasSubtypes(true);
  		this.setMaxDamage(0);
  		setCreativeTab(QuarryPlus.ct);
@@ -439,7 +457,7 @@
  	}
  
  	@Override
-@@ -142,10 +145,8 @@
+@@ -142,10 +144,8 @@
  
  	@Override
  	@SideOnly(Side.CLIENT)
@@ -482,6 +500,26 @@
  
  	public static class BlockData {
  		public final String name;
+--- 1.4.7a/java/com/yogpc/qp/TileBasic.java
++++ 1.4.7/java/com/yogpc/qp/TileBasic.java
+@@ -37,7 +37,6 @@
+ import net.minecraft.tileentity.TileEntity;
+ import net.minecraft.world.World;
+ import net.minecraftforge.common.ForgeDirection;
+-import buildcraft.api.gates.IAction;
+ import buildcraft.api.transport.IPipeConnection;
+ import buildcraft.api.transport.IPipeEntry;
+ import buildcraft.api.transport.IPipedItem;
+--- 1.4.7a/java/com/yogpc/qp/TileBreaker.java
++++ 1.4.7/java/com/yogpc/qp/TileBreaker.java
+@@ -17,7 +17,6 @@
+ 
+ package com.yogpc.qp;
+ 
+-import buildcraft.api.gates.IAction;
+ import buildcraft.core.IMachine;
+ import net.minecraft.nbt.NBTTagCompound;
+ import net.minecraft.tileentity.TileEntity;
 --- 1.4.7a/java/com/yogpc/qp/TileLaser.java
 +++ 1.4.7/java/com/yogpc/qp/TileLaser.java
 @@ -271,7 +271,7 @@

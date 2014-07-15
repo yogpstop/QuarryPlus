@@ -65,7 +65,7 @@
  
  	private static final void addAssemblyRecipe(int a, ItemStack b, ItemStack... c) {
 -		AssemblyRecipe.assemblyRecipes.add(new AssemblyRecipe(a, b, c));
-+		AssemblyRecipe.assemblyRecipes.add(new AssemblyRecipe((ItemStack[]) c, a, b));
++		AssemblyRecipe.assemblyRecipes.add(new AssemblyRecipe(c, a, b));
  	}
  
 -	@Mod.EventHandler
