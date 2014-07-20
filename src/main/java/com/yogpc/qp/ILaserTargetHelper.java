@@ -26,9 +26,22 @@ public class ILaserTargetHelper {
 			_getXCoord = cls.getMethod("getXCoord", new Class<?>[] {});
 			_getYCoord = cls.getMethod("getYCoord", new Class<?>[] {});
 			_getZCoord = cls.getMethod("getZCoord", new Class<?>[] {});
-			_isInvalidTarget = cls.getMethod("isInvalidTarget", new Class<?>[] {});
 		} catch (NoSuchMethodException e) {
 			e.printStackTrace();
+		} catch (SecurityException e) {
+			e.printStackTrace();
+		}
+		try {
+			_isInvalidTarget = cls.getMethod("isInvalidTarget", new Class<?>[] {});
+		} catch (NoSuchMethodException e1) {
+			try {
+				_isInvalidTarget = cls.getMethod("isInvalid", new Class<?>[] {});
+			} catch (NoSuchMethodException e2) {
+				e1.printStackTrace();
+				e2.printStackTrace();
+			} catch (SecurityException e) {
+				e.printStackTrace();
+			}
 		} catch (SecurityException e) {
 			e.printStackTrace();
 		}

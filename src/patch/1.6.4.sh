@@ -63,6 +63,7 @@ simple_replace "Blocks\\.enchanting_table" "Block.enchantmentTable"
 simple_replace "field_147501_a" "tileEntityRenderer"
 simple_replace "field_147553_e" "renderEngine"
 simple_replace "func_147453_f" "func_96440_m"
+simple_replace "func_149644_j" "func_71880_c_"
 simple_replace "isSideSolid" "isBlockSolidOnSide"
 method_declaration boolean boolean shouldRender3DInInventory shouldRender3DInInventory int @SKIP@
 method_declaration void void elementClicked elementClicked int int boolean boolean int @SKIP@ int @SKIP@
