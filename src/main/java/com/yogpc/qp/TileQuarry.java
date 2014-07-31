@@ -371,14 +371,13 @@ public class TileQuarry extends TileBasic {
 		double z = this.targetZ - this.headPosZ;
 		double distance = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2) + Math.pow(z, 2));
 		double blocks = PowerManager.useEnergyH(this, distance, this.unbreaking);
-
-		if (blocks * 2 > distance) {
+		if (blocks * 2 >= distance) {
 			this.headPosX = this.targetX;
 			this.headPosY = this.targetY + 1;
 			this.headPosZ = this.targetZ;
 			return true;
 		}
-		if (blocks > 0.1) {
+		if (blocks >= 0.1) {
 			this.headPosX += x * blocks / distance;
 			this.headPosY += y * blocks / distance;
 			this.headPosZ += z * blocks / distance;

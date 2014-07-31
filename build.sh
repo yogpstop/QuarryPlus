@@ -32,7 +32,7 @@ convert_gradle() {
 	convert "$1" "$3"
 }
 cd `dirname \`readlink -mqsn "$0"\``
-gradle_options 1.7.10 10.13.0.1182 6.0.17 main
+gradle_options 1.7.10 10.13.0.1188 6.0.17 main
 gradle build
 convert_gradle 1.7.2 10.12.2.1161-mc172 main 6.0.16
 gradle build
