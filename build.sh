@@ -1,6 +1,18 @@
 #!/bin/bash
 set -eu
 . "src/patch/replace_helper.sh"
+upload() {
+	cd build/libs
+	(echo "cd /home/pfs/project/y/yo/yogpstopmcmods/QuarryPlus/"
+	while [[ $# -ge 2 ]] ; do
+		echo "cd $1"
+		echo "put QuarryPlus-$2-*"
+		echo "cd .."
+		shift 2
+	done
+	echo "exit") | sftp sfsftp
+	cd ../..
+}
 convert() {
 	cd "src"
 	rm -rf "${1}a"
@@ -44,3 +56,4 @@ convert_AMCFP 1.4.7 6.6.2.534 1.5.2 342
 ../AMCFP.sh -b `basename \`pwd -P\``
 convert_AMCFP 1.4.5 6.4.2.443 1.4.7 322
 ../AMCFP.sh -b `basename \`pwd -P\``
+upload 1.4.4_1.4.5 1.4.5 1.4.6_1.4.7 1.4.7 1.5_1.5.2 1.5.2 1.6_1.6.4 1.6.4 1.7.2 1.7.2 1.7.10 1.7.10
