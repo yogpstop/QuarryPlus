@@ -19,7 +19,7 @@ package com.yogpc.qp;
 
 import static buildcraft.BuildCraftFactory.plainPipeBlock;
 
-import com.google.common.io.ByteArrayDataInput;
+import com.yogpc.mc_lib.PacketHandler;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
@@ -32,11 +32,11 @@ public class TileMiningWell extends TileBasic {
 	private boolean working;
 
 	@Override
-	protected void C_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {
-		super.C_recievePacket(pattern, data, ep);
-		switch (pattern) {
+	protected void C_recievePacket(byte id, byte[] data, EntityPlayer ep) {
+		super.C_recievePacket(id, data, ep);
+		switch (id) {
 		case PacketHandler.StC_NOW:
-			this.working = data.readBoolean();
+			this.working = data[0] != 0 ? true : false;
 			G_renew_powerConfigure();
 			this.worldObj.markBlockForUpdate(this.xCoord, this.yCoord, this.zCoord);
 			break;

@@ -1,7 +1,7 @@
 --- 1.4.7a/java/com/yogpc/qp/APowerTile.java
 +++ 1.4.7/java/com/yogpc/qp/APowerTile.java
-@@ -1,7 +1,6 @@
- package com.yogpc.qp;
+@@ -3,7 +3,6 @@
+ import com.yogpc.mc_lib.APacketTile;
  
  import net.minecraft.nbt.NBTTagCompound;
 -import net.minecraftforge.common.ForgeDirection;
@@ -439,7 +439,7 @@
  		world.spawnEntityInWorld(this.xArm);
 --- 1.4.7a/java/com/yogpc/qp/ItemTool.java
 +++ 1.4.7/java/com/yogpc/qp/ItemTool.java
-@@ -31,7 +31,6 @@
+@@ -32,7 +32,6 @@
  import net.minecraft.nbt.NBTTagCompound;
  import net.minecraft.nbt.NBTTagList;
  import net.minecraft.world.World;
@@ -447,7 +447,7 @@
  
  public class ItemTool extends Item implements IEnchantableItem {
  	int ile, ils;
-@@ -42,6 +41,9 @@
+@@ -43,6 +42,9 @@
  		setHasSubtypes(true);
  		this.setMaxDamage(0);
  		setCreativeTab(QuarryPlus.ct);
@@ -457,7 +457,7 @@
  	}
  
  	@Override
-@@ -142,10 +144,8 @@
+@@ -143,10 +145,8 @@
  
  	@Override
  	@SideOnly(Side.CLIENT)
@@ -483,7 +483,7 @@
  			return prop.getDouble(def);
 --- 1.4.7a/java/com/yogpc/qp/QuarryPlus.java
 +++ 1.4.7/java/com/yogpc/qp/QuarryPlus.java
-@@ -35,7 +35,6 @@
+@@ -37,7 +37,6 @@
  import net.minecraftforge.common.MinecraftForge;
  import net.minecraftforge.common.Property;
  import net.minecraftforge.event.world.WorldEvent;
@@ -491,9 +491,9 @@
  import cpw.mods.fml.client.registry.RenderingRegistry;
  import cpw.mods.fml.common.SidedProxy;
  import cpw.mods.fml.common.Mod;
-@@ -292,6 +291,8 @@
- 		NetworkRegistry.instance().registerGuiHandler(this, new GuiHandler());
+@@ -293,6 +292,8 @@
  		proxy.registerTextures();
+ 		PacketHandler.registerStaticHandler(TileMarker.class);
  	}
 +	
 +	public static final int WILDCARD_VALUE = 32767;
@@ -502,7 +502,7 @@
  		public final String name;
 --- 1.4.7a/java/com/yogpc/qp/TileBasic.java
 +++ 1.4.7/java/com/yogpc/qp/TileBasic.java
-@@ -37,7 +37,6 @@
+@@ -40,7 +40,6 @@
  import net.minecraft.tileentity.TileEntity;
  import net.minecraft.world.World;
  import net.minecraftforge.common.ForgeDirection;
@@ -522,7 +522,7 @@
  import net.minecraft.tileentity.TileEntity;
 --- 1.4.7a/java/com/yogpc/qp/TileLaser.java
 +++ 1.4.7/java/com/yogpc/qp/TileLaser.java
-@@ -271,7 +271,7 @@
+@@ -272,7 +272,7 @@
  
  	@Override
  	public boolean allowActions() {
@@ -574,8 +574,8 @@
 +import java.util.Map.Entry;
  
  import com.google.common.io.ByteArrayDataInput;
- 
-@@ -131,7 +132,7 @@
+ import com.google.common.io.ByteStreams;
+@@ -135,7 +136,7 @@
  			te = this.worldObj.getBlockTileEntity(this.xCoord + fd.offsetX, this.yCoord + fd.offsetY, this.zCoord + fd.offsetZ);
  			if (te instanceof ITankContainer) {
  				for (String s : this.mapping[fd.ordinal()]) {
@@ -584,7 +584,7 @@
  					if (pZ == -1) continue;
  					fs = this.liquids.get(pZ);
  					fs.amount -= ((ITankContainer) te).fill(fd.getOpposite(), fs, true);
-@@ -484,7 +485,7 @@
+@@ -486,7 +487,7 @@
  		if (this.liquids.size() > 0) {
  			ret[0] = StatCollector.translateToLocal("chat.pumpcontain");
  			for (int i = 0; i < this.liquids.size(); i++) {
@@ -593,7 +593,7 @@
  						.append(this.liquids.get(i).amount).append("mB").toString();
  			}
  		} else {
-@@ -524,7 +525,7 @@
+@@ -526,7 +527,7 @@
  
  	public LiquidStack drain(ForgeDirection fd, LiquidStack resource, boolean doDrain) {
  		if (resource == null) return null;
@@ -602,7 +602,7 @@
  		if (index == -1) return null;
  		LiquidStack fs = this.liquids.get(index);
  		if (fs == null) return null;
-@@ -557,9 +558,9 @@
+@@ -559,9 +560,9 @@
  			int index;
  			LiquidStack fs;
  			for (String s : this.mapping[fd.ordinal()]) {
@@ -614,7 +614,7 @@
  				if (index != -1) ret.add(new LiquidTank(this.liquids.get(index), Integer.MAX_VALUE));
  				else ret.add(new LiquidTank(fs, Integer.MAX_VALUE));
  			}
-@@ -589,7 +590,7 @@
+@@ -591,7 +592,7 @@
  		for (String s : this.mapping[fd.ordinal()]) {
  			fs = LiquidDictionary.getLiquid(s, maxDrain);
  			if (fs == null) continue;
@@ -623,7 +623,7 @@
  			if (index == -1) continue;
  			return drain(fd, this.liquids.get(index), doDrain);
  		}
-@@ -629,7 +630,7 @@
+@@ -631,7 +632,7 @@
  				fs = new LiquidStack(Block.lavaStill, LiquidContainerRegistry.BUCKET_VOLUME);
  			}
  			if (fs != null) {
@@ -632,7 +632,7 @@
  				if (index != -1) this.liquids.get(index).amount += fs.amount;
  				else this.liquids.add(fs);
  				fs = null;
-@@ -684,4 +685,16 @@
+@@ -686,4 +687,16 @@
  		TileBasic tb = G_connected();
  		return tb == null ? 0 : tb.powerRequest();
  	}
@@ -722,7 +722,7 @@
  }
 --- 1.4.7a/java/com/yogpc/qp/client/GuiInfMJSrc.java
 +++ 1.4.7/java/com/yogpc/qp/client/GuiInfMJSrc.java
-@@ -111,7 +111,7 @@
+@@ -107,7 +107,7 @@
  	public void drawScreen(int i, int j, float k) {
  		drawDefaultBackground();
  		GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
@@ -733,7 +733,7 @@
  		drawTexturedModalRect(xb, yb, 0, 0, 176, 214);
 --- 1.4.7a/java/com/yogpc/qp/client/GuiMover.java
 +++ 1.4.7/java/com/yogpc/qp/client/GuiMover.java
-@@ -64,7 +64,7 @@
+@@ -61,7 +61,7 @@
  	@Override
  	protected void drawGuiContainerBackgroundLayer(float f, int i, int j) {
  		GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);

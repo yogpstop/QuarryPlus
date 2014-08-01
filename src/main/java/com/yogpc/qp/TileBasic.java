@@ -27,6 +27,9 @@ import java.util.List;
 import java.util.Queue;
 
 import com.google.common.io.ByteArrayDataInput;
+import com.google.common.io.ByteStreams;
+import com.yogpc.mc_lib.PacketHandler;
+import com.yogpc.mc_lib.YogpstopPacket;
 import com.yogpc.qp.QuarryPlus.BlockData;
 
 import cpw.mods.fml.common.registry.GameData;
@@ -63,10 +66,6 @@ public abstract class TileBasic extends APowerTile implements IMachine, IEnchant
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		DataOutputStream dos = new DataOutputStream(bos);
 		try {
-			dos.writeInt(this.xCoord);
-			dos.writeInt(this.yCoord);
-			dos.writeInt(this.zCoord);
-			dos.writeByte(id);
 			dos.writeBoolean(id == PacketHandler.StC_OPENGUI_FORTUNE ? this.fortuneInclude : this.silktouchInclude);
 			List<BlockData> target = id == PacketHandler.StC_OPENGUI_FORTUNE ? this.fortuneList : this.silktouchList;
 			dos.writeInt(target.size());
@@ -77,26 +76,27 @@ public abstract class TileBasic extends APowerTile implements IMachine, IEnchant
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		PacketHandler.sendPacketToPlayer(new QuarryPlusPacket(PacketHandler.Tile, bos.toByteArray()), ep);
+		PacketHandler.sendPacketToPlayer(new YogpstopPacket(bos.toByteArray(), this, id), ep);
 	}
 
 	@Override
-	protected void S_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {
-		switch (pattern) {
+	protected void S_recievePacket(byte id, byte[] data, EntityPlayer ep) {
+		ByteArrayDataInput badi = ByteStreams.newDataInput(data);
+		switch (id) {
 		case PacketHandler.CtS_ADD_FORTUNE:
-			this.fortuneList.add(new BlockData(data.readUTF(), data.readInt()));
+			this.fortuneList.add(new BlockData(badi.readUTF(), badi.readInt()));
 			sendOpenGUI(ep, PacketHandler.StC_OPENGUI_FORTUNE);
 			break;
 		case PacketHandler.CtS_REMOVE_FORTUNE:
-			this.fortuneList.remove(new BlockData(data.readUTF(), data.readInt()));
+			this.fortuneList.remove(new BlockData(badi.readUTF(), badi.readInt()));
 			sendOpenGUI(ep, PacketHandler.StC_OPENGUI_FORTUNE);
 			break;
 		case PacketHandler.CtS_ADD_SILKTOUCH:
-			this.silktouchList.add(new BlockData(data.readUTF(), data.readInt()));
+			this.silktouchList.add(new BlockData(badi.readUTF(), badi.readInt()));
 			sendOpenGUI(ep, PacketHandler.StC_OPENGUI_SILKTOUCH);
 			break;
 		case PacketHandler.CtS_REMOVE_SILKTOUCH:
-			this.silktouchList.remove(new BlockData(data.readUTF(), data.readInt()));
+			this.silktouchList.remove(new BlockData(badi.readUTF(), badi.readInt()));
 			sendOpenGUI(ep, PacketHandler.StC_OPENGUI_SILKTOUCH);
 			break;
 		case PacketHandler.CtS_TOGGLE_FORTUNE:
@@ -127,23 +127,24 @@ public abstract class TileBasic extends APowerTile implements IMachine, IEnchant
 	}
 
 	@Override
-	protected void C_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {
-		switch (pattern) {
+	protected void C_recievePacket(byte id, byte[] data, EntityPlayer ep) {
+		ByteArrayDataInput badi = ByteStreams.newDataInput(data);
+		switch (id) {
 		case PacketHandler.StC_OPENGUI_FORTUNE:
-			this.fortuneInclude = data.readBoolean();
+			this.fortuneInclude = badi.readBoolean();
 			this.fortuneList.clear();
-			int fsize = data.readInt();
+			int fsize = badi.readInt();
 			for (int i = 0; i < fsize; i++) {
-				this.fortuneList.add(new BlockData(data.readUTF(), data.readInt()));
+				this.fortuneList.add(new BlockData(badi.readUTF(), badi.readInt()));
 			}
 			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdFList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
 			break;
 		case PacketHandler.StC_OPENGUI_SILKTOUCH:
-			this.silktouchInclude = data.readBoolean();
+			this.silktouchInclude = badi.readBoolean();
 			this.silktouchList.clear();
-			int ssize = data.readInt();
+			int ssize = badi.readInt();
 			for (int i = 0; i < ssize; i++) {
-				this.silktouchList.add(new BlockData(data.readUTF(), data.readInt()));
+				this.silktouchList.add(new BlockData(badi.readUTF(), badi.readInt()));
 			}
 			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdSList, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
 			break;

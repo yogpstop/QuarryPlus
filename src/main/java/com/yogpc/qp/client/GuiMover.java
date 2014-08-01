@@ -17,9 +17,6 @@
 
 package com.yogpc.qp.client;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.entity.player.EntityPlayer;
@@ -29,9 +26,9 @@ import net.minecraft.world.World;
 
 import org.lwjgl.opengl.GL11;
 
+import com.yogpc.mc_lib.PacketHandler;
+import com.yogpc.mc_lib.YogpstopPacket;
 import com.yogpc.qp.ContainerMover;
-import com.yogpc.qp.PacketHandler;
-import com.yogpc.qp.QuarryPlusPacket;
 
 import cpw.mods.fml.relauncher.SideOnly;
 import cpw.mods.fml.relauncher.Side;
@@ -73,15 +70,7 @@ public class GuiMover extends GuiContainer {
 
 	@Override
 	protected void actionPerformed(GuiButton par1GuiButton) {
-		if (!par1GuiButton.enabled) { return; }
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		DataOutputStream dos = new DataOutputStream(bos);
-
-		try {
-			dos.writeByte(par1GuiButton.id);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		PacketHandler.sendPacketToServer(new QuarryPlusPacket(PacketHandler.BTN, bos.toByteArray()));
+		if (!par1GuiButton.enabled) return;
+		PacketHandler.sendPacketToServer(new YogpstopPacket((byte) par1GuiButton.id));
 	}
 }

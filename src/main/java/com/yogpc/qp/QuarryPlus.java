@@ -19,6 +19,9 @@ package com.yogpc.qp;
 
 import java.lang.reflect.Field;
 
+import com.yogpc.mc_lib.PacketHandler;
+import com.yogpc.mc_lib.YogpstopPacketCodec;
+
 import buildcraft.BuildCraftBuilders;
 import buildcraft.BuildCraftCore;
 import buildcraft.BuildCraftEnergy;
@@ -280,8 +283,8 @@ public class QuarryPlus {
 					new ItemStack(BuildCraftTransport.pipePowerGold, 64), new ItemStack(Items.glowstone_dust, 32));
 		}
 		NetworkRegistry.INSTANCE.registerGuiHandler(this, new GuiHandler());
-		PacketHandler.channels = NetworkRegistry.INSTANCE.newChannel("QuarryPlus", new QuarryPlusPacketCodec(), new PacketHandler());
 		proxy.registerTextures();
+		PacketHandler.registerStaticHandler(TileMarker.class);
 	}
 
 	public static class BlockData {

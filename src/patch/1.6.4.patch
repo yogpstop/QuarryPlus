@@ -1,19 +1,216 @@
---- 1.6.4a/java/com/yogpc/qp/APacketTile.java
-+++ 1.6.4/java/com/yogpc/qp/APacketTile.java
-@@ -31,9 +31,6 @@
+--- 1.6.4a/java/com/yogpc/mc_lib/APacketTile.java
++++ 1.6.4/java/com/yogpc/mc_lib/APacketTile.java
+@@ -29,9 +29,6 @@
  
  	@Override
  	public final Packet getDescriptionPacket() {
 -		ByteBuf buf = Unpooled.buffer();
 -		buf.writeByte(0);
--		PacketHandler.getPacketFromNBT(this).writeData(buf);
+-		new YogpstopPacket(this).writeData(buf);
 -		return new FMLProxyPacket(buf, "QuarryPlus");
-+		return PacketHandler.getPacket(PacketHandler.getPacketFromNBT(this));
++		return PacketHandler.getPacket(new YogpstopPacket(this));
+ 	}
+ }
+--- 1.6.4a/java/com/yogpc/mc_lib/PacketHandler.java
++++ 1.6.4/java/com/yogpc/mc_lib/PacketHandler.java
+@@ -26,7 +26,6 @@
+ import java.lang.annotation.RetentionPolicy;
+ import java.lang.annotation.Target;
+ import java.lang.reflect.Method;
+-import java.util.EnumMap;
+ import java.util.HashMap;
+ import java.util.List;
+ import java.util.Map;
+@@ -35,19 +34,18 @@
+ import net.minecraft.inventory.Container;
+ import net.minecraft.nbt.CompressedStreamTools;
+ import net.minecraft.nbt.NBTTagCompound;
++import net.minecraft.network.INetworkManager;
++import net.minecraft.network.packet.Packet250CustomPayload;
+ import net.minecraft.tileentity.TileEntity;
+ 
+ import com.google.common.io.ByteArrayDataInput;
+ import com.google.common.io.ByteStreams;
+ 
+-import cpw.mods.fml.common.network.FMLEmbeddedChannel;
+-import cpw.mods.fml.common.network.FMLOutboundHandler;
+-import cpw.mods.fml.common.network.FMLOutboundHandler.OutboundTarget;
+-import cpw.mods.fml.common.network.NetworkRegistry;
+-import cpw.mods.fml.relauncher.Side;
++import cpw.mods.fml.common.network.IPacketHandler;
++import cpw.mods.fml.common.network.PacketDispatcher;
++import cpw.mods.fml.common.network.Player;
+ 
+-@Sharable
+-public class PacketHandler extends SimpleChannelInboundHandler<YogpstopPacket> {
++public class PacketHandler implements IPacketHandler {
+ 	@Retention(RetentionPolicy.RUNTIME)
+ 	@Target(ElementType.METHOD)
+ 	public static @interface Handler {}
+@@ -62,7 +60,6 @@
+ 		}
+ 	}
+ 
+-	public static EnumMap<Side, FMLEmbeddedChannel> channels;
+ 	static final byte Tile = 0;
+ 	static final byte NBT = 1;
+ 	static final byte BTN = 2;
+@@ -98,7 +95,9 @@
+ 	public static final byte remove_laser = 1;
+ 
+ 	@Override
+-	protected void channelRead0(ChannelHandlerContext ctx, YogpstopPacket packet) throws Exception {
++	public void onPacketData(INetworkManager network, Packet250CustomPayload _packet, Player player) {
++		YogpstopPacket packet = new YogpstopPacket();
++		packet.readData(_packet.data, player);
+ 		if (packet.getChannel() == NBT) {
+ 			setNBTFromPacket(packet);
+ 		} else if (packet.getChannel() == BTN) {
+@@ -122,27 +121,28 @@
+ 		}
+ 	}
+ 
++	public static Packet250CustomPayload getPacket(YogpstopPacket p) {
++		Packet250CustomPayload pkt = new Packet250CustomPayload();
++		pkt.channel = "Yogpstop";
++		pkt.data = p.writeData();
++		pkt.length = pkt.data.length;
++		return pkt;
++	}
++
+ 	public static void sendPacketToServer(YogpstopPacket p) {
+-		channels.get(Side.CLIENT).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.TOSERVER);
+-		channels.get(Side.CLIENT).writeOutbound(p);
++		PacketDispatcher.sendPacketToServer(getPacket(p));
+ 	}
+ 
+ 	public static void sendPacketToAround(YogpstopPacket p, int d, int x, int y, int z) {
+-		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.ALLAROUNDPOINT);
+-		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS).set(new NetworkRegistry.TargetPoint(d, x, y, z, 256));
+-		channels.get(Side.SERVER).writeOutbound(p);
++		PacketDispatcher.sendPacketToAllAround(x, y, z, 256, d, getPacket(p));
+ 	}
+ 
+ 	public static void sendPacketToDimension(YogpstopPacket p, int d) {
+-		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.DIMENSION);
+-		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS).set(d);
+-		channels.get(Side.SERVER).writeOutbound(p);
++		PacketDispatcher.sendPacketToAllInDimension(getPacket(p), d);
+ 	}
+ 
+ 	public static void sendPacketToPlayer(YogpstopPacket p, EntityPlayer e) {
+-		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(FMLOutboundHandler.OutboundTarget.PLAYER);
+-		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS).set(e);
+-		channels.get(Side.SERVER).writeOutbound(p);
++		PacketDispatcher.sendPacketToPlayer(getPacket(p), (Player) e);
+ 	}
+ 
+ 	private static void setNBTFromPacket(YogpstopPacket p) {
+--- 1.6.4a/java/com/yogpc/mc_lib/ProxyClient.java
++++ 1.6.4/java/com/yogpc/mc_lib/ProxyClient.java
+@@ -1,18 +1,9 @@
+ package com.yogpc.mc_lib;
+ 
+-import net.minecraft.client.Minecraft;
+-import net.minecraft.entity.player.EntityPlayer;
+-import net.minecraft.network.INetHandler;
+-import net.minecraft.network.NetHandlerPlayServer;
+ import cpw.mods.fml.relauncher.Side;
+ import cpw.mods.fml.relauncher.SideOnly;
+ 
+ @SideOnly(Side.CLIENT)
+ public class ProxyClient extends ProxyCommon {
+ 
+-	@Override
+-	public EntityPlayer getPacketPlayer(INetHandler inh) {
+-		if (inh instanceof NetHandlerPlayServer) return ((NetHandlerPlayServer) inh).playerEntity;
+-		return Minecraft.getMinecraft().thePlayer;
+-	}
+ }
+--- 1.6.4a/java/com/yogpc/mc_lib/ProxyCommon.java
++++ 1.6.4/java/com/yogpc/mc_lib/ProxyCommon.java
+@@ -1,13 +1,5 @@
+ package com.yogpc.mc_lib;
+ 
+-import net.minecraft.entity.player.EntityPlayer;
+-import net.minecraft.network.INetHandler;
+-import net.minecraft.network.NetHandlerPlayServer;
+-
+ public class ProxyCommon {
+ 
+-	public EntityPlayer getPacketPlayer(INetHandler inh) {
+-		if (inh instanceof NetHandlerPlayServer) return ((NetHandlerPlayServer) inh).playerEntity;
+-		return null;
+-	}
+ }
+--- 1.6.4a/java/com/yogpc/mc_lib/YogpstopLib.java
++++ 1.6.4/java/com/yogpc/mc_lib/YogpstopLib.java
+@@ -3,9 +3,11 @@
+ import cpw.mods.fml.common.Mod;
+ import cpw.mods.fml.common.SidedProxy;
+ import cpw.mods.fml.common.event.FMLInitializationEvent;
++import cpw.mods.fml.common.network.NetworkMod;
+ import cpw.mods.fml.common.network.NetworkRegistry;
+ 
+ @Mod(modid = "YogpstopLib", name = "Yogpstop Library", version = "@VERSION@")
++@NetworkMod(clientSideRequired = true, serverSideRequired = false, channels = { "Yogpstop" }, packetHandler = PacketHandler.class)
+ public class YogpstopLib {
+ 
+ 	@SidedProxy(clientSide = "com.yogpc.mc_lib.ProxyClient", serverSide = "com.yogpc.mc_lib.ProxyCommon")
+@@ -13,6 +15,5 @@
+ 
+ 	@Mod.EventHandler
+ 	public void init(FMLInitializationEvent event) {
+-		PacketHandler.channels = NetworkRegistry.instance().newChannel("QuarryPlus", new YogpstopPacketCodec(), new PacketHandler());
+ 	}
+ }
+--- 1.6.4a/java/com/yogpc/mc_lib/YogpstopPacket.java
++++ 1.6.4/java/com/yogpc/mc_lib/YogpstopPacket.java
+@@ -4,7 +4,7 @@
+ import java.io.DataOutputStream;
+ import java.io.IOException;
+ 
+-import cpw.mods.fml.common.network.NetworkRegistry;
++import cpw.mods.fml.common.network.Player;
+ import net.minecraft.entity.player.EntityPlayer;
+ import net.minecraft.nbt.CompressedStreamTools;
+ import net.minecraft.nbt.NBTTagCompound;
+@@ -80,17 +80,22 @@
+ 		return this.data;
+ 	}
+ 
+-	public void readData(ByteBuf d, ChannelHandlerContext ctx) {
+-		this.ep = YogpstopLib.proxy.getPacketPlayer(ctx.channel().attr(NetworkRegistry.NET_HANDLER).get());
+-		this.header = new byte[d.readInt()];
+-		d.readBytes(this.header);
+-		this.data = new byte[d.readableBytes()];
+-		d.readBytes(this.data);
++	public void readData(byte[] d, Player p) {
++		this.ep = (EntityPlayer) p;
++		this.header = new byte[d[0] << 24 | (d[1] & 0xFF) << 16 | (d[2] & 0xFF) << 8 | (d[3] & 0xFF)];
++		this.data = new byte[d.length - this.header.length - 4];
++		System.arraycopy(d, 4, this.header, 0, this.header.length);
++		System.arraycopy(d, 4 + this.header.length, this.data, 0, this.data.length);
+ 	}
+ 
+-	public void writeData(ByteBuf d) {
+-		d.writeInt(this.header.length);
+-		d.writeBytes(this.header);
+-		d.writeBytes(this.data);
++	public byte[] writeData() {
++		byte[] d = new byte[this.data.length + this.header.length + 4];
++		d[0] = (byte) (this.header.length >> 24);
++		d[1] = (byte) (this.header.length >> 16);
++		d[2] = (byte) (this.header.length >> 8);
++		d[3] = (byte) this.header.length;
++		System.arraycopy(this.header, 0, d, 4, this.header.length);
++		System.arraycopy(this.data, 0, d, 4 + this.header.length, this.data.length);
++		return d;
  	}
  }
 --- 1.6.4a/java/com/yogpc/qp/APowerTile.java
 +++ 1.6.4/java/com/yogpc/qp/APowerTile.java
-@@ -18,7 +18,7 @@
+@@ -20,7 +20,7 @@
  		double tick_received = 0;
  		double remain_receive;
  		remain_receive = Math.min(this.recv_max - tick_received, this.stored_max - this.stored - tick_received);
@@ -22,7 +219,7 @@
  		this.stored += tick_received;
  	}
  
-@@ -41,7 +41,7 @@
+@@ -43,7 +43,7 @@
  		this.stored = nbttc.getDouble("storedEnergy");
  		this.stored_max = nbttc.getDouble("MAX_stored");
  		this.recv_max = nbttc.getDouble("MAX_receive");
@@ -31,7 +228,7 @@
  	}
  
  	@Override
-@@ -77,6 +77,6 @@
+@@ -79,6 +79,6 @@
  	public final void configure(double max, double maxstored) {
  		this.recv_max = max;
  		this.stored_max = maxstored;
@@ -385,31 +582,9 @@
  				validTickets.add(ticket);
  			}
  		}
---- 1.6.4a/java/com/yogpc/qp/CommonProxy.java
-+++ 1.6.4/java/com/yogpc/qp/CommonProxy.java
-@@ -18,9 +18,6 @@
- package com.yogpc.qp;
- 
- import net.minecraft.entity.Entity;
--import net.minecraft.entity.player.EntityPlayer;
--import net.minecraft.network.INetHandler;
--import net.minecraft.network.NetHandlerPlayServer;
- import net.minecraft.world.World;
- 
- public class CommonProxy {
-@@ -33,9 +30,4 @@
- 	public World getClientWorld() {
- 		return null;
- 	}
--
--	public EntityPlayer getPacketPlayer(INetHandler inh) {
--		if (inh instanceof NetHandlerPlayServer) return ((NetHandlerPlayServer) inh).playerEntity;
--		return null;
--	}
- }
 --- 1.6.4a/java/com/yogpc/qp/ContainerMover.java
 +++ 1.6.4/java/com/yogpc/qp/ContainerMover.java
-@@ -80,7 +80,7 @@
+@@ -81,7 +81,7 @@
  
  	@Override
  	public boolean canInteractWith(EntityPlayer var1) {
@@ -418,7 +593,7 @@
  				this.posY + 0.5D, this.posZ + 0.5D) <= 64.0D;
  	}
  
-@@ -114,7 +114,7 @@
+@@ -115,7 +115,7 @@
  						{
  							NBTTagList nlist = new NBTTagList();
  							for (int j = 0; j < list.tagCount(); j++) {
@@ -518,15 +693,15 @@
  
 --- 1.6.4a/java/com/yogpc/qp/ItemTool.java
 +++ 1.6.4/java/com/yogpc/qp/ItemTool.java
-@@ -21,7 +21,6 @@
- 
+@@ -22,7 +22,6 @@
+ import com.yogpc.mc_lib.PacketHandler;
  import com.yogpc.qp.QuarryPlus.BlockData;
  
 -import cpw.mods.fml.common.registry.GameData;
  import cpw.mods.fml.relauncher.Side;
  import cpw.mods.fml.relauncher.SideOnly;
  import net.minecraft.block.Block;
-@@ -39,8 +38,8 @@
+@@ -40,8 +39,8 @@
  public class ItemTool extends Item implements IEnchantableItem {
  	Icon ile, ils;
  
@@ -537,7 +712,7 @@
  		setMaxStackSize(1);
  		setHasSubtypes(true);
  		this.setMaxDamage(0);
-@@ -75,7 +74,7 @@
+@@ -76,7 +75,7 @@
  				if (id == 35) f = true;
  			}
  			NBTTagCompound c = is.getTagCompound();
@@ -546,7 +721,7 @@
  			BlockData bd = null;
  			if (c != null && c.hasKey("Bname")) {
  				bd = new BlockData(c.getString("Bname"), c.getInteger("Bmeta"));
-@@ -99,7 +98,7 @@
+@@ -100,7 +99,7 @@
  					c = new NBTTagCompound();
  					is.setTagCompound(c);
  				}
@@ -555,100 +730,17 @@
  				int meta = w.getBlockMetadata(x, y, z);
  				if (c.hasKey("Bname") && name.equals(c.getString("Bname")) && meta == c.getInteger("Bmeta")) {
  					c.setInteger("Bmeta", OreDictionary.WILDCARD_VALUE);
---- 1.6.4a/java/com/yogpc/qp/PacketHandler.java
-+++ 1.6.4/java/com/yogpc/qp/PacketHandler.java
-@@ -17,31 +17,27 @@
- 
- package com.yogpc.qp;
- 
--
- import java.io.ByteArrayOutputStream;
- import java.io.DataOutputStream;
- import java.io.IOException;
--import java.util.EnumMap;
- 
- import net.minecraft.entity.player.EntityPlayer;
- import net.minecraft.inventory.Container;
- import net.minecraft.nbt.CompressedStreamTools;
- import net.minecraft.nbt.NBTTagCompound;
-+import net.minecraft.network.INetworkManager;
-+import net.minecraft.network.packet.Packet250CustomPayload;
- import net.minecraft.tileentity.TileEntity;
- 
- import com.google.common.io.ByteArrayDataInput;
- import com.google.common.io.ByteStreams;
- import com.yogpc.qp.QuarryPlus.BlockData;
- 
--import cpw.mods.fml.common.network.FMLEmbeddedChannel;
--import cpw.mods.fml.common.network.FMLOutboundHandler;
--import cpw.mods.fml.common.network.FMLOutboundHandler.OutboundTarget;
--import cpw.mods.fml.common.network.NetworkRegistry;
--import cpw.mods.fml.relauncher.Side;
-+import cpw.mods.fml.common.network.IPacketHandler;
-+import cpw.mods.fml.common.network.PacketDispatcher;
-+import cpw.mods.fml.common.network.Player;
- 
--@Sharable
--public class PacketHandler extends SimpleChannelInboundHandler<QuarryPlusPacket> {
--	public static EnumMap<Side, FMLEmbeddedChannel> channels;
-+public class PacketHandler implements IPacketHandler {
- 	public static final byte Tile = 0;
- 	public static final byte NBT = 1;
- 	public static final byte BTN = 2;
-@@ -77,7 +73,9 @@
- 	public static final byte remove_laser = 1;
- 
- 	@Override
--	protected void channelRead0(ChannelHandlerContext ctx, QuarryPlusPacket packet) throws Exception {
-+	public void onPacketData(INetworkManager network, Packet250CustomPayload _packet, Player player) {
-+		QuarryPlusPacket packet = new QuarryPlusPacket();
-+		packet.readData(_packet.data, player);
- 		if (packet.getChannel() == NBT) {
- 			setNBTFromPacket(packet);
- 		} else if (packet.getChannel() == BTN) {
-@@ -97,27 +95,28 @@
- 		}
- 	}
- 
-+	public static Packet250CustomPayload getPacket(QuarryPlusPacket p) {
-+		Packet250CustomPayload pkt = new Packet250CustomPayload();
-+		pkt.channel = "QuarryPlus";
-+		pkt.data = p.writeData();
-+		pkt.length = pkt.data.length;
-+		return pkt;
-+	}
-+
- 	public static void sendPacketToServer(QuarryPlusPacket p) {
--		channels.get(Side.CLIENT).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.TOSERVER);
--		channels.get(Side.CLIENT).writeOutbound(p);
-+		PacketDispatcher.sendPacketToServer(getPacket(p));
- 	}
- 
- 	public static void sendPacketToAround(QuarryPlusPacket p, int d, int x, int y, int z) {
--		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.ALLAROUNDPOINT);
--		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS).set(new NetworkRegistry.TargetPoint(d, x, y, z, 256));
--		channels.get(Side.SERVER).writeOutbound(p);
-+		PacketDispatcher.sendPacketToAllAround(x, y, z, 256, d, getPacket(p));
- 	}
- 
- 	public static void sendPacketToDimension(QuarryPlusPacket p, int d) {
--		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.DIMENSION);
--		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS).set(d);
--		channels.get(Side.SERVER).writeOutbound(p);
-+		PacketDispatcher.sendPacketToAllInDimension(getPacket(p), d);
- 	}
- 
- 	public static void sendPacketToPlayer(QuarryPlusPacket p, EntityPlayer e) {
--		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(FMLOutboundHandler.OutboundTarget.PLAYER);
--		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS).set(e);
--		channels.get(Side.SERVER).writeOutbound(p);
-+		PacketDispatcher.sendPacketToPlayer(getPacket(p), (Player) e);
- 	}
- 
- 	static QuarryPlusPacket getPacketFromNBT(TileEntity te) {
 --- 1.6.4a/java/com/yogpc/qp/QuarryPlus.java
 +++ 1.6.4/java/com/yogpc/qp/QuarryPlus.java
-@@ -25,12 +25,9 @@
+@@ -20,7 +20,6 @@
+ import java.lang.reflect.Field;
+ 
+ import com.yogpc.mc_lib.PacketHandler;
+-import com.yogpc.mc_lib.YogpstopPacketCodec;
+ 
+ import buildcraft.BuildCraftBuilders;
+ import buildcraft.BuildCraftCore;
+@@ -28,12 +27,9 @@
  import buildcraft.BuildCraftFactory;
  import buildcraft.BuildCraftSilicon;
  import buildcraft.BuildCraftTransport;
@@ -662,22 +754,15 @@
  import net.minecraft.item.Item;
  import net.minecraft.item.ItemStack;
  import net.minecraftforge.common.Configuration;
-@@ -45,12 +42,13 @@
+@@ -48,7 +44,6 @@
  import cpw.mods.fml.common.event.FMLInitializationEvent;
  import cpw.mods.fml.common.event.FMLPreInitializationEvent;
  import net.minecraftforge.event.ForgeSubscribe;
 -import cpw.mods.fml.common.registry.GameData;
  import cpw.mods.fml.common.registry.GameRegistry;
  import cpw.mods.fml.common.registry.LanguageRegistry;
-+import cpw.mods.fml.common.network.NetworkMod;
  import cpw.mods.fml.common.network.NetworkRegistry;
- 
- @Mod(modid = "QuarryPlus", name = "QuarryPlus", version = "@VERSION@", dependencies = "required-after:BuildCraft|Builders;required-after:BuildCraft|Core;required-after:BuildCraft|Energy;required-after:BuildCraft|Factory;required-after:BuildCraft|Silicon;required-after:BuildCraft|Transport")
-+@NetworkMod(clientSideRequired = true, serverSideRequired = false, channels = { "QuarryPlus" }, packetHandler = PacketHandler.class)
- public class QuarryPlus {
- 	public static final CreativeTabs ct = new CreativeTabQuarryPlus();
- 	@SidedProxy(clientSide = "com.yogpc.qp.client.ClientProxy", serverSide = "com.yogpc.qp.CommonProxy")
-@@ -91,8 +89,20 @@
+@@ -94,8 +89,20 @@
  	@Mod.EventHandler
  	public void preInit(FMLPreInitializationEvent event) {
  		Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
@@ -698,7 +783,7 @@
  			Property RD = cfg.get(Configuration.CATEGORY_GENERAL, "RecipeDifficulty", 2);
  			RD.comment = "0:AsCheatRecipe,1:EasyRecipe,2:NormalRecipe(Default),3:HardRecipe,other:NormalRecipe";
  			RecipeDifficulty = RD.getInt(2);
-@@ -103,17 +113,17 @@
+@@ -106,17 +113,17 @@
  			cfg.save();
  		}
  		try {
@@ -727,7 +812,7 @@
  		} catch (Exception e) {
  			e.printStackTrace();
  		}
-@@ -125,7 +135,7 @@
+@@ -128,7 +135,7 @@
  	}
  
  	private static final void addAssemblyRecipe(int a, ItemStack b, ItemStack... c) {
@@ -736,7 +821,7 @@
  	}
  
  	@Mod.EventHandler
-@@ -187,7 +197,7 @@
+@@ -190,7 +197,7 @@
  			break;
  		case 1:
  			addAssemblyRecipe(160000, new ItemStack(blockQuarry, 1), new ItemStack(BuildCraftFactory.quarryBlock, 1), new ItemStack(redstoneChipset, 1, 3),
@@ -745,7 +830,7 @@
  			addAssemblyRecipe(40000, new ItemStack(blockMover, 1), new ItemStack(Block.enchantmentTable, 1), new ItemStack(
  					BuildCraftFactory.autoWorkbenchBlock, 1), new ItemStack(Block.anvil, 1), new ItemStack(BuildCraftSilicon.laserBlock, 2), new ItemStack(
  					BuildCraftSilicon.assemblyTableBlock, 1));
-@@ -203,7 +213,7 @@
+@@ -206,7 +213,7 @@
  			addAssemblyRecipe(160000, new ItemStack(itemTool, 1, 2), new ItemStack(BuildCraftCore.wrenchItem, 2), new ItemStack(Item.bucketEmpty, 2),
  					new ItemStack(Item.bucketWater, 1), new ItemStack(Item.bucketLava, 1));
  			addAssemblyRecipe(80000, new ItemStack(blockMiningWell, 1), new ItemStack(BuildCraftFactory.miningWellBlock, 1), new ItemStack(redstoneChipset, 1,
@@ -754,7 +839,7 @@
  			addAssemblyRecipe(40000, new ItemStack(blockBreaker, 1), new ItemStack(Block.dispenser, 1), new ItemStack(Item.pickaxeDiamond, 1),
  					new ItemStack(BuildCraftEnergy.engineBlock, 1, 1));
  			addAssemblyRecipe(80000, new ItemStack(blockPlacer, 1), new ItemStack(Block.dispenser, 1), new ItemStack(BuildCraftBuilders.fillerBlock, 1),
-@@ -213,7 +223,7 @@
+@@ -216,7 +223,7 @@
  			break;
  		case 3:
  			addAssemblyRecipe(800000, new ItemStack(blockQuarry, 1), new ItemStack(BuildCraftFactory.quarryBlock, 2), new ItemStack(redstoneChipset, 8, 3),
@@ -763,7 +848,7 @@
  							Block.chest, 32));
  			addAssemblyRecipe(640000, new ItemStack(blockMover, 1), new ItemStack(Block.enchantmentTable, 1), new ItemStack(
  					BuildCraftSilicon.assemblyTableBlock, 1, 1), new ItemStack(Block.anvil, 2), new ItemStack(BuildCraftSilicon.laserBlock, 4), new ItemStack(
-@@ -235,7 +245,7 @@
+@@ -238,7 +245,7 @@
  					new ItemStack(Item.bucketWater, 1), new ItemStack(Item.bucketLava, 1), new ItemStack(BuildCraftEnergy.bucketOil, 1), new ItemStack(
  							BuildCraftEnergy.bucketFuel, 1), new ItemStack(BuildCraftEnergy.engineBlock, 1, 2));
  			addAssemblyRecipe(500000, new ItemStack(blockMiningWell, 1), new ItemStack(BuildCraftFactory.miningWellBlock, 2), new ItemStack(redstoneChipset, 8,
@@ -772,7 +857,7 @@
  					Block.chest, 16));
  			addAssemblyRecipe(640000, new ItemStack(blockBreaker, 1), new ItemStack(Block.dispenser, 2), new ItemStack(Block.blockDiamond, 2),
  					new ItemStack(Item.redstone, 64), new ItemStack(blockQuarry, 1), new ItemStack(blockMiningWell, 1), new ItemStack(
-@@ -248,7 +258,7 @@
+@@ -251,7 +258,7 @@
  			break;
  		default:
  			addAssemblyRecipe(320000, new ItemStack(blockQuarry, 1), new ItemStack(BuildCraftFactory.quarryBlock, 1), new ItemStack(redstoneChipset, 2, 3),
@@ -781,7 +866,7 @@
  							Block.chest, 8));
  			addAssemblyRecipe(320000, new ItemStack(blockMover, 1), new ItemStack(Block.enchantmentTable, 1), new ItemStack(
  					BuildCraftSilicon.assemblyTableBlock, 1, 1), new ItemStack(Block.anvil, 1), new ItemStack(BuildCraftSilicon.assemblyTableBlock, 1),
-@@ -269,7 +279,7 @@
+@@ -272,7 +279,7 @@
  					new ItemStack(Item.bucketWater, 1), new ItemStack(Item.bucketLava, 1), new ItemStack(BuildCraftEnergy.bucketOil, 1), new ItemStack(
  							BuildCraftEnergy.bucketFuel, 1));
  			addAssemblyRecipe(160000, new ItemStack(blockMiningWell, 1), new ItemStack(BuildCraftFactory.miningWellBlock, 1), new ItemStack(redstoneChipset, 2,
@@ -790,15 +875,7 @@
  					Block.chest, 8));
  			addAssemblyRecipe(320000, new ItemStack(blockBreaker, 1), new ItemStack(Block.dispenser, 2), new ItemStack(Block.blockDiamond, 1),
  					new ItemStack(Item.redstone, 32), new ItemStack(blockQuarry, 1), new ItemStack(BuildCraftEnergy.engineBlock, 1, 2));
-@@ -280,7 +290,6 @@
- 					new ItemStack(BuildCraftTransport.pipePowerGold, 64), new ItemStack(Item.glowstone, 32));
- 		}
- 		NetworkRegistry.instance().registerGuiHandler(this, new GuiHandler());
--		PacketHandler.channels = NetworkRegistry.instance().newChannel("QuarryPlus", new QuarryPlusPacketCodec(), new PacketHandler());
- 		proxy.registerTextures();
- 	}
- 
-@@ -314,7 +323,7 @@
+@@ -317,7 +324,7 @@
  			sb.append(bd.meta);
  		}
  		sb.append("  ");
@@ -807,53 +884,17 @@
  		return sb.toString();
  	}
  }
---- 1.6.4a/java/com/yogpc/qp/QuarryPlusPacket.java
-+++ 1.6.4/java/com/yogpc/qp/QuarryPlusPacket.java
-@@ -1,6 +1,6 @@
- package com.yogpc.qp;
- 
--import cpw.mods.fml.common.network.NetworkRegistry;
-+import cpw.mods.fml.common.network.Player;
- import net.minecraft.entity.player.EntityPlayer;
- 
- public final class QuarryPlusPacket {
-@@ -27,15 +27,17 @@
- 		return this.data;
- 	}
- 
--	public void readData(ByteBuf d, ChannelHandlerContext ctx) {
--		this.ep = QuarryPlus.proxy.getPacketPlayer(ctx.channel().attr(NetworkRegistry.NET_HANDLER).get());
--		this.channel = d.readByte();
--		this.data = new byte[d.readableBytes()];
--		d.readBytes(this.data);
-+	public void readData(byte[] d, Player p) {
-+		this.ep = (EntityPlayer) p;
-+		this.channel = d[0];
-+		this.data = new byte[d.length - 1];
-+		System.arraycopy(d, 1, this.data, 0, d.length - 1);
- 	}
- 
--	public void writeData(ByteBuf d) {
--		d.writeByte(this.channel);
--		d.writeBytes(this.data);
-+	public byte[] writeData() {
-+		byte[] d = new byte[this.data.length + 1];
-+		d[0] = this.channel;
-+		System.arraycopy(this.data, 0, d, 1, this.data.length);
-+		return d;
- 	}
- }
 --- 1.6.4a/java/com/yogpc/qp/TileBasic.java
 +++ 1.6.4/java/com/yogpc/qp/TileBasic.java
-@@ -29,7 +29,6 @@
- import com.google.common.io.ByteArrayDataInput;
+@@ -32,7 +32,6 @@
+ import com.yogpc.mc_lib.YogpstopPacket;
  import com.yogpc.qp.QuarryPlus.BlockData;
  
 -import cpw.mods.fml.common.registry.GameData;
  import net.minecraft.block.Block;
  import net.minecraft.entity.player.EntityPlayer;
  import net.minecraft.item.ItemStack;
-@@ -193,7 +192,7 @@
+@@ -194,7 +193,7 @@
  
  	protected boolean S_breakBlock(int x, int y, int z) {
  		Collection<ItemStack> dropped = new LinkedList<ItemStack>();
@@ -862,7 +903,7 @@
  		if (b == null || b.isAirBlock(this.worldObj, x, y, z)) return true;
  		if (TilePump.isLiquid(b, false, null, 0, 0, 0, 0)) {
  			TileEntity te = this.worldObj.getBlockTileEntity(this.xCoord + this.pump.offsetX, this.yCoord + this.pump.offsetY, this.zCoord + this.pump.offsetZ);
-@@ -206,7 +205,7 @@
+@@ -207,7 +206,7 @@
  		}
  		if (!PowerManager.useEnergyB(this, b.getBlockHardness(this.worldObj, x, y, z), S_addDroppedItems(dropped, b, x, y, z), this.unbreaking, this)) return false;
  		this.cacheItems.addAll(dropped);
@@ -871,7 +912,7 @@
  		this.worldObj.setBlockToAir(x, y, z);
  		return true;
  	}
-@@ -222,7 +221,7 @@
+@@ -223,7 +222,7 @@
  	private byte S_addDroppedItems(Collection<ItemStack> list, Block b, int x, int y, int z) {
  		int meta = this.worldObj.getBlockMetadata(x, y, z);
  		if (b.canSilkHarvest(this.worldObj, null, x, y, z, meta) && this.silktouch
@@ -880,7 +921,7 @@
  			try {
  				list.add((ItemStack) createStackedBlock.invoke(b, meta));
  				return -1;
-@@ -232,7 +231,7 @@
+@@ -233,7 +232,7 @@
  				e.printStackTrace();
  			}
  		}
@@ -891,7 +932,7 @@
  		}
 --- 1.6.4a/java/com/yogpc/qp/TileMarker.java
 +++ 1.6.4/java/com/yogpc/qp/TileMarker.java
-@@ -191,7 +191,7 @@
+@@ -194,7 +194,7 @@
  		private final ArrayList<ItemStack> removeLink(final int x, final int y, final int z, final boolean bb) {
  			final ArrayList<ItemStack> ret = new ArrayList<ItemStack>();
  			final TileEntity te = this.w.getBlockTileEntity(x, y, z);
@@ -900,7 +941,7 @@
  			if (b instanceof BlockMarker) {
  				if (te instanceof TileMarker) ((TileMarker) te).link = null;
  				ret.addAll(b.getBlockDropped(this.w, x, y, z, this.w.getBlockMetadata(x, y, z), 0));
-@@ -376,16 +376,16 @@
+@@ -379,16 +379,16 @@
  
  	private static void S_renewConnection(final Link l, final World w, final int x, final int y, final int z) {
  		int tx = 0, ty = 0, tz = 0;
@@ -922,7 +963,7 @@
  					tx = -tx;
  					l.xn = x + tx;
  					break;
-@@ -395,13 +395,13 @@
+@@ -398,13 +398,13 @@
  		}
  		if (l.yx == l.yn) {
  			for (ty = 1; ty <= MAX_SIZE; ty++) {
@@ -940,7 +981,7 @@
  					ty = -ty;
  					l.yn = y + ty;
  					break;
-@@ -411,13 +411,13 @@
+@@ -414,13 +414,13 @@
  		}
  		if (l.zx == l.zn) {
  			for (tz = 1; tz <= MAX_SIZE; tz++) {
@@ -958,7 +999,7 @@
  					tz = -tz;
  					l.zn = z + tz;
  					break;
-@@ -572,6 +572,6 @@
+@@ -568,6 +568,6 @@
  	@Override
  	public void invalidate() {
  		super.invalidate();
@@ -1002,7 +1043,7 @@
  			this.worldObj.setBlockToAir(this.xCoord, depth, this.zCoord);
 --- 1.6.4a/java/com/yogpc/qp/TilePump.java
 +++ 1.6.4/java/com/yogpc/qp/TilePump.java
-@@ -26,7 +26,6 @@
+@@ -30,7 +30,6 @@
  
  import net.minecraft.block.Block;
  import net.minecraft.entity.player.EntityPlayer;
@@ -1010,7 +1051,7 @@
  import net.minecraft.nbt.NBTTagCompound;
  import net.minecraft.nbt.NBTTagList;
  import net.minecraft.nbt.NBTTagString;
-@@ -79,7 +78,7 @@
+@@ -82,7 +81,7 @@
  		this.unbreaking = nbttc.getByte("unbreaking");
  		this.connectTo = ForgeDirection.values()[nbttc.getByte("connectTo")];
  		if (nbttc.getTag("mapping0") instanceof NBTTagList) for (int i = 0; i < this.mapping.length; i++)
@@ -1019,7 +1060,7 @@
  		this.range = nbttc.getByte("range");
  		this.quarryRange = nbttc.getBoolean("quarryRange");
  		this.prev = (byte) (this.connectTo.ordinal() | (G_working() ? 0x80 : 0));
-@@ -382,7 +381,7 @@
+@@ -383,7 +382,7 @@
  		while (cp != cg) {
  			ebs_c = this.ebses[xb[cg] >> 4][zb[cg] >> 4][yb[cg] >> 4];
  			if (ebs_c != null) {
@@ -1028,7 +1069,7 @@
  				if (this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] == 0 && isLiquid(b_c, false, null, 0, 0, 0, 0)) {
  					this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] = 0x3F;
  
-@@ -428,7 +427,7 @@
+@@ -429,7 +428,7 @@
  					for (bx = 0; bx < this.block_side_x; bx++) {
  						for (bz = 0; bz < this.block_side_z; bz++) {
  							if ((this.blocks[this.py - this.yOffset][bx][bz] & 0x40) != 0) {
@@ -1037,7 +1078,7 @@
  								if (isLiquid(bb, false, null, 0, 0, 0, 0)) {
  									count++;
  								}
-@@ -438,7 +437,7 @@
+@@ -439,7 +438,7 @@
  				} else {
  					for (bz = 0; bz < this.block_side_z; bz++) {
  						if (this.blocks[this.py - this.yOffset][this.px][bz] != 0) {
@@ -1046,7 +1087,7 @@
  							meta = this.ebses[this.px >> 4][bz >> 4][this.py >> 4].getExtBlockMetadata(this.px & 0xF, this.py & 0xF, bz & 0xF);
  							if (isLiquid(bb, true, this.worldObj, this.px + this.xOffset, this.py, bz + this.zOffset, meta)) {
  								count++;
-@@ -457,14 +456,14 @@
+@@ -458,14 +457,14 @@
  				for (bx = 0; bx < this.block_side_x; bx++) {
  					for (bz = 0; bz < this.block_side_z; bz++) {
  						if ((this.blocks[this.py - this.yOffset][bx][bz] & 0x40) != 0) {
@@ -1063,7 +1104,7 @@
  					}
  				}
  			}
-@@ -610,8 +609,8 @@
+@@ -611,8 +610,8 @@
  		return false;
  	}
  
@@ -1076,7 +1117,7 @@
  			FluidStack fs = null;
 --- 1.6.4a/java/com/yogpc/qp/TileQuarry.java
 +++ 1.6.4/java/com/yogpc/qp/TileQuarry.java
-@@ -92,8 +92,8 @@
+@@ -90,8 +90,8 @@
  
  	private boolean S_checkTarget() {
  		if (this.targetY > this.yMax) this.targetY = this.yMax;
@@ -1087,7 +1128,7 @@
  		float h = b == null ? -1 : b.getBlockHardness(this.worldObj, this.targetX, this.targetY, this.targetZ);
  		switch (this.now) {
  		case BREAKBLOCK:
-@@ -144,7 +144,7 @@
+@@ -142,7 +142,7 @@
  				PacketHandler.sendNowPacket(this, this.now);
  				return S_checkTarget();
  			}
@@ -1096,7 +1137,7 @@
  				this.now = NOTNEEDBREAK;
  				G_renew_powerConfigure();
  				this.targetX = this.xMin;
-@@ -251,7 +251,7 @@
+@@ -249,7 +249,7 @@
  	private boolean S_makeFrame() {
  		this.digged = true;
  		if (!PowerManager.useEnergyF(this, this.unbreaking)) return false;
@@ -1107,7 +1148,7 @@
  	}
 --- 1.6.4a/java/com/yogpc/qp/TileRefinery.java
 +++ 1.6.4/java/com/yogpc/qp/TileRefinery.java
-@@ -104,9 +104,9 @@
+@@ -107,9 +107,9 @@
  				decreaseAnimation();
  				return;
  			}
@@ -1119,29 +1160,6 @@
  				decreaseAnimation();
  				return;
  			}
---- 1.6.4a/java/com/yogpc/qp/client/ClientProxy.java
-+++ 1.6.4/java/com/yogpc/qp/client/ClientProxy.java
-@@ -20,9 +20,6 @@
- import net.minecraft.client.Minecraft;
- import net.minecraft.client.multiplayer.WorldClient;
- import net.minecraft.entity.Entity;
--import net.minecraft.entity.player.EntityPlayer;
--import net.minecraft.network.INetHandler;
--import net.minecraft.network.NetHandlerPlayServer;
- import net.minecraft.world.World;
- 
- import com.yogpc.qp.CommonProxy;
-@@ -58,10 +55,4 @@
- 	public World getClientWorld() {
- 		return Minecraft.getMinecraft().theWorld;
- 	}
--
--	@Override
--	public EntityPlayer getPacketPlayer(INetHandler inh) {
--		if (inh instanceof NetHandlerPlayServer) return ((NetHandlerPlayServer) inh).playerEntity;
--		return Minecraft.getMinecraft().thePlayer;
--	}
- }
 --- 1.6.4a/java/com/yogpc/qp/client/RenderRefinery.java
 +++ 1.6.4/java/com/yogpc/qp/client/RenderRefinery.java
 @@ -21,7 +21,7 @@

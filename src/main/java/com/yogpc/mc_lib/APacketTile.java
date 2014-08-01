@@ -15,7 +15,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.yogpc.qp;
+package com.yogpc.mc_lib;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -23,20 +23,18 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.network.Packet;
 import net.minecraft.tileentity.TileEntity;
 
-import com.google.common.io.ByteArrayDataInput;
-
 import cpw.mods.fml.common.network.internal.FMLProxyPacket;
 
 public abstract class APacketTile extends TileEntity {
-	abstract void S_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep);
+	protected abstract void S_recievePacket(byte id, byte[] data, EntityPlayer ep);
 
-	abstract void C_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep);
+	protected abstract void C_recievePacket(byte id, byte[] data, EntityPlayer ep);
 
 	@Override
 	public final Packet getDescriptionPacket() {
 		ByteBuf buf = Unpooled.buffer();
 		buf.writeByte(0);
-		PacketHandler.getPacketFromNBT(this).writeData(buf);
+		new YogpstopPacket(this).writeData(buf);
 		return new FMLProxyPacket(buf, "QuarryPlus");
 	}
 }

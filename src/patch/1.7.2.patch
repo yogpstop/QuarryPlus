@@ -1,6 +1,6 @@
---- 1.7.2a/java/com/yogpc/qp/PacketHandler.java
-+++ 1.7.2/java/com/yogpc/qp/PacketHandler.java
-@@ -29,7 +29,6 @@
+--- 1.7.2a/java/com/yogpc/mc_lib/PacketHandler.java
++++ 1.7.2/java/com/yogpc/mc_lib/PacketHandler.java
+@@ -37,7 +37,6 @@
  import net.minecraft.entity.player.EntityPlayer;
  import net.minecraft.inventory.Container;
  import net.minecraft.nbt.CompressedStreamTools;
@@ -8,18 +8,18 @@
  import net.minecraft.nbt.NBTTagCompound;
  import net.minecraft.tileentity.TileEntity;
  
-@@ -139,7 +138,7 @@
- 	private static void setNBTFromPacket(QuarryPlusPacket p) {
+@@ -151,7 +150,7 @@
+ 
+ 	private static void setNBTFromPacket(YogpstopPacket p) {
  		try {
- 			NBTTagCompound cache;
--			cache = CompressedStreamTools.func_152457_a(p.getData(), NBTSizeTracker.field_152451_a);
-+			cache = CompressedStreamTools.decompress(p.getData());
+-			NBTTagCompound cache = CompressedStreamTools.func_152457_a(p.getData(), NBTSizeTracker.field_152451_a);
++			NBTTagCompound cache = CompressedStreamTools.decompress(p.getData());
  			TileEntity te = p.getPlayer().worldObj.getTileEntity(cache.getInteger("x"), cache.getInteger("y"), cache.getInteger("z"));
  			if (te != null) te.readFromNBT(cache);
  		} catch (IOException e) {
 --- 1.7.2a/java/com/yogpc/qp/TilePump.java
 +++ 1.7.2/java/com/yogpc/qp/TilePump.java
-@@ -488,7 +488,7 @@
+@@ -489,7 +489,7 @@
  		if (this.liquids.size() > 0) {
  			ret[0] = StatCollector.translateToLocal("chat.pumpcontain");
  			for (int i = 0; i < this.liquids.size(); i++) {
@@ -108,7 +108,7 @@
  	}
 --- 1.7.2a/java/com/yogpc/qp/client/GuiQ_List.java
 +++ 1.7.2/java/com/yogpc/qp/client/GuiQ_List.java
-@@ -24,11 +24,10 @@
+@@ -29,11 +29,10 @@
  import cpw.mods.fml.relauncher.Side;
  import cpw.mods.fml.relauncher.SideOnly;
  import net.minecraft.client.gui.GuiButton;

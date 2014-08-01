@@ -23,6 +23,10 @@ import java.util.Collection;
 import java.util.LinkedList;
 
 import com.google.common.io.ByteArrayDataInput;
+import com.google.common.io.ByteStreams;
+import com.yogpc.mc_lib.APacketTile;
+import com.yogpc.mc_lib.PacketHandler;
+import com.yogpc.mc_lib.YogpstopPacket;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
@@ -43,7 +47,6 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidTankInfo;
 import net.minecraftforge.fluids.IFluidBlock;
 import net.minecraftforge.fluids.IFluidHandler;
-
 import static buildcraft.BuildCraftFactory.frameBlock;
 import buildcraft.api.power.IPowerReceptor;
 import buildcraft.api.power.PowerHandler;
@@ -184,24 +187,25 @@ public class TilePump extends APacketTile implements IFluidHandler, IEnchantable
 	}
 
 	@Override
-	void S_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {
+	protected void S_recievePacket(byte id, byte[] data, EntityPlayer ep) {
+		ByteArrayDataInput badi = ByteStreams.newDataInput(data);
 		byte target;
 		int pos;
 		String buf;
-		switch (pattern) {
+		switch (id) {
 		case PacketHandler.CtS_ADD_MAPPING:// BLjava.lang.String;
-			target = data.readByte();
-			this.mapping[target].add(data.readUTF());
+			target = badi.readByte();
+			this.mapping[target].add(badi.readUTF());
 			S_OpenGUI(target, ep);
 			break;
 		case PacketHandler.CtS_REMOVE_MAPPING:// BLjava.lang.String;
-			target = data.readByte();
-			this.mapping[target].remove(data.readUTF());
+			target = badi.readByte();
+			this.mapping[target].remove(badi.readUTF());
 			S_OpenGUI(target, ep);
 			break;
 		case PacketHandler.CtS_UP_MAPPING:// BLjava.lang.String;
-			target = data.readByte();
-			pos = this.mapping[target].indexOf(data.readUTF());
+			target = badi.readByte();
+			pos = this.mapping[target].indexOf(badi.readUTF());
 			if (pos > 0) {
 				buf = this.mapping[target].get(pos);
 				this.mapping[target].remove(pos);
@@ -210,8 +214,8 @@ public class TilePump extends APacketTile implements IFluidHandler, IEnchantable
 			S_OpenGUI(target, ep);
 			break;
 		case PacketHandler.CtS_DOWN_MAPPING:// BLjava.lang.String;
-			target = data.readByte();
-			pos = this.mapping[target].indexOf(data.readUTF());
+			target = badi.readByte();
+			pos = this.mapping[target].indexOf(badi.readUTF());
 			if (pos >= 0 && pos + 1 < this.mapping[target].size()) {
 				buf = this.mapping[target].get(pos);
 				this.mapping[target].remove(pos);
@@ -220,8 +224,8 @@ public class TilePump extends APacketTile implements IFluidHandler, IEnchantable
 			S_OpenGUI(target, ep);
 			break;
 		case PacketHandler.CtS_TOP_MAPPING:// BLjava.lang.String;
-			target = data.readByte();
-			pos = this.mapping[target].indexOf(data.readUTF());
+			target = badi.readByte();
+			pos = this.mapping[target].indexOf(badi.readUTF());
 			if (pos >= 0) {
 				buf = this.mapping[target].get(pos);
 				this.mapping[target].remove(pos);
@@ -230,8 +234,8 @@ public class TilePump extends APacketTile implements IFluidHandler, IEnchantable
 			S_OpenGUI(target, ep);
 			break;
 		case PacketHandler.CtS_BOTTOM_MAPPING:// BLjava.lang.String;
-			target = data.readByte();
-			pos = this.mapping[target].indexOf(data.readUTF());
+			target = badi.readByte();
+			pos = this.mapping[target].indexOf(badi.readUTF());
 			if (pos >= 0) {
 				buf = this.mapping[target].get(pos);
 				this.mapping[target].remove(pos);
@@ -240,11 +244,11 @@ public class TilePump extends APacketTile implements IFluidHandler, IEnchantable
 			S_OpenGUI(target, ep);
 			break;
 		case PacketHandler.CtS_RENEW_DIRECTION:
-			S_OpenGUI(data.readByte(), ep);
+			S_OpenGUI(badi.readByte(), ep);
 			break;
 		case PacketHandler.CtS_COPY_MAPPING:
-			byte from = data.readByte();
-			target = data.readByte();
+			byte from = badi.readByte();
+			target = badi.readByte();
 			this.mapping[target].clear();
 			this.mapping[target].addAll(this.mapping[from]);
 			S_OpenGUI(target, ep);
@@ -253,21 +257,22 @@ public class TilePump extends APacketTile implements IFluidHandler, IEnchantable
 	}
 
 	@Override
-	void C_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {
-		switch (pattern) {
+	protected void C_recievePacket(byte id, byte[] data, EntityPlayer ep) {
+		ByteArrayDataInput badi = ByteStreams.newDataInput(data);
+		switch (id) {
 		case PacketHandler.StC_NOW:// B
-			byte flag = data.readByte();
+			byte flag = badi.readByte();
 			if ((flag & 0x80) != 0) this.cy = this.py = -1;
 			else this.py = Integer.MIN_VALUE;
 			this.connectTo = ForgeDirection.getOrientation(flag & 0x7F);
 			this.worldObj.markBlockForUpdate(this.xCoord, this.yCoord, this.zCoord);
 			break;
 		case PacketHandler.StC_OPENGUI_MAPPING:// BI[Ljava.lang.String;
-			byte target = data.readByte();
-			int len = data.readInt();
+			byte target = badi.readByte();
+			int len = badi.readInt();
 			this.mapping[target].clear();
 			for (int i = 0; i < len; i++)
-				this.mapping[target].add(data.readUTF());
+				this.mapping[target].add(badi.readUTF());
 			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdPump + target, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
 			break;
 		}
@@ -277,15 +282,11 @@ public class TilePump extends APacketTile implements IFluidHandler, IEnchantable
 		try {
 			ByteArrayOutputStream bos = new ByteArrayOutputStream();
 			DataOutputStream dos = new DataOutputStream(bos);
-			dos.writeInt(this.xCoord);
-			dos.writeInt(this.yCoord);
-			dos.writeInt(this.zCoord);
-			dos.writeByte(PacketHandler.StC_OPENGUI_MAPPING);
 			dos.writeByte(d);
 			dos.writeInt(this.mapping[d].size());
 			for (String s : this.mapping[d])
 				dos.writeUTF(s);
-			PacketHandler.sendPacketToPlayer(new QuarryPlusPacket(PacketHandler.Tile, bos.toByteArray()), ep);
+			PacketHandler.sendPacketToPlayer(new YogpstopPacket(bos.toByteArray(), this, PacketHandler.StC_OPENGUI_MAPPING), ep);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

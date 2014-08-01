@@ -24,6 +24,9 @@ import java.util.Set;
 
 import com.google.common.collect.Sets;
 import com.google.common.io.ByteArrayDataInput;
+import com.google.common.io.ByteStreams;
+import com.yogpc.mc_lib.PacketHandler;
+import com.yogpc.mc_lib.YogpstopPacket;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.item.EntityItem;
@@ -37,7 +40,6 @@ import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.ForgeChunkManager.Ticket;
 import net.minecraftforge.common.ForgeChunkManager.Type;
 import net.minecraftforge.common.util.ForgeDirection;
-
 import static buildcraft.BuildCraftFactory.frameBlock;
 import buildcraft.api.core.IAreaProvider;
 
@@ -66,15 +68,11 @@ public class TileQuarry extends TileBasic {
 				try {
 					ByteArrayOutputStream bos = new ByteArrayOutputStream();
 					DataOutputStream dos = new DataOutputStream(bos);
-					dos.writeInt(this.xCoord);
-					dos.writeInt(this.yCoord);
-					dos.writeInt(this.zCoord);
-					dos.writeByte(PacketHandler.StC_HEAD_POS);
 					dos.writeDouble(this.headPosX);
 					dos.writeDouble(this.headPosY);
 					dos.writeDouble(this.headPosZ);
-					PacketHandler.sendPacketToAround(new QuarryPlusPacket(PacketHandler.Tile, bos.toByteArray()), this.worldObj.provider.dimensionId,
-							this.xCoord, this.yCoord, this.zCoord);
+					PacketHandler.sendPacketToAround(new YogpstopPacket(bos.toByteArray(), this, PacketHandler.StC_HEAD_POS),
+							this.worldObj.provider.dimensionId, this.xCoord, this.yCoord, this.zCoord);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -409,7 +407,7 @@ public class TileQuarry extends TileBasic {
 		G_initEntities();
 		if (!this.worldObj.isRemote) {
 			S_setFirstPos();
-			PacketHandler.sendPacketToAround(PacketHandler.getPacketFromNBT(this), this.worldObj.provider.dimensionId, this.xCoord, this.yCoord, this.zCoord);
+			PacketHandler.sendPacketToAround(new YogpstopPacket(this), this.worldObj.provider.dimensionId, this.xCoord, this.yCoord, this.zCoord);
 		}
 	}
 
@@ -506,19 +504,20 @@ public class TileQuarry extends TileBasic {
 	private byte now = NONE;
 
 	@Override
-	protected void C_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {
-		super.C_recievePacket(pattern, data, ep);
-		switch (pattern) {
+	protected void C_recievePacket(byte id, byte[] data, EntityPlayer ep) {
+		super.C_recievePacket(id, data, ep);
+		switch (id) {
 		case PacketHandler.StC_NOW:
-			this.now = data.readByte();
+			this.now = data[0];
 			G_renew_powerConfigure();
 			this.worldObj.markBlockForUpdate(this.xCoord, this.yCoord, this.zCoord);
 			G_initEntities();
 			break;
 		case PacketHandler.StC_HEAD_POS:
-			this.headPosX = data.readDouble();
-			this.headPosY = data.readDouble();
-			this.headPosZ = data.readDouble();
+			ByteArrayDataInput badi = ByteStreams.newDataInput(data);
+			this.headPosX = badi.readDouble();
+			this.headPosY = badi.readDouble();
+			this.headPosZ = badi.readDouble();
 			if (this.heads != null) this.heads.setHead(this.headPosX, this.headPosY, this.headPosZ);
 			break;
 		}

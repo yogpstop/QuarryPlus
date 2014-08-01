@@ -1,4 +1,4 @@
-rm com/yogpc/qp/QuarryPlusPacketCodec.java
+rm com/yogpc/mc_lib/YogpstopPacketCodec.java
 FILES=`find -type f`
 simple_replace "net\\.minecraftforge\\.common\\.util" "net.minecraftforge.common"
 simple_replace "net\\.minecraftforge\\.common\\.config" "net.minecraftforge.common"

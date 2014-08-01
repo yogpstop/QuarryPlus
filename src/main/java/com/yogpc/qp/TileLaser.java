@@ -20,7 +20,8 @@ package com.yogpc.qp;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.common.io.ByteArrayDataInput;
+import com.yogpc.mc_lib.PacketHandler;
+import com.yogpc.mc_lib.YogpstopPacket;
 
 import static buildcraft.BuildCraftCore.actionOn;
 import static buildcraft.BuildCraftCore.actionOff;
@@ -97,7 +98,7 @@ public class TileLaser extends APowerTile implements IActionReceptor, IMachine, 
 			ILaserTargetHelper.receiveLaserEnergy(lt, (float) (power / this.laserTargets.size()));
 		pushPower(power / this.laserTargets.size());
 		if ((this.worldObj.getWorldTime() % 20) == 7) {
-			PacketHandler.sendPacketToAround(PacketHandler.getPacketFromNBT(this), this.worldObj.provider.dimensionId, this.xCoord, this.yCoord, this.zCoord);
+			PacketHandler.sendPacketToAround(new YogpstopPacket(this), this.worldObj.provider.dimensionId, this.xCoord, this.yCoord, this.zCoord);
 		}
 	}
 
@@ -175,7 +176,7 @@ public class TileLaser extends APowerTile implements IActionReceptor, IMachine, 
 		if (this.lasers != null) for (int i = 0; i < this.lasers.length; i++)
 			this.lasers[i] = null;
 		if (!this.worldObj.isRemote) {
-			PacketHandler.sendPacketToAround(PacketHandler.getPacketFromNBT(this), this.worldObj.provider.dimensionId, this.xCoord, this.yCoord, this.zCoord);
+			PacketHandler.sendPacketToAround(new YogpstopPacket(this), this.worldObj.provider.dimensionId, this.xCoord, this.yCoord, this.zCoord);
 		}
 	}
 
@@ -319,8 +320,8 @@ public class TileLaser extends APowerTile implements IActionReceptor, IMachine, 
 	}
 
 	@Override
-	void S_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {}
+	protected void S_recievePacket(byte id, byte[] data, EntityPlayer ep) {}
 
 	@Override
-	void C_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {}
+	protected void C_recievePacket(byte id, byte[] data, EntityPlayer ep) {}
 }

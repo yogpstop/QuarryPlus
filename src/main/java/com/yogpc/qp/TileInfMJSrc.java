@@ -26,6 +26,10 @@ import buildcraft.api.power.PowerHandler.PowerReceiver;
 import buildcraft.api.power.PowerHandler.Type;
 
 import com.google.common.io.ByteArrayDataInput;
+import com.google.common.io.ByteStreams;
+import com.yogpc.mc_lib.APacketTile;
+import com.yogpc.mc_lib.PacketHandler;
+import com.yogpc.mc_lib.YogpstopPacket;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
@@ -74,35 +78,33 @@ public class TileInfMJSrc extends APacketTile {
 		try {
 			ByteArrayOutputStream bos = new ByteArrayOutputStream();
 			DataOutputStream dos = new DataOutputStream(bos);
-			dos.writeInt(this.xCoord);
-			dos.writeInt(this.yCoord);
-			dos.writeInt(this.zCoord);
-			dos.writeByte(PacketHandler.StC_OPENGUI_INFMJSRC);
 			dos.writeFloat(this.power);
 			dos.writeInt(this.interval);
-			PacketHandler.sendPacketToPlayer(new QuarryPlusPacket(PacketHandler.Tile, bos.toByteArray()), ep);
+			PacketHandler.sendPacketToPlayer(new YogpstopPacket(bos.toByteArray(), this, PacketHandler.StC_OPENGUI_INFMJSRC), ep);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
 	@Override
-	void S_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {
-		switch (pattern) {
+	protected void S_recievePacket(byte id, byte[] data, EntityPlayer ep) {
+		ByteArrayDataInput badi = ByteStreams.newDataInput(data);
+		switch (id) {
 		case PacketHandler.CtS_INFMJSRC:
-			this.power = data.readFloat();
-			this.interval = data.readInt();
+			this.power = badi.readFloat();
+			this.interval = badi.readInt();
 			S_openGUI(ep);
 			break;
 		}
 	}
 
 	@Override
-	void C_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {
-		switch (pattern) {
+	protected void C_recievePacket(byte id, byte[] data, EntityPlayer ep) {
+		ByteArrayDataInput badi = ByteStreams.newDataInput(data);
+		switch (id) {
 		case PacketHandler.StC_OPENGUI_INFMJSRC:
-			this.power = data.readFloat();
-			this.interval = data.readInt();
+			this.power = badi.readFloat();
+			this.interval = badi.readInt();
 			ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdInfMJSrc, this.worldObj, this.xCoord, this.yCoord, this.zCoord);
 			break;
 		}

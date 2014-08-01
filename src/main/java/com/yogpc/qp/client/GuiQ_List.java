@@ -17,8 +17,13 @@
 
 package com.yogpc.qp.client;
 
-import com.yogpc.qp.PacketHandler;
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+
+import com.yogpc.mc_lib.PacketHandler;
+import com.yogpc.mc_lib.YogpstopPacket;
 import com.yogpc.qp.QuarryPlus;
+import com.yogpc.qp.QuarryPlus.BlockData;
 import com.yogpc.qp.TileBasic;
 
 import cpw.mods.fml.relauncher.Side;
@@ -90,7 +95,17 @@ public class GuiQ_List extends GuiScreenA implements GuiYesNoCallback {
 
 	@Override
 	public void confirmClicked(boolean par1, int par2) {
-		if (par1) PacketHandler.sendPacketToServer(this.tile, (byte) par2, this.oreslot.target.get(this.oreslot.currentore));
-		else this.mc.displayGuiScreen(this);
+		if (par1) {
+			BlockData bd = this.oreslot.target.get(this.oreslot.currentore);
+			ByteArrayOutputStream bos = new ByteArrayOutputStream();
+			DataOutputStream dos = new DataOutputStream(bos);
+			try {
+				dos.writeUTF(bd.name);
+				dos.writeInt(bd.meta);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			PacketHandler.sendPacketToServer(new YogpstopPacket(bos.toByteArray(), this.tile, (byte) par2));
+		} else this.mc.displayGuiScreen(this);
 	}
 }

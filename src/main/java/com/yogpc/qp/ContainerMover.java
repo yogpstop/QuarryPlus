@@ -17,6 +17,7 @@
 
 package com.yogpc.qp;
 
+import com.yogpc.mc_lib.IPacketContainer;
 import com.yogpc.qp.client.GuiMover;
 
 import net.minecraft.enchantment.Enchantment;
@@ -30,7 +31,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.world.World;
 
-public class ContainerMover extends Container {
+public class ContainerMover extends Container implements IPacketContainer {
 	public IInventory craftMatrix = new InventoryBasic("Matrix", false, 2);
 	private World worldObj;
 	private GuiMover gui;
@@ -97,7 +98,7 @@ public class ContainerMover extends Container {
 		return null;
 	}
 
-	void moveEnchant(short eid) {
+	private void moveEnchant(short eid) {
 		if (!checkTo(eid)) return;
 		ItemStack is;
 		NBTTagList list;
@@ -202,5 +203,10 @@ public class ContainerMover extends Container {
 			}
 		}
 		return true;
+	}
+
+	@Override
+	public void receivePacket(byte[] ba) {
+		moveEnchant(ba[0]);
 	}
 }

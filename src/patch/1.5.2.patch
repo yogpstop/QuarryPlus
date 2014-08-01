@@ -1,7 +1,18 @@
+--- 1.5.2a/java/com/yogpc/mc_lib/YogpstopLib.java
++++ 1.5.2/java/com/yogpc/mc_lib/YogpstopLib.java
+@@ -13,7 +13,7 @@
+ 	@SidedProxy(clientSide = "com.yogpc.mc_lib.ProxyClient", serverSide = "com.yogpc.mc_lib.ProxyCommon")
+ 	public static ProxyCommon proxy;
+ 
+-	@Mod.EventHandler
++	@Mod.Init
+ 	public void init(FMLInitializationEvent event) {
+ 	}
+ }
 --- 1.5.2a/java/com/yogpc/qp/APowerTile.java
 +++ 1.5.2/java/com/yogpc/qp/APowerTile.java
-@@ -1,13 +1,13 @@
- package com.yogpc.qp;
+@@ -3,13 +3,13 @@
+ import com.yogpc.mc_lib.APacketTile;
  
  import net.minecraft.nbt.NBTTagCompound;
 -import net.minecraft.world.World;
@@ -16,7 +27,7 @@
  	private double stored, recv_max, stored_max;
  
  	@Override
-@@ -29,8 +29,13 @@
+@@ -31,8 +31,13 @@
  	public final void doWork() {}
  
  	@Override
@@ -32,7 +43,7 @@
  	}
  
  	@Override
-@@ -39,7 +44,7 @@
+@@ -41,7 +46,7 @@
  		this.stored = nbttc.getDouble("storedEnergy");
  		this.stored_max = nbttc.getDouble("MAX_stored");
  		this.recv_max = nbttc.getDouble("MAX_receive");
@@ -41,7 +52,7 @@
  	}
  
  	@Override
-@@ -75,6 +80,6 @@
+@@ -77,6 +82,6 @@
  	public final void configure(double max, double maxstored) {
  		this.recv_max = max;
  		this.stored_max = maxstored;
@@ -75,7 +86,7 @@
  		GameRegistry.registerBlock(blockQuarry, ItemBlockQuarry.class, "QuarryPlus");
 --- 1.5.2a/java/com/yogpc/qp/TileBasic.java
 +++ 1.5.2/java/com/yogpc/qp/TileBasic.java
-@@ -38,7 +38,10 @@
+@@ -41,7 +41,10 @@
  import net.minecraft.world.World;
  import net.minecraftforge.common.ForgeDirection;
  import buildcraft.api.gates.IAction;
@@ -87,7 +98,7 @@
  import buildcraft.core.IMachine;
  import buildcraft.core.inventory.ITransactor;
  import buildcraft.core.inventory.Transactor;
-@@ -161,7 +164,7 @@
+@@ -162,7 +165,7 @@
  	}
  
  	static int injectToNearTile(World w, int x, int y, int z, ItemStack is) {
@@ -96,7 +107,7 @@
  		List<ForgeDirection> ppd = new LinkedList<ForgeDirection>();
  		List<ITransactor> pi = new LinkedList<ITransactor>();
  		List<ForgeDirection> pid = new LinkedList<ForgeDirection>();
-@@ -172,10 +175,9 @@
+@@ -173,10 +176,9 @@
  				pi.add(i);
  				pid.add(d.getOpposite());
  			}
@@ -110,7 +121,7 @@
  				ppd.add(d.getOpposite());
  			}
  		}
-@@ -185,7 +187,10 @@
+@@ -186,7 +188,10 @@
  		}
  		if (pp.size() > 0) {
  			int i = w.rand.nextInt(pp.size());
@@ -132,7 +143,7 @@
  import buildcraft.api.power.IPowerReceptor;
  
  import com.google.common.io.ByteArrayDataInput;
-@@ -61,8 +62,8 @@
+@@ -65,8 +66,8 @@
  				}
  			} catch (Exception e) {}
  			if (te instanceof IPowerReceptor) {
@@ -145,7 +156,7 @@
  		this.cInterval = this.interval;
 --- 1.5.2a/java/com/yogpc/qp/TileLaser.java
 +++ 1.5.2/java/com/yogpc/qp/TileLaser.java
-@@ -26,7 +26,6 @@
+@@ -27,7 +27,6 @@
  import static buildcraft.BuildCraftCore.actionOff;
  import buildcraft.api.gates.IAction;
  import buildcraft.api.gates.IActionReceptor;
@@ -153,7 +164,7 @@
  import buildcraft.core.IMachine;
  import buildcraft.core.triggers.ActionMachineControl;
  import net.minecraft.entity.player.EntityPlayer;
-@@ -196,13 +195,13 @@
+@@ -197,13 +196,13 @@
  		double avg = this.pa / 100;
  
  		if (avg <= 1.0) {
@@ -173,7 +184,7 @@
  
 --- 1.5.2a/java/com/yogpc/qp/TilePump.java
 +++ 1.5.2/java/com/yogpc/qp/TilePump.java
-@@ -34,14 +34,13 @@
+@@ -38,7 +38,7 @@
  import net.minecraft.world.World;
  import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
  import net.minecraftforge.common.ForgeDirection;
@@ -182,14 +193,7 @@
  import net.minecraftforge.liquids.LiquidContainerRegistry;
  import net.minecraftforge.liquids.LiquidDictionary;
  import net.minecraftforge.liquids.LiquidStack;
- import net.minecraftforge.liquids.LiquidTank;
- import net.minecraftforge.liquids.ILiquid;
- import net.minecraftforge.liquids.ITankContainer;
--
- import static buildcraft.BuildCraftFactory.frameBlock;
- import buildcraft.api.power.IPowerReceptor;
- import buildcraft.api.power.IPowerProvider;
-@@ -132,7 +131,7 @@
+@@ -135,7 +135,7 @@
  			te = this.worldObj.getBlockTileEntity(this.xCoord + fd.offsetX, this.yCoord + fd.offsetY, this.zCoord + fd.offsetZ);
  			if (te instanceof ITankContainer) {
  				for (String s : this.mapping[fd.ordinal()]) {
@@ -198,7 +202,7 @@
  					if (pZ == -1) continue;
  					fs = this.liquids.get(pZ);
  					fs.amount -= ((ITankContainer) te).fill(fd.getOpposite(), fs, true);
-@@ -485,7 +484,7 @@
+@@ -486,7 +486,7 @@
  		if (this.liquids.size() > 0) {
  			ret[0] = StatCollector.translateToLocal("chat.pumpcontain");
  			for (int i = 0; i < this.liquids.size(); i++) {
@@ -207,7 +211,7 @@
  						.append(this.liquids.get(i).amount).append("mB").toString();
  			}
  		} else {
-@@ -519,6 +518,10 @@
+@@ -520,6 +520,10 @@
  	}
  
  	@Override
@@ -218,7 +222,7 @@
  	public LiquidStack drain(ForgeDirection fd, LiquidStack resource, boolean doDrain) {
  		if (resource == null) return null;
  		int index = this.liquids.indexOf(resource);
-@@ -534,13 +537,8 @@
+@@ -535,13 +539,8 @@
  	}
  
  	@Override
@@ -234,7 +238,7 @@
  	}
  
  	@Override
-@@ -549,8 +547,8 @@
+@@ -550,8 +549,8 @@
  		LinkedList<LiquidTank> ret = new LinkedList<LiquidTank>();
  		if (this.mapping[fd.ordinal()].size() <= 0) {
  			if (this.liquids.size() <= 0) {
@@ -245,7 +249,7 @@
  			} else {
  				for (LiquidStack fs : this.liquids)
  					ret.add(new LiquidTank(fs, Integer.MAX_VALUE));
-@@ -559,7 +557,7 @@
+@@ -560,7 +559,7 @@
  			int index;
  			LiquidStack fs;
  			for (String s : this.mapping[fd.ordinal()]) {
@@ -254,7 +258,7 @@
  				if (fs == null) continue;
  				index = this.liquids.indexOf(fs);
  				if (index != -1) ret.add(new LiquidTank(this.liquids.get(index), Integer.MAX_VALUE));
-@@ -570,6 +568,16 @@
+@@ -571,6 +570,16 @@
  	}
  
  	@Override
@@ -271,7 +275,7 @@
  	public LiquidStack drain(ForgeDirection fd, int maxDrain, boolean doDrain) {
  		if (fd.ordinal() < 0 || fd.ordinal() >= this.mapping.length) return drain(ForgeDirection.UP, maxDrain, doDrain);
  		if (this.mapping[fd.ordinal()].size() <= 0) {
-@@ -579,7 +587,7 @@
+@@ -580,7 +589,7 @@
  		int index;
  		LiquidStack fs;
  		for (String s : this.mapping[fd.ordinal()]) {
@@ -280,7 +284,7 @@
  			if (fs == null) continue;
  			index = this.liquids.indexOf(fs);
  			if (index == -1) continue;
-@@ -603,7 +611,7 @@
+@@ -604,7 +613,7 @@
  	 * 
  	 * */
  	static final boolean isLiquid(Block b, boolean s, World w, int x, int y, int z, int m) {
@@ -289,7 +293,7 @@
  		if (b == Block.waterStill || b == Block.waterMoving || b == Block.lavaStill || b == Block.lavaMoving) return !s || m == 0;
  		return false;
  	}
-@@ -613,12 +621,12 @@
+@@ -614,12 +623,12 @@
  		int meta = this.ebses[bx >> 4][bz >> 4][this.py >> 4].getExtBlockMetadata(bx & 0xF, this.py & 0xF, bz & 0xF);
  		if (isLiquid(b, false, null, 0, 0, 0, 0)) {
  			LiquidStack fs = null;
@@ -306,7 +310,7 @@
  			}
  			if (fs != null) {
  				int index = this.liquids.indexOf(fs);
-@@ -667,7 +675,13 @@
+@@ -668,7 +677,13 @@
  	public void doWork() {}
  
  	@Override
@@ -388,7 +392,7 @@
  	private GuiTextField itv;
 --- 1.5.2a/java/com/yogpc/qp/client/GuiMover.java
 +++ 1.5.2/java/com/yogpc/qp/client/GuiMover.java
-@@ -38,7 +38,7 @@
+@@ -35,7 +35,7 @@
  @SideOnly(Side.CLIENT)
  public class GuiMover extends GuiContainer {
  	public GuiButton b32, b33, b34, b35;

@@ -31,6 +31,9 @@ import net.minecraftforge.fluids.IFluidHandler;
 import buildcraft.core.recipes.RefineryRecipeManager;
 
 import com.google.common.io.ByteArrayDataInput;
+import com.google.common.io.ByteStreams;
+import com.yogpc.mc_lib.PacketHandler;
+import com.yogpc.mc_lib.YogpstopPacket;
 
 public class TileRefinery extends APowerTile implements IFluidHandler, IEnchantableTile {
 	public FluidStack src1, src2, res;
@@ -90,7 +93,7 @@ public class TileRefinery extends APowerTile implements IFluidHandler, IEnchanta
 			return;
 		}
 		if (this.worldObj.getWorldTime() % 20 == 7) {
-			PacketHandler.sendPacketToAround(PacketHandler.getPacketFromNBT(this), this.worldObj.provider.dimensionId, this.xCoord, this.yCoord, this.zCoord);
+			PacketHandler.sendPacketToAround(new YogpstopPacket(this), this.worldObj.provider.dimensionId, this.xCoord, this.yCoord, this.zCoord);
 		}
 		this.ticks++;
 		for (int i = this.efficiency + 1; i > 0; i--) {
@@ -144,13 +147,9 @@ public class TileRefinery extends APowerTile implements IFluidHandler, IEnchanta
 		try {
 			ByteArrayOutputStream bos = new ByteArrayOutputStream();
 			DataOutputStream dos = new DataOutputStream(bos);
-			dos.writeInt(this.xCoord);
-			dos.writeInt(this.yCoord);
-			dos.writeInt(this.zCoord);
-			dos.writeByte(PacketHandler.StC_NOW);
 			dos.writeFloat(this.animationSpeed);
-			PacketHandler.sendPacketToAround(new QuarryPlusPacket(PacketHandler.Tile, bos.toByteArray()), this.worldObj.provider.dimensionId, this.xCoord,
-					this.yCoord, this.zCoord);
+			PacketHandler.sendPacketToAround(new YogpstopPacket(bos.toByteArray(), this, PacketHandler.StC_NOW), this.worldObj.provider.dimensionId,
+					this.xCoord, this.yCoord, this.zCoord);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -191,15 +190,16 @@ public class TileRefinery extends APowerTile implements IFluidHandler, IEnchanta
 	}
 
 	@Override
-	protected void S_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {
+	protected void S_recievePacket(byte id, byte[] data, EntityPlayer ep) {
 
 	}
 
 	@Override
-	protected void C_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {
-		switch (pattern) {
+	protected void C_recievePacket(byte id, byte[] data, EntityPlayer ep) {
+		ByteArrayDataInput badi = ByteStreams.newDataInput(data);
+		switch (id) {
 		case PacketHandler.StC_NOW:
-			this.animationSpeed = data.readFloat();
+			this.animationSpeed = badi.readFloat();
 			break;
 		}
 	}

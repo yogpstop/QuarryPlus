@@ -20,9 +20,6 @@ package com.yogpc.qp.client;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.network.INetHandler;
-import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.world.World;
 
 import com.yogpc.qp.CommonProxy;
@@ -57,11 +54,5 @@ public class ClientProxy extends CommonProxy {
 	@Override
 	public World getClientWorld() {
 		return Minecraft.getMinecraft().theWorld;
-	}
-
-	@Override
-	public EntityPlayer getPacketPlayer(INetHandler inh) {
-		if (inh instanceof NetHandlerPlayServer) return ((NetHandlerPlayServer) inh).playerEntity;
-		return Minecraft.getMinecraft().thePlayer;
 	}
 }

@@ -17,7 +17,7 @@
 
 package com.yogpc.qp.client;
 
-import com.yogpc.qp.PacketHandler;
+import com.yogpc.mc_lib.PacketHandler;
 import com.yogpc.qp.TilePump;
 
 import net.minecraft.client.gui.GuiButton;

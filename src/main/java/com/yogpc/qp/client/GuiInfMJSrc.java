@@ -29,8 +29,8 @@ import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 
-import com.yogpc.qp.PacketHandler;
-import com.yogpc.qp.QuarryPlusPacket;
+import com.yogpc.mc_lib.PacketHandler;
+import com.yogpc.mc_lib.YogpstopPacket;
 import com.yogpc.qp.TileInfMJSrc;
 
 @SideOnly(Side.CLIENT)
@@ -94,16 +94,12 @@ public class GuiInfMJSrc extends GuiScreenA {
 			ByteArrayOutputStream bos = new ByteArrayOutputStream();
 			DataOutputStream dos = new DataOutputStream(bos);
 			try {
-				dos.writeInt(this.tile.xCoord);
-				dos.writeInt(this.tile.yCoord);
-				dos.writeInt(this.tile.zCoord);
-				dos.writeByte(PacketHandler.CtS_INFMJSRC);
 				dos.writeFloat(this.tile.power);
 				dos.writeInt(this.tile.interval);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			PacketHandler.sendPacketToServer(new QuarryPlusPacket(PacketHandler.Tile, bos.toByteArray()));
+			PacketHandler.sendPacketToServer(new YogpstopPacket(bos.toByteArray(), this.tile, PacketHandler.CtS_INFMJSRC));
 			break;
 		}
 	}

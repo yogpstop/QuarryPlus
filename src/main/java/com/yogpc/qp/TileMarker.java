@@ -27,6 +27,9 @@ import java.util.Set;
 import com.google.common.collect.Sets;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
+import com.yogpc.mc_lib.APacketTile;
+import com.yogpc.mc_lib.PacketHandler;
+import com.yogpc.mc_lib.YogpstopPacket;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
@@ -54,7 +57,8 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 	public Link link;
 	public Laser laser;
 
-	static void recieveLinkPacket(byte[] pdata) {
+	@PacketHandler.Handler
+	public static void recievePacket(byte[] pdata) {
 		ByteArrayDataInput data = ByteStreams.newDataInput(pdata);
 		final byte flag = data.readByte();
 		final int dimId = data.readInt();
@@ -121,12 +125,11 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 					ByteArrayOutputStream bos = new ByteArrayOutputStream();
 					DataOutputStream dos = new DataOutputStream(bos);
 					dos.writeByte(PacketHandler.remove_laser);
-					dos.writeBoolean(!this.w.isRemote);
 					dos.writeInt(this.w.provider.dimensionId);
 					dos.writeInt(this.x);
 					dos.writeInt(this.y);
 					dos.writeInt(this.z);
-					PacketHandler.sendPacketToDimension(new QuarryPlusPacket(PacketHandler.Marker, bos.toByteArray()), this.w.provider.dimensionId);
+					PacketHandler.sendPacketToDimension(new YogpstopPacket(bos.toByteArray(), TileMarker.class), this.w.provider.dimensionId);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -228,7 +231,7 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 					dos.writeInt(this.yn);
 					dos.writeInt(this.zx);
 					dos.writeInt(this.zn);
-					PacketHandler.sendPacketToDimension(new QuarryPlusPacket(PacketHandler.Marker, bos.toByteArray()), this.w.provider.dimensionId);
+					PacketHandler.sendPacketToDimension(new YogpstopPacket(bos.toByteArray(), TileMarker.class), this.w.provider.dimensionId);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -461,18 +464,14 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 			try {
 				ByteArrayOutputStream bos = new ByteArrayOutputStream();
 				DataOutputStream dos = new DataOutputStream(bos);
-				dos.writeInt(this.xCoord);
-				dos.writeInt(this.yCoord);
-				dos.writeInt(this.zCoord);
-				dos.writeByte(PacketHandler.StC_LINK_RES);
 				dos.writeInt(this.link.xx);
 				dos.writeInt(this.link.xn);
 				dos.writeInt(this.link.yx);
 				dos.writeInt(this.link.yn);
 				dos.writeInt(this.link.zx);
 				dos.writeInt(this.link.zn);
-				PacketHandler.sendPacketToAround(new QuarryPlusPacket(PacketHandler.Tile, bos.toByteArray()), this.worldObj.provider.dimensionId, this.xCoord,
-						this.yCoord, this.zCoord);
+				PacketHandler.sendPacketToAround(new YogpstopPacket(bos.toByteArray(), this, PacketHandler.StC_LINK_RES), this.worldObj.provider.dimensionId,
+						this.xCoord, this.yCoord, this.zCoord);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -481,24 +480,20 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 	}
 
 	@Override
-	void S_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {// onPacketData
-		switch (pattern) {
+	protected void S_recievePacket(byte id, byte[] data, EntityPlayer ep) {// onPacketData
+		switch (id) {
 		case PacketHandler.CtS_LINK_REQ:
 			if (this.link != null) {
 				try {
 					ByteArrayOutputStream bos = new ByteArrayOutputStream();
 					DataOutputStream dos = new DataOutputStream(bos);
-					dos.writeInt(this.xCoord);
-					dos.writeInt(this.yCoord);
-					dos.writeInt(this.zCoord);
-					dos.writeByte(PacketHandler.StC_LINK_RES);
 					dos.writeInt(this.link.xx);
 					dos.writeInt(this.link.xn);
 					dos.writeInt(this.link.yx);
 					dos.writeInt(this.link.yn);
 					dos.writeInt(this.link.zx);
 					dos.writeInt(this.link.zn);
-					PacketHandler.sendPacketToPlayer(new QuarryPlusPacket(PacketHandler.Tile, bos.toByteArray()), ep);
+					PacketHandler.sendPacketToPlayer(new YogpstopPacket(bos.toByteArray(), this, PacketHandler.StC_LINK_RES), ep);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -513,11 +508,12 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 	}
 
 	@Override
-	void C_recievePacket(byte pattern, ByteArrayDataInput data, EntityPlayer ep) {// onPacketData
-		switch (pattern) {
+	protected void C_recievePacket(byte id, byte[] data, EntityPlayer ep) {// onPacketData
+		ByteArrayDataInput badi = ByteStreams.newDataInput(data);
+		switch (id) {
 		case PacketHandler.StC_LINK_RES:
 			if (this.link != null) this.link.removeConnection(false);
-			this.link = new Link(this.worldObj, data.readInt(), data.readInt(), data.readInt(), data.readInt(), data.readInt(), data.readInt());
+			this.link = new Link(this.worldObj, badi.readInt(), badi.readInt(), badi.readInt(), badi.readInt(), badi.readInt(), badi.readInt());
 			this.link.init();
 			this.link.makeLaser();
 		case PacketHandler.StC_UPDATE_MARKER:

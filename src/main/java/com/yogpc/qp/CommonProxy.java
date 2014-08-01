@@ -18,9 +18,6 @@
 package com.yogpc.qp;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.network.INetHandler;
-import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.world.World;
 
 public class CommonProxy {
@@ -31,11 +28,6 @@ public class CommonProxy {
 	}
 
 	public World getClientWorld() {
-		return null;
-	}
-
-	public EntityPlayer getPacketPlayer(INetHandler inh) {
-		if (inh instanceof NetHandlerPlayServer) return ((NetHandlerPlayServer) inh).playerEntity;
 		return null;
 	}
 }

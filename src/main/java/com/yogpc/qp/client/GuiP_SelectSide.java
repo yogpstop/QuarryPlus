@@ -20,8 +20,8 @@ package com.yogpc.qp.client;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 
-import com.yogpc.qp.PacketHandler;
-import com.yogpc.qp.QuarryPlusPacket;
+import com.yogpc.mc_lib.PacketHandler;
+import com.yogpc.mc_lib.YogpstopPacket;
 import com.yogpc.qp.TilePump;
 
 import net.minecraft.client.gui.GuiButton;
@@ -64,18 +64,16 @@ public class GuiP_SelectSide extends GuiScreenA {
 		try {
 			ByteArrayOutputStream bos = new ByteArrayOutputStream();
 			DataOutputStream dos = new DataOutputStream(bos);
-			dos.writeInt(this.tile.xCoord);
-			dos.writeInt(this.tile.yCoord);
-			dos.writeInt(this.tile.zCoord);
+			byte c;
 			if (this.copy) {
-				dos.writeByte(PacketHandler.CtS_COPY_MAPPING);
+				c = PacketHandler.CtS_COPY_MAPPING;
 				dos.writeByte(par1.id);
 				dos.writeByte(this.to);
 			} else {
-				dos.writeByte(PacketHandler.CtS_RENEW_DIRECTION);
+				c = PacketHandler.CtS_RENEW_DIRECTION;
 				dos.writeByte(par1.id);
 			}
-			PacketHandler.sendPacketToServer(new QuarryPlusPacket(PacketHandler.Tile, bos.toByteArray()));
+			PacketHandler.sendPacketToServer(new YogpstopPacket(bos.toByteArray(), this.tile, c));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
