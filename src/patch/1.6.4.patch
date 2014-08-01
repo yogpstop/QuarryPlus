@@ -129,13 +129,13 @@
  }
 --- 1.6.4a/java/com/yogpc/mc_lib/ProxyCommon.java
 +++ 1.6.4/java/com/yogpc/mc_lib/ProxyCommon.java
-@@ -1,13 +1,5 @@
+@@ -1,13 +1,6 @@
  package com.yogpc.mc_lib;
  
 -import net.minecraft.entity.player.EntityPlayer;
 -import net.minecraft.network.INetHandler;
 -import net.minecraft.network.NetHandlerPlayServer;
--
+ 
  public class ProxyCommon {
  
 -	public EntityPlayer getPacketPlayer(INetHandler inh) {
