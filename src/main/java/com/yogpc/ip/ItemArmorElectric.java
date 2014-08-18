@@ -1,19 +1,3 @@
-/*
- * Decompiled with CFR 0_84.
- * 
- * Could not load the following classes:
- *  net.minecraft.creativetab.CreativeTabs
- *  net.minecraft.entity.EntityLivingBase
- *  net.minecraft.entity.player.EntityPlayer
- *  net.minecraft.item.Item
- *  net.minecraft.item.ItemArmor
- *  net.minecraft.item.ItemArmor$ArmorMaterial
- *  net.minecraft.item.ItemStack
- *  net.minecraft.util.DamageSource
- *  net.minecraft.util.StatCollector
- *  net.minecraftforge.common.ISpecialArmor
- *  net.minecraftforge.common.ISpecialArmor$ArmorProperties
- */
 package com.yogpc.ip;
 
 import ic2.api.item.ElectricItem;
