@@ -19,7 +19,6 @@ package com.yogpc.qp;
 
 import java.util.ArrayList;
 
-import buildcraft.api.tools.IToolWrench;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
@@ -124,8 +123,7 @@ public class BlockPump extends BlockContainer {
 	@Override
 	public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer ep, int side, float par7, float par8, float par9) {
 		Item equipped = ep.getCurrentEquippedItem() != null ? ep.getCurrentEquippedItem().getItem() : null;
-		if (equipped instanceof IToolWrench && ((IToolWrench) equipped).canWrench(ep, x, y, z)) {
-			((IToolWrench) equipped).wrenchUsed(ep, x, y, z);
+		if (BuildCraftHelper.isWrench(equipped, ep, x, y, z)) {
 			if (world.isRemote) return true;
 			((TilePump) world.getTileEntity(x, y, z)).S_changeRange(ep);
 			return true;

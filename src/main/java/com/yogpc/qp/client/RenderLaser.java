@@ -4,55 +4,47 @@ import org.lwjgl.opengl.GL11;
 
 import com.yogpc.qp.TileLaser;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
+import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.util.ForgeDirection;
 
+@SideOnly(Side.CLIENT)
 public class RenderLaser extends TileEntitySpecialRenderer {
-	private static ModelBase model = new ModelBase() {};
-	private static ModelRenderer[] box;
-
-	private static ModelRenderer getBox(int index) {
-		if (box == null) {
-			box = new ModelRenderer[40];
-			for (int j = 0; j < box.length; ++j) {
-				box[j] = new ModelRenderer(model, box.length - j, 0);
-				box[j].addBox(0, -0.5F, -0.5F, 16, 1, 1);
-				box[j].rotationPointX = 0;
-				box[j].rotationPointY = 0;
-				box[j].rotationPointZ = 0;
-			}
+	private static final ModelBase model = new ModelBase() {};
+	private static final ModelRenderer[] box = new ModelRenderer[40];
+	static {
+		for (int k = 0; k < box.length; ++k) {
+			box[k] = new ModelRenderer(model, box.length - k, 0);
+			box[k].addBox(0, -0.5F, -0.5F, 16, 1, 1);
 		}
-
-		return box[index];
 	}
+	public static final RenderLaser INSTANCE = new RenderLaser();
 
-	public static void renderLaser(TextureManager tm, double fx, double fy, double fz, double tx, double ty, double tz, int b, ResourceLocation tex) {
+	private RenderLaser() {}
+
+	static void renderLaser(TextureManager tm, double fx, double fy, double fz, double tx, double ty, double tz, int b, ResourceLocation tex) {
 		GL11.glPushMatrix();
 		GL11.glTranslated(tx, ty, tz);
 		double dx = tx - fx, dy = ty - fy, dz = tz - fz;
-		double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
-		GL11.glRotatef((float) (360 - (Math.atan2(dz, dx) * 180.0 / Math.PI + 180.0)), 0, 1, 0);
-		GL11.glRotatef((float) (-Math.atan2(dy, Math.sqrt(len * len - dy * dy)) * 180.0 / Math.PI), 0, 0, 1);
+		double total = Math.sqrt(dx * dx + dy * dy + dz * dz);
+		GL11.glRotated(360 - (Math.atan2(dz, dx) * 180.0 / Math.PI + 180.0), 0, 1, 0);
+		GL11.glRotated(-Math.atan2(dy, Math.sqrt(total * total - dy * dy)) * 180.0 / Math.PI, 0, 0, 1);
 		tm.bindTexture(tex);
-		float lasti = 0;
-		if (len - 1 > 0) {
-			for (float i = 0; i <= len - 1; i += 1) {
-				getBox(b).render(1F / 16F);
-				GL11.glTranslated(1, 0, 0);
-				lasti = i;
-			}
-			lasti++;
+		int i = 0;
+		while (i <= total - 1) {
+			box[b].render(1F / 16);
+			GL11.glTranslated(1, 0, 0);
+			i++;
 		}
-		GL11.glPushMatrix();
-		GL11.glScaled(len - lasti, 1, 1);
-		getBox(b).render(1F / 16F);
-		GL11.glPopMatrix();
-		GL11.glTranslated(len - lasti, 0, 0);
+		GL11.glScaled(total - i, 1, 1);
+		box[b].render(1F / 16);
 		GL11.glPopMatrix();
 	}
 
@@ -61,23 +53,18 @@ public class RenderLaser extends TileEntitySpecialRenderer {
 		TileLaser laser = (TileLaser) te;
 		if (laser != null && laser.lasers != null) {
 			GL11.glPushMatrix();
+			OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240, 240);// TODO lightmap
 			GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
 			GL11.glEnable(GL11.GL_CULL_FACE);
 			GL11.glEnable(GL11.GL_LIGHTING);
 			GL11.glEnable(GL11.GL_BLEND);
 			GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-
-			GL11.glTranslated(x, y, z);
-			GL11.glTranslated(-te.xCoord, -te.yCoord, -te.zCoord);
-
-			GL11.glPushMatrix();
+			GL11.glTranslated(x - te.xCoord, y - te.yCoord, z - te.zCoord);
 			for (TileLaser.Position l : laser.lasers) {
-				l.l = (l.l + 1) % 40;
 				ForgeDirection fd = ForgeDirection.values()[te.getWorldObj().getBlockMetadata(te.xCoord, te.yCoord, te.zCoord)];
-				renderLaser(this.field_147501_a.field_147553_e, l.x, l.y, l.z, te.xCoord + 0.5 + 0.3 * fd.offsetX, te.yCoord + 0.5 + 0.3 * fd.offsetY,
-						te.zCoord + 0.5 + 0.3 * fd.offsetZ, l.l, laser.getTexture());
+				renderLaser(this.field_147501_a.field_147553_e, te.xCoord + 0.5 + 0.3 * fd.offsetX, te.yCoord + 0.5 + 0.3 * fd.offsetY, te.zCoord + 0.5 + 0.3
+						* fd.offsetZ, l.x, l.y, l.z, (int) (laser.getWorldObj().getWorldTime() % 40), laser.getTexture());
 			}
-			GL11.glPopMatrix();
 			GL11.glPopAttrib();
 			GL11.glPopMatrix();
 		}

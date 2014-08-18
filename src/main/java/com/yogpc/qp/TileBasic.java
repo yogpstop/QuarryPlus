@@ -24,31 +24,31 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
 import com.yogpc.mc_lib.PacketHandler;
+import com.yogpc.mc_lib.ReflectionHelper;
 import com.yogpc.mc_lib.YogpstopPacket;
 import com.yogpc.qp.QuarryPlus.BlockData;
 
 import cpw.mods.fml.common.registry.GameData;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.ISidedInventory;
+import net.minecraft.inventory.InventoryLargeChest;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
-import buildcraft.api.gates.IAction;
+import buildcraft.api.power.IPowerEmitter;
 import buildcraft.api.transport.IPipeTile;
-import buildcraft.core.IMachine;
-import buildcraft.core.inventory.ITransactor;
-import buildcraft.core.inventory.Transactor;
-import buildcraft.energy.TileEngine;
 
-public abstract class TileBasic extends APowerTile implements IMachine, IEnchantableTile {
+public abstract class TileBasic extends APowerTile implements IInventory, IEnchantableTile {
 	protected ForgeDirection pump = ForgeDirection.UNKNOWN;
 
 	public final List<BlockData> fortuneList = new ArrayList<BlockData>();
@@ -60,7 +60,7 @@ public abstract class TileBasic extends APowerTile implements IMachine, IEnchant
 	protected boolean silktouch;
 	protected byte efficiency;
 
-	protected final Queue<ItemStack> cacheItems = new LinkedList<ItemStack>();
+	protected final LinkedList<ItemStack> cacheItems = new LinkedList<ItemStack>();
 
 	void sendOpenGUI(EntityPlayer ep, byte id) {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -162,16 +162,59 @@ public abstract class TileBasic extends APowerTile implements IMachine, IEnchant
 		}
 	}
 
+	static final int addToIInv(IInventory ii, ItemStack is1, ForgeDirection fd, boolean doAdd) {
+		IInventory iii;
+		int[] a;
+		if (ii instanceof TileEntityChest) {
+			TileEntityChest chest = (TileEntityChest) ii;
+			TileEntityChest adjacent = null;
+			if (chest.adjacentChestXNeg != null) adjacent = chest.adjacentChestXNeg;
+			if (chest.adjacentChestXPos != null) adjacent = chest.adjacentChestXPos;
+			if (chest.adjacentChestZNeg != null) adjacent = chest.adjacentChestZNeg;
+			if (chest.adjacentChestZPos != null) adjacent = chest.adjacentChestZPos;
+			if (adjacent != null) iii = new InventoryLargeChest("", ii, adjacent);
+			else iii = ii;
+		} else {
+			iii = ii;
+		}
+		if (iii instanceof ISidedInventory) {
+			a = ((ISidedInventory) iii).getAccessibleSlotsFromSide(fd.ordinal());
+		} else {
+			a = new int[iii.getSizeInventory()];
+			for (int i = 0; i < a.length; i++)
+				a[i] = i;
+		}
+		int moved = 0, buf;
+		for (int i : a) {
+			ItemStack is2 = iii.getStackInSlot(i);
+			if (iii instanceof ISidedInventory) {
+				if (!((ISidedInventory) iii).canInsertItem(i, is2, fd.ordinal())) continue;
+			} else {
+				if (!iii.isItemValidForSlot(i, is2)) continue;
+			}
+			if (is2 == null) continue;
+			if (!is2.isItemEqual(is1)) continue;
+			if (!ItemStack.areItemStackTagsEqual(is2, is1)) continue;
+			buf = Math.min(iii.getInventoryStackLimit(), Math.min(is2.stackSize + is1.stackSize, is2.getMaxStackSize()));
+			if (buf > is2.stackSize) {
+				moved += buf - is2.stackSize;
+				if (doAdd) is2.stackSize = buf;
+				if (moved >= is1.stackSize) break;
+			}
+		}
+		if (doAdd) is1.stackSize -= moved;
+		return moved;
+	}
+
 	static int injectToNearTile(World w, int x, int y, int z, ItemStack is) {
 		List<IPipeTile> pp = new LinkedList<IPipeTile>();
 		List<ForgeDirection> ppd = new LinkedList<ForgeDirection>();
-		List<ITransactor> pi = new LinkedList<ITransactor>();
+		List<IInventory> pi = new LinkedList<IInventory>();
 		List<ForgeDirection> pid = new LinkedList<ForgeDirection>();
 		for (ForgeDirection d : ForgeDirection.VALID_DIRECTIONS) {
 			TileEntity t = w.getTileEntity(x + d.offsetX, y + d.offsetY, z + d.offsetZ);
-			ITransactor i = Transactor.getTransactorFor(t);
-			if (i != null && !(t instanceof TileEngine) && i.add(is, d.getOpposite(), false).stackSize > 0) {
-				pi.add(i);
+			if ((t instanceof IInventory) && !(t instanceof IPowerEmitter) && addToIInv((IInventory) t, is, d.getOpposite(), false) > 0) {
+				pi.add((IInventory) t);
 				pid.add(d.getOpposite());
 			}
 			if (t instanceof IPipeTile) {
@@ -183,7 +226,7 @@ public abstract class TileBasic extends APowerTile implements IMachine, IEnchant
 		}
 		if (pi.size() > 0) {
 			int i = w.rand.nextInt(pi.size());
-			return pi.get(i).add(is, pid.get(i), true).stackSize;
+			return addToIInv(pi.get(i), is, pid.get(i), true);
 		}
 		if (pp.size() > 0) {
 			int i = w.rand.nextInt(pp.size());
@@ -241,39 +284,8 @@ public abstract class TileBasic extends APowerTile implements IMachine, IEnchant
 		return 0;
 	}
 
-	@Override
-	public final boolean manageFluids() {
-		return false;
-	}
-
-	@Override
-	public final boolean manageSolids() {
-		return true;
-	}
-
-	@Override
-	public final boolean allowAction(IAction action) {
-		return false;
-	}
-
-	static final Method createStackedBlock;
-
-	static {
-		Method buf = null;
-		try {
-			buf = Block.class.getDeclaredMethod("func_149644_j", int.class);
-			buf.setAccessible(true);
-		} catch (Exception e1) {
-			try {
-				buf = Block.class.getDeclaredMethod("createStackedBlock", int.class);
-				buf.setAccessible(true);
-			} catch (Exception e2) {
-				e1.printStackTrace();
-				e2.printStackTrace();
-			}
-		}
-		createStackedBlock = buf;
-	}
+	static final Method createStackedBlock = ReflectionHelper.getDeclaredMethod(Block.class, new String[] { "func_149644_j", "createStackedBlock" },
+			new Class<?>[] { int.class });
 
 	@Override
 	public void readFromNBT(NBTTagCompound nbttc) {
@@ -346,5 +358,67 @@ public abstract class TileBasic extends APowerTile implements IMachine, IEnchant
 		this.fortune = pfortune;
 		this.unbreaking = punbreaking;
 		this.silktouch = psilktouch;
+	}
+
+	@Override
+	public int getSizeInventory() {
+		return Math.max(1, this.cacheItems.size());
+	}
+
+	@Override
+	public ItemStack getStackInSlot(int i) {
+		return (i < 0 || i >= this.cacheItems.size()) ? null : this.cacheItems.get(i);
+	}
+
+	@Override
+	public ItemStack decrStackSize(int i, int a) {
+		ItemStack from = this.cacheItems.get(i);
+		ItemStack res = new ItemStack(from.getItem(), Math.min(a, from.stackSize), from.getItemDamage());
+		if (from.stackTagCompound != null) res.stackTagCompound = (NBTTagCompound) from.stackTagCompound.copy();
+		from.stackSize -= res.stackSize;
+		if (from.stackSize == 0) this.cacheItems.remove(i);
+		return res;
+	}
+
+	@Override
+	public ItemStack getStackInSlotOnClosing(int i) {
+		return this.cacheItems.get(i);
+	}
+
+	@Override
+	public void setInventorySlotContents(int p_70299_1_, ItemStack p_70299_2_) {}
+
+	@Override
+	public String getInventoryName() {
+		return null;
+	}
+
+	@Override
+	public boolean hasCustomInventoryName() {
+		return false;
+	}
+
+	@Override
+	public int getInventoryStackLimit() {
+		return 0;
+	}
+
+	@Override
+	public void markDirty() {}
+
+	@Override
+	public boolean isUseableByPlayer(EntityPlayer p_70300_1_) {
+		return false;
+	}
+
+	@Override
+	public void openInventory() {}
+
+	@Override
+	public void closeInventory() {}
+
+	@Override
+	public boolean isItemValidForSlot(int p_94041_1_, ItemStack p_94041_2_) {
+		return false;
 	}
 }

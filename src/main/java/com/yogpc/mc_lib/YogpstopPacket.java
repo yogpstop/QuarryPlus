@@ -30,6 +30,11 @@ public final class YogpstopPacket {
 		this.header = new byte[] { PacketHandler.NBT };
 	}
 
+	public YogpstopPacket(int c) {
+		this.data = new byte[] { (byte) (c >>> 24), (byte) (c >>> 16), (byte) (c >>> 8), (byte) c };
+		this.header = new byte[] { PacketHandler.KEY };
+	}
+
 	public YogpstopPacket(byte d) {
 		this.data = new byte[] { d };
 		this.header = new byte[] { PacketHandler.BTN };

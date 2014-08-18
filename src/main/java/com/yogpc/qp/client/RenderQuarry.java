@@ -2,64 +2,66 @@ package com.yogpc.qp.client;
 
 import org.lwjgl.opengl.GL11;
 
-import static buildcraft.core.DefaultProps.TEXTURE_PATH_ENTITIES;
-
+import com.yogpc.qp.TileLaser;
 import com.yogpc.qp.TileQuarry;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ResourceLocation;
 
+@SideOnly(Side.CLIENT)
 public class RenderQuarry extends TileEntitySpecialRenderer {
+	public static final RenderQuarry INSTANCE = new RenderQuarry();
 
-	private void render(double fx, double fy, double fz, double tx, double ty, double tz) {
-		GL11.glPushMatrix();
-		GL11.glTranslated(0.5F, 0.5F, 0.5F);
-		RenderLaser.renderLaser(this.field_147501_a.field_147553_e, fx, fy, fz, tx, ty, tz, 0, new ResourceLocation("buildcraft", TEXTURE_PATH_ENTITIES
-				+ "/stripes.png"));
-		GL11.glPopMatrix();
-	}
+	private RenderQuarry() {}
 
 	@Override
 	public void renderTileEntityAt(TileEntity te, double x, double y, double z, float f) {
 		GL11.glPushMatrix();
+		OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240, 240);// TODO lightmap
 		GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
 		GL11.glEnable(GL11.GL_CULL_FACE);
-		GL11.glDisable(GL11.GL_LIGHTING);
+		GL11.glEnable(GL11.GL_LIGHTING);
 		GL11.glEnable(GL11.GL_BLEND);
 		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-
-		GL11.glPushMatrix();
-		GL11.glTranslated(x, y, z);
-		GL11.glTranslated(-te.xCoord, -te.yCoord, -te.zCoord);
-
+		GL11.glTranslated(x - te.xCoord, y - te.yCoord, z - te.zCoord);
 		TileQuarry tq = (TileQuarry) te;
-
 		if ((tq.G_getNow() == TileQuarry.NOTNEEDBREAK || tq.G_getNow() == TileQuarry.MAKEFRAME) && tq.yMax != Integer.MIN_VALUE) {
 			GL11.glPushMatrix();
-			GL11.glDisable(GL11.GL_LIGHTING);
-
-			render(tq.xMin, tq.yMin, tq.zMin, tq.xMax, tq.yMin, tq.zMin);
-			render(tq.xMin, tq.yMin, tq.zMin, tq.xMin, tq.yMax, tq.zMin);
-			render(tq.xMin, tq.yMin, tq.zMin, tq.xMin, tq.yMin, tq.zMax);
-			render(tq.xMin, tq.yMax, tq.zMax, tq.xMax, tq.yMax, tq.zMax);
-			render(tq.xMin, tq.yMax, tq.zMax, tq.xMin, tq.yMin, tq.zMax);
-			render(tq.xMin, tq.yMax, tq.zMax, tq.xMin, tq.yMax, tq.zMin);
-			render(tq.xMax, tq.yMin, tq.zMax, tq.xMin, tq.yMin, tq.zMax);
-			render(tq.xMax, tq.yMin, tq.zMax, tq.xMax, tq.yMax, tq.zMax);
-			render(tq.xMax, tq.yMin, tq.zMax, tq.xMax, tq.yMin, tq.zMin);
-			render(tq.xMax, tq.yMax, tq.zMin, tq.xMin, tq.yMax, tq.zMin);
-			render(tq.xMax, tq.yMax, tq.zMin, tq.xMax, tq.yMin, tq.zMin);
-			render(tq.xMax, tq.yMax, tq.zMin, tq.xMax, tq.yMax, tq.zMax);
-
-			GL11.glEnable(GL11.GL_LIGHTING);
+			GL11.glTranslated(0.5, 0.5, 0.5);
+			RenderLaser.renderLaser(this.field_147501_a.field_147553_e, tq.xMin - 0.03125, tq.yMin, tq.zMin, tq.xMax + 0.03125, tq.yMin, tq.zMin, 0,
+					TileLaser.LASER_TEXTURES[4]);
+			RenderLaser.renderLaser(this.field_147501_a.field_147553_e, tq.xMin, tq.yMin - 0.03125, tq.zMin, tq.xMin, tq.yMax + 0.03125, tq.zMin, 0,
+					TileLaser.LASER_TEXTURES[4]);
+			RenderLaser.renderLaser(this.field_147501_a.field_147553_e, tq.xMin, tq.yMin, tq.zMin - 0.03125, tq.xMin, tq.yMin, tq.zMax + 0.03125, 0,
+					TileLaser.LASER_TEXTURES[4]);
+			RenderLaser.renderLaser(this.field_147501_a.field_147553_e, tq.xMin - 0.03125, tq.yMax, tq.zMax, tq.xMax + 0.03125, tq.yMax, tq.zMax, 0,
+					TileLaser.LASER_TEXTURES[4]);
+			RenderLaser.renderLaser(this.field_147501_a.field_147553_e, tq.xMin, tq.yMax + 0.03125, tq.zMax, tq.xMin, tq.yMin - 0.03125, tq.zMax, 0,
+					TileLaser.LASER_TEXTURES[4]);
+			RenderLaser.renderLaser(this.field_147501_a.field_147553_e, tq.xMin, tq.yMax, tq.zMax + 0.03125, tq.xMin, tq.yMax, tq.zMin - 0.03125, 0,
+					TileLaser.LASER_TEXTURES[4]);
+			RenderLaser.renderLaser(this.field_147501_a.field_147553_e, tq.xMax + 0.03125, tq.yMin, tq.zMax, tq.xMin - 0.03125, tq.yMin, tq.zMax, 0,
+					TileLaser.LASER_TEXTURES[4]);
+			RenderLaser.renderLaser(this.field_147501_a.field_147553_e, tq.xMax, tq.yMin - 0.03125, tq.zMax, tq.xMax, tq.yMax + 0.03125, tq.zMax, 0,
+					TileLaser.LASER_TEXTURES[4]);
+			RenderLaser.renderLaser(this.field_147501_a.field_147553_e, tq.xMax, tq.yMin, tq.zMax + 0.03125, tq.xMax, tq.yMin, tq.zMin - 0.03125, 0,
+					TileLaser.LASER_TEXTURES[4]);
+			RenderLaser.renderLaser(this.field_147501_a.field_147553_e, tq.xMax + 0.03125, tq.yMax, tq.zMin, tq.xMin - 0.03125, tq.yMax, tq.zMin, 0,
+					TileLaser.LASER_TEXTURES[4]);
+			RenderLaser.renderLaser(this.field_147501_a.field_147553_e, tq.xMax, tq.yMax + 0.03125, tq.zMin, tq.xMax, tq.yMin - 0.03125, tq.zMin, 0,
+					TileLaser.LASER_TEXTURES[4]);
+			RenderLaser.renderLaser(this.field_147501_a.field_147553_e, tq.xMax, tq.yMax, tq.zMin - 0.03125, tq.xMax, tq.yMax, tq.zMax + 0.03125, 0,
+					TileLaser.LASER_TEXTURES[4]);
 			GL11.glPopMatrix();
 		}
-
-		GL11.glPopMatrix();
-
+		if (tq.G_getNow() == TileQuarry.BREAKBLOCK || tq.G_getNow() == TileQuarry.MOVEHEAD) {
+			RenderEntityLaser.doRender(this.field_147501_a.field_147553_e, tq.xMin + 0.75, tq.yMax, tq.zMin + 0.75, tq.headPosX, tq.headPosY, tq.headPosZ,
+					(tq.xMax - tq.xMin) - 0.5, (tq.zMax - tq.zMin) - 0.5);
+		}
 		GL11.glPopAttrib();
 		GL11.glPopMatrix();
 	}
-
 }

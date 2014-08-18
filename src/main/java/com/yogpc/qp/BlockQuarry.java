@@ -19,7 +19,6 @@ package com.yogpc.qp;
 
 import java.util.ArrayList;
 
-import buildcraft.api.tools.IToolWrench;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
@@ -147,9 +146,8 @@ public class BlockQuarry extends BlockContainer {
 	@Override
 	public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer ep, int par6, float par7, float par8, float par9) {
 		Item equipped = ep.getCurrentEquippedItem() != null ? ep.getCurrentEquippedItem().getItem() : null;
-		if (equipped instanceof IToolWrench && ((IToolWrench) equipped).canWrench(ep, x, y, z)) {
+		if (BuildCraftHelper.isWrench(equipped, ep, x, y, z)) {
 			((TileQuarry) world.getTileEntity(x, y, z)).G_reinit();
-			((IToolWrench) equipped).wrenchUsed(ep, x, y, z);
 			return true;
 		}
 		if (equipped instanceof ItemTool && ep.getCurrentEquippedItem().getItemDamage() == 0) {

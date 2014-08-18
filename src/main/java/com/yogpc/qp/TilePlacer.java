@@ -17,8 +17,6 @@
 
 package com.yogpc.qp;
 
-import buildcraft.api.gates.IAction;
-import buildcraft.core.IMachine;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
@@ -26,7 +24,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
 
-public class TilePlacer extends TileEntity implements IInventory, IMachine {
+public class TilePlacer extends TileEntity implements IInventory {
 	private final ItemStack[] stack = new ItemStack[getSizeInventory()];
 
 	@Override
@@ -143,25 +141,5 @@ public class TilePlacer extends TileEntity implements IInventory, IMachine {
 		}
 
 		par1NBTTagCompound.setTag("Items", nbttaglist);
-	}
-
-	@Override
-	public boolean isActive() {
-		return true;
-	}
-
-	@Override
-	public boolean manageFluids() {
-		return false;
-	}
-
-	@Override
-	public boolean manageSolids() {
-		return true;
-	}
-
-	@Override
-	public boolean allowAction(IAction action) {
-		return false;
 	}
 }

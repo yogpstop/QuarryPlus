@@ -71,6 +71,7 @@ public class PacketHandler extends SimpleChannelInboundHandler<YogpstopPacket> {
 	static final byte NBT = 1;
 	static final byte BTN = 2;
 	static final byte STATIC = 3;
+	static final byte KEY = 4;
 
 	public static final byte StC_OPENGUI_FORTUNE = 0;
 	public static final byte StC_OPENGUI_SILKTOUCH = 1;
@@ -123,6 +124,9 @@ public class PacketHandler extends SimpleChannelInboundHandler<YogpstopPacket> {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+		} else if (packet.getChannel() == KEY) {
+			YogpstopLib.proxy.setKeys(packet.getPlayer(), packet.getData()[0] << 24 | packet.getData()[1] << 16 | packet.getData()[2] << 8
+					| packet.getData()[3]);
 		}
 	}
 

@@ -19,7 +19,6 @@ package com.yogpc.qp;
 
 import java.util.ArrayList;
 
-import buildcraft.api.tools.IToolWrench;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
@@ -68,7 +67,7 @@ public class BlockMiningWell extends BlockContainer {
 	@SideOnly(Side.CLIENT)
 	public IIcon getIcon(IBlockAccess ba, int x, int y, int z, int side) {
 		TileEntity tile = ba.getTileEntity(x, y, z);
-		if (tile instanceof TileMiningWell && side == 1 && ((TileMiningWell) tile).isActive()) return this.texW;
+		if (tile instanceof TileMiningWell && side == 1 && ((TileMiningWell) tile).working) return this.texW;
 		return super.getIcon(ba, x, y, z, side);
 	}
 
@@ -129,9 +128,8 @@ public class BlockMiningWell extends BlockContainer {
 	@Override
 	public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer ep, int side, float par7, float par8, float par9) {
 		Item equipped = ep.getCurrentEquippedItem() != null ? ep.getCurrentEquippedItem().getItem() : null;
-		if (equipped instanceof IToolWrench && ((IToolWrench) equipped).canWrench(ep, x, y, z)) {
+		if (BuildCraftHelper.isWrench(equipped, ep, x, y, z)) {
 			((TileMiningWell) world.getTileEntity(x, y, z)).G_reinit();
-			((IToolWrench) equipped).wrenchUsed(ep, x, y, z);
 			return true;
 		}
 		if (equipped instanceof ItemTool && ep.getCurrentEquippedItem().getItemDamage() == 0) {

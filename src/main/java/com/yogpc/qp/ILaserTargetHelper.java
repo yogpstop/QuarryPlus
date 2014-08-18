@@ -3,6 +3,8 @@ package com.yogpc.qp;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import com.yogpc.mc_lib.ReflectionHelper;
+
 public class ILaserTargetHelper {
 	private static Class<?> cls = null;
 	private static Method _getXCoord = null;
@@ -31,48 +33,10 @@ public class ILaserTargetHelper {
 		} catch (SecurityException e) {
 			e.printStackTrace();
 		}
-		try {
-			_isInvalidTarget = cls.getMethod("isInvalidTarget", new Class<?>[] {});
-		} catch (NoSuchMethodException e1) {
-			try {
-				_isInvalidTarget = cls.getMethod("isInvalid", new Class<?>[] {});
-			} catch (NoSuchMethodException e2) {
-				e1.printStackTrace();
-				e2.printStackTrace();
-			} catch (SecurityException e) {
-				e.printStackTrace();
-			}
-		} catch (SecurityException e) {
-			e.printStackTrace();
-		}
-		try {
-			_receiveLaserEnergy = cls.getMethod("receiveLaserEnergy", new Class<?>[] { double.class });
-		} catch (NoSuchMethodException e1) {
-			try {
-				_receiveLaserEnergy = cls.getMethod("receiveLaserEnergy", new Class<?>[] { float.class });
-			} catch (NoSuchMethodException e2) {
-				e1.printStackTrace();
-				e2.printStackTrace();
-			} catch (SecurityException e) {
-				e.printStackTrace();
-			}
-		} catch (SecurityException e) {
-			e.printStackTrace();
-		}
-		try {
-			_requiresLaserEnergy = cls.getMethod("requiresLaserEnergy", new Class<?>[] {});
-		} catch (NoSuchMethodException e1) {
-			try {
-				_requiresLaserEnergy = cls.getMethod("hasCurrentWork", new Class<?>[] {});
-			} catch (NoSuchMethodException e2) {
-				e1.printStackTrace();
-				e2.printStackTrace();
-			} catch (SecurityException e) {
-				e.printStackTrace();
-			}
-		} catch (SecurityException e) {
-			e.printStackTrace();
-		}
+		_isInvalidTarget = ReflectionHelper.getDeclaredMethod(cls, new String[] { "isInvalidTarget", "isInvalid" }, new Class<?>[] {});
+		_receiveLaserEnergy = ReflectionHelper.getDeclaredMethod(cls, new String[] { "receiveLaserEnergy" }, new Class<?>[] { double.class },
+				new Class<?>[] { float.class });
+		_requiresLaserEnergy = ReflectionHelper.getDeclaredMethod(cls, new String[] { "requiresLaserEnergy", "hasCurrentWork" }, new Class<?>[] {});
 	}
 
 	private static Object call(Method m, Object o, Object[] a) {

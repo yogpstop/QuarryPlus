@@ -26,6 +26,7 @@ import com.google.common.collect.Sets;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
 import com.yogpc.mc_lib.PacketHandler;
+import com.yogpc.mc_lib.YogpstopLib;
 import com.yogpc.mc_lib.YogpstopPacket;
 
 import net.minecraft.block.Block;
@@ -40,7 +41,6 @@ import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.ForgeChunkManager.Ticket;
 import net.minecraftforge.common.ForgeChunkManager.Type;
 import net.minecraftforge.common.util.ForgeDirection;
-import static buildcraft.BuildCraftFactory.frameBlock;
 import buildcraft.api.core.IAreaProvider;
 
 public class TileQuarry extends TileBasic {
@@ -62,20 +62,16 @@ public class TileQuarry extends TileBasic {
 			break;
 		case MOVEHEAD:
 			boolean done = S_moveHead();
-			if (this.heads != null) {
-				this.heads.setHead(this.headPosX, this.headPosY, this.headPosZ);
-				this.heads.updatePosition();
-				try {
-					ByteArrayOutputStream bos = new ByteArrayOutputStream();
-					DataOutputStream dos = new DataOutputStream(bos);
-					dos.writeDouble(this.headPosX);
-					dos.writeDouble(this.headPosY);
-					dos.writeDouble(this.headPosZ);
-					PacketHandler.sendPacketToAround(new YogpstopPacket(bos.toByteArray(), this, PacketHandler.StC_HEAD_POS),
-							this.worldObj.provider.dimensionId, this.xCoord, this.yCoord, this.zCoord);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+			try {
+				ByteArrayOutputStream bos = new ByteArrayOutputStream();
+				DataOutputStream dos = new DataOutputStream(bos);
+				dos.writeDouble(this.headPosX);
+				dos.writeDouble(this.headPosY);
+				dos.writeDouble(this.headPosZ);
+				PacketHandler.sendPacketToAround(new YogpstopPacket(bos.toByteArray(), this, PacketHandler.StC_HEAD_POS), this.worldObj.provider.dimensionId,
+						this.xCoord, this.yCoord, this.zCoord);
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 			if (!done) break;
 			this.now = BREAKBLOCK;
@@ -118,7 +114,7 @@ public class TileQuarry extends TileBasic {
 			}
 			if (b == null || h < 0 || b.isAir(this.worldObj, this.targetX, this.targetY, this.targetZ)) return false;
 			if (this.pump == ForgeDirection.UNKNOWN && TilePump.isLiquid(b, false, null, 0, 0, 0, 0)) return false;
-			if (b == frameBlock) {
+			if (b == QuarryPlus.blockFrame && this.worldObj.getBlockMetadata(this.targetX, this.targetY, this.targetZ) == 0) {
 				byte flag = 0;
 				if (this.targetX == this.xMin || this.targetX == this.xMax) flag++;
 				if (this.targetY == this.yMin || this.targetY == this.yMax) flag++;
@@ -135,14 +131,11 @@ public class TileQuarry extends TileBasic {
 				this.targetZ = this.zMin + 1;
 				this.addX = this.addZ = this.digged = true;
 				this.changeZ = false;
-				this.worldObj.spawnEntityInWorld(new EntityMechanicalArm(this.worldObj, this.xMin + 0.75D, this.yMax, this.zMin + 0.75D,
-						(this.xMax - this.xMin) - 0.5D, (this.zMax - this.zMin) - 0.5D, this));
-				this.heads.setHead(this.headPosX, this.headPosY, this.headPosZ);
-				this.heads.updatePosition();
 				PacketHandler.sendNowPacket(this, this.now);
 				return S_checkTarget();
 			}
-			if (b != null && b.getMaterial().isSolid() && b != frameBlock) {
+			if (b != null && b.getMaterial().isSolid()
+					&& !(b == QuarryPlus.blockFrame && this.worldObj.getBlockMetadata(this.targetX, this.targetY, this.targetZ) == 0)) {
 				this.now = NOTNEEDBREAK;
 				G_renew_powerConfigure();
 				this.targetX = this.xMin;
@@ -158,7 +151,7 @@ public class TileQuarry extends TileBasic {
 			if (this.targetY == this.yMin || this.targetY == this.yMax) flag++;
 			if (this.targetZ == this.zMin || this.targetZ == this.zMax) flag++;
 			if (flag > 1) {
-				if (b == frameBlock) return false;
+				if (b == QuarryPlus.blockFrame && this.worldObj.getBlockMetadata(this.targetX, this.targetY, this.targetZ) == 0) return false;
 				return true;
 			}
 			return false;
@@ -249,7 +242,7 @@ public class TileQuarry extends TileBasic {
 	private boolean S_makeFrame() {
 		this.digged = true;
 		if (!PowerManager.useEnergyF(this, this.unbreaking)) return false;
-		this.worldObj.setBlock(this.targetX, this.targetY, this.targetZ, frameBlock);
+		this.worldObj.setBlock(this.targetX, this.targetY, this.targetZ, QuarryPlus.blockFrame);
 		S_setNextTarget();
 		return true;
 	}
@@ -275,7 +268,7 @@ public class TileQuarry extends TileBasic {
 				if (entity.isDead) continue;
 				ItemStack drop = entity.getEntityItem();
 				if (drop.stackSize <= 0) continue;
-				QuarryPlus.proxy.removeEntity(entity);
+				YogpstopLib.proxy.removeEntity(entity);
 				this.cacheItems.add(drop);
 			}
 		}
@@ -363,6 +356,40 @@ public class TileQuarry extends TileBasic {
 		this.headPosY = this.yMax - 1;
 	}
 
+	private void S_destroyFrames() {
+		if (this.yMax == Integer.MIN_VALUE) return;
+		int xn = this.xMin;
+		int xx = this.xMax;
+		int yn = this.yMin;
+		int yx = this.yMax;
+		int zn = this.zMin;
+		int zx = this.zMax;
+		for (int x = xn; x <= xx; x++) {
+			S_setBreakableFrame(x, yn, zn);
+			S_setBreakableFrame(x, yn, zx);
+			S_setBreakableFrame(x, yx, zn);
+			S_setBreakableFrame(x, yx, zx);
+		}
+		for (int y = yn; y <= yx; y++) {
+			S_setBreakableFrame(xn, y, zn);
+			S_setBreakableFrame(xn, y, zx);
+			S_setBreakableFrame(xx, y, zn);
+			S_setBreakableFrame(xx, y, zx);
+		}
+		for (int z = zn; z <= zx; z++) {
+			S_setBreakableFrame(xn, yn, z);
+			S_setBreakableFrame(xn, yx, z);
+			S_setBreakableFrame(xx, yn, z);
+			S_setBreakableFrame(xx, yx, z);
+		}
+	}
+
+	private void S_setBreakableFrame(int x, int y, int z) {
+		if (this.worldObj.getBlock(x, y, z) == QuarryPlus.blockFrame) {
+			this.worldObj.setBlockMetadataWithNotify(x, y, z, 1, 3);
+		}
+	}
+
 	private boolean S_moveHead() {
 		double x = this.targetX - this.headPosX;
 		double y = this.targetY + 1 - this.headPosY;
@@ -375,7 +402,7 @@ public class TileQuarry extends TileBasic {
 			this.headPosZ = this.targetZ;
 			return true;
 		}
-		if (blocks >= 0.1) {
+		if (blocks > 0) {
 			this.headPosX += x * blocks / distance;
 			this.headPosY += y * blocks / distance;
 			this.headPosZ += z * blocks / distance;
@@ -391,11 +418,10 @@ public class TileQuarry extends TileBasic {
 	protected void G_destroy() {
 		this.now = NONE;
 		G_renew_powerConfigure();
-		if (this.heads != null) {
-			this.heads.setDead();
-			this.heads = null;
+		if (!this.worldObj.isRemote) {
+			S_destroyFrames();
+			PacketHandler.sendNowPacket(this, this.now);
 		}
-		if (!this.worldObj.isRemote) PacketHandler.sendNowPacket(this, this.now);
 		ForgeChunkManager.releaseTicket(this.chunkTicket);
 	}
 
@@ -404,7 +430,6 @@ public class TileQuarry extends TileBasic {
 		if (this.yMax == Integer.MIN_VALUE && !this.worldObj.isRemote) S_createBox();
 		this.now = NOTNEEDBREAK;
 		G_renew_powerConfigure();
-		G_initEntities();
 		if (!this.worldObj.isRemote) {
 			S_setFirstPos();
 			PacketHandler.sendPacketToAround(new YogpstopPacket(this), this.worldObj.provider.dimensionId, this.xCoord, this.yCoord, this.zCoord);
@@ -432,15 +457,10 @@ public class TileQuarry extends TileBasic {
 		ForgeChunkManager.forceChunk(ticket, quarryChunk);
 	}
 
-	void setArm(EntityMechanicalArm ema) {
-		this.heads = ema;
-	}
-
 	@Override
 	public void updateEntity() {
 		super.updateEntity();
 		if (!this.initialized) {
-			G_initEntities();
 			G_renew_powerConfigure();
 			this.initialized = true;
 		}
@@ -498,8 +518,7 @@ public class TileQuarry extends TileBasic {
 	public static final byte MOVEHEAD = 4;
 	public static final byte BREAKBLOCK = 5;
 
-	private double headPosX, headPosY, headPosZ;
-	private EntityMechanicalArm heads;
+	public double headPosX, headPosY, headPosZ;
 	private boolean initialized = true;
 	private byte now = NONE;
 
@@ -511,41 +530,14 @@ public class TileQuarry extends TileBasic {
 			this.now = data[0];
 			G_renew_powerConfigure();
 			this.worldObj.markBlockForUpdate(this.xCoord, this.yCoord, this.zCoord);
-			G_initEntities();
 			break;
 		case PacketHandler.StC_HEAD_POS:
 			ByteArrayDataInput badi = ByteStreams.newDataInput(data);
 			this.headPosX = badi.readDouble();
 			this.headPosY = badi.readDouble();
 			this.headPosZ = badi.readDouble();
-			if (this.heads != null) this.heads.setHead(this.headPosX, this.headPosY, this.headPosZ);
 			break;
 		}
-	}
-
-	private void G_initEntities() {
-		switch (this.now) {
-		case MOVEHEAD:
-		case BREAKBLOCK:
-			if (this.heads == null) this.worldObj.spawnEntityInWorld(new EntityMechanicalArm(this.worldObj, this.xMin + 0.75D, this.yMax, this.zMin + 0.75D,
-					(this.xMax - this.xMin) - 0.5D, (this.zMax - this.zMin) - 0.5D, this));
-			break;
-		}
-
-		if (this.heads != null) {
-			if (this.now != BREAKBLOCK && this.now != MOVEHEAD) {
-				this.heads.setDead();
-				this.heads = null;
-			} else {
-				this.heads.setHead(this.headPosX, this.headPosY, this.headPosZ);
-				this.heads.updatePosition();
-			}
-		}
-	}
-
-	@Override
-	public boolean isActive() {
-		return G_getNow() != NONE;
 	}
 
 	@Override

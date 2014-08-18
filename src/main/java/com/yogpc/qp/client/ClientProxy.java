@@ -17,18 +17,12 @@
 
 package com.yogpc.qp.client;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.WorldClient;
-import net.minecraft.entity.Entity;
-import net.minecraft.world.World;
-
 import com.yogpc.qp.CommonProxy;
-import com.yogpc.qp.EntityMechanicalArm;
+import com.yogpc.qp.EntityLaser;
 import com.yogpc.qp.TileLaser;
 import com.yogpc.qp.TileQuarry;
 import com.yogpc.qp.TileRefinery;
 
-import buildcraft.core.render.RenderVoid;
 import cpw.mods.fml.client.registry.ClientRegistry;
 import cpw.mods.fml.client.registry.RenderingRegistry;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -38,21 +32,13 @@ import cpw.mods.fml.relauncher.Side;
 public class ClientProxy extends CommonProxy {
 	@Override
 	public void registerTextures() {
-		RenderingRegistry.registerEntityRenderingHandler(EntityMechanicalArm.class, new RenderVoid());
+		RenderingRegistry.registerEntityRenderingHandler(EntityLaser.class, RenderEntityLaser.INSTANCE);
 		ClientRegistry.bindTileEntitySpecialRenderer(TileRefinery.class, RenderRefinery.INSTANCE);
-		ClientRegistry.bindTileEntitySpecialRenderer(TileQuarry.class, new RenderQuarry());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileLaser.class, new RenderLaser());
+		ClientRegistry.bindTileEntitySpecialRenderer(TileQuarry.class, RenderQuarry.INSTANCE);
+		ClientRegistry.bindTileEntitySpecialRenderer(TileLaser.class, RenderLaser.INSTANCE);
 		RenderingRegistry.registerBlockHandler(RenderRefinery.INSTANCE);
-	}
-
-	@Override
-	public void removeEntity(Entity e) {
-		e.worldObj.removeEntity(e);
-		if (e.worldObj.isRemote) ((WorldClient) e.worldObj).removeEntityFromWorld(e.getEntityId());
-	}
-
-	@Override
-	public World getClientWorld() {
-		return Minecraft.getMinecraft().theWorld;
+		RenderingRegistry.registerBlockHandler(RenderLaserBlock.INSTANCE);
+		RenderingRegistry.registerBlockHandler(RenderMarker.INSTANCE);
+		RenderingRegistry.registerBlockHandler(RenderFrame.INSTANCE);
 	}
 }

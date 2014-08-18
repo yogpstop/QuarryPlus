@@ -19,8 +19,6 @@ package com.yogpc.qp;
 
 import java.util.ArrayList;
 
-import buildcraft.api.tools.IToolWrench;
-import static buildcraft.core.fluids.FluidUtils.handleRightClick;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
@@ -34,6 +32,8 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.FluidContainerRegistry;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.IFluidHandler;
 
 public class BlockRefinery extends BlockContainer {
 
@@ -42,6 +42,7 @@ public class BlockRefinery extends BlockContainer {
 		setHardness(5F);
 		setCreativeTab(QuarryPlus.ct);
 		setBlockName("RefineryPlus");
+		setBlockTextureName("buildcraft:refineryBack");// TODO buildcraft resource
 	}
 
 	@Override
@@ -82,10 +83,37 @@ public class BlockRefinery extends BlockContainer {
 		w.setBlockMetadataWithNotify(x, y, z, da[di].ordinal(), 1);
 	}
 
+	private static void consumeItem(EntityPlayer ep, ItemStack stack) {
+		ItemStack container = stack.getItem().getContainerItem(stack);
+		stack.stackSize--;
+		if (stack.stackSize > 0) ep.inventory.setInventorySlotContents(ep.inventory.currentItem, stack);
+		else ep.inventory.setInventorySlotContents(ep.inventory.currentItem, null);
+		if (container != null) {
+			TileBasic.addToIInv(ep.inventory, container, ForgeDirection.UNKNOWN, true);
+			if (container.stackSize > 0) ep.dropPlayerItemWithRandomChoice(container, false);
+		}
+	}
+
+	private static boolean fill(IFluidHandler tank, ForgeDirection side, EntityPlayer player) {
+		ItemStack current = player.getCurrentEquippedItem();
+		FluidStack liquid = FluidContainerRegistry.getFluidForFilledItem(current);
+		if (liquid != null) {
+			int used = tank.fill(side, liquid, true);
+			if (used > 0) {
+				if (!player.capabilities.isCreativeMode) {
+					consumeItem(player, current);
+					player.inventory.markDirty();
+				}
+				return true;
+			}
+		}
+		return false;
+	}
+
 	@Override
 	public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer ep, int side, float par7, float par8, float par9) {
 		Item equipped = ep.getCurrentEquippedItem() != null ? ep.getCurrentEquippedItem().getItem() : null;
-		if (equipped instanceof IToolWrench && ((IToolWrench) equipped).canWrench(ep, x, y, z)) {
+		if (BuildCraftHelper.isWrench(equipped, ep, x, y, z)) {
 			if (world.isRemote) return true;
 			int meta = world.getBlockMetadata(x, y, z);
 			switch (ForgeDirection.values()[meta]) {
@@ -103,7 +131,6 @@ public class BlockRefinery extends BlockContainer {
 				world.setBlockMetadataWithNotify(x, y, z, ForgeDirection.EAST.ordinal(), 3);
 				break;
 			}
-			((IToolWrench) equipped).wrenchUsed(ep, x, y, z);
 			return true;
 		} else if (equipped instanceof ItemTool) {
 			if (ep.getCurrentEquippedItem().getItemDamage() == 0) {
@@ -114,8 +141,8 @@ public class BlockRefinery extends BlockContainer {
 			}
 		} else {
 			if (!world.isRemote) {
-				if (handleRightClick((TileRefinery) world.getTileEntity(x, y, z), ForgeDirection.getOrientation(side), ep, true, false)) { return true; }
-			} else if (FluidContainerRegistry.isContainer(ep.getCurrentEquippedItem())) { return true; }
+				if (fill((TileRefinery) world.getTileEntity(x, y, z), ForgeDirection.getOrientation(side), ep)) return true;
+			} else if (FluidContainerRegistry.isContainer(ep.getCurrentEquippedItem())) return true;
 		}
 		return false;
 	}

@@ -17,15 +17,23 @@
 
 package com.yogpc.qp.client;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import net.minecraft.block.Block;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
+import net.minecraft.client.renderer.GLAllocation;
 import net.minecraft.client.renderer.RenderBlocks;
-import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+import net.minecraft.init.Blocks;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.IIcon;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.IBlockAccess;
+import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
 import org.lwjgl.opengl.GL11;
@@ -36,13 +44,13 @@ import com.yogpc.qp.TileRefinery;
 import cpw.mods.fml.client.registry.ISimpleBlockRenderingHandler;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import buildcraft.core.render.FluidRenderer;
 
 @SideOnly(Side.CLIENT)
 public class RenderRefinery extends TileEntitySpecialRenderer implements ISimpleBlockRenderingHandler {
-	public static final RenderRefinery INSTANCE = new RenderRefinery();
 	private static final ResourceLocation TEXTURE = new ResourceLocation("yogpstop_qp", "textures/blocks/refinery.png");
 	private static final float pixel = (float) (1.0 / 16.0);
+	private static final RenderBlocks renderBlocks = new RenderBlocks();
+	public static final RenderRefinery INSTANCE = new RenderRefinery();
 	private final ModelRenderer tank;
 	private final ModelRenderer magnet[] = new ModelRenderer[4];
 	private final ModelBase model = new ModelBase() {};
@@ -61,28 +69,18 @@ public class RenderRefinery extends TileEntitySpecialRenderer implements ISimple
 			this.magnet[i].rotationPointY = 8;
 			this.magnet[i].rotationPointZ = 8;
 		}
-
-		this.field_147501_a = TileEntityRendererDispatcher.instance;
 	}
 
-	@Override
-	public void renderTileEntityAt(TileEntity tileentity, double x, double y, double z, float f) {
-		render((TileRefinery) tileentity, x, y, z);
+	private static final void setColor(int i) {
+		GL11.glColor4b((byte) (i >> 16), (byte) (i >> 8), (byte) i, Byte.MAX_VALUE);
 	}
 
 	private void render(TileRefinery tile, double x, double y, double z) {
-		FluidStack liquid1 = null, liquid2 = null, liquidResult = null;
-
 		float anim = 0;
 		int angle = 0;
 		ModelRenderer theMagnet = this.magnet[0];
 		if (tile != null) {
-			liquid1 = tile.src1;
-			liquid2 = tile.src2;
-			liquidResult = tile.res;
-
 			anim = tile.getAnimationStage();
-
 			angle = 0;
 			switch (tile.getWorldObj().getBlockMetadata(tile.xCoord, tile.yCoord, tile.zCoord)) {
 			case 2:
@@ -120,7 +118,7 @@ public class RenderRefinery extends TileEntitySpecialRenderer implements ISimple
 
 		GL11.glRotatef(angle, 0, 1, 0);
 
-		this.field_147501_a.field_147553_e.bindTexture(TEXTURE);
+		bindTexture(TEXTURE);
 
 		GL11.glPushMatrix();
 		GL11.glTranslatef(-0.5F, -0.5F, -0.5F);
@@ -150,17 +148,8 @@ public class RenderRefinery extends TileEntitySpecialRenderer implements ISimple
 			trans2 = 12F * pixel - (12F * pixel * (anim - 200F) / 100F);
 		}
 
-		GL11.glPushMatrix();
-		GL11.glScalef(0.99F, 0.99F, 0.99F);
-		GL11.glTranslatef(-0.51F, trans1 - 0.5F, -0.5F);
-		theMagnet.render(pixel);
-		GL11.glPopMatrix();
-
-		GL11.glPushMatrix();
-		GL11.glScalef(0.99F, 0.99F, 0.99F);
-		GL11.glTranslatef(-0.51F, trans2 - 0.5F, 12F * pixel - 0.5F);
-		theMagnet.render(pixel);
-		GL11.glPopMatrix();
+		renderMagnet(trans1, theMagnet, 0);
+		renderMagnet(trans2, theMagnet, 12 * pixel);
 
 		if (tile != null) {
 			GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
@@ -168,50 +157,88 @@ public class RenderRefinery extends TileEntitySpecialRenderer implements ISimple
 			GL11.glDisable(GL11.GL_LIGHTING);
 			GL11.glEnable(GL11.GL_BLEND);
 			GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-
 			GL11.glTranslatef(-0.5F, -0.5F, -0.5F);
 			GL11.glScalef(0.5F, 1, 0.5F);
-
-			if (liquid1 != null && liquid1.amount > 0) {
-				int[] list1 = FluidRenderer.getFluidDisplayLists(liquid1, tile.getWorldObj(), false);
-
-				if (list1 != null) {
-					this.field_147501_a.field_147553_e.bindTexture(FluidRenderer.getFluidSheet(liquid1));
-					FluidRenderer.setColorForFluidStack(liquid1);
-					GL11.glCallList(list1[(int) (liquid1.amount / (float) tile.buf * (FluidRenderer.DISPLAY_STAGES - 1))]);
-				}
-			}
-
-			if (liquid2 != null && liquid2.amount > 0) {
-				int[] list2 = FluidRenderer.getFluidDisplayLists(liquid2, tile.getWorldObj(), false);
-
-				if (list2 != null) {
-					GL11.glPushMatrix();
-					GL11.glTranslatef(0, 0, 1);
-					this.field_147501_a.field_147553_e.bindTexture(FluidRenderer.getFluidSheet(liquid2));
-					FluidRenderer.setColorForFluidStack(liquid2);
-					GL11.glCallList(list2[(int) (liquid2.amount / (float) tile.buf * (FluidRenderer.DISPLAY_STAGES - 1))]);
-					GL11.glPopMatrix();
-				}
-			}
-
-			if (liquidResult != null && liquidResult.amount > 0) {
-				int[] list3 = FluidRenderer.getFluidDisplayLists(liquidResult, tile.getWorldObj(), false);
-
-				if (list3 != null) {
-					GL11.glPushMatrix();
-					GL11.glTranslatef(1, 0, 0.5F);
-					this.field_147501_a.field_147553_e.bindTexture(FluidRenderer.getFluidSheet(liquidResult));
-					FluidRenderer.setColorForFluidStack(liquidResult);
-					GL11.glCallList(list3[(int) (liquidResult.amount / (float) tile.buf * (FluidRenderer.DISPLAY_STAGES - 1))]);
-					GL11.glPopMatrix();
-				}
-			}
+			renderFluid(tile.src1, 0, 0, 0, tile.buf);
+			renderFluid(tile.src2, 0, 0, 1, tile.buf);
+			renderFluid(tile.res, 1, 0, 0.5F, tile.buf);
 			GL11.glPopAttrib();
 		}
-
 		GL11.glPopAttrib();
 		GL11.glPopMatrix();
+	}
+
+	private static void renderMagnet(float trans, ModelRenderer magnet, float offset) {
+		GL11.glPushMatrix();
+		GL11.glScalef(0.99F, 0.99F, 0.99F);
+		GL11.glTranslatef(-0.51F, trans - 0.5F, offset - 0.5F);
+		magnet.render(pixel);
+		GL11.glPopMatrix();
+	}
+
+	private void renderFluid(FluidStack liquid, float tx, float ty, float tz, float buf) {
+		if (liquid != null && liquid.amount > 0) {
+			int[] list = getFluidDisplayLists(liquid);
+			if (list != null) {
+				if (tx != 0 || ty != 0 || tz != 0) {
+					GL11.glPushMatrix();
+					GL11.glTranslatef(tx, ty, tz);
+				}
+				bindTexture(TextureMap.locationBlocksTexture);
+				setColor(liquid.getFluid().getColor(liquid));
+				GL11.glCallList(list[(int) (liquid.amount / buf * 99)]);
+				if (tx != 0 || ty != 0 || tz != 0) GL11.glPopMatrix();
+			}
+		}
+	}
+
+	private static final Map<Fluid, int[]> stillRenderCache = new HashMap<Fluid, int[]>();
+
+	private static int[] getFluidDisplayLists(FluidStack fluidStack) {
+		Fluid fluid = fluidStack.getFluid();
+		if (fluid == null) return null;
+		Map<Fluid, int[]> cache = stillRenderCache;
+		int[] diplayLists = cache.get(fluid);
+		if (diplayLists != null) return diplayLists;
+		diplayLists = new int[100];
+		Block baseBlock;
+		IIcon texture;
+		if (fluid.getBlock() != null) {
+			baseBlock = fluid.getBlock();
+			texture = fluid.getStillIcon();
+		} else {
+			baseBlock = Blocks.water;
+			texture = fluid.getStillIcon();
+		}
+		GL11.glDisable(GL11.GL_LIGHTING);
+		GL11.glDisable(GL11.GL_BLEND);
+		GL11.glDisable(GL11.GL_CULL_FACE);
+		for (int s = 0; s < 100; ++s) {
+			diplayLists[s] = GLAllocation.generateDisplayLists(1);
+			GL11.glNewList(diplayLists[s], GL11.GL_COMPILE);
+			Tessellator tessellator = Tessellator.instance;
+			tessellator.startDrawingQuads();
+			renderBlocks.setRenderBounds(0.01, 0, 0.01, 0.99, (float) s / 100, 0.99);
+			renderBlocks.renderFaceYNeg(baseBlock, 0, 0, 0, texture != null ? texture : baseBlock.getBlockTextureFromSide(0));
+			renderBlocks.renderFaceYPos(baseBlock, 0, 0, 0, texture != null ? texture : baseBlock.getBlockTextureFromSide(1));
+			renderBlocks.renderFaceZNeg(baseBlock, 0, 0, 0, texture != null ? texture : baseBlock.getBlockTextureFromSide(2));
+			renderBlocks.renderFaceZPos(baseBlock, 0, 0, 0, texture != null ? texture : baseBlock.getBlockTextureFromSide(3));
+			renderBlocks.renderFaceXNeg(baseBlock, 0, 0, 0, texture != null ? texture : baseBlock.getBlockTextureFromSide(4));
+			renderBlocks.renderFaceXPos(baseBlock, 0, 0, 0, texture != null ? texture : baseBlock.getBlockTextureFromSide(5));
+			tessellator.draw();
+			GL11.glEndList();
+		}
+		GL11.glColor4f(1, 1, 1, 1);
+		GL11.glEnable(GL11.GL_CULL_FACE);
+		GL11.glEnable(GL11.GL_BLEND);
+		GL11.glEnable(GL11.GL_LIGHTING);
+		cache.put(fluid, diplayLists);
+		return diplayLists;
+	}
+
+	@Override
+	public void renderTileEntityAt(TileEntity tileentity, double x, double y, double z, float f) {
+		render((TileRefinery) tileentity, x, y, z);
 	}
 
 	@Override

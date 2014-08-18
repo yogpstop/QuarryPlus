@@ -19,7 +19,6 @@ package com.yogpc.qp;
 
 import java.util.Random;
 
-import buildcraft.api.tools.IToolWrench;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
@@ -217,11 +216,10 @@ public class BlockPlacer extends BlockContainer {
 	@Override
 	public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer ep, int par6, float par7, float par8, float par9) {
 		Item equipped = ep.getCurrentEquippedItem() != null ? ep.getCurrentEquippedItem().getItem() : null;
-		if (equipped instanceof IToolWrench && ((IToolWrench) equipped).canWrench(ep, x, y, z)) {
+		if (BuildCraftHelper.isWrench(equipped, ep, x, y, z)) {
 			int i = world.getBlockMetadata(x, y, z) + 1;
 			if (i >= 6) i = 0;
 			world.setBlockMetadataWithNotify(x, y, z, i, 2);
-			((IToolWrench) equipped).wrenchUsed(ep, x, y, z);
 			return true;
 		}
 		if (!world.isRemote) ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdPlacer, world, x, y, z);

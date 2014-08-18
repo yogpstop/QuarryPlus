@@ -23,13 +23,6 @@ import java.util.List;
 import com.yogpc.mc_lib.PacketHandler;
 import com.yogpc.mc_lib.YogpstopPacket;
 
-import static buildcraft.BuildCraftCore.actionOn;
-import static buildcraft.BuildCraftCore.actionOff;
-import buildcraft.api.gates.IAction;
-import buildcraft.api.gates.IActionReceptor;
-import buildcraft.core.EntityLaser;
-import buildcraft.core.IMachine;
-import buildcraft.core.triggers.ActionMachineControl;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -37,15 +30,13 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.util.ForgeDirection;
 
-public class TileLaser extends APowerTile implements IActionReceptor, IMachine, IEnchantableTile {
+public class TileLaser extends APowerTile implements IEnchantableTile {
 	public static class Position {
 		public double x, y, z;
-		public int l;
 	}
 
 	public Position[] lasers;
 	private final List<Object> laserTargets = new ArrayList<Object>();
-	private ActionMachineControl.Mode lastMode = ActionMachineControl.Mode.Unknown;
 
 	protected byte unbreaking;
 	protected byte fortune;
@@ -63,11 +54,6 @@ public class TileLaser extends APowerTile implements IActionReceptor, IMachine, 
 	public void updateEntity() {
 		super.updateEntity();
 		if (this.worldObj.isRemote) return;
-
-		if (this.lastMode == ActionMachineControl.Mode.Off) {
-			removeLaser();
-			return;
-		}
 
 		if (!isValidTable() && (this.worldObj.getWorldTime() % 100) == (this.from % 100)) {
 			findTable();
@@ -194,17 +180,21 @@ public class TileLaser extends APowerTile implements IActionReceptor, IMachine, 
 		}
 	}
 
+	public static final ResourceLocation[] LASER_TEXTURES = new ResourceLocation[] { new ResourceLocation("buildcraft", "textures/entities/laser_1.png"),// TODO buildcraft resource
+			new ResourceLocation("buildcraft", "textures/entities/laser_2.png"), new ResourceLocation("buildcraft", "textures/entities/laser_3.png"),// TODO buildcraft resource
+			new ResourceLocation("buildcraft", "textures/entities/laser_4.png"), new ResourceLocation("buildcraft", "textures/entities/stripes.png") };// TODO buildcraft resource
+
 	public ResourceLocation getTexture() {
 		double avg = this.pa / 100;
 
 		if (avg <= 1.0) {
-			return EntityLaser.LASER_TEXTURES[0];
+			return LASER_TEXTURES[0];
 		} else if (avg <= 2.0) {
-			return EntityLaser.LASER_TEXTURES[1];
+			return LASER_TEXTURES[1];
 		} else if (avg <= 3.0) {
-			return EntityLaser.LASER_TEXTURES[2];
+			return LASER_TEXTURES[2];
 		} else {
-			return EntityLaser.LASER_TEXTURES[3];
+			return LASER_TEXTURES[3];
 		}
 	}
 
@@ -255,35 +245,6 @@ public class TileLaser extends APowerTile implements IActionReceptor, IMachine, 
 	public void invalidate() {
 		super.invalidate();
 		removeLaser();
-	}
-
-	@Override
-	public boolean isActive() {
-		return isValidTable();
-	}
-
-	@Override
-	public boolean manageFluids() {
-		return false;
-	}
-
-	@Override
-	public boolean manageSolids() {
-		return false;
-	}
-
-	@Override
-	public boolean allowAction(IAction action) {
-		return action == actionOn || action == actionOff;
-	}
-
-	@Override
-	public void actionActivated(IAction action) {
-		if (action == actionOn) {
-			this.lastMode = ActionMachineControl.Mode.On;
-		} else if (action == actionOff) {
-			this.lastMode = ActionMachineControl.Mode.Off;
-		}
 	}
 
 	@Override

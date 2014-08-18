@@ -20,7 +20,7 @@ package com.yogpc.qp;
 import java.lang.reflect.Field;
 
 import com.yogpc.mc_lib.PacketHandler;
-import com.yogpc.mc_lib.YogpstopPacketCodec;
+import com.yogpc.qp.client.RenderEntityLaser;
 
 import buildcraft.BuildCraftBuilders;
 import buildcraft.BuildCraftCore;
@@ -31,11 +31,14 @@ import buildcraft.BuildCraftTransport;
 import buildcraft.api.recipes.BuildcraftRecipes;
 import buildcraft.api.transport.PipeWire;
 import net.minecraft.block.Block;
+import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.IIcon;
+import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.MinecraftForge;
@@ -52,8 +55,10 @@ import cpw.mods.fml.common.registry.GameData;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.common.registry.LanguageRegistry;
 import cpw.mods.fml.common.network.NetworkRegistry;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
-@Mod(modid = "QuarryPlus", name = "QuarryPlus", version = "@VERSION@", dependencies = "required-after:BuildCraft|Builders;required-after:BuildCraft|Core;required-after:BuildCraft|Energy;required-after:BuildCraft|Factory;required-after:BuildCraft|Silicon;required-after:BuildCraft|Transport")
+@Mod(modid = "QuarryPlus", name = "QuarryPlus", version = "@VERSION@", dependencies = "required-after:YogpstopLib;required-after:BuildCraft|Builders;required-after:BuildCraft|Core;required-after:BuildCraft|Energy;required-after:BuildCraft|Factory;required-after:BuildCraft|Silicon;required-after:BuildCraft|Transport")
 public class QuarryPlus {
 	public static final CreativeTabs ct = new CreativeTabQuarryPlus();
 	@SidedProxy(clientSide = "com.yogpc.qp.client.ClientProxy", serverSide = "com.yogpc.qp.CommonProxy")
@@ -61,7 +66,11 @@ public class QuarryPlus {
 	@Mod.Instance("QuarryPlus")
 	public static QuarryPlus instance;
 	public static final int refineryRenderID = RenderingRegistry.getNextAvailableRenderId();
-	public static Block blockQuarry, blockMarker, blockMover, blockMiningWell, blockPump, blockInfMJSrc, blockRefinery, blockPlacer, blockBreaker, blockLaser;
+	public static final int laserRenderID = RenderingRegistry.getNextAvailableRenderId();
+	public static final int markerRenderID = RenderingRegistry.getNextAvailableRenderId();
+	public static final int frameRenderID = RenderingRegistry.getNextAvailableRenderId();
+	public static Block blockQuarry, blockMarker, blockMover, blockMiningWell, blockPump, blockInfMJSrc, blockRefinery, blockPlacer, blockBreaker, blockLaser,
+			blockPlainPipe, blockFrame;
 	public static Item itemTool;
 	public static int RecipeDifficulty;
 	public static Field redstoneChipsetF = null;
@@ -91,6 +100,19 @@ public class QuarryPlus {
 			if (l.w == event.world) l.destructor();
 	}
 
+	@SubscribeEvent
+	@SideOnly(Side.CLIENT)
+	public void loadTextures(TextureStitchEvent.Pre evt) {
+		if (evt.map.getTextureType() == 0) {
+			TextureMap map = evt.map;
+			RenderEntityLaser.icons = new IIcon[4];
+			RenderEntityLaser.icons[EntityLaser.DRILL] = map.registerIcon("buildcraft:blockDrillTexture");// TODO buildcraft resource
+			RenderEntityLaser.icons[EntityLaser.DRILL_HEAD] = map.registerIcon("buildcraft:blockDrillHeadTexture");// TODO buildcraft resource
+			RenderEntityLaser.icons[EntityLaser.RED_LASER] = map.registerIcon("buildcraft:blockRedLaser");// TODO buildcraft resource
+			RenderEntityLaser.icons[EntityLaser.BLUE_LASER] = map.registerIcon("buildcraft:blockBlueLaser");// TODO buildcraft resource
+		}
+	}
+
 	@Mod.EventHandler
 	public void preInit(FMLPreInitializationEvent event) {
 		Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
@@ -116,11 +138,13 @@ public class QuarryPlus {
 			blockPlacer = (new BlockPlacer());
 			blockBreaker = (new BlockBreaker());
 			blockLaser = (new BlockLaser());
+			blockPlainPipe = (new BlockPlainPipe());
+			blockFrame = (new BlockFrame());
 			itemTool = (new ItemTool());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		LanguageRegistry.instance().loadLocalization("/lang/yogpstop/quarryplus/en_US.lang", "en_US", false);// TODO
+		LanguageRegistry.instance().loadLocalization("/lang/yogpstop/quarryplus/en_US.lang", "en_US", false);// TODO language deprecated
 		LanguageRegistry.instance().loadLocalization("/lang/yogpstop/quarryplus/ja_JP.lang", "ja_JP", false);
 		LanguageRegistry.instance().loadLocalization("/lang/yogpstop/quarryplus/ru_RU.lang", "ru_RU", false);
 		ForgeChunkManager.setForcedChunkLoadingCallback(instance, new ChunkLoadingHandler());
@@ -144,6 +168,8 @@ public class QuarryPlus {
 		GameRegistry.registerBlock(blockPlacer, "PlacerPlus");
 		GameRegistry.registerBlock(blockBreaker, ItemBlockBreaker.class, "BreakerPlus");
 		GameRegistry.registerBlock(blockLaser, ItemBlockQuarry.class, "LaserPlus");
+		GameRegistry.registerBlock(blockPlainPipe, "PlainPipePlus");
+		GameRegistry.registerBlock(blockFrame, "FramePlus");
 		GameRegistry.registerTileEntity(TileQuarry.class, "QuarryPlus");
 		GameRegistry.registerTileEntity(TileMarker.class, "MarkerPlus");
 		GameRegistry.registerTileEntity(TileMiningWell.class, "MiningWellPlus");

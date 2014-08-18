@@ -21,7 +21,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Random;
 
-import buildcraft.api.tools.IToolWrench;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
@@ -209,11 +208,10 @@ public class BlockBreaker extends BlockContainer {
 	@Override
 	public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer ep, int side, float par7, float par8, float par9) {
 		Item equipped = ep.getCurrentEquippedItem() != null ? ep.getCurrentEquippedItem().getItem() : null;
-		if (equipped instanceof IToolWrench && ((IToolWrench) equipped).canWrench(ep, x, y, z)) {
+		if (BuildCraftHelper.isWrench(equipped, ep, x, y, z)) {
 			int i = world.getBlockMetadata(x, y, z) + 1;
 			if (i >= 6) i = 0;
 			world.setBlockMetadataWithNotify(x, y, z, i, 2);
-			((IToolWrench) equipped).wrenchUsed(ep, x, y, z);
 			return true;
 		}
 		if (equipped instanceof ItemTool && ep.getCurrentEquippedItem().getItemDamage() == 0) {

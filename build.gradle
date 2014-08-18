@@ -50,6 +50,8 @@ def BCV = 'com.mod-buildcraft:buildcraft:' + new File('BCV').getText('UTF-8') + 
 
 dependencies {
 	compile BCV
+	compile 'com.googlecode.efficient-java-matrix-library:ejml:0.23'
+	compile files('../industrialcraft-2-2.2.584-experimental-dev.jar')
 }
 
 processResources {

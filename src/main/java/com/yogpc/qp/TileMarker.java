@@ -29,10 +29,9 @@ import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
 import com.yogpc.mc_lib.APacketTile;
 import com.yogpc.mc_lib.PacketHandler;
+import com.yogpc.mc_lib.YogpstopLib;
 import com.yogpc.mc_lib.YogpstopPacket;
 
-import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.relauncher.Side;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -45,9 +44,6 @@ import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.ForgeChunkManager.Ticket;
 import net.minecraftforge.common.ForgeChunkManager.Type;
 import buildcraft.api.core.IAreaProvider;
-import buildcraft.core.EntityBlock;
-import static buildcraft.BuildCraftCore.redLaserTexture;
-import static buildcraft.BuildCraftCore.blueLaserTexture;
 
 public class TileMarker extends APacketTile implements IAreaProvider {
 	static final ArrayList<Link> linkList = new ArrayList<Link>();
@@ -62,7 +58,7 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 		ByteArrayDataInput data = ByteStreams.newDataInput(pdata);
 		final byte flag = data.readByte();
 		final int dimId = data.readInt();
-		final World w = QuarryPlus.proxy.getClientWorld();
+		final World w = YogpstopLib.proxy.getClientWorld();
 		if (w.provider.dimensionId != dimId) return;
 		if (flag == PacketHandler.remove_link) {
 			final int index = TileMarker.linkList.indexOf(new TileMarker.Link(w, data.readInt(), data.readInt(), data.readInt(), data.readInt(),
@@ -89,7 +85,7 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 	static class Laser {
 		final World w;
 		final int x, y, z;
-		private final EntityBlock[] lasers = new EntityBlock[3];
+		private final EntityLaser[] lasers = new EntityLaser[3];
 
 		Laser(final World pw, final int px, final int py, final int pz, final Link l) {
 			final double a = 0.5, b = 0.45, c = 0.1;
@@ -98,21 +94,16 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 			this.z = pz;
 			this.w = pw;
 			if (l == null || l.xn == l.xx) {
-				this.lasers[0] = new EntityBlock(pw, px - MAX_SIZE + a, py + b, pz + b, MAX_SIZE * 2, c, c);
+				this.lasers[0] = new EntityLaser(pw, px - MAX_SIZE + a, py + b, pz + b, MAX_SIZE * 2, c, c, EntityLaser.BLUE_LASER);
 			}
 			if (l == null || l.yn == l.yx) {
-				this.lasers[1] = new EntityBlock(pw, px + b, a, pz + b, c, 255, c);
+				this.lasers[1] = new EntityLaser(pw, px + b, a, pz + b, c, 255, c, EntityLaser.BLUE_LASER);
 			}
 			if (l == null || l.zn == l.zx) {
-				this.lasers[2] = new EntityBlock(pw, px + b, py + b, pz - MAX_SIZE + a, c, c, MAX_SIZE * 2);
+				this.lasers[2] = new EntityLaser(pw, px + b, py + b, pz - MAX_SIZE + a, c, c, MAX_SIZE * 2, EntityLaser.BLUE_LASER);
 			}
-			for (EntityBlock eb : this.lasers)
-				if (eb != null) {
-					if (FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT) {
-						eb.texture = blueLaserTexture;
-					}
-					eb.worldObj.spawnEntityInWorld(eb);
-				}
+			for (EntityLaser eb : this.lasers)
+				if (eb != null) eb.worldObj.spawnEntityInWorld(eb);
 			int i = TileMarker.laserList.indexOf(this);
 			if (i >= 0) TileMarker.laserList.get(i).destructor();
 			TileMarker.laserList.add(this);
@@ -134,8 +125,8 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 					e.printStackTrace();
 				}
 			}
-			for (EntityBlock eb : this.lasers)
-				if (eb != null) QuarryPlus.proxy.removeEntity(eb);
+			for (EntityLaser eb : this.lasers)
+				if (eb != null) YogpstopLib.proxy.removeEntity(eb);
 		}
 
 		@Override
@@ -161,7 +152,7 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 
 	static class Link {
 		int xx, xn, yx, yn, zx, zn;
-		private final EntityBlock[] lasers = new EntityBlock[12];
+		private final EntityLaser[] lasers = new EntityLaser[12];
 		final World w;
 
 		Link(final World pw, final int vx, final int vy, final int vz) {
@@ -257,43 +248,38 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 			if (this.yn != this.yx) flag |= 2;
 			if (this.zn != this.zx) flag |= 4;
 			if ((flag & 1) == 1) {
-				this.lasers[0] = new EntityBlock(this.w, this.xn + a, this.yn + b, this.zn + b, this.xx - this.xn, c, c);
+				this.lasers[0] = new EntityLaser(this.w, this.xn + a, this.yn + b, this.zn + b, this.xx - this.xn, c, c, EntityLaser.RED_LASER);
 			}
 			if ((flag & 2) == 2) {
-				this.lasers[4] = new EntityBlock(this.w, this.xn + b, this.yn + a, this.zn + b, c, this.yx - this.yn, c);
+				this.lasers[4] = new EntityLaser(this.w, this.xn + b, this.yn + a, this.zn + b, c, this.yx - this.yn, c, EntityLaser.RED_LASER);
 			}
 			if ((flag & 4) == 4) {
-				this.lasers[8] = new EntityBlock(this.w, this.xn + b, this.yn + b, this.zn + a, c, c, this.zx - this.zn);
+				this.lasers[8] = new EntityLaser(this.w, this.xn + b, this.yn + b, this.zn + a, c, c, this.zx - this.zn, EntityLaser.RED_LASER);
 			}
 			if ((flag & 3) == 3) {
-				this.lasers[2] = new EntityBlock(this.w, this.xn + a, this.yx + b, this.zn + b, this.xx - this.xn, c, c);
-				this.lasers[6] = new EntityBlock(this.w, this.xx + b, this.yn + a, this.zn + b, c, this.yx - this.yn, c);
+				this.lasers[2] = new EntityLaser(this.w, this.xn + a, this.yx + b, this.zn + b, this.xx - this.xn, c, c, EntityLaser.RED_LASER);
+				this.lasers[6] = new EntityLaser(this.w, this.xx + b, this.yn + a, this.zn + b, c, this.yx - this.yn, c, EntityLaser.RED_LASER);
 			}
 			if ((flag & 5) == 5) {
-				this.lasers[1] = new EntityBlock(this.w, this.xn + a, this.yn + b, this.zx + b, this.xx - this.xn, c, c);
-				this.lasers[9] = new EntityBlock(this.w, this.xx + b, this.yn + b, this.zn + a, c, c, this.zx - this.zn);
+				this.lasers[1] = new EntityLaser(this.w, this.xn + a, this.yn + b, this.zx + b, this.xx - this.xn, c, c, EntityLaser.RED_LASER);
+				this.lasers[9] = new EntityLaser(this.w, this.xx + b, this.yn + b, this.zn + a, c, c, this.zx - this.zn, EntityLaser.RED_LASER);
 			}
 			if ((flag & 6) == 6) {
-				this.lasers[5] = new EntityBlock(this.w, this.xn + b, this.yn + a, this.zx + b, c, this.yx - this.yn, c);
-				this.lasers[10] = new EntityBlock(this.w, this.xn + b, this.yx + b, this.zn + a, c, c, this.zx - this.zn);
+				this.lasers[5] = new EntityLaser(this.w, this.xn + b, this.yn + a, this.zx + b, c, this.yx - this.yn, c, EntityLaser.RED_LASER);
+				this.lasers[10] = new EntityLaser(this.w, this.xn + b, this.yx + b, this.zn + a, c, c, this.zx - this.zn, EntityLaser.RED_LASER);
 			}
 			if ((flag & 7) == 7) {
-				this.lasers[3] = new EntityBlock(this.w, this.xn + a, this.yx + b, this.zx + b, this.xx - this.xn, c, c);
-				this.lasers[7] = new EntityBlock(this.w, this.xx + b, this.yn + a, this.zx + b, c, this.yx - this.yn, c);
-				this.lasers[11] = new EntityBlock(this.w, this.xx + b, this.yx + b, this.zn + a, c, c, this.zx - this.zn);
+				this.lasers[3] = new EntityLaser(this.w, this.xn + a, this.yx + b, this.zx + b, this.xx - this.xn, c, c, EntityLaser.RED_LASER);
+				this.lasers[7] = new EntityLaser(this.w, this.xx + b, this.yn + a, this.zx + b, c, this.yx - this.yn, c, EntityLaser.RED_LASER);
+				this.lasers[11] = new EntityLaser(this.w, this.xx + b, this.yx + b, this.zn + a, c, c, this.zx - this.zn, EntityLaser.RED_LASER);
 			}
-			for (EntityBlock eb : this.lasers)
-				if (eb != null) {
-					if (FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT) {
-						eb.texture = redLaserTexture;
-					}
-					eb.worldObj.spawnEntityInWorld(eb);
-				}
+			for (EntityLaser eb : this.lasers)
+				if (eb != null) eb.worldObj.spawnEntityInWorld(eb);
 		}
 
 		void deleteLaser() {
-			for (EntityBlock eb : this.lasers) {
-				if (eb != null) QuarryPlus.proxy.removeEntity(eb);
+			for (EntityLaser eb : this.lasers) {
+				if (eb != null) YogpstopLib.proxy.removeEntity(eb);
 			}
 		}
 

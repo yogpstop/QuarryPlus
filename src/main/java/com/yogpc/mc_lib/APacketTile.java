@@ -35,6 +35,6 @@ public abstract class APacketTile extends TileEntity {
 		ByteBuf buf = Unpooled.buffer();
 		buf.writeByte(0);
 		new YogpstopPacket(this).writeData(buf);
-		return new FMLProxyPacket(buf, "QuarryPlus");
+		return new FMLProxyPacket(buf, "YogpstopLib");
 	}
 }

@@ -17,12 +17,13 @@
 
 package com.yogpc.qp;
 
-import buildcraft.api.gates.IAction;
-import buildcraft.core.IMachine;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.IInventory;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 
-public class TileBreaker extends TileEntity implements IEnchantableTile, IMachine {
+public class TileBreaker extends TileEntity implements IEnchantableTile, IInventory {
 	boolean silktouch = false;
 	byte fortune = 0;
 
@@ -70,22 +71,59 @@ public class TileBreaker extends TileEntity implements IEnchantableTile, IMachin
 	public void G_reinit() {}
 
 	@Override
-	public boolean isActive() {
-		return true;
+	public int getSizeInventory() {
+		return 1;
 	}
 
 	@Override
-	public boolean manageFluids() {
+	public ItemStack getStackInSlot(int i) {
+		return null;
+	}
+
+	@Override
+	public ItemStack decrStackSize(int i, int a) {
+		return null;
+	}
+
+	@Override
+	public ItemStack getStackInSlotOnClosing(int i) {
+		return null;
+	}
+
+	@Override
+	public void setInventorySlotContents(int p_70299_1_, ItemStack p_70299_2_) {}
+
+	@Override
+	public String getInventoryName() {
+		return null;
+	}
+
+	@Override
+	public boolean hasCustomInventoryName() {
 		return false;
 	}
 
 	@Override
-	public boolean manageSolids() {
-		return true;
+	public int getInventoryStackLimit() {
+		return 0;
 	}
 
 	@Override
-	public boolean allowAction(IAction action) {
+	public void markDirty() {}
+
+	@Override
+	public boolean isUseableByPlayer(EntityPlayer p_70300_1_) {
+		return false;
+	}
+
+	@Override
+	public void openInventory() {}
+
+	@Override
+	public void closeInventory() {}
+
+	@Override
+	public boolean isItemValidForSlot(int p_94041_1_, ItemStack p_94041_2_) {
 		return false;
 	}
 }
