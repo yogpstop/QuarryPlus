@@ -156,7 +156,6 @@ public class TileQuarry extends TileBasic {
 			}
 			return false;
 		}
-		System.err.println("yogpstop: Unknown status");
 		return true;
 	}
 
