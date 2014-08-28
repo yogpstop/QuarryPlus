@@ -1,5 +1,5 @@
---- 1.4.5a/java/com/yogpc/qp/client/RenderRefinery.java
-+++ 1.4.5/java/com/yogpc/qp/client/RenderRefinery.java
+--- a/com/yogpc/qp/client/RenderRefinery.java
++++ b/com/yogpc/qp/client/RenderRefinery.java
 @@ -247,7 +247,7 @@
  	private static final HashMap<Integer, HashMap<Integer, int[]>> stage = new HashMap<Integer, HashMap<Integer, int[]>>();
  

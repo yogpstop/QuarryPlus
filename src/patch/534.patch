@@ -1,5 +1,5 @@
---- 1.4.7a/java/com/yogpc/qp/APowerTile.java
-+++ 1.4.7/java/com/yogpc/qp/APowerTile.java
+--- a/com/yogpc/qp/APowerTile.java
++++ b/com/yogpc/qp/APowerTile.java
 @@ -3,7 +3,6 @@
  import com.yogpc.mc_lib.APacketTile;
  
@@ -8,8 +8,8 @@
  import buildcraft.api.power.IPowerReceptor;
  import buildcraft.api.power.IPowerProvider;
  import buildcraft.api.power.PowerFramework;
---- 1.4.7a/java/com/yogpc/qp/BlockBreaker.java
-+++ 1.4.7/java/com/yogpc/qp/BlockBreaker.java
+--- a/com/yogpc/qp/BlockBreaker.java
++++ b/com/yogpc/qp/BlockBreaker.java
 @@ -22,6 +22,7 @@
  import java.util.Random;
  
@@ -54,8 +54,8 @@
  	}
  
  	static void setDispenserDefaultDirection(World w, int x, int y, int z) {
---- 1.4.7a/java/com/yogpc/qp/BlockLaser.java
-+++ 1.4.7/java/com/yogpc/qp/BlockLaser.java
+--- a/com/yogpc/qp/BlockLaser.java
++++ b/com/yogpc/qp/BlockLaser.java
 @@ -42,6 +42,9 @@
  		setHardness(10F);
  		setCreativeTab(QuarryPlus.ct);
@@ -85,8 +85,8 @@
  	}
  
  	private final ArrayList<ItemStack> drop = new ArrayList<ItemStack>();
---- 1.4.7a/java/com/yogpc/qp/BlockMarker.java
-+++ 1.4.7/java/com/yogpc/qp/BlockMarker.java
+--- a/com/yogpc/qp/BlockMarker.java
++++ b/com/yogpc/qp/BlockMarker.java
 @@ -32,12 +32,16 @@
  import net.minecraftforge.common.ForgeDirection;
  
@@ -148,8 +148,8 @@
 +		return "/mods/yogpstop_qp/textures/textures.png";
  	}
  }
---- 1.4.7a/java/com/yogpc/qp/BlockMiningWell.java
-+++ 1.4.7/java/com/yogpc/qp/BlockMiningWell.java
+--- a/com/yogpc/qp/BlockMiningWell.java
++++ b/com/yogpc/qp/BlockMiningWell.java
 @@ -43,6 +43,11 @@
  		setCreativeTab(QuarryPlus.ct);
  		setStepSound(soundStoneFootstep);
@@ -188,8 +188,8 @@
  	}
  
  	private static ForgeDirection get2dOrientation(double x1, double z1, double x2, double z2) {
---- 1.4.7a/java/com/yogpc/qp/BlockMover.java
-+++ 1.4.7/java/com/yogpc/qp/BlockMover.java
+--- a/com/yogpc/qp/BlockMover.java
++++ b/com/yogpc/qp/BlockMover.java
 @@ -32,6 +32,9 @@
  		setHardness(1.2F);
  		this.setCreativeTab(QuarryPlus.ct);
@@ -213,8 +213,8 @@
  	}
  
  	@Override
---- 1.4.7a/java/com/yogpc/qp/BlockPlacer.java
-+++ 1.4.7/java/com/yogpc/qp/BlockPlacer.java
+--- a/com/yogpc/qp/BlockPlacer.java
++++ b/com/yogpc/qp/BlockPlacer.java
 @@ -20,6 +20,7 @@
  import java.util.Random;
  
@@ -265,8 +265,8 @@
  		}
  
  		super.breakBlock(world, x, y, z, b, meta);
---- 1.4.7a/java/com/yogpc/qp/BlockPump.java
-+++ 1.4.7/java/com/yogpc/qp/BlockPump.java
+--- a/com/yogpc/qp/BlockPump.java
++++ b/com/yogpc/qp/BlockPump.java
 @@ -41,6 +41,11 @@
  		setHardness(5F);
  		setCreativeTab(QuarryPlus.ct);
@@ -303,8 +303,8 @@
  	}
  
  	@Override
---- 1.4.7a/java/com/yogpc/qp/BlockQuarry.java
-+++ 1.4.7/java/com/yogpc/qp/BlockQuarry.java
+--- a/com/yogpc/qp/BlockQuarry.java
++++ b/com/yogpc/qp/BlockQuarry.java
 @@ -43,6 +43,12 @@
  		setStepSound(soundStoneFootstep);
  		setCreativeTab(QuarryPlus.ct);
@@ -346,8 +346,8 @@
  	}
  
  	private static ForgeDirection get2dOrientation(double x1, double z1, double x2, double z2) {
---- 1.4.7a/java/com/yogpc/qp/BlockRefinery.java
-+++ 1.4.7/java/com/yogpc/qp/BlockRefinery.java
+--- a/com/yogpc/qp/BlockRefinery.java
++++ b/com/yogpc/qp/BlockRefinery.java
 @@ -20,7 +20,6 @@
  import java.util.ArrayList;
  
@@ -406,8 +406,8 @@
  			} else if (LiquidContainerRegistry.isContainer(ep.getCurrentEquippedItem())) { return true; }
  		}
  		return false;
---- 1.4.7a/java/com/yogpc/qp/EntityMechanicalArm.java
-+++ 1.4.7/java/com/yogpc/qp/EntityMechanicalArm.java
+--- a/com/yogpc/qp/EntityMechanicalArm.java
++++ b/com/yogpc/qp/EntityMechanicalArm.java
 @@ -32,7 +32,7 @@
  import net.minecraft.world.World;
  
@@ -437,8 +437,8 @@
  		this.head.shadowSize = 1.0F;
  
  		world.spawnEntityInWorld(this.xArm);
---- 1.4.7a/java/com/yogpc/qp/ItemTool.java
-+++ 1.4.7/java/com/yogpc/qp/ItemTool.java
+--- a/com/yogpc/qp/ItemTool.java
++++ b/com/yogpc/qp/ItemTool.java
 @@ -32,7 +32,6 @@
  import net.minecraft.nbt.NBTTagCompound;
  import net.minecraft.nbt.NBTTagList;
@@ -470,8 +470,8 @@
  	}
  
  	@Override
---- 1.4.7a/java/com/yogpc/qp/PowerManager.java
-+++ 1.4.7/java/com/yogpc/qp/PowerManager.java
+--- a/com/yogpc/qp/PowerManager.java
++++ b/com/yogpc/qp/PowerManager.java
 @@ -36,7 +36,7 @@
  		if (c.containsKey(name)) {
  			Property prop = c.get(name);
@@ -481,8 +481,8 @@
  				c.put(name, prop);
  			}
  			return prop.getDouble(def);
---- 1.4.7a/java/com/yogpc/qp/QuarryPlus.java
-+++ 1.4.7/java/com/yogpc/qp/QuarryPlus.java
+--- a/com/yogpc/qp/QuarryPlus.java
++++ b/com/yogpc/qp/QuarryPlus.java
 @@ -37,7 +37,6 @@
  import net.minecraftforge.common.MinecraftForge;
  import net.minecraftforge.common.Property;
@@ -500,8 +500,8 @@
  
  	public static class BlockData {
  		public final String name;
---- 1.4.7a/java/com/yogpc/qp/TileBasic.java
-+++ 1.4.7/java/com/yogpc/qp/TileBasic.java
+--- a/com/yogpc/qp/TileBasic.java
++++ b/com/yogpc/qp/TileBasic.java
 @@ -40,7 +40,6 @@
  import net.minecraft.tileentity.TileEntity;
  import net.minecraft.world.World;
@@ -510,8 +510,8 @@
  import buildcraft.api.transport.IPipeConnection;
  import buildcraft.api.transport.IPipeEntry;
  import buildcraft.api.transport.IPipedItem;
---- 1.4.7a/java/com/yogpc/qp/TileBreaker.java
-+++ 1.4.7/java/com/yogpc/qp/TileBreaker.java
+--- a/com/yogpc/qp/TileBreaker.java
++++ b/com/yogpc/qp/TileBreaker.java
 @@ -17,7 +17,6 @@
  
  package com.yogpc.qp;
@@ -520,8 +520,8 @@
  import buildcraft.core.IMachine;
  import net.minecraft.nbt.NBTTagCompound;
  import net.minecraft.tileentity.TileEntity;
---- 1.4.7a/java/com/yogpc/qp/TileLaser.java
-+++ 1.4.7/java/com/yogpc/qp/TileLaser.java
+--- a/com/yogpc/qp/TileLaser.java
++++ b/com/yogpc/qp/TileLaser.java
 @@ -272,7 +272,7 @@
  
  	@Override
@@ -531,8 +531,8 @@
  	}
  
  	@Override
---- 1.4.7a/java/com/yogpc/qp/TilePlacer.java
-+++ 1.4.7/java/com/yogpc/qp/TilePlacer.java
+--- a/com/yogpc/qp/TilePlacer.java
++++ b/com/yogpc/qp/TilePlacer.java
 @@ -17,7 +17,6 @@
  
  package com.yogpc.qp;
@@ -565,8 +565,8 @@
  	public void readFromNBT(NBTTagCompound par1NBTTagCompound) {
  		super.readFromNBT(par1NBTTagCompound);
  		NBTTagList nbttaglist = par1NBTTagCompound.getTagList("Items");
---- 1.4.7a/java/com/yogpc/qp/TilePump.java
-+++ 1.4.7/java/com/yogpc/qp/TilePump.java
+--- a/com/yogpc/qp/TilePump.java
++++ b/com/yogpc/qp/TilePump.java
 @@ -21,6 +21,7 @@
  import java.io.DataOutputStream;
  import java.util.Collection;
@@ -649,8 +649,8 @@
 +		return -1;
 +	}
  }
---- 1.4.7a/java/com/yogpc/qp/client/ClientProxy.java
-+++ 1.4.7/java/com/yogpc/qp/client/ClientProxy.java
+--- a/com/yogpc/qp/client/ClientProxy.java
++++ b/com/yogpc/qp/client/ClientProxy.java
 @@ -21,6 +21,7 @@
  import net.minecraft.client.multiplayer.WorldClient;
  import net.minecraft.entity.Entity;
@@ -667,8 +667,8 @@
  	}
  
  	@Override
---- 1.4.7a/java/com/yogpc/qp/client/GuiError.java
-+++ 1.4.7/java/com/yogpc/qp/client/GuiError.java
+--- a/com/yogpc/qp/client/GuiError.java
++++ b/com/yogpc/qp/client/GuiError.java
 @@ -19,35 +19,36 @@
  
  import cpw.mods.fml.relauncher.SideOnly;
@@ -720,8 +720,8 @@
 +		super.drawScreen(par1, par2, par3);
  	}
  }
---- 1.4.7a/java/com/yogpc/qp/client/GuiInfMJSrc.java
-+++ 1.4.7/java/com/yogpc/qp/client/GuiInfMJSrc.java
+--- a/com/yogpc/qp/client/GuiInfMJSrc.java
++++ b/com/yogpc/qp/client/GuiInfMJSrc.java
 @@ -107,7 +107,7 @@
  	public void drawScreen(int i, int j, float k) {
  		drawDefaultBackground();
@@ -731,8 +731,8 @@
  		int xb = this.width - 176 >> 1;
  		int yb = this.height - 214 >> 1;
  		drawTexturedModalRect(xb, yb, 0, 0, 176, 214);
---- 1.4.7a/java/com/yogpc/qp/client/GuiMover.java
-+++ 1.4.7/java/com/yogpc/qp/client/GuiMover.java
+--- a/com/yogpc/qp/client/GuiMover.java
++++ b/com/yogpc/qp/client/GuiMover.java
 @@ -61,7 +61,7 @@
  	@Override
  	protected void drawGuiContainerBackgroundLayer(float f, int i, int j) {
@@ -742,8 +742,8 @@
  		int l = this.width - this.xSize >> 1;
  		int i1 = this.height - this.ySize >> 1;
  		drawTexturedModalRect(l, i1, 0, 0, this.xSize, this.ySize);
---- 1.4.7a/java/com/yogpc/qp/client/GuiPlacer.java
-+++ 1.4.7/java/com/yogpc/qp/client/GuiPlacer.java
+--- a/com/yogpc/qp/client/GuiPlacer.java
++++ b/com/yogpc/qp/client/GuiPlacer.java
 @@ -41,7 +41,7 @@
  
  	@Override
@@ -762,8 +762,8 @@
  		int k = (this.width - this.xSize) / 2;
  		int l = (this.height - this.ySize) / 2;
  		this.drawTexturedModalRect(k, l, 0, 0, this.xSize, this.ySize);
---- 1.4.7a/java/com/yogpc/qp/client/RenderLaser.java
-+++ 1.4.7/java/com/yogpc/qp/client/RenderLaser.java
+--- a/com/yogpc/qp/client/RenderLaser.java
++++ b/com/yogpc/qp/client/RenderLaser.java
 @@ -37,7 +37,7 @@
  		double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
  		GL11.glRotatef((float) (360 - (Math.atan2(dz, dx) * 180.0 / Math.PI + 180.0)), 0, 1, 0);
@@ -773,8 +773,8 @@
  		float lasti = 0;
  		if (len - 1 > 0) {
  			for (float i = 0; i <= len - 1; i += 1) {
---- 1.4.7a/java/com/yogpc/qp/client/RenderRefinery.java
-+++ 1.4.7/java/com/yogpc/qp/client/RenderRefinery.java
+--- a/com/yogpc/qp/client/RenderRefinery.java
++++ b/com/yogpc/qp/client/RenderRefinery.java
 @@ -17,18 +17,27 @@
  
  package com.yogpc.qp.client;

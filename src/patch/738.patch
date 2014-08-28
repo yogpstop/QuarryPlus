@@ -1,5 +1,5 @@
---- 1.5.2a/java/com/yogpc/mc_lib/YogpstopLib.java
-+++ 1.5.2/java/com/yogpc/mc_lib/YogpstopLib.java
+--- a/com/yogpc/mc_lib/YogpstopLib.java
++++ b/com/yogpc/mc_lib/YogpstopLib.java
 @@ -13,7 +13,7 @@
  	@SidedProxy(clientSide = "com.yogpc.mc_lib.ProxyClient", serverSide = "com.yogpc.mc_lib.ProxyCommon")
  	public static ProxyCommon proxy;
@@ -9,8 +9,8 @@
  	public void init(FMLInitializationEvent event) {
  	}
  }
---- 1.5.2a/java/com/yogpc/qp/APowerTile.java
-+++ 1.5.2/java/com/yogpc/qp/APowerTile.java
+--- a/com/yogpc/qp/APowerTile.java
++++ b/com/yogpc/qp/APowerTile.java
 @@ -3,13 +3,13 @@
  import com.yogpc.mc_lib.APacketTile;
  
@@ -60,8 +60,8 @@
 +		this.pp.configure(0, 0, (int) this.recv_max, 0, (int) this.stored_max);
  	}
  }
---- 1.5.2a/java/com/yogpc/qp/QuarryPlus.java
-+++ 1.5.2/java/com/yogpc/qp/QuarryPlus.java
+--- a/com/yogpc/qp/QuarryPlus.java
++++ b/com/yogpc/qp/QuarryPlus.java
 @@ -86,7 +86,7 @@
  			if (l.w == event.world) l.destructor();
  	}
@@ -84,8 +84,8 @@
  	public void init(FMLInitializationEvent event) {
  		GameRegistry.registerItem(itemTool, "qpTool");
  		GameRegistry.registerBlock(blockQuarry, ItemBlockQuarry.class, "QuarryPlus");
---- 1.5.2a/java/com/yogpc/qp/TileBasic.java
-+++ 1.5.2/java/com/yogpc/qp/TileBasic.java
+--- a/com/yogpc/qp/TileBasic.java
++++ b/com/yogpc/qp/TileBasic.java
 @@ -41,7 +41,10 @@
  import net.minecraft.world.World;
  import net.minecraftforge.common.ForgeDirection;
@@ -133,8 +133,8 @@
  		}
  		return 0;
  	}
---- 1.5.2a/java/com/yogpc/qp/TileInfMJSrc.java
-+++ 1.5.2/java/com/yogpc/qp/TileInfMJSrc.java
+--- a/com/yogpc/qp/TileInfMJSrc.java
++++ b/com/yogpc/qp/TileInfMJSrc.java
 @@ -21,6 +21,7 @@
  import java.io.DataOutputStream;
  import java.lang.reflect.Method;
@@ -154,8 +154,8 @@
  			}
  		}
  		this.cInterval = this.interval;
---- 1.5.2a/java/com/yogpc/qp/TileLaser.java
-+++ 1.5.2/java/com/yogpc/qp/TileLaser.java
+--- a/com/yogpc/qp/TileLaser.java
++++ b/com/yogpc/qp/TileLaser.java
 @@ -27,7 +27,6 @@
  import static buildcraft.BuildCraftCore.actionOff;
  import buildcraft.api.gates.IAction;
@@ -182,8 +182,8 @@
  		}
  	}
  
---- 1.5.2a/java/com/yogpc/qp/TilePump.java
-+++ 1.5.2/java/com/yogpc/qp/TilePump.java
+--- a/com/yogpc/qp/TilePump.java
++++ b/com/yogpc/qp/TilePump.java
 @@ -38,7 +38,7 @@
  import net.minecraft.world.World;
  import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
@@ -326,8 +326,8 @@
 +		return tb == null ? 0 : tb.powerRequest(d);
  	}
  }
---- 1.5.2a/java/com/yogpc/qp/TileRefinery.java
-+++ 1.5.2/java/com/yogpc/qp/TileRefinery.java
+--- a/com/yogpc/qp/TileRefinery.java
++++ b/com/yogpc/qp/TileRefinery.java
 @@ -23,7 +23,7 @@
  import net.minecraft.entity.player.EntityPlayer;
  import net.minecraft.nbt.NBTTagCompound;
@@ -379,8 +379,8 @@
  	public byte getEfficiency() {
  		return this.efficiency;
  	}
---- 1.5.2a/java/com/yogpc/qp/client/GuiInfMJSrc.java
-+++ 1.5.2/java/com/yogpc/qp/client/GuiInfMJSrc.java
+--- a/com/yogpc/qp/client/GuiInfMJSrc.java
++++ b/com/yogpc/qp/client/GuiInfMJSrc.java
 @@ -34,7 +34,7 @@
  
  @SideOnly(Side.CLIENT)
@@ -390,8 +390,8 @@
  	private TileInfMJSrc tile;
  	private GuiTextField eng;
  	private GuiTextField itv;
---- 1.5.2a/java/com/yogpc/qp/client/GuiMover.java
-+++ 1.5.2/java/com/yogpc/qp/client/GuiMover.java
+--- a/com/yogpc/qp/client/GuiMover.java
++++ b/com/yogpc/qp/client/GuiMover.java
 @@ -35,7 +35,7 @@
  @SideOnly(Side.CLIENT)
  public class GuiMover extends GuiContainer {
@@ -401,8 +401,8 @@
  
  	public GuiMover(EntityPlayer player, World world, int x, int y, int z) {
  		super(null);
---- 1.5.2a/java/com/yogpc/qp/client/GuiP_List.java
-+++ 1.5.2/java/com/yogpc/qp/client/GuiP_List.java
+--- a/com/yogpc/qp/client/GuiP_List.java
++++ b/com/yogpc/qp/client/GuiP_List.java
 @@ -25,7 +25,6 @@
  import net.minecraft.client.gui.GuiButton;
  import net.minecraft.util.StatCollector;
@@ -419,8 +419,8 @@
  			this.mc.displayGuiScreen(new GuiYesNo(this, StatCollector.translateToLocal("tof.deletefluidsure"), name, par1.id));
  			break;
  		default:
---- 1.5.2a/java/com/yogpc/qp/client/GuiP_Manual.java
-+++ 1.5.2/java/com/yogpc/qp/client/GuiP_Manual.java
+--- a/com/yogpc/qp/client/GuiP_Manual.java
++++ b/com/yogpc/qp/client/GuiP_Manual.java
 @@ -26,7 +26,6 @@
  import net.minecraft.client.gui.GuiScreen;
  import net.minecraft.client.gui.GuiTextField;
@@ -441,8 +441,8 @@
  			this.mc.displayGuiScreen(new GuiYesNo(this, StatCollector.translateToLocal("tof.addfluidsure"), name, -1));
  			break;
  		case -2:
---- 1.5.2a/java/com/yogpc/qp/client/GuiP_SlotBlockList.java
-+++ 1.5.2/java/com/yogpc/qp/client/GuiP_SlotBlockList.java
+--- a/com/yogpc/qp/client/GuiP_SlotBlockList.java
++++ b/com/yogpc/qp/client/GuiP_SlotBlockList.java
 @@ -77,7 +77,7 @@
  
  	@Override
@@ -452,8 +452,8 @@
  		Minecraft.getMinecraft().fontRenderer.drawStringWithShadow(name, (this.parent.width - Minecraft.getMinecraft().fontRenderer.getStringWidth(name)) / 2,
  				var3 + 1, 0xFFFFFF);
  	}
---- 1.5.2a/java/com/yogpc/qp/client/GuiP_SlotList.java
-+++ 1.5.2/java/com/yogpc/qp/client/GuiP_SlotList.java
+--- a/com/yogpc/qp/client/GuiP_SlotList.java
++++ b/com/yogpc/qp/client/GuiP_SlotList.java
 @@ -25,7 +25,6 @@
  import net.minecraft.client.gui.GuiScreen;
  import net.minecraft.client.gui.GuiSlot;
@@ -470,8 +470,8 @@
  		Minecraft.getMinecraft().fontRenderer.drawStringWithShadow(name,
  				(this.parent.width * 3 / 5 - Minecraft.getMinecraft().fontRenderer.getStringWidth(name)) / 2, var3 + 1, 0xFFFFFF);
  	}
---- 1.5.2a/java/com/yogpc/qp/client/RenderQuarry.java
-+++ 1.5.2/java/com/yogpc/qp/client/RenderQuarry.java
+--- a/com/yogpc/qp/client/RenderQuarry.java
++++ b/com/yogpc/qp/client/RenderQuarry.java
 @@ -2,8 +2,6 @@
  
  import org.lwjgl.opengl.GL11;
@@ -491,8 +491,8 @@
  		GL11.glPopMatrix();
  	}
  
---- 1.5.2a/java/com/yogpc/qp/client/RenderRefinery.java
-+++ 1.5.2/java/com/yogpc/qp/client/RenderRefinery.java
+--- a/com/yogpc/qp/client/RenderRefinery.java
++++ b/com/yogpc/qp/client/RenderRefinery.java
 @@ -40,7 +40,7 @@
  @SideOnly(Side.CLIENT)
  public class RenderRefinery extends TileEntitySpecialRenderer implements ISimpleBlockRenderingHandler {

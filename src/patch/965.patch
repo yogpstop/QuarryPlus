@@ -1,5 +1,5 @@
---- 1.6.4a/java/com/yogpc/mc_lib/APacketTile.java
-+++ 1.6.4/java/com/yogpc/mc_lib/APacketTile.java
+--- a/com/yogpc/mc_lib/APacketTile.java
++++ b/com/yogpc/mc_lib/APacketTile.java
 @@ -29,9 +29,6 @@
  
  	@Override
@@ -11,8 +11,8 @@
 +		return PacketHandler.getPacket(new YogpstopPacket(this));
  	}
  }
---- 1.6.4a/java/com/yogpc/mc_lib/PacketHandler.java
-+++ 1.6.4/java/com/yogpc/mc_lib/PacketHandler.java
+--- a/com/yogpc/mc_lib/PacketHandler.java
++++ b/com/yogpc/mc_lib/PacketHandler.java
 @@ -26,7 +26,6 @@
  import java.lang.annotation.RetentionPolicy;
  import java.lang.annotation.Target;
@@ -106,8 +106,8 @@
  	}
  
  	private static void setNBTFromPacket(YogpstopPacket p) {
---- 1.6.4a/java/com/yogpc/mc_lib/ProxyClient.java
-+++ 1.6.4/java/com/yogpc/mc_lib/ProxyClient.java
+--- a/com/yogpc/mc_lib/ProxyClient.java
++++ b/com/yogpc/mc_lib/ProxyClient.java
 @@ -1,18 +1,9 @@
  package com.yogpc.mc_lib;
  
@@ -127,8 +127,8 @@
 -		return Minecraft.getMinecraft().thePlayer;
 -	}
  }
---- 1.6.4a/java/com/yogpc/mc_lib/ProxyCommon.java
-+++ 1.6.4/java/com/yogpc/mc_lib/ProxyCommon.java
+--- a/com/yogpc/mc_lib/ProxyCommon.java
++++ b/com/yogpc/mc_lib/ProxyCommon.java
 @@ -1,13 +1,6 @@
  package com.yogpc.mc_lib;
  
@@ -143,8 +143,8 @@
 -		return null;
 -	}
  }
---- 1.6.4a/java/com/yogpc/mc_lib/YogpstopLib.java
-+++ 1.6.4/java/com/yogpc/mc_lib/YogpstopLib.java
+--- a/com/yogpc/mc_lib/YogpstopLib.java
++++ b/com/yogpc/mc_lib/YogpstopLib.java
 @@ -3,9 +3,11 @@
  import cpw.mods.fml.common.Mod;
  import cpw.mods.fml.common.SidedProxy;
@@ -164,8 +164,8 @@
 -		PacketHandler.channels = NetworkRegistry.instance().newChannel("QuarryPlus", new YogpstopPacketCodec(), new PacketHandler());
  	}
  }
---- 1.6.4a/java/com/yogpc/mc_lib/YogpstopPacket.java
-+++ 1.6.4/java/com/yogpc/mc_lib/YogpstopPacket.java
+--- a/com/yogpc/mc_lib/YogpstopPacket.java
++++ b/com/yogpc/mc_lib/YogpstopPacket.java
 @@ -4,7 +4,7 @@
  import java.io.DataOutputStream;
  import java.io.IOException;
@@ -208,8 +208,8 @@
 +		return d;
  	}
  }
---- 1.6.4a/java/com/yogpc/qp/APowerTile.java
-+++ 1.6.4/java/com/yogpc/qp/APowerTile.java
+--- a/com/yogpc/qp/APowerTile.java
++++ b/com/yogpc/qp/APowerTile.java
 @@ -20,7 +20,7 @@
  		double tick_received = 0;
  		double remain_receive;
@@ -236,8 +236,8 @@
 +		this.pp.configure(0, (float) this.recv_max, 0, (float) this.stored_max);
  	}
  }
---- 1.6.4a/java/com/yogpc/qp/BlockBreaker.java
-+++ 1.6.4/java/com/yogpc/qp/BlockBreaker.java
+--- a/com/yogpc/qp/BlockBreaker.java
++++ b/com/yogpc/qp/BlockBreaker.java
 @@ -36,9 +36,7 @@
  import net.minecraft.item.ItemStack;
  import net.minecraft.tileentity.TileEntity;
@@ -314,8 +314,8 @@
  				is = new ItemStack(id1, 1, damageDropped(meta));
  				EnchantmentHelper.enchantmentToIS(tile, is);
  				this.drop.add(is);
---- 1.6.4a/java/com/yogpc/qp/BlockInfMJSrc.java
-+++ 1.6.4/java/com/yogpc/qp/BlockInfMJSrc.java
+--- a/com/yogpc/qp/BlockInfMJSrc.java
++++ b/com/yogpc/qp/BlockInfMJSrc.java
 @@ -29,8 +29,8 @@
  
  public class BlockInfMJSrc extends BlockContainer {
@@ -327,8 +327,8 @@
  		setHardness(1.5F);
  		setResistance(10F);
  		setStepSound(soundStoneFootstep);
---- 1.6.4a/java/com/yogpc/qp/BlockLaser.java
-+++ 1.6.4/java/com/yogpc/qp/BlockLaser.java
+--- a/com/yogpc/qp/BlockLaser.java
++++ b/com/yogpc/qp/BlockLaser.java
 @@ -22,7 +22,6 @@
  import static buildcraft.silicon.SiliconProxy.laserBlockModel;
  import cpw.mods.fml.relauncher.Side;
@@ -357,8 +357,8 @@
  				is = new ItemStack(it, 1, damageDropped(meta));
  				EnchantmentHelper.enchantmentToIS(tile, is);
  				this.drop.add(is);
---- 1.6.4a/java/com/yogpc/qp/BlockMarker.java
-+++ 1.6.4/java/com/yogpc/qp/BlockMarker.java
+--- a/com/yogpc/qp/BlockMarker.java
++++ b/com/yogpc/qp/BlockMarker.java
 @@ -20,7 +20,6 @@
  import static buildcraft.BuildCraftCore.markerModel;
  import cpw.mods.fml.relauncher.Side;
@@ -378,8 +378,8 @@
  		setLightValue(0.5F);
  		setCreativeTab(QuarryPlus.ct);
  		setUnlocalizedName("MarkerPlus");
---- 1.6.4a/java/com/yogpc/qp/BlockMiningWell.java
-+++ 1.6.4/java/com/yogpc/qp/BlockMiningWell.java
+--- a/com/yogpc/qp/BlockMiningWell.java
++++ b/com/yogpc/qp/BlockMiningWell.java
 @@ -22,7 +22,6 @@
  import buildcraft.api.tools.IToolWrench;
  import cpw.mods.fml.relauncher.Side;
@@ -408,8 +408,8 @@
  			for (int i = 0; i < count; i++) {
  				ItemStack is = new ItemStack(it, 1, damageDropped(meta));
  				EnchantmentHelper.enchantmentToIS(tile, is);
---- 1.6.4a/java/com/yogpc/qp/BlockMover.java
-+++ 1.6.4/java/com/yogpc/qp/BlockMover.java
+--- a/com/yogpc/qp/BlockMover.java
++++ b/com/yogpc/qp/BlockMover.java
 @@ -29,8 +29,8 @@
  public class BlockMover extends Block {
  	Icon textureTop, textureBottom;
@@ -421,8 +421,8 @@
  		setHardness(1.2F);
  		this.setCreativeTab(QuarryPlus.ct);
  		setUnlocalizedName("EnchantMover");
---- 1.6.4a/java/com/yogpc/qp/BlockPlacer.java
-+++ 1.6.4/java/com/yogpc/qp/BlockPlacer.java
+--- a/com/yogpc/qp/BlockPlacer.java
++++ b/com/yogpc/qp/BlockPlacer.java
 @@ -35,9 +35,7 @@
  import net.minecraft.nbt.NBTTagCompound;
  import net.minecraft.tileentity.TileEntity;
@@ -471,8 +471,8 @@
  				if (k != null && k.onBlockActivated(world, tx, ty, tz, player, sd1, 0.5F, 0.5F, 0.5F)) break;
  				if (is != null) {
  					if (is.tryPlaceItemIntoWorld(player, world, tx, ty, tz, sd1, 0.5F, 0.5F, 0.5F)) break;
---- 1.6.4a/java/com/yogpc/qp/BlockPump.java
-+++ 1.6.4/java/com/yogpc/qp/BlockPump.java
+--- a/com/yogpc/qp/BlockPump.java
++++ b/com/yogpc/qp/BlockPump.java
 @@ -22,7 +22,6 @@
  import buildcraft.api.tools.IToolWrench;
  import cpw.mods.fml.relauncher.Side;
@@ -501,8 +501,8 @@
  			for (int i = 0; i < count; i++) {
  				ItemStack is = new ItemStack(it, 1, damageDropped(meta));
  				EnchantmentHelper.enchantmentToIS(tile, is);
---- 1.6.4a/java/com/yogpc/qp/BlockQuarry.java
-+++ 1.6.4/java/com/yogpc/qp/BlockQuarry.java
+--- a/com/yogpc/qp/BlockQuarry.java
++++ b/com/yogpc/qp/BlockQuarry.java
 @@ -22,7 +22,6 @@
  import buildcraft.api.tools.IToolWrench;
  import cpw.mods.fml.relauncher.Side;
@@ -531,8 +531,8 @@
  			for (int i = 0; i < count; i++) {
  				ItemStack is = new ItemStack(it, 1, damageDropped(meta));
  				EnchantmentHelper.enchantmentToIS(tile, is);
---- 1.6.4a/java/com/yogpc/qp/BlockRefinery.java
-+++ 1.6.4/java/com/yogpc/qp/BlockRefinery.java
+--- a/com/yogpc/qp/BlockRefinery.java
++++ b/com/yogpc/qp/BlockRefinery.java
 @@ -21,7 +21,6 @@
  
  import buildcraft.api.tools.IToolWrench;
@@ -561,8 +561,8 @@
  			for (int i = 0; i < count; i++) {
  				ItemStack is = new ItemStack(it, 1, damageDropped(meta));
  				EnchantmentHelper.enchantmentToIS(tile, is);
---- 1.6.4a/java/com/yogpc/qp/ChunkLoadingHandler.java
-+++ 1.6.4/java/com/yogpc/qp/ChunkLoadingHandler.java
+--- a/com/yogpc/qp/ChunkLoadingHandler.java
++++ b/com/yogpc/qp/ChunkLoadingHandler.java
 @@ -19,7 +19,6 @@
  
  import java.util.List;
@@ -582,8 +582,8 @@
  				validTickets.add(ticket);
  			}
  		}
---- 1.6.4a/java/com/yogpc/qp/ContainerMover.java
-+++ 1.6.4/java/com/yogpc/qp/ContainerMover.java
+--- a/com/yogpc/qp/ContainerMover.java
++++ b/com/yogpc/qp/ContainerMover.java
 @@ -81,7 +81,7 @@
  
  	@Override
@@ -602,8 +602,8 @@
  							}
  							list = nlist;
  						}
---- 1.6.4a/java/com/yogpc/qp/CreativeTabQuarryPlus.java
-+++ 1.6.4/java/com/yogpc/qp/CreativeTabQuarryPlus.java
+--- a/com/yogpc/qp/CreativeTabQuarryPlus.java
++++ b/com/yogpc/qp/CreativeTabQuarryPlus.java
 @@ -11,7 +11,7 @@
  
  	@Override
@@ -613,8 +613,8 @@
  	}
  
  }
---- 1.6.4a/java/com/yogpc/qp/EnchantmentHelper.java
-+++ 1.6.4/java/com/yogpc/qp/EnchantmentHelper.java
+--- a/com/yogpc/qp/EnchantmentHelper.java
++++ b/com/yogpc/qp/EnchantmentHelper.java
 @@ -22,6 +22,7 @@
  
  import net.minecraft.enchantment.Enchantment;
@@ -623,8 +623,8 @@
  import net.minecraft.nbt.NBTTagList;
  import net.minecraft.util.StatCollector;
  
---- 1.6.4a/java/com/yogpc/qp/ItemBlockBreaker.java
-+++ 1.6.4/java/com/yogpc/qp/ItemBlockBreaker.java
+--- a/com/yogpc/qp/ItemBlockBreaker.java
++++ b/com/yogpc/qp/ItemBlockBreaker.java
 @@ -17,13 +17,12 @@
  
  package com.yogpc.qp;
@@ -640,8 +640,8 @@
  		super(b);
  	}
  
---- 1.6.4a/java/com/yogpc/qp/ItemBlockPump.java
-+++ 1.6.4/java/com/yogpc/qp/ItemBlockPump.java
+--- a/com/yogpc/qp/ItemBlockPump.java
++++ b/com/yogpc/qp/ItemBlockPump.java
 @@ -17,13 +17,12 @@
  
  package com.yogpc.qp;
@@ -657,8 +657,8 @@
  		super(b);
  	}
  
---- 1.6.4a/java/com/yogpc/qp/ItemBlockQuarry.java
-+++ 1.6.4/java/com/yogpc/qp/ItemBlockQuarry.java
+--- a/com/yogpc/qp/ItemBlockQuarry.java
++++ b/com/yogpc/qp/ItemBlockQuarry.java
 @@ -17,13 +17,12 @@
  
  package com.yogpc.qp;
@@ -674,8 +674,8 @@
  		super(b);
  	}
  
---- 1.6.4a/java/com/yogpc/qp/ItemBlockRefinery.java
-+++ 1.6.4/java/com/yogpc/qp/ItemBlockRefinery.java
+--- a/com/yogpc/qp/ItemBlockRefinery.java
++++ b/com/yogpc/qp/ItemBlockRefinery.java
 @@ -17,13 +17,12 @@
  
  package com.yogpc.qp;
@@ -691,8 +691,8 @@
  		super(b);
  	}
  
---- 1.6.4a/java/com/yogpc/qp/ItemTool.java
-+++ 1.6.4/java/com/yogpc/qp/ItemTool.java
+--- a/com/yogpc/qp/ItemTool.java
++++ b/com/yogpc/qp/ItemTool.java
 @@ -22,7 +22,6 @@
  import com.yogpc.mc_lib.PacketHandler;
  import com.yogpc.qp.QuarryPlus.BlockData;
@@ -730,8 +730,8 @@
  				int meta = w.getBlockMetadata(x, y, z);
  				if (c.hasKey("Bname") && name.equals(c.getString("Bname")) && meta == c.getInteger("Bmeta")) {
  					c.setInteger("Bmeta", OreDictionary.WILDCARD_VALUE);
---- 1.6.4a/java/com/yogpc/qp/QuarryPlus.java
-+++ 1.6.4/java/com/yogpc/qp/QuarryPlus.java
+--- a/com/yogpc/qp/QuarryPlus.java
++++ b/com/yogpc/qp/QuarryPlus.java
 @@ -20,7 +20,6 @@
  import java.lang.reflect.Field;
  
@@ -884,8 +884,8 @@
  		return sb.toString();
  	}
  }
---- 1.6.4a/java/com/yogpc/qp/TileBasic.java
-+++ 1.6.4/java/com/yogpc/qp/TileBasic.java
+--- a/com/yogpc/qp/TileBasic.java
++++ b/com/yogpc/qp/TileBasic.java
 @@ -32,7 +32,6 @@
  import com.yogpc.mc_lib.YogpstopPacket;
  import com.yogpc.qp.QuarryPlus.BlockData;
@@ -930,8 +930,8 @@
  			list.addAll(b.getBlockDropped(this.worldObj, x, y, z, meta, this.fortune));
  			return this.fortune;
  		}
---- 1.6.4a/java/com/yogpc/qp/TileMarker.java
-+++ 1.6.4/java/com/yogpc/qp/TileMarker.java
+--- a/com/yogpc/qp/TileMarker.java
++++ b/com/yogpc/qp/TileMarker.java
 @@ -194,7 +194,7 @@
  		private final ArrayList<ItemStack> removeLink(final int x, final int y, final int z, final boolean bb) {
  			final ArrayList<ItemStack> ret = new ArrayList<ItemStack>();
@@ -1007,8 +1007,8 @@
 +		if (this.worldObj.getBlockId(this.xCoord, this.yCoord, this.zCoord) != QuarryPlus.blockMarker.blockID) G_destroy();
  	}
  }
---- 1.6.4a/java/com/yogpc/qp/TileMiningWell.java
-+++ 1.6.4/java/com/yogpc/qp/TileMiningWell.java
+--- a/com/yogpc/qp/TileMiningWell.java
++++ b/com/yogpc/qp/TileMiningWell.java
 @@ -61,7 +61,7 @@
  		if (this.worldObj.isRemote) return;
  		int depth = this.yCoord - 1;
@@ -1041,8 +1041,8 @@
  				break;
  			}
  			this.worldObj.setBlockToAir(this.xCoord, depth, this.zCoord);
---- 1.6.4a/java/com/yogpc/qp/TilePump.java
-+++ 1.6.4/java/com/yogpc/qp/TilePump.java
+--- a/com/yogpc/qp/TilePump.java
++++ b/com/yogpc/qp/TilePump.java
 @@ -30,7 +30,6 @@
  
  import net.minecraft.block.Block;
@@ -1115,8 +1115,8 @@
  		int meta = this.ebses[bx >> 4][bz >> 4][this.py >> 4].getExtBlockMetadata(bx & 0xF, this.py & 0xF, bz & 0xF);
  		if (isLiquid(b, false, null, 0, 0, 0, 0)) {
  			FluidStack fs = null;
---- 1.6.4a/java/com/yogpc/qp/TileQuarry.java
-+++ 1.6.4/java/com/yogpc/qp/TileQuarry.java
+--- a/com/yogpc/qp/TileQuarry.java
++++ b/com/yogpc/qp/TileQuarry.java
 @@ -90,8 +90,8 @@
  
  	private boolean S_checkTarget() {
@@ -1146,8 +1146,8 @@
  		S_setNextTarget();
  		return true;
  	}
---- 1.6.4a/java/com/yogpc/qp/TileRefinery.java
-+++ 1.6.4/java/com/yogpc/qp/TileRefinery.java
+--- a/com/yogpc/qp/TileRefinery.java
++++ b/com/yogpc/qp/TileRefinery.java
 @@ -107,9 +107,9 @@
  				decreaseAnimation();
  				return;
@@ -1160,8 +1160,8 @@
  				decreaseAnimation();
  				return;
  			}
---- 1.6.4a/java/com/yogpc/qp/client/RenderRefinery.java
-+++ 1.6.4/java/com/yogpc/qp/client/RenderRefinery.java
+--- a/com/yogpc/qp/client/RenderRefinery.java
++++ b/com/yogpc/qp/client/RenderRefinery.java
 @@ -21,7 +21,7 @@
  import net.minecraft.client.model.ModelBase;
  import net.minecraft.client.model.ModelRenderer;
