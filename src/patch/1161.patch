@@ -1,3 +1,32 @@
+--- a/com/yogpc/ip/ItemArmorElectric.java
++++ b/com/yogpc/ip/ItemArmorElectric.java
+@@ -74,7 +74,7 @@
+ 					}
+ 				}
+ 			}
+-			ElectricItem.manager.discharge(jetpack, hover ? 7 : 8, Integer.MAX_VALUE, true, false, false);
++			ElectricItem.manager.discharge(jetpack, hover ? 7 : 8, Integer.MAX_VALUE, true, false);
+ 			{
+ 				p.fallDistance = 0.0f;
+ 				p.distanceWalkedModified = 0.0f;
+@@ -132,7 +132,7 @@
+ 	@SideOnly(Side.CLIENT)
+ 	public void getSubItems(Item item, CreativeTabs par2CreativeTabs, List itemList) {
+ 		ItemStack charged = new ItemStack(this, 1);
+-		ElectricItem.manager.charge(charged, Double.POSITIVE_INFINITY, Integer.MAX_VALUE, true, false);
++		ElectricItem.manager.charge(charged, Integer.MAX_VALUE, Integer.MAX_VALUE, true, false);
+ 		itemList.add(charged);
+ 		itemList.add(new ItemStack(this, 1, this.getMaxDamage()));
+ 	}
+@@ -152,7 +152,7 @@
+ 
+ 	@Override
+ 	public void damageArmor(EntityLivingBase entity, ItemStack stack, DamageSource source, int damage, int slot) {
+-		ElectricItem.manager.discharge(stack, damage * 5000, Integer.MAX_VALUE, true, false, false);
++		ElectricItem.manager.discharge(stack, damage * 5000, Integer.MAX_VALUE, true, false);
+ 	}
+ 
+ 	@Override
 --- a/com/yogpc/mc_lib/PacketHandler.java
 +++ b/com/yogpc/mc_lib/PacketHandler.java
 @@ -37,7 +37,6 @@
@@ -8,7 +37,7 @@
  import net.minecraft.nbt.NBTTagCompound;
  import net.minecraft.tileentity.TileEntity;
  
-@@ -151,7 +150,7 @@
+@@ -155,7 +154,7 @@
  
  	private static void setNBTFromPacket(YogpstopPacket p) {
  		try {
@@ -19,7 +48,7 @@
  		} catch (IOException e) {
 --- a/com/yogpc/qp/TilePump.java
 +++ b/com/yogpc/qp/TilePump.java
-@@ -489,7 +489,7 @@
+@@ -488,7 +488,7 @@
  		if (this.liquids.size() > 0) {
  			ret[0] = StatCollector.translateToLocal("chat.pumpcontain");
  			for (int i = 0; i < this.liquids.size(); i++) {
