@@ -179,10 +179,12 @@
  	private static void setNBTFromPacket(YogpstopPacket p) {
 --- a/com/yogpc/mc_lib/ProxyClient.java
 +++ b/com/yogpc/mc_lib/ProxyClient.java
-@@ -1,43 +1,53 @@
+@@ -1,43 +1,63 @@
  package com.yogpc.mc_lib;
  
++import java.util.ArrayList;
 +import java.util.EnumSet;
++import java.util.List;
 +
  import net.minecraft.client.Minecraft;
  import net.minecraft.client.gui.GuiScreen;
@@ -211,14 +213,22 @@
  	private int key = 0;
  
  	static {
++		List<KeyBinding> bs = new ArrayList<KeyBinding>();
  		for (Key k : Key.values()) {
  			if (k.name != null) {
 -				k.binding = new KeyBinding(k.name, k.id, "YogpstopLib");
 -				ClientRegistry.registerKeyBinding((KeyBinding) k.binding);
 +				k.binding = new KeyBinding(k.name, k.id);
-+				//ClientRegistry.registerKeyBinding((KeyBinding) k.binding);
++				bs.add((KeyBinding) k.binding);
  			}
  		}
++		GameSettings set = Minecraft.getMinecraft().gameSettings;
++		KeyBinding[] add = bs.toArray(new KeyBinding[bs.size()]);
++		KeyBinding[] all = new KeyBinding[set.keyBindings.length + add.length];
++		System.arraycopy(set.keyBindings, 0, all, 0, set.keyBindings.length);
++		System.arraycopy(add, 0, all, set.keyBindings.length, add.length);
++		set.keyBindings = all;
++		set.loadOptions();
  	}
  
  	public ProxyClient() {
@@ -247,7 +257,7 @@
  		int prev = this.key;
  		this.key = 0;
  		GuiScreen currentScreen = Minecraft.getMinecraft().currentScreen;
-@@ -72,12 +82,6 @@
+@@ -72,12 +92,6 @@
  	}
  
  	@Override

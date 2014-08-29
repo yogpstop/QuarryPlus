@@ -1,3 +1,35 @@
+--- a/com/yogpc/mc_lib/ProxyClient.java
++++ b/com/yogpc/mc_lib/ProxyClient.java
+@@ -5,7 +5,6 @@
+ import net.minecraft.client.Minecraft;
+ import net.minecraft.client.gui.GuiScreen;
+ import net.minecraft.client.multiplayer.WorldClient;
+-import net.minecraft.client.settings.GameSettings;
+ import net.minecraft.client.settings.KeyBinding;
+ import net.minecraft.entity.Entity;
+ import net.minecraft.world.World;
+@@ -54,18 +53,18 @@
+ 		if ((currentScreen == null) || (currentScreen.allowUserInput)) {
+ 			for (Key k : Key.values()) {
+ 				if (k.binding instanceof KeyBinding) {
+-					if (GameSettings.isKeyDown((KeyBinding) k.binding)) {
++					if (((KeyBinding) k.binding).pressed) {
+ 						this.key |= 1 << k.ordinal();
+ 					}
+ 				} else {
+ 					switch (k) {
+ 					case forward:
+-						if (GameSettings.isKeyDown(Minecraft.getMinecraft().gameSettings.keyBindForward)) {
++						if (Minecraft.getMinecraft().gameSettings.keyBindForward.pressed) {
+ 							this.key |= 1 << k.ordinal();
+ 						}
+ 						break;
+ 					case jump:
+-						if (GameSettings.isKeyDown(Minecraft.getMinecraft().gameSettings.keyBindJump)) {
++						if (Minecraft.getMinecraft().gameSettings.keyBindJump.pressed) {
+ 							this.key |= 1 << k.ordinal();
+ 						}
+ 						break;
 --- a/com/yogpc/qp/APowerTile.java
 +++ b/com/yogpc/qp/APowerTile.java
 @@ -3,7 +3,6 @@
@@ -18,7 +50,7 @@
  import cpw.mods.fml.relauncher.Side;
  import cpw.mods.fml.relauncher.SideOnly;
  import net.minecraft.block.Block;
-@@ -53,6 +54,10 @@
+@@ -50,6 +51,10 @@
  		this.setHardness(3.5F);
  		this.setStepSound(soundStoneFootstep);
  		this.setBlockName("BreakerPlus");
@@ -29,7 +61,7 @@
  	}
  
  	@Override
-@@ -77,11 +82,8 @@
+@@ -74,11 +79,8 @@
  
  	@Override
  	@SideOnly(Side.CLIENT)
@@ -43,7 +75,7 @@
  	}
  
  	@Override
-@@ -142,8 +144,8 @@
+@@ -139,8 +141,8 @@
  
  	@Override
  	public void onBlockPlacedBy(World world, int x, int y, int z, EntityLiving ent) {
@@ -54,9 +86,58 @@
  	}
  
  	static void setDispenserDefaultDirection(World w, int x, int y, int z) {
+--- a/com/yogpc/qp/BlockFrame.java
++++ b/com/yogpc/qp/BlockFrame.java
+@@ -23,12 +23,12 @@
+ 		setSides(true, true, true, true, true, true);
+ 		setHardness(0.5F);
+ 		setTickRandomly(true);
++		this.blockIndexInTexture = 34;
+ 	}
+ 
+ 	@Override
+-	@SideOnly(Side.CLIENT)
+-	public void registerIcons(IconRegister ir) {
+-		this.blockIndexInTexture = ir.registerIcon("buildcraft:blockFrame");// TODO buildcraft resource
++	public String getTextureFile() {
++		return "/gfx/buildcraft/blocks/blocks.png";// TODO buildcraft resource
+ 	}
+ 
+ 	@Override
+--- a/com/yogpc/qp/BlockInfMJSrc.java
++++ b/com/yogpc/qp/BlockInfMJSrc.java
+@@ -17,13 +17,12 @@
+ 
+ package com.yogpc.qp;
+ 
++import net.minecraft.block.Block;
+ import net.minecraft.block.BlockContainer;
+ import net.minecraft.block.material.Material;
+ import net.minecraft.entity.player.EntityPlayer;
+ import net.minecraft.tileentity.TileEntity;
+ import net.minecraft.world.World;
+-import cpw.mods.fml.relauncher.SideOnly;
+-import cpw.mods.fml.relauncher.Side;
+ 
+ public class BlockInfMJSrc extends BlockContainer {
+ 
+@@ -34,12 +33,7 @@
+ 		setStepSound(soundStoneFootstep);
+ 		setCreativeTab(QuarryPlus.ct);
+ 		setBlockName("InfMJSrc");
+-	}
+-
+-	@Override
+-	@SideOnly(Side.CLIENT)
+-	public void registerIcons(IconRegister ir) {
+-		this.blockIndexInTexture = ir.registerIcon("portal");
++		this.blockIndexInTexture=Block.portal.blockIndexInTexture;
+ 	}
+ 
+ 	@Override
 --- a/com/yogpc/qp/BlockLaser.java
 +++ b/com/yogpc/qp/BlockLaser.java
-@@ -43,6 +43,9 @@
+@@ -41,6 +41,9 @@
  		setHardness(10F);
  		setCreativeTab(QuarryPlus.ct);
  		this.setBlockName("LaserPlus");
@@ -66,7 +147,7 @@
  	}
  
  	@Override
-@@ -82,15 +85,13 @@
+@@ -80,15 +83,13 @@
  
  	@Override
  	@SideOnly(Side.CLIENT)
@@ -87,7 +168,7 @@
  	private final ArrayList<ItemStack> drop = new ArrayList<ItemStack>();
 --- a/com/yogpc/qp/BlockMarker.java
 +++ b/com/yogpc/qp/BlockMarker.java
-@@ -32,12 +32,16 @@
+@@ -31,12 +31,16 @@
  import net.minecraftforge.common.ForgeDirection;
  
  public class BlockMarker extends BlockContainer {
@@ -104,7 +185,7 @@
  	}
  
  	@Override
-@@ -49,7 +53,7 @@
+@@ -48,7 +52,7 @@
  	public void setBlockBoundsBasedOnState(IBlockAccess world, int x, int y, int z) {
  		float w = 0.15F;
  		float h = 0.65F;
@@ -113,7 +194,7 @@
  		switch (dir) {
  		case DOWN:
  			this.setBlockBounds(0.5F - w, 1F - h, 0.5F - w, 0.5F + w, 1F, 0.5F + w);
-@@ -89,13 +93,13 @@
+@@ -88,13 +92,13 @@
  
  	@Override
  	public boolean canPlaceBlockOnSide(World world, int x, int y, int z, int side) {
@@ -129,7 +210,7 @@
  	}
  
  	@Override
-@@ -106,7 +110,7 @@
+@@ -105,7 +109,7 @@
  
  	private void dropTorchIfCantStay(World w, int x, int y, int z) {
  		int m = w.getBlockMetadata(x, y, z);
@@ -138,7 +219,7 @@
  			dropBlockAsItem(w, x, y, z, m, 0);
  			w.setBlock(x, y, z, 0);
  		}
-@@ -147,7 +151,7 @@
+@@ -146,7 +150,7 @@
  
  	@Override
  	@SideOnly(Side.CLIENT)
@@ -150,7 +231,7 @@
  }
 --- a/com/yogpc/qp/BlockMiningWell.java
 +++ b/com/yogpc/qp/BlockMiningWell.java
-@@ -44,6 +44,11 @@
+@@ -42,6 +42,11 @@
  		setCreativeTab(QuarryPlus.ct);
  		setStepSound(soundStoneFootstep);
  		setBlockName("MiningWellPlus");
@@ -162,7 +243,7 @@
  	}
  
  	@Override
-@@ -53,12 +58,8 @@
+@@ -51,12 +56,8 @@
  
  	@Override
  	@SideOnly(Side.CLIENT)
@@ -177,7 +258,7 @@
  	}
  
  	@Override
-@@ -84,8 +85,8 @@
+@@ -82,8 +83,8 @@
  	public void onBlockPlacedBy(World w, int x, int y, int z, EntityLiving el) {
  		super.onBlockPlacedBy(w, x, y, z, el);
  		ForgeDirection orientation = get2dOrientation(el.posX, el.posZ, x, z);
@@ -190,7 +271,7 @@
  	private static ForgeDirection get2dOrientation(double x1, double z1, double x2, double z2) {
 --- a/com/yogpc/qp/BlockMover.java
 +++ b/com/yogpc/qp/BlockMover.java
-@@ -34,6 +34,9 @@
+@@ -32,6 +32,9 @@
  		setHardness(1.2F);
  		this.setCreativeTab(QuarryPlus.ct);
  		setBlockName("EnchantMover");
@@ -200,7 +281,7 @@
  	}
  
  	@Override
-@@ -52,10 +55,8 @@
+@@ -50,10 +53,8 @@
  
  	@SideOnly(Side.CLIENT)
  	@Override
@@ -223,7 +304,7 @@
  import cpw.mods.fml.relauncher.Side;
  import cpw.mods.fml.relauncher.SideOnly;
  import net.minecraft.block.Block;
-@@ -53,6 +54,10 @@
+@@ -50,6 +51,10 @@
  		this.setHardness(3.5F);
  		this.setStepSound(soundStoneFootstep);
  		this.setBlockName("PlacerPlus");
@@ -234,7 +315,7 @@
  	}
  
  	@Override
-@@ -77,11 +82,8 @@
+@@ -74,11 +79,8 @@
  
  	@Override
  	@SideOnly(Side.CLIENT)
@@ -248,7 +329,7 @@
  	}
  
  	@Override
-@@ -160,7 +162,7 @@
+@@ -157,7 +159,7 @@
  
  	@Override
  	public void onBlockPlacedBy(World par1World, int par2, int par3, int par4, EntityLiving par5EntityLiving) {
@@ -257,7 +338,7 @@
  		par1World.setBlockMetadataWithNotify(par2, par3, par4, l);
  	}
  
-@@ -200,7 +202,6 @@
+@@ -197,7 +199,6 @@
  				}
  			}
  
@@ -265,9 +346,36 @@
  		}
  
  		super.breakBlock(world, x, y, z, b, meta);
+--- a/com/yogpc/qp/BlockPlainPipe.java
++++ b/com/yogpc/qp/BlockPlainPipe.java
+@@ -5,8 +5,6 @@
+ import net.minecraft.block.Block;
+ import net.minecraft.block.material.Material;
+ import net.minecraft.item.Item;
+-import cpw.mods.fml.relauncher.SideOnly;
+-import cpw.mods.fml.relauncher.Side;
+ 
+ public class BlockPlainPipe extends Block {
+ 	public BlockPlainPipe(int id) {
+@@ -17,12 +15,12 @@
+ 		this.maxX = 0.75;
+ 		this.maxY = 1.0;
+ 		this.maxZ = 0.75;
++		this.blockIndexInTexture = 32;
+ 	}
+ 
+ 	@Override
+-	@SideOnly(Side.CLIENT)
+-	public void registerIcons(IconRegister ir) {
+-		this.blockIndexInTexture = ir.registerIcon("buildcraft:blockPlainPipe");// TODO buildcraft resource
++	public String getTextureFile() {
++		return "/gfx/buildcraft/blocks/blocks.png";// TODO buildcraft resource
+ 	}
+ 
+ 	@Override
 --- a/com/yogpc/qp/BlockPump.java
 +++ b/com/yogpc/qp/BlockPump.java
-@@ -42,6 +42,11 @@
+@@ -40,6 +40,11 @@
  		setHardness(5F);
  		setCreativeTab(QuarryPlus.ct);
  		setBlockName("PumpPlus");
@@ -279,7 +387,7 @@
  	}
  
  	@Override
-@@ -75,12 +80,8 @@
+@@ -73,12 +78,8 @@
  
  	@Override
  	@SideOnly(Side.CLIENT)
@@ -294,7 +402,7 @@
  	}
  
  	private final ArrayList<ItemStack> drop = new ArrayList<ItemStack>();
-@@ -110,7 +111,7 @@
+@@ -108,7 +109,7 @@
  	@Override
  	public void onBlockPlacedBy(World w, int x, int y, int z, EntityLiving el) {
  		super.onBlockPlacedBy(w, x, y, z, el);
@@ -305,7 +413,7 @@
  	@Override
 --- a/com/yogpc/qp/BlockQuarry.java
 +++ b/com/yogpc/qp/BlockQuarry.java
-@@ -44,6 +44,12 @@
+@@ -42,6 +42,12 @@
  		setStepSound(soundStoneFootstep);
  		setCreativeTab(QuarryPlus.ct);
  		setBlockName("QuarryPlus");
@@ -318,7 +426,7 @@
  	}
  
  	private final ArrayList<ItemStack> drop = new ArrayList<ItemStack>();
-@@ -107,13 +113,8 @@
+@@ -105,13 +111,8 @@
  
  	@Override
  	@SideOnly(Side.CLIENT)
@@ -334,7 +442,7 @@
  	}
  
  	@Override
-@@ -125,9 +126,9 @@
+@@ -123,9 +124,9 @@
  	public void onBlockPlacedBy(World w, int x, int y, int z, EntityLiving el) {
  		super.onBlockPlacedBy(w, x, y, z, el);
  		ForgeDirection orientation = get2dOrientation(el.posX, el.posZ, x, z);
@@ -348,7 +456,29 @@
  	private static ForgeDirection get2dOrientation(double x1, double z1, double x2, double z2) {
 --- a/com/yogpc/qp/BlockRefinery.java
 +++ b/com/yogpc/qp/BlockRefinery.java
-@@ -83,10 +83,10 @@
+@@ -32,8 +32,6 @@
+ import net.minecraftforge.liquids.LiquidContainerRegistry;
+ import net.minecraftforge.liquids.LiquidStack;
+ import net.minecraftforge.liquids.ITankContainer;
+-import cpw.mods.fml.relauncher.SideOnly;
+-import cpw.mods.fml.relauncher.Side;
+ 
+ public class BlockRefinery extends BlockContainer {
+ 
+@@ -45,12 +43,6 @@
+ 	}
+ 
+ 	@Override
+-	@SideOnly(Side.CLIENT)
+-	public void registerIcons(IconRegister ir) {
+-		this.blockIndexInTexture = ir.registerIcon("buildcraft:refineryBack");// TODO buildcraft resource
+-	}
+-
+-	@Override
+ 	public TileEntity createNewTileEntity(World w) {
+ 		return new TileRefinery();
+ 	}
+@@ -82,10 +74,10 @@
  	@Override
  	public void onBlockPlacedBy(World w, int x, int y, int z, EntityLiving el) {
  		super.onBlockPlacedBy(w, x, y, z, el);
@@ -361,7 +491,7 @@
  	}
  
  	private static void consumeItem(EntityPlayer ep, ItemStack stack) {
-@@ -124,17 +124,17 @@
+@@ -123,17 +115,17 @@
  			int meta = world.getBlockMetadata(x, y, z);
  			switch (ForgeDirection.values()[meta]) {
  			case WEST:
@@ -385,15 +515,15 @@
  			return true;
 --- a/com/yogpc/qp/ItemTool.java
 +++ b/com/yogpc/qp/ItemTool.java
-@@ -34,7 +34,6 @@
+@@ -32,7 +32,6 @@
+ import net.minecraft.nbt.NBTTagCompound;
  import net.minecraft.nbt.NBTTagList;
- import net.minecraft.util.Icon;
  import net.minecraft.world.World;
 -import net.minecraftforge.oredict.OreDictionary;
  
  public class ItemTool extends Item implements IEnchantableItem {
- 	Icon ile, ils;
-@@ -45,6 +44,9 @@
+ 	int ile, ils;
+@@ -43,6 +42,9 @@
  		setHasSubtypes(true);
  		this.setMaxDamage(0);
  		setCreativeTab(QuarryPlus.ct);
@@ -403,7 +533,7 @@
  	}
  
  	@Override
-@@ -145,10 +147,8 @@
+@@ -143,10 +145,8 @@
  
  	@Override
  	@SideOnly(Side.CLIENT)
@@ -429,7 +559,21 @@
  			return prop.getDouble(def);
 --- a/com/yogpc/qp/QuarryPlus.java
 +++ b/com/yogpc/qp/QuarryPlus.java
-@@ -41,7 +41,6 @@
+@@ -20,7 +20,6 @@
+ import java.lang.reflect.Field;
+ 
+ import com.yogpc.mc_lib.PacketHandler;
+-import com.yogpc.qp.client.RenderEntityLaser;
+ 
+ import buildcraft.BuildCraftBuilders;
+ import buildcraft.BuildCraftCore;
+@@ -33,13 +32,11 @@
+ import net.minecraft.creativetab.CreativeTabs;
+ import net.minecraft.item.Item;
+ import net.minecraft.item.ItemStack;
+-import net.minecraftforge.client.event.TextureStitchEvent;
+ import net.minecraftforge.common.Configuration;
+ import net.minecraftforge.common.ForgeChunkManager;
  import net.minecraftforge.common.MinecraftForge;
  import net.minecraftforge.common.Property;
  import net.minecraftforge.event.world.WorldEvent;
@@ -437,7 +581,111 @@
  import cpw.mods.fml.client.registry.RenderingRegistry;
  import cpw.mods.fml.common.SidedProxy;
  import cpw.mods.fml.common.Mod;
-@@ -322,6 +321,8 @@
+@@ -49,8 +46,6 @@
+ import cpw.mods.fml.common.registry.GameRegistry;
+ import cpw.mods.fml.common.registry.LanguageRegistry;
+ import cpw.mods.fml.common.network.NetworkRegistry;
+-import cpw.mods.fml.relauncher.Side;
+-import cpw.mods.fml.relauncher.SideOnly;
+ 
+ @Mod(modid = "QuarryPlus", name = "QuarryPlus", version = "@VERSION@", dependencies = "required-after:YogpstopLib;required-after:BuildCraft|Builders;required-after:BuildCraft|Core;required-after:BuildCraft|Energy;required-after:BuildCraft|Factory;required-after:BuildCraft|Silicon;required-after:BuildCraft|Transport")
+ public class QuarryPlus {
+@@ -94,19 +89,6 @@
+ 			if (l.w == event.world) l.destructor();
+ 	}
+ 
+-	@ForgeSubscribe
+-	@SideOnly(Side.CLIENT)
+-	public void loadTextures(TextureStitchEvent.Pre evt) {
+-		if (evt.map.textureType == 0) {
+-			TextureMap map = evt.map;
+-			RenderEntityLaser.icons = new int[4];
+-			RenderEntityLaser.icons[EntityLaser.DRILL] = map.registerIcon("buildcraft:blockDrillTexture");// TODO buildcraft resource
+-			RenderEntityLaser.icons[EntityLaser.DRILL_HEAD] = map.registerIcon("buildcraft:blockDrillHeadTexture");// TODO buildcraft resource
+-			RenderEntityLaser.icons[EntityLaser.RED_LASER] = map.registerIcon("buildcraft:blockRedLaser");// TODO buildcraft resource
+-			RenderEntityLaser.icons[EntityLaser.BLUE_LASER] = map.registerIcon("buildcraft:blockBlueLaser");// TODO buildcraft resource
+-		}
+-	}
+-
+ 	@Mod.PreInit
+ 	public void preInit(FMLPreInitializationEvent event) {
+ 		Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
+@@ -152,7 +134,9 @@
+ 		} catch (Exception e) {
+ 			e.printStackTrace();
+ 		}
+-		LanguageRegistry.instance().loadLocalization("/lang/yogpstop/quarryplus/en_US.lang", "en_US", false);// TODO language deprecated
++		LanguageRegistry.instance().loadLocalization("/lang/yogpstop/quarryplus/en_US.lang", "en_US", false);// TODO
++																												// language
++																												// deprecated
+ 		LanguageRegistry.instance().loadLocalization("/lang/yogpstop/quarryplus/ja_JP.lang", "ja_JP", false);
+ 		LanguageRegistry.instance().loadLocalization("/lang/yogpstop/quarryplus/ru_RU.lang", "ru_RU", false);
+ 		ForgeChunkManager.setForcedChunkLoadingCallback(instance, new ChunkLoadingHandler());
+@@ -241,8 +225,8 @@
+ 					new ItemStack(Item.bucketWater, 1), new ItemStack(Item.bucketLava, 1));
+ 			addAssemblyRecipe(80000, new ItemStack(blockMiningWell, 1), new ItemStack(BuildCraftFactory.miningWellBlock, 1), new ItemStack(redstoneChipset, 1,
+ 					3), new ItemStack(BuildCraftTransport.yellowPipeWire, 8));
+-			addAssemblyRecipe(40000, new ItemStack(blockBreaker, 1), new ItemStack(Block.dispenser, 1), new ItemStack(Item.pickaxeDiamond, 1),
+-					new ItemStack(BuildCraftEnergy.engineBlock, 1, 1));
++			addAssemblyRecipe(40000, new ItemStack(blockBreaker, 1), new ItemStack(Block.dispenser, 1), new ItemStack(Item.pickaxeDiamond, 1), new ItemStack(
++					BuildCraftEnergy.engineBlock, 1, 1));
+ 			addAssemblyRecipe(80000, new ItemStack(blockPlacer, 1), new ItemStack(Block.dispenser, 1), new ItemStack(BuildCraftBuilders.fillerBlock, 1),
+ 					new ItemStack(BuildCraftEnergy.engineBlock, 1, 1));
+ 			addAssemblyRecipe(160000, new ItemStack(blockLaser, 1), new ItemStack(BuildCraftSilicon.laserBlock, 1), new ItemStack(
+@@ -250,8 +234,7 @@
+ 			break;
+ 		case 3:
+ 			addAssemblyRecipe(800000, new ItemStack(blockQuarry, 1), new ItemStack(BuildCraftFactory.quarryBlock, 2), new ItemStack(redstoneChipset, 8, 3),
+-					new ItemStack(BuildCraftTransport.yellowPipeWire, 16), new ItemStack(redstoneChipset, 2, 4), new ItemStack(
+-							Block.chest, 32));
++					new ItemStack(BuildCraftTransport.yellowPipeWire, 16), new ItemStack(redstoneChipset, 2, 4), new ItemStack(Block.chest, 32));
+ 			addAssemblyRecipe(640000, new ItemStack(blockMover, 1), new ItemStack(Block.enchantmentTable, 1), new ItemStack(
+ 					BuildCraftSilicon.assemblyTableBlock, 1, 1), new ItemStack(Block.anvil, 2), new ItemStack(BuildCraftSilicon.laserBlock, 4), new ItemStack(
+ 					BuildCraftSilicon.assemblyTableBlock, 1), new ItemStack(redstoneChipset, 4, 3), new ItemStack(BuildCraftCore.diamondGearItem, 2));
+@@ -272,21 +255,18 @@
+ 					new ItemStack(Item.bucketWater, 1), new ItemStack(Item.bucketLava, 1), new ItemStack(BuildCraftEnergy.bucketOil, 1), new ItemStack(
+ 							BuildCraftEnergy.bucketFuel, 1), new ItemStack(BuildCraftEnergy.engineBlock, 1, 2));
+ 			addAssemblyRecipe(500000, new ItemStack(blockMiningWell, 1), new ItemStack(BuildCraftFactory.miningWellBlock, 2), new ItemStack(redstoneChipset, 8,
+-					3), new ItemStack(BuildCraftTransport.yellowPipeWire, 16), new ItemStack(redstoneChipset, 1, 4), new ItemStack(
+-					Block.chest, 16));
+-			addAssemblyRecipe(640000, new ItemStack(blockBreaker, 1), new ItemStack(Block.dispenser, 2), new ItemStack(Block.blockDiamond, 2),
+-					new ItemStack(Item.redstone, 64), new ItemStack(blockQuarry, 1), new ItemStack(blockMiningWell, 1), new ItemStack(
+-							BuildCraftEnergy.engineBlock, 16, 2));
+-			addAssemblyRecipe(1280000, new ItemStack(blockPlacer, 1), new ItemStack(Block.dispenser, 2), new ItemStack(Block.blockDiamond, 2),
+-					new ItemStack(Item.redstone, 64), new ItemStack(BuildCraftBuilders.fillerBlock, 2), new ItemStack(Block.blockGold, 2), new ItemStack(
+-							BuildCraftEnergy.engineBlock, 16, 2));
++					3), new ItemStack(BuildCraftTransport.yellowPipeWire, 16), new ItemStack(redstoneChipset, 1, 4), new ItemStack(Block.chest, 16));
++			addAssemblyRecipe(640000, new ItemStack(blockBreaker, 1), new ItemStack(Block.dispenser, 2), new ItemStack(Block.blockDiamond, 2), new ItemStack(
++					Item.redstone, 64), new ItemStack(blockQuarry, 1), new ItemStack(blockMiningWell, 1), new ItemStack(BuildCraftEnergy.engineBlock, 16, 2));
++			addAssemblyRecipe(1280000, new ItemStack(blockPlacer, 1), new ItemStack(Block.dispenser, 2), new ItemStack(Block.blockDiamond, 2), new ItemStack(
++					Item.redstone, 64), new ItemStack(BuildCraftBuilders.fillerBlock, 2), new ItemStack(Block.blockGold, 2), new ItemStack(
++					BuildCraftEnergy.engineBlock, 16, 2));
+ 			addAssemblyRecipe(7654321, new ItemStack(blockLaser, 1), new ItemStack(BuildCraftSilicon.laserBlock, 16), new ItemStack(Block.glass, 64),
+ 					new ItemStack(BuildCraftTransport.pipePowerGold, 64), new ItemStack(Item.lightStoneDust, 64), new ItemStack(Block.obsidian, 16));
+ 			break;
+ 		default:
+ 			addAssemblyRecipe(320000, new ItemStack(blockQuarry, 1), new ItemStack(BuildCraftFactory.quarryBlock, 1), new ItemStack(redstoneChipset, 2, 3),
+-					new ItemStack(BuildCraftTransport.yellowPipeWire, 16), new ItemStack(redstoneChipset, 1, 4), new ItemStack(
+-							Block.chest, 8));
++					new ItemStack(BuildCraftTransport.yellowPipeWire, 16), new ItemStack(redstoneChipset, 1, 4), new ItemStack(Block.chest, 8));
+ 			addAssemblyRecipe(320000, new ItemStack(blockMover, 1), new ItemStack(Block.enchantmentTable, 1), new ItemStack(
+ 					BuildCraftSilicon.assemblyTableBlock, 1, 1), new ItemStack(Block.anvil, 1), new ItemStack(BuildCraftSilicon.assemblyTableBlock, 1),
+ 					new ItemStack(redstoneChipset, 4, 3), new ItemStack(BuildCraftSilicon.laserBlock, 4));
+@@ -306,10 +286,9 @@
+ 					new ItemStack(Item.bucketWater, 1), new ItemStack(Item.bucketLava, 1), new ItemStack(BuildCraftEnergy.bucketOil, 1), new ItemStack(
+ 							BuildCraftEnergy.bucketFuel, 1));
+ 			addAssemblyRecipe(160000, new ItemStack(blockMiningWell, 1), new ItemStack(BuildCraftFactory.miningWellBlock, 1), new ItemStack(redstoneChipset, 2,
+-					3), new ItemStack(BuildCraftTransport.yellowPipeWire, 16), new ItemStack(redstoneChipset, 1, 4), new ItemStack(
+-					Block.chest, 8));
+-			addAssemblyRecipe(320000, new ItemStack(blockBreaker, 1), new ItemStack(Block.dispenser, 2), new ItemStack(Block.blockDiamond, 1),
+-					new ItemStack(Item.redstone, 32), new ItemStack(blockQuarry, 1), new ItemStack(BuildCraftEnergy.engineBlock, 1, 2));
++					3), new ItemStack(BuildCraftTransport.yellowPipeWire, 16), new ItemStack(redstoneChipset, 1, 4), new ItemStack(Block.chest, 8));
++			addAssemblyRecipe(320000, new ItemStack(blockBreaker, 1), new ItemStack(Block.dispenser, 2), new ItemStack(Block.blockDiamond, 1), new ItemStack(
++					Item.redstone, 32), new ItemStack(blockQuarry, 1), new ItemStack(BuildCraftEnergy.engineBlock, 1, 2));
+ 			addAssemblyRecipe(640000, new ItemStack(blockPlacer, 1), new ItemStack(Block.dispenser, 2), new ItemStack(Block.blockDiamond, 1), new ItemStack(
+ 					Item.redstone, 32), new ItemStack(BuildCraftBuilders.fillerBlock, 1), new ItemStack(Block.blockGold, 2), new ItemStack(
+ 					BuildCraftEnergy.engineBlock, 1, 2));
+@@ -320,6 +299,8 @@
  		proxy.registerTextures();
  		PacketHandler.registerStaticHandler(TileMarker.class);
  	}
@@ -446,6 +694,87 @@
  
  	public static class BlockData {
  		public final String name;
+--- a/com/yogpc/qp/TileBasic.java
++++ b/com/yogpc/qp/TileBasic.java
+@@ -177,7 +177,10 @@
+ 			iii = ii;
+ 		}
+ 		if (iii instanceof ISidedInventory) {
+-			a = ((ISidedInventory) iii).getAccessibleSlotsFromSide(fd.ordinal());
++			a = new int[((ISidedInventory) iii).getSizeInventorySide(fd)];
++			int from = ((ISidedInventory) iii).getStartInventorySide(fd);
++			for (int i = 0; i < a.length; i++)
++				a[i] = from + i;
+ 		} else {
+ 			a = new int[iii.getSizeInventory()];
+ 			for (int i = 0; i < a.length; i++)
+@@ -186,11 +189,6 @@
+ 		int moved = 0, buf;
+ 		for (int i : a) {
+ 			ItemStack is2 = iii.getStackInSlot(i);
+-			if (iii instanceof ISidedInventory) {
+-				if (!((ISidedInventory) iii).canInsertItem(i, is2, fd.ordinal())) continue;
+-			} else {
+-				if (!iii.isStackValidForSlot(i, is2)) continue;
+-			}
+ 			if (is2 == null) continue;
+ 			if (!is2.isItemEqual(is1)) continue;
+ 			if (!ItemStack.areItemStackTagsEqual(is2, is1)) continue;
+@@ -304,7 +302,7 @@
+ 	private static void readLongCollection(NBTTagList nbttl, Collection<BlockData> target) {
+ 		target.clear();
+ 		for (int i = 0; i < nbttl.tagCount(); i++) {
+-			NBTTagCompound c =((NBTTagCompound) nbttl.tagAt(i));
++			NBTTagCompound c = ((NBTTagCompound) nbttl.tagAt(i));
+ 			target.add(new BlockData(c.getString("name"), c.getInteger("meta")));
+ 		}
+ 	}
+@@ -395,11 +393,6 @@
+ 	}
+ 
+ 	@Override
+-	public boolean isInvNameLocalized() {
+-		return false;
+-	}
+-
+-	@Override
+ 	public int getInventoryStackLimit() {
+ 		return 0;
+ 	}
+@@ -417,9 +410,4 @@
+ 
+ 	@Override
+ 	public void closeChest() {}
+-
+-	@Override
+-	public boolean isStackValidForSlot(int p_94041_1_, ItemStack p_94041_2_) {
+-		return false;
+-	}
+ }
+--- a/com/yogpc/qp/TileBreaker.java
++++ b/com/yogpc/qp/TileBreaker.java
+@@ -99,11 +99,6 @@
+ 	}
+ 
+ 	@Override
+-	public boolean isInvNameLocalized() {
+-		return false;
+-	}
+-
+-	@Override
+ 	public int getInventoryStackLimit() {
+ 		return 0;
+ 	}
+@@ -121,9 +116,4 @@
+ 
+ 	@Override
+ 	public void closeChest() {}
+-
+-	@Override
+-	public boolean isStackValidForSlot(int p_94041_1_, ItemStack p_94041_2_) {
+-		return false;
+-	}
+ }
 --- a/com/yogpc/qp/TilePlacer.java
 +++ b/com/yogpc/qp/TilePlacer.java
 @@ -85,11 +85,6 @@
@@ -566,10 +895,11 @@
  import cpw.mods.fml.client.registry.ClientRegistry;
  import cpw.mods.fml.client.registry.RenderingRegistry;
  import cpw.mods.fml.relauncher.SideOnly;
-@@ -40,5 +41,6 @@
+@@ -40,5 +41,7 @@
  		RenderingRegistry.registerBlockHandler(RenderLaserBlock.INSTANCE);
  		RenderingRegistry.registerBlockHandler(RenderMarker.INSTANCE);
  		RenderingRegistry.registerBlockHandler(RenderFrame.INSTANCE);
++		MinecraftForgeClient.preloadTexture("/mods/yogpstop_qp/textures/textures.png");
 +		MinecraftForgeClient.preloadTexture("/mods/yogpstop_qp/textures/textures.png");
  	}
  }
@@ -668,6 +998,30 @@
  		int k = (this.width - this.xSize) / 2;
  		int l = (this.height - this.ySize) / 2;
  		this.drawTexturedModalRect(k, l, 0, 0, this.xSize, this.ySize);
+--- a/com/yogpc/qp/client/RenderEntityLaser.java
++++ b/com/yogpc/qp/client/RenderEntityLaser.java
+@@ -40,10 +40,10 @@
+ 		doRender(tm, ed.posX, ed.posY, ed.posZ, ed.iSize, ed.jSize, ed.kSize, ed.texture);
+ 	}
+ 
+-	private static void doRender(RenderEngine tm, double i, double j, double k, double iSize, double jSize, double kSize, int tex) {
++	private static void doRender(RenderEngine tm, double i, double j, double k, double iSize, double jSize, double kSize, int texture) {
+ 		GL11.glPushMatrix();
+ 		GL11.glTranslated(i, j, k);
+-		tm.bindTexture("/terrain.png");
++		tm.bindTexture(tm.getTexture("/terrain.png"));
+ 		Tessellator t = Tessellator.instance;
+ 		RenderBlocks rb = new RenderBlocks();
+ 		for (int iBase = 0; iBase < iSize; ++iBase) {
+@@ -54,8 +54,6 @@
+ 					double remainZ = kSize - kBase;
+ 					GL11.glPushMatrix();
+ 					GL11.glTranslatef(iBase, jBase, kBase);
+-					int texture = icons[tex];
+-					if (texture == null) texture = Block.sand.getBlockTextureFromSide(0);
+ 					t.startDrawingQuads();
+ 					rb.setRenderBounds(0, 0, 0, remainX > 1.0 ? 1.0 : remainX, remainY > 1.0 ? 1.0 : remainY, remainZ > 1.0 ? 1.0 : remainZ);
+ 					rb.renderBottomFace(Block.sand, 0, 0, 0, texture);
 --- a/com/yogpc/qp/client/RenderLaser.java
 +++ b/com/yogpc/qp/client/RenderLaser.java
 @@ -35,7 +35,7 @@
@@ -679,3 +1033,79 @@
  		int i = 0;
  		while (i <= total - 1) {
  			box[b].render(1F / 16);
+--- a/com/yogpc/qp/client/RenderMarker.java
++++ b/com/yogpc/qp/client/RenderMarker.java
+@@ -141,10 +141,10 @@
+ 		x += 0.5D;
+ 		z += 0.5D;
+ 
+-		double minU = i.getInterpolatedU(7);
+-		double minV = i.getInterpolatedV(7);
+-		double maxU = i.getInterpolatedU(9);
+-		double maxV = i.getInterpolatedV(9);
++		double minU = (((i & 0xF) << 4) + 7) / 256F;
++		double minV = ((i & 0xF0) + 7) / 256F;
++		double maxU = (((i & 0xF) << 4) + 9) / 256F;
++		double maxV = ((i & 0xF0) + 9) / 256F;
+ 
+ 		tessellator.setBrightness(block.getMixedBrightnessForBlock(iblockaccess, xCoord, yCoord, zCoord));
+ 
+@@ -184,10 +184,10 @@
+ 
+ 		i = block.getBlockTexture(iblockaccess, xCoord, yCoord, zCoord, 0);
+ 
+-		minU = i.getMinU();
+-		maxU = i.getMaxU();
+-		minV = i.getMinV();
+-		maxV = i.getMaxV();
++		minU = ((i & 0xF) << 4) / 256F;
++		minV = (i & 0xF0) / 256F;
++		maxU = (((i & 0xF) << 4) + 0x10) / 256F;
++		maxV = ((i & 0xF0) + 0x10) / 256F;
+ 
+ 		if (m == 5 || m == 4 || m == 3 || m == 0) {
+ 			tessellator.addVertexWithUV(x + frontX[m][0][0], y + frontX[m][1][0], z + frontX[m][2][0], minU, minV);
+--- a/com/yogpc/qp/client/RenderRefinery.java
++++ b/com/yogpc/qp/client/RenderRefinery.java
+@@ -181,7 +181,7 @@
+ 					GL11.glPushMatrix();
+ 					GL11.glTranslatef(tx, ty, tz);
+ 				}
+-				bindTextureByName(liquid.getTextureSheet());
++				bindTextureByName(Block.blocksList[liquid.itemID].getTextureFile());
+ 				ItemStack stack = liquid.asItemStack();
+ 				setColor(stack.getItem().getColorFromItemStack(stack, 0));
+ 				GL11.glCallList(list[(int) (liquid.amount / buf * 99)]);
+@@ -198,13 +198,10 @@
+ 		if (diplayLists != null) return diplayLists;
+ 		diplayLists = new int[100];
+ 		Block baseBlock;
+-		int texture;
+ 		if (fluidStack.itemID > -1) {
+ 			baseBlock = Block.blocksList[fluidStack.itemID];
+-			texture = fluidStack.getRenderingIcon();
+ 		} else {
+ 			baseBlock = Block.waterStill;
+-			texture = fluidStack.getRenderingIcon();
+ 		}
+ 		GL11.glDisable(GL11.GL_LIGHTING);
+ 		GL11.glDisable(GL11.GL_BLEND);
+@@ -215,12 +212,12 @@
+ 			Tessellator tessellator = Tessellator.instance;
+ 			tessellator.startDrawingQuads();
+ 			renderBlocks.setRenderBounds(0.01, 0, 0.01, 0.99, (float) s / 100, 0.99);
+-			renderBlocks.renderBottomFace(baseBlock, 0, 0, 0, texture != null ? texture : baseBlock.getBlockTextureFromSide(0));
+-			renderBlocks.renderTopFace(baseBlock, 0, 0, 0, texture != null ? texture : baseBlock.getBlockTextureFromSide(1));
+-			renderBlocks.renderEastFace(baseBlock, 0, 0, 0, texture != null ? texture : baseBlock.getBlockTextureFromSide(2));
+-			renderBlocks.renderWestFace(baseBlock, 0, 0, 0, texture != null ? texture : baseBlock.getBlockTextureFromSide(3));
+-			renderBlocks.renderNorthFace(baseBlock, 0, 0, 0, texture != null ? texture : baseBlock.getBlockTextureFromSide(4));
+-			renderBlocks.renderSouthFace(baseBlock, 0, 0, 0, texture != null ? texture : baseBlock.getBlockTextureFromSide(5));
++			renderBlocks.renderBottomFace(baseBlock, 0, 0, 0, baseBlock.getBlockTextureFromSide(0));
++			renderBlocks.renderTopFace(baseBlock, 0, 0, 0, baseBlock.getBlockTextureFromSide(1));
++			renderBlocks.renderEastFace(baseBlock, 0, 0, 0, baseBlock.getBlockTextureFromSide(2));
++			renderBlocks.renderWestFace(baseBlock, 0, 0, 0, baseBlock.getBlockTextureFromSide(3));
++			renderBlocks.renderNorthFace(baseBlock, 0, 0, 0, baseBlock.getBlockTextureFromSide(4));
++			renderBlocks.renderSouthFace(baseBlock, 0, 0, 0, baseBlock.getBlockTextureFromSide(5));
+ 			tessellator.draw();
+ 			GL11.glEndList();
+ 		}
