@@ -67,7 +67,7 @@ public class ProxyClient extends ProxyCommon {
 		}
 		if (this.key != prev) {
 			PacketHandler.sendPacketToServer(new YogpstopPacket(this.key));
-			super.setKeys(getPacketPlayer(null), this.key);
+			super.setKeys(Minecraft.getMinecraft().thePlayer, this.key);
 		}
 	}
 

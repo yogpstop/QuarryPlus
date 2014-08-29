@@ -7,7 +7,7 @@
 -		ByteBuf buf = Unpooled.buffer();
 -		buf.writeByte(0);
 -		new YogpstopPacket(this).writeData(buf);
--		return new FMLProxyPacket(buf, "QuarryPlus");
+-		return new FMLProxyPacket(buf, "YogpstopLib");
 +		return PacketHandler.getPacket(new YogpstopPacket(this));
  	}
  }
@@ -72,7 +72,7 @@
  
 +	public static Packet250CustomPayload getPacket(YogpstopPacket p) {
 +		Packet250CustomPayload pkt = new Packet250CustomPayload();
-+		pkt.channel = "Yogpstop";
++		pkt.channel = "YogpstopLib";
 +		pkt.data = p.writeData();
 +		pkt.length = pkt.data.length;
 +		return pkt;
@@ -153,7 +153,7 @@
  import cpw.mods.fml.common.network.NetworkRegistry;
  
  @Mod(modid = "YogpstopLib", name = "Yogpstop Library", version = "@VERSION@")
-+@NetworkMod(clientSideRequired = true, serverSideRequired = false, channels = { "Yogpstop" }, packetHandler = PacketHandler.class)
++@NetworkMod(clientSideRequired = true, serverSideRequired = false, channels = { "YogpstopLib" }, packetHandler = PacketHandler.class)
  public class YogpstopLib {
  
  	@SidedProxy(clientSide = "com.yogpc.mc_lib.ProxyClient", serverSide = "com.yogpc.mc_lib.ProxyCommon")
@@ -161,7 +161,7 @@
  
  	@Mod.EventHandler
  	public void init(FMLInitializationEvent event) {
--		PacketHandler.channels = NetworkRegistry.instance().newChannel("QuarryPlus", new YogpstopPacketCodec(), new PacketHandler());
+-		PacketHandler.channels = NetworkRegistry.instance().newChannel("YogpstopLib", new YogpstopPacketCodec(), new PacketHandler());
  	}
  }
 --- a/com/yogpc/mc_lib/YogpstopPacket.java
