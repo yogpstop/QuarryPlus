@@ -10,15 +10,15 @@
  import buildcraft.api.power.PowerFramework;
 --- a/com/yogpc/qp/BlockBreaker.java
 +++ b/com/yogpc/qp/BlockBreaker.java
-@@ -22,6 +22,7 @@
+@@ -21,6 +21,7 @@
+ import java.util.ArrayList;
  import java.util.Random;
  
- import buildcraft.api.tools.IToolWrench;
 +import buildcraft.core.proxy.CoreProxy;
  import cpw.mods.fml.relauncher.Side;
  import cpw.mods.fml.relauncher.SideOnly;
  import net.minecraft.block.Block;
-@@ -51,6 +52,10 @@
+@@ -53,6 +54,10 @@
  		this.setHardness(3.5F);
  		this.setStepSound(soundStoneFootstep);
  		this.setBlockName("BreakerPlus");
@@ -29,7 +29,7 @@
  	}
  
  	@Override
-@@ -75,11 +80,8 @@
+@@ -77,11 +82,8 @@
  
  	@Override
  	@SideOnly(Side.CLIENT)
@@ -43,7 +43,7 @@
  	}
  
  	@Override
-@@ -140,8 +142,8 @@
+@@ -142,8 +144,8 @@
  
  	@Override
  	public void onBlockPlacedBy(World world, int x, int y, int z, EntityLiving ent) {
@@ -56,7 +56,7 @@
  	static void setDispenserDefaultDirection(World w, int x, int y, int z) {
 --- a/com/yogpc/qp/BlockLaser.java
 +++ b/com/yogpc/qp/BlockLaser.java
-@@ -42,6 +42,9 @@
+@@ -43,6 +43,9 @@
  		setHardness(10F);
  		setCreativeTab(QuarryPlus.ct);
  		this.setBlockName("LaserPlus");
@@ -66,7 +66,7 @@
  	}
  
  	@Override
-@@ -81,15 +84,13 @@
+@@ -82,15 +85,13 @@
  
  	@Override
  	@SideOnly(Side.CLIENT)
@@ -150,7 +150,7 @@
  }
 --- a/com/yogpc/qp/BlockMiningWell.java
 +++ b/com/yogpc/qp/BlockMiningWell.java
-@@ -43,6 +43,11 @@
+@@ -44,6 +44,11 @@
  		setCreativeTab(QuarryPlus.ct);
  		setStepSound(soundStoneFootstep);
  		setBlockName("MiningWellPlus");
@@ -162,7 +162,7 @@
  	}
  
  	@Override
-@@ -52,12 +57,8 @@
+@@ -53,12 +58,8 @@
  
  	@Override
  	@SideOnly(Side.CLIENT)
@@ -177,7 +177,7 @@
  	}
  
  	@Override
-@@ -83,8 +84,8 @@
+@@ -84,8 +85,8 @@
  	public void onBlockPlacedBy(World w, int x, int y, int z, EntityLiving el) {
  		super.onBlockPlacedBy(w, x, y, z, el);
  		ForgeDirection orientation = get2dOrientation(el.posX, el.posZ, x, z);
@@ -190,7 +190,7 @@
  	private static ForgeDirection get2dOrientation(double x1, double z1, double x2, double z2) {
 --- a/com/yogpc/qp/BlockMover.java
 +++ b/com/yogpc/qp/BlockMover.java
-@@ -32,6 +32,9 @@
+@@ -34,6 +34,9 @@
  		setHardness(1.2F);
  		this.setCreativeTab(QuarryPlus.ct);
  		setBlockName("EnchantMover");
@@ -200,7 +200,7 @@
  	}
  
  	@Override
-@@ -50,10 +53,8 @@
+@@ -52,10 +55,8 @@
  
  	@SideOnly(Side.CLIENT)
  	@Override
@@ -215,15 +215,15 @@
  	@Override
 --- a/com/yogpc/qp/BlockPlacer.java
 +++ b/com/yogpc/qp/BlockPlacer.java
-@@ -20,6 +20,7 @@
+@@ -19,6 +19,7 @@
+ 
  import java.util.Random;
  
- import buildcraft.api.tools.IToolWrench;
 +import buildcraft.core.proxy.CoreProxy;
  import cpw.mods.fml.relauncher.Side;
  import cpw.mods.fml.relauncher.SideOnly;
  import net.minecraft.block.Block;
-@@ -51,6 +52,10 @@
+@@ -53,6 +54,10 @@
  		this.setHardness(3.5F);
  		this.setStepSound(soundStoneFootstep);
  		this.setBlockName("PlacerPlus");
@@ -234,7 +234,7 @@
  	}
  
  	@Override
-@@ -75,11 +80,8 @@
+@@ -77,11 +82,8 @@
  
  	@Override
  	@SideOnly(Side.CLIENT)
@@ -248,7 +248,7 @@
  	}
  
  	@Override
-@@ -158,7 +160,7 @@
+@@ -160,7 +162,7 @@
  
  	@Override
  	public void onBlockPlacedBy(World par1World, int par2, int par3, int par4, EntityLiving par5EntityLiving) {
@@ -257,7 +257,7 @@
  		par1World.setBlockMetadataWithNotify(par2, par3, par4, l);
  	}
  
-@@ -198,7 +200,6 @@
+@@ -200,7 +202,6 @@
  				}
  			}
  
@@ -267,7 +267,7 @@
  		super.breakBlock(world, x, y, z, b, meta);
 --- a/com/yogpc/qp/BlockPump.java
 +++ b/com/yogpc/qp/BlockPump.java
-@@ -41,6 +41,11 @@
+@@ -42,6 +42,11 @@
  		setHardness(5F);
  		setCreativeTab(QuarryPlus.ct);
  		setBlockName("PumpPlus");
@@ -279,7 +279,7 @@
  	}
  
  	@Override
-@@ -74,12 +79,8 @@
+@@ -75,12 +80,8 @@
  
  	@Override
  	@SideOnly(Side.CLIENT)
@@ -294,7 +294,7 @@
  	}
  
  	private final ArrayList<ItemStack> drop = new ArrayList<ItemStack>();
-@@ -109,7 +110,7 @@
+@@ -110,7 +111,7 @@
  	@Override
  	public void onBlockPlacedBy(World w, int x, int y, int z, EntityLiving el) {
  		super.onBlockPlacedBy(w, x, y, z, el);
@@ -305,7 +305,7 @@
  	@Override
 --- a/com/yogpc/qp/BlockQuarry.java
 +++ b/com/yogpc/qp/BlockQuarry.java
-@@ -43,6 +43,12 @@
+@@ -44,6 +44,12 @@
  		setStepSound(soundStoneFootstep);
  		setCreativeTab(QuarryPlus.ct);
  		setBlockName("QuarryPlus");
@@ -318,7 +318,7 @@
  	}
  
  	private final ArrayList<ItemStack> drop = new ArrayList<ItemStack>();
-@@ -106,13 +112,8 @@
+@@ -107,13 +113,8 @@
  
  	@Override
  	@SideOnly(Side.CLIENT)
@@ -334,7 +334,7 @@
  	}
  
  	@Override
-@@ -124,9 +125,9 @@
+@@ -125,9 +126,9 @@
  	public void onBlockPlacedBy(World w, int x, int y, int z, EntityLiving el) {
  		super.onBlockPlacedBy(w, x, y, z, el);
  		ForgeDirection orientation = get2dOrientation(el.posX, el.posZ, x, z);
@@ -348,15 +348,7 @@
  	private static ForgeDirection get2dOrientation(double x1, double z1, double x2, double z2) {
 --- a/com/yogpc/qp/BlockRefinery.java
 +++ b/com/yogpc/qp/BlockRefinery.java
-@@ -20,7 +20,6 @@
- import java.util.ArrayList;
- 
- import buildcraft.api.tools.IToolWrench;
--import static buildcraft.core.liquids.LiquidUtils.handleRightClick;
- import net.minecraft.block.BlockContainer;
- import net.minecraft.block.material.Material;
- import net.minecraft.entity.EntityLiving;
-@@ -74,10 +73,10 @@
+@@ -83,10 +83,10 @@
  	@Override
  	public void onBlockPlacedBy(World w, int x, int y, int z, EntityLiving el) {
  		super.onBlockPlacedBy(w, x, y, z, el);
@@ -368,8 +360,8 @@
 +		w.setBlockMetadataWithNotify(x, y, z, da[di].ordinal());
  	}
  
- 	@Override
-@@ -88,17 +87,17 @@
+ 	private static void consumeItem(EntityPlayer ep, ItemStack stack) {
+@@ -124,17 +124,17 @@
  			int meta = world.getBlockMetadata(x, y, z);
  			switch (ForgeDirection.values()[meta]) {
  			case WEST:
@@ -390,64 +382,18 @@
 +				world.setBlockMetadataWithNotify(x, y, z, ForgeDirection.EAST.ordinal());
  				break;
  			}
- 			((IToolWrench) equipped).wrenchUsed(ep, x, y, z);
-@@ -112,7 +111,13 @@
- 			}
- 		} else {
- 			if (!world.isRemote) {
--				if (handleRightClick((TileRefinery) world.getBlockTileEntity(x, y, z), ForgeDirection.getOrientation(side), ep, true, false)) { return true; }
-+				if (equipped instanceof IToolWrench && ((IToolWrench) equipped).canWrench(ep, x, y, z)) {
-+					int i = world.getBlockMetadata(x, y, z) + 1;
-+					if (i >= 6) i = 0;
-+					world.setBlockMetadataWithNotify(x, y, z, i);
-+					((IToolWrench) equipped).wrenchUsed(ep, x, y, z);
-+					return true;
-+				}
- 			} else if (LiquidContainerRegistry.isContainer(ep.getCurrentEquippedItem())) { return true; }
- 		}
- 		return false;
---- a/com/yogpc/qp/EntityMechanicalArm.java
-+++ b/com/yogpc/qp/EntityMechanicalArm.java
-@@ -32,7 +32,7 @@
- import net.minecraft.world.World;
- 
- import buildcraft.core.EntityBlock;
--import buildcraft.factory.FactoryProxy;
-+import buildcraft.BuildCraftFactory;
- 
- public class EntityMechanicalArm extends Entity {
- 	EntityBlock xArm, yArm, zArm, head;
-@@ -89,11 +89,15 @@
- 	}
- 
- 	private void makeParts(World world) {
--		this.xArm = FactoryProxy.proxy.newDrill(world, 0, 0, 0, 1, 0.5, 0.5);
--		this.yArm = FactoryProxy.proxy.newDrill(world, 0, 0, 0, 0.5, 1, 0.5);
--		this.zArm = FactoryProxy.proxy.newDrill(world, 0, 0, 0, 0.5, 0.5, 1);
-+		this.xArm = new EntityBlock(world, 0, 0, 0, 1, 0.5, 0.5);
-+		this.yArm = new EntityBlock(world, 0, 0, 0, 0.5, 1, 0.5);
-+		this.zArm = new EntityBlock(world, 0, 0, 0, 0.5, 0.5, 1);
-+		this.xArm.texture = BuildCraftFactory.drillTexture;
-+		this.yArm.texture = BuildCraftFactory.drillTexture;
-+		this.zArm.texture = BuildCraftFactory.drillTexture;
- 
--		this.head = FactoryProxy.proxy.newDrillHead(world, 0, 0, 0, 0.2, 1, 0.2);
-+		this.head = new EntityBlock(world, 0, 0, 0, 0.2, 1, 0.2);
-+		this.head.texture = 2 * 16 + 10;
- 		this.head.shadowSize = 1.0F;
- 
- 		world.spawnEntityInWorld(this.xArm);
+ 			return true;
 --- a/com/yogpc/qp/ItemTool.java
 +++ b/com/yogpc/qp/ItemTool.java
-@@ -32,7 +32,6 @@
- import net.minecraft.nbt.NBTTagCompound;
+@@ -34,7 +34,6 @@
  import net.minecraft.nbt.NBTTagList;
+ import net.minecraft.util.Icon;
  import net.minecraft.world.World;
 -import net.minecraftforge.oredict.OreDictionary;
  
  public class ItemTool extends Item implements IEnchantableItem {
- 	int ile, ils;
-@@ -43,6 +42,9 @@
+ 	Icon ile, ils;
+@@ -45,6 +44,9 @@
  		setHasSubtypes(true);
  		this.setMaxDamage(0);
  		setCreativeTab(QuarryPlus.ct);
@@ -457,7 +403,7 @@
  	}
  
  	@Override
-@@ -143,10 +145,8 @@
+@@ -145,10 +147,8 @@
  
  	@Override
  	@SideOnly(Side.CLIENT)
@@ -483,7 +429,7 @@
  			return prop.getDouble(def);
 --- a/com/yogpc/qp/QuarryPlus.java
 +++ b/com/yogpc/qp/QuarryPlus.java
-@@ -37,7 +37,6 @@
+@@ -41,7 +41,6 @@
  import net.minecraftforge.common.MinecraftForge;
  import net.minecraftforge.common.Property;
  import net.minecraftforge.event.world.WorldEvent;
@@ -491,7 +437,7 @@
  import cpw.mods.fml.client.registry.RenderingRegistry;
  import cpw.mods.fml.common.SidedProxy;
  import cpw.mods.fml.common.Mod;
-@@ -293,6 +292,8 @@
+@@ -322,6 +321,8 @@
  		proxy.registerTextures();
  		PacketHandler.registerStaticHandler(TileMarker.class);
  	}
@@ -500,48 +446,9 @@
  
  	public static class BlockData {
  		public final String name;
---- a/com/yogpc/qp/TileBasic.java
-+++ b/com/yogpc/qp/TileBasic.java
-@@ -40,7 +40,6 @@
- import net.minecraft.tileentity.TileEntity;
- import net.minecraft.world.World;
- import net.minecraftforge.common.ForgeDirection;
--import buildcraft.api.gates.IAction;
- import buildcraft.api.transport.IPipeConnection;
- import buildcraft.api.transport.IPipeEntry;
- import buildcraft.api.transport.IPipedItem;
---- a/com/yogpc/qp/TileBreaker.java
-+++ b/com/yogpc/qp/TileBreaker.java
-@@ -17,7 +17,6 @@
- 
- package com.yogpc.qp;
- 
--import buildcraft.api.gates.IAction;
- import buildcraft.core.IMachine;
- import net.minecraft.nbt.NBTTagCompound;
- import net.minecraft.tileentity.TileEntity;
---- a/com/yogpc/qp/TileLaser.java
-+++ b/com/yogpc/qp/TileLaser.java
-@@ -272,7 +272,7 @@
- 
- 	@Override
- 	public boolean allowActions() {
--		return action == actionOn || action == actionOff;
-+		return true;
- 	}
- 
- 	@Override
 --- a/com/yogpc/qp/TilePlacer.java
 +++ b/com/yogpc/qp/TilePlacer.java
-@@ -17,7 +17,6 @@
- 
- package com.yogpc.qp;
- 
--import buildcraft.api.gates.IAction;
- import buildcraft.core.IMachine;
- import net.minecraft.entity.player.EntityPlayer;
- import net.minecraft.inventory.IInventory;
-@@ -87,11 +86,6 @@
+@@ -85,11 +85,6 @@
  	}
  
  	@Override
@@ -553,7 +460,7 @@
  	public int getInventoryStackLimit() {
  		return 64;
  	}
-@@ -109,11 +103,6 @@
+@@ -107,11 +102,6 @@
  	public void closeChest() {}
  
  	@Override
@@ -575,7 +482,7 @@
  
  import com.google.common.io.ByteArrayDataInput;
  import com.google.common.io.ByteStreams;
-@@ -135,7 +136,7 @@
+@@ -134,7 +135,7 @@
  			te = this.worldObj.getBlockTileEntity(this.xCoord + fd.offsetX, this.yCoord + fd.offsetY, this.zCoord + fd.offsetZ);
  			if (te instanceof ITankContainer) {
  				for (String s : this.mapping[fd.ordinal()]) {
@@ -584,7 +491,7 @@
  					if (pZ == -1) continue;
  					fs = this.liquids.get(pZ);
  					fs.amount -= ((ITankContainer) te).fill(fd.getOpposite(), fs, true);
-@@ -486,7 +487,7 @@
+@@ -485,7 +486,7 @@
  		if (this.liquids.size() > 0) {
  			ret[0] = StatCollector.translateToLocal("chat.pumpcontain");
  			for (int i = 0; i < this.liquids.size(); i++) {
@@ -593,7 +500,7 @@
  						.append(this.liquids.get(i).amount).append("mB").toString();
  			}
  		} else {
-@@ -526,7 +527,7 @@
+@@ -525,7 +526,7 @@
  
  	public LiquidStack drain(ForgeDirection fd, LiquidStack resource, boolean doDrain) {
  		if (resource == null) return null;
@@ -602,7 +509,7 @@
  		if (index == -1) return null;
  		LiquidStack fs = this.liquids.get(index);
  		if (fs == null) return null;
-@@ -559,9 +560,9 @@
+@@ -558,9 +559,9 @@
  			int index;
  			LiquidStack fs;
  			for (String s : this.mapping[fd.ordinal()]) {
@@ -614,7 +521,7 @@
  				if (index != -1) ret.add(new LiquidTank(this.liquids.get(index), Integer.MAX_VALUE));
  				else ret.add(new LiquidTank(fs, Integer.MAX_VALUE));
  			}
-@@ -591,7 +592,7 @@
+@@ -590,7 +591,7 @@
  		for (String s : this.mapping[fd.ordinal()]) {
  			fs = LiquidDictionary.getLiquid(s, maxDrain);
  			if (fs == null) continue;
@@ -623,7 +530,7 @@
  			if (index == -1) continue;
  			return drain(fd, this.liquids.get(index), doDrain);
  		}
-@@ -631,7 +632,7 @@
+@@ -630,7 +631,7 @@
  				fs = new LiquidStack(Block.lavaStill, LiquidContainerRegistry.BUCKET_VOLUME);
  			}
  			if (fs != null) {
@@ -632,7 +539,7 @@
  				if (index != -1) this.liquids.get(index).amount += fs.amount;
  				else this.liquids.add(fs);
  				fs = null;
-@@ -686,4 +687,16 @@
+@@ -685,4 +686,16 @@
  		TileBasic tb = G_connected();
  		return tb == null ? 0 : tb.powerRequest();
  	}
@@ -651,22 +558,21 @@
  }
 --- a/com/yogpc/qp/client/ClientProxy.java
 +++ b/com/yogpc/qp/client/ClientProxy.java
-@@ -21,6 +21,7 @@
- import net.minecraft.client.multiplayer.WorldClient;
- import net.minecraft.entity.Entity;
- import net.minecraft.world.World;
-+import net.minecraftforge.client.MinecraftForgeClient;
+@@ -23,6 +23,7 @@
+ import com.yogpc.qp.TileQuarry;
+ import com.yogpc.qp.TileRefinery;
  
- import com.yogpc.qp.CommonProxy;
- import com.yogpc.qp.EntityMechanicalArm;
-@@ -43,6 +44,7 @@
- 		ClientRegistry.bindTileEntitySpecialRenderer(TileQuarry.class, new RenderQuarry());
- 		ClientRegistry.bindTileEntitySpecialRenderer(TileLaser.class, new RenderLaser());
- 		RenderingRegistry.registerBlockHandler(RenderRefinery.INSTANCE);
++import net.minecraftforge.client.MinecraftForgeClient;
+ import cpw.mods.fml.client.registry.ClientRegistry;
+ import cpw.mods.fml.client.registry.RenderingRegistry;
+ import cpw.mods.fml.relauncher.SideOnly;
+@@ -40,5 +41,6 @@
+ 		RenderingRegistry.registerBlockHandler(RenderLaserBlock.INSTANCE);
+ 		RenderingRegistry.registerBlockHandler(RenderMarker.INSTANCE);
+ 		RenderingRegistry.registerBlockHandler(RenderFrame.INSTANCE);
 +		MinecraftForgeClient.preloadTexture("/mods/yogpstop_qp/textures/textures.png");
  	}
- 
- 	@Override
+ }
 --- a/com/yogpc/qp/client/GuiError.java
 +++ b/com/yogpc/qp/client/GuiError.java
 @@ -19,35 +19,36 @@
@@ -764,110 +670,12 @@
  		this.drawTexturedModalRect(k, l, 0, 0, this.xSize, this.ySize);
 --- a/com/yogpc/qp/client/RenderLaser.java
 +++ b/com/yogpc/qp/client/RenderLaser.java
-@@ -37,7 +37,7 @@
- 		double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
- 		GL11.glRotatef((float) (360 - (Math.atan2(dz, dx) * 180.0 / Math.PI + 180.0)), 0, 1, 0);
- 		GL11.glRotatef((float) (-Math.atan2(dy, Math.sqrt(len * len - dy * dy)) * 180.0 / Math.PI), 0, 0, 1);
+@@ -35,7 +35,7 @@
+ 		double total = Math.sqrt(dx * dx + dy * dy + dz * dz);
+ 		GL11.glRotated(360 - (Math.atan2(dz, dx) * 180.0 / Math.PI + 180.0), 0, 1, 0);
+ 		GL11.glRotated(-Math.atan2(dy, Math.sqrt(total * total - dy * dy)) * 180.0 / Math.PI, 0, 0, 1);
 -		tm.bindTexture(tex);
 +		tm.bindTexture(tm.getTexture(tex));
- 		float lasti = 0;
- 		if (len - 1 > 0) {
- 			for (float i = 0; i <= len - 1; i += 1) {
---- a/com/yogpc/qp/client/RenderRefinery.java
-+++ b/com/yogpc/qp/client/RenderRefinery.java
-@@ -17,18 +17,27 @@
- 
- package com.yogpc.qp.client;
- 
-+import java.util.HashMap;
-+
- import net.minecraft.block.Block;
-+import net.minecraft.client.Minecraft;
- import net.minecraft.client.model.ModelBase;
- import net.minecraft.client.model.ModelRenderer;
-+import net.minecraft.client.renderer.GLAllocation;
- import net.minecraft.client.renderer.RenderBlocks;
- import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
- import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
-+import net.minecraft.item.Item;
- import net.minecraft.tileentity.TileEntity;
- import net.minecraft.world.IBlockAccess;
-+import net.minecraft.world.World;
- import net.minecraftforge.liquids.LiquidStack;
- 
- import org.lwjgl.opengl.GL11;
- 
-+import buildcraft.core.render.RenderEntityBlock;
-+import buildcraft.core.render.RenderEntityBlock.BlockInterface;
-+
- import com.yogpc.qp.QuarryPlus;
- import com.yogpc.qp.TileRefinery;
- 
-@@ -117,7 +126,7 @@
- 
- 		GL11.glRotatef(angle, 0, 1, 0);
- 
--		this.tileEntityRenderer.renderEngine.bindTexture(TEXTURE);
-+		this.tileEntityRenderer.renderEngine.bindTexture(this.tileEntityRenderer.renderEngine.getTexture(TEXTURE));
- 
- 		GL11.glPushMatrix();
- 		GL11.glTranslatef(-0.5F, -0.5F, -0.5F);
-@@ -231,4 +240,58 @@
- 	public int getRenderId() {
- 		return QuarryPlus.refineryRenderID;
- 	}
-+
-+	private static final float factor = (float) (1.0 / 16.0);
-+	private static final int DISPLAY_STAGES = 100;
-+
-+	private static final HashMap<Integer, HashMap<Integer, int[]>> stage = new HashMap<Integer, HashMap<Integer, int[]>>();
-+
-+	private static final int[] getLiquidDisplayLists(LiquidStack liquid, World world, boolean b) {
-+		int liquidId = liquid.itemID;
-+		int damage = liquid.itemMeta;
-+		if (stage.containsKey(liquidId)) {
-+			HashMap<Integer, int[]> x = stage.get(liquidId);
-+			if (x.containsKey(damage)) return x.get(damage);
-+		} else {
-+			stage.put(liquidId, new HashMap<Integer, int[]>());
-+		}
-+
-+		int[] d = new int[DISPLAY_STAGES];
-+		stage.get(liquidId).put(damage, d);
-+
-+		BlockInterface block = new BlockInterface();
-+
-+		// Retrieve the texture depending on type of item.
-+		if (liquidId < Block.blocksList.length && Block.blocksList[liquidId] != null) {
-+			block.texture = Block.blocksList[liquidId].getBlockTextureFromSideAndMetadata(0, damage);
-+		} else if (Item.itemsList[liquidId] != null) {
-+			block.texture = Item.itemsList[liquidId].getIconFromDamage(damage);
-+		} else return null;
-+
-+		for (int s = 0; s < DISPLAY_STAGES; ++s) {
-+			d[s] = GLAllocation.generateDisplayLists(1);
-+			GL11.glNewList(d[s], 4864 /* GL_COMPILE */);
-+
-+			block.minX = 0.5 - 4F * factor + 0.01;
-+			block.minY = 0;
-+			block.minZ = 0.5 - 4F * factor + 0.01;
-+
-+			block.maxX = 0.5 + 4F * factor - 0.01;
-+			block.maxY = (float) s / (float) DISPLAY_STAGES;
-+			block.maxZ = 0.5 + 4F * factor - 0.01;
-+
-+			RenderEntityBlock.renderBlock(block, world, 0, 0, 0, false, true);
-+
-+			GL11.glEndList();
-+		}
-+
-+		return d;
-+	}
-+
-+	private static final int getLiquidSheet(LiquidStack liquid) {
-+		int liquidId = liquid.itemID;
-+		if (liquidId < Block.blocksList.length && Block.blocksList[liquidId] != null) { return Minecraft.getMinecraft().renderEngine
-+				.getTexture(Block.blocksList[liquidId].getTextureFile()); }
-+		return Minecraft.getMinecraft().renderEngine.getTexture(Item.itemsList[liquidId].getTextureFile());
-+	}
- }
+ 		int i = 0;
+ 		while (i <= total - 1) {
+ 			box[b].render(1F / 16);
