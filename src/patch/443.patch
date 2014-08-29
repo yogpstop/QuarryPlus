@@ -1,20 +1,93 @@
---- a/com/yogpc/qp/client/RenderRefinery.java
-+++ b/com/yogpc/qp/client/RenderRefinery.java
-@@ -247,7 +247,7 @@
- 	private static final HashMap<Integer, HashMap<Integer, int[]>> stage = new HashMap<Integer, HashMap<Integer, int[]>>();
+--- a/com/yogpc/ip/ItemArmorElectric.java
++++ b/com/yogpc/ip/ItemArmorElectric.java
+@@ -4,6 +4,7 @@
+ import ic2.api.IElectricItem;
  
- 	private static final int[] getLiquidDisplayLists(LiquidStack liquid, World world, boolean b) {
--		int liquidId = liquid.shiftedIndex;
-+		int liquidId = liquid.itemID;
- 		int damage = liquid.itemMeta;
- 		if (stage.containsKey(liquidId)) {
- 			HashMap<Integer, int[]> x = stage.get(liquidId);
-@@ -289,7 +289,7 @@
+ import java.lang.reflect.Field;
++import java.util.EnumSet;
+ import java.util.List;
+ 
+ import com.yogpc.mc_lib.ProxyCommon;
+@@ -11,7 +12,10 @@
+ import com.yogpc.mc_lib.YogpstopLib;
+ 
+ import cpw.mods.fml.common.FMLCommonHandler;
++import cpw.mods.fml.common.ITickHandler;
++import cpw.mods.fml.common.TickType;
+ import cpw.mods.fml.common.registry.GameRegistry;
++import cpw.mods.fml.common.registry.TickRegistry;
+ import cpw.mods.fml.common.Side;
+ import cpw.mods.fml.common.asm.SideOnly;
+ import net.minecraft.src.CreativeTabs;
+@@ -28,15 +32,17 @@
+ import net.minecraftforge.common.ISpecialArmor;
+ import net.minecraftforge.common.EnumHelper;
+ 
+-public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElectricItem {
++public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElectricItem, ITickHandler {
+ 	public ItemArmorElectric(int id) {
+ 		super(id, EnumHelper.addArmorMaterial("ELECTRIC", 33, new int[] { 3, 8, 6, 3 }, 0), YogpstopLib.proxy.addNewArmourRendererPrefix("electric"), 1);
+ 		this.setItemName("electric_armor");
+ 		this.setCreativeTab(CreativeTabs.tabCombat);
+-		
++
+ 		this.setMaxDamage(100);
+ 		this.setMaxStackSize(1);
+ 		this.iconIndex = 0;// TODO
++		TickRegistry.registerTickHandler(this, Side.CLIENT);
++		TickRegistry.registerTickHandler(this, Side.SERVER);
  	}
  
- 	private static final int getLiquidSheet(LiquidStack liquid) {
--		int liquidId = liquid.shiftedIndex;
-+		int liquidId = liquid.itemID;
- 		if (liquidId < Block.blocksList.length && Block.blocksList[liquidId] != null) { return Minecraft.getMinecraft().renderEngine
- 				.getTexture(Block.blocksList[liquidId].getTextureFile()); }
- 		return Minecraft.getMinecraft().renderEngine.getTexture(Item.itemsList[liquidId].getTextureFile());
+ 	private static final double maxFallSpeedOnHover = 0.35;
+@@ -108,12 +114,27 @@
+ 	}
+ 
+ 	@Override
+-	public void onArmorTickUpdate(World world, EntityPlayer player, ItemStack itemStack) {
+-		if (player.inventory.armorInventory[2] != itemStack) return;
++	public void tickStart(EnumSet<TickType> type, Object... tickData) {
++		EntityPlayer player = (EntityPlayer) tickData[0];
++		ItemStack itemStack = player.inventory.armorInventory[2];
++		if (this != itemStack.getItem()) return;
+ 		this.useJetpack(player, itemStack, toggleHover(player, itemStack));
+ 	}
+ 
+ 	@Override
++	public void tickEnd(EnumSet<TickType> type, Object... tickData) {}
++
++	@Override
++	public EnumSet<TickType> ticks() {
++		return EnumSet.of(TickType.PLAYER);
++	}
++
++	@Override
++	public String getLabel() {
++		return "JetPack";
++	}
++
++	@Override
+ 	@SideOnly(Side.CLIENT)
+ 	public EnumRarity getRarity(ItemStack stack) {
+ 		return EnumRarity.uncommon;
+--- a/com/yogpc/qp/client/RenderRefinery.java
++++ b/com/yogpc/qp/client/RenderRefinery.java
+@@ -181,7 +181,7 @@
+ 					GL11.glPushMatrix();
+ 					GL11.glTranslatef(tx, ty, tz);
+ 				}
+-				bindTextureByName(Block.blocksList[liquid.shiftedIndex].getTextureFile());
++				bindTextureByName(Block.blocksList[liquid.itemID].getTextureFile());
+ 				ItemStack stack = liquid.asItemStack();
+ 				setColor(stack.getItem().getColorFromItemStack(stack, 0));
+ 				GL11.glCallList(list[(int) (liquid.amount / buf * 99)]);
+@@ -198,8 +198,8 @@
+ 		if (diplayLists != null) return diplayLists;
+ 		diplayLists = new int[100];
+ 		Block baseBlock;
+-		if (fluidStack.shiftedIndex > -1) {
+-			baseBlock = Block.blocksList[fluidStack.shiftedIndex];
++		if (fluidStack.itemID > -1) {
++			baseBlock = Block.blocksList[fluidStack.itemID];
+ 		} else {
+ 			baseBlock = Block.waterStill;
+ 		}
