@@ -1,14 +1,57 @@
+--- a/com/yogpc/ip/ItemArmorElectric.java
++++ b/com/yogpc/ip/ItemArmorElectric.java
+@@ -31,17 +31,12 @@
+ public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElectricItem {
+ 	public ItemArmorElectric(int id) {
+ 		super(id, EnumHelper.addArmorMaterial("ELECTRIC", 33, new int[] { 3, 8, 6, 3 }, 0), YogpstopLib.proxy.addNewArmourRendererPrefix("electric"), 1);
+-		this.setBlockName("electric_armor");
++		this.setItemName("electric_armor");
+ 		this.setCreativeTab(CreativeTabs.tabCombat);
+ 		GameRegistry.registerItem(this, "qpArmor");
+ 		this.setMaxDamage(100);
+ 		this.setMaxStackSize(1);
+-	}
+-
+-	@Override
+-	@SideOnly(Side.CLIENT)
+-	public void registerIcons(IconRegister ir) {
+-		iconIndex = ir.registerIcon("yogpstop_qp:electric_armor");
++		this.iconIndex = 0;// TODO
+ 	}
+ 
+ 	private static final double maxFallSpeedOnHover = 0.35;
+@@ -49,7 +44,8 @@
+ 	private void useJetpack(EntityPlayer p, ItemStack jetpack, boolean hover) {
+ 		boolean jumping = YogpstopLib.proxy.getKey(p, ProxyCommon.Key.jump);
+ 		if (jumping || hover && p.motionY < -maxFallSpeedOnHover) {
+-			double charge = ElectricItem.getCharge(jetpack);
++			double charge = 0;
++			if (jetpack.hasTagCompound() && jetpack.getTagCompound().hasKey("charge")) charge = jetpack.getTagCompound().getInteger("charge");
+ 			if (charge <= 0.0) return;
+ 			float power = 0.7f;
+ 			if (charge / this.getMaxCharge() <= 0.05f) {
+@@ -135,13 +131,16 @@
+ 	@Override
+ 	public ISpecialArmor.ArmorProperties getProperties(EntityLiving player, ItemStack armor, DamageSource source, double damage, int slot) {
+ 		if (source.isUnblockable()) return new ISpecialArmor.ArmorProperties(0, 0.0, 0);
+-		int damageLimit = (int) Math.min(Integer.MAX_VALUE, 25.0 * ElectricItem.getCharge(armor) / 5000);
++		int charge = 0;
++		if (armor.hasTagCompound() && armor.getTagCompound().hasKey("charge")) charge = armor.getTagCompound().getInteger("charge");
++		int damageLimit = (int) Math.min(Integer.MAX_VALUE, 25.0 * charge / 5000);
+ 		return new ISpecialArmor.ArmorProperties(0, 0.4 * 0.9, damageLimit);
+ 	}
+ 
+ 	@Override
+ 	public int getArmorDisplay(EntityPlayer player, ItemStack armor, int slot) {
+-		if (ElectricItem.getCharge(armor) >= 5000) return (int) Math.round(20.0 * 0.4 * 0.9);
++		if (armor.hasTagCompound() && armor.getTagCompound().hasKey("charge") && armor.getTagCompound().getInteger("charge") >= 5000) return (int) Math
++				.round(20.0 * 0.4 * 0.9);
+ 		return 0;
+ 	}
+ 
 --- a/com/yogpc/mc_lib/ProxyClient.java
 +++ b/com/yogpc/mc_lib/ProxyClient.java
-@@ -5,7 +5,6 @@
- import net.minecraft.client.Minecraft;
- import net.minecraft.client.gui.GuiScreen;
- import net.minecraft.client.multiplayer.WorldClient;
--import net.minecraft.client.settings.GameSettings;
- import net.minecraft.client.settings.KeyBinding;
- import net.minecraft.entity.Entity;
- import net.minecraft.world.World;
-@@ -54,18 +53,18 @@
+@@ -64,18 +64,18 @@
  		if ((currentScreen == null) || (currentScreen.allowUserInput)) {
  			for (Key k : Key.values()) {
  				if (k.binding instanceof KeyBinding) {

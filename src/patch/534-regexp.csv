@@ -21,6 +21,8 @@ SIMPLE,"renderFaceZPos","renderWestFace"
 SIMPLE,"renderFaceXNeg","renderNorthFace"
 SIMPLE,"renderFaceXPos","renderSouthFace"
 SIMPLE,"addCollisionBoxesToList","addCollidingBlockToList"
+SIMPLE,"ic2\\.api\\.item","ic2.api"
+SIMPLE,"ElectricItem\\.manager","ElectricItem"
 SIMPLE,"new +InventoryBasic *\\(([^,\\(\\)]+),[^,\\(\\)]+,([^,\\(\\)]+)\\)","new InventoryBasic($1,$2)"
 SIMPLE,"setBlockToAir *\\(([^,\\(\\)]+,[^,\\(\\)]+,[^,\\(\\)]+)\\)","setBlock($1, 0)"
 METHOD,Icon,int,getIcon,getBlockTextureFromSideAndMetadata,int,int,int,int
@@ -31,3 +33,9 @@ METHOD,boolean,boolean,isBookEnchantable,getIsRepairable,ItemStack,ItemStack,Ite
 METHOD,String,String,getUnlocalizedName,getItemNameIS,ItemStack,ItemStack
 METHOD,boolean,boolean,allowAction,allowActions,IAction,@SKIP@
 METHOD,int,int,powerRequest,powerRequest,ForgeDirection,@SKIP@
+METHOD,boolean,boolean,canProvideEnergy,canProvideEnergy,ItemStack,@SKIP@
+METHOD,int,int,getChargedItemId,getChargedItemId,ItemStack,@SKIP@
+METHOD,int,int,getEmptyItemId,getEmptyItemId,ItemStack,@SKIP@
+METHOD,int,int,getMaxCharge,getMaxCharge,ItemStack,@SKIP@
+METHOD,int,int,getTier,getTier,ItemStack,@SKIP@
+METHOD,int,int,getTransferLimit,getTransferLimit,ItemStack,@SKIP@
