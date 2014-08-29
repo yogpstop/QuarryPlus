@@ -1,14 +1,43 @@
+--- a/com/yogpc/ip/ItemArmorElectric.java
++++ b/com/yogpc/ip/ItemArmorElectric.java
+@@ -14,6 +14,7 @@
+ import cpw.mods.fml.common.registry.GameRegistry;
+ import cpw.mods.fml.relauncher.Side;
+ import cpw.mods.fml.relauncher.SideOnly;
++import net.minecraft.client.renderer.texture.IconRegister;
+ import net.minecraft.creativetab.CreativeTabs;
+ import net.minecraft.entity.EntityLiving;
+ import net.minecraft.entity.player.EntityPlayer;
+@@ -33,12 +34,17 @@
+ 		super(id, EnumHelper.addArmorMaterial("ELECTRIC", 33, new int[] { 3, 8, 6, 3 }, 0), YogpstopLib.proxy.addNewArmourRendererPrefix("electric"), 1);
+ 		this.setUnlocalizedName("electric_armor");
+ 		this.setCreativeTab(CreativeTabs.tabCombat);
+-		this.setTextureName("yogpstop_qp:electric_armor");
+ 		GameRegistry.registerItem(this, "qpArmor");
+ 		this.setMaxDamage(100);
+ 		this.setMaxStackSize(1);
+ 	}
+ 
++	@Override
++	@SideOnly(Side.CLIENT)
++	public void registerIcons(IconRegister ir) {
++		itemIcon = ir.registerIcon("yogpstop_qp:electric_armor");
++	}
++
+ 	private static final double maxFallSpeedOnHover = 0.35;
+ 
+ 	private void useJetpack(EntityPlayer p, ItemStack jetpack, boolean hover) {
 --- a/com/yogpc/mc_lib/YogpstopLib.java
 +++ b/com/yogpc/mc_lib/YogpstopLib.java
-@@ -13,7 +13,7 @@
+@@ -15,7 +15,7 @@
  	@SidedProxy(clientSide = "com.yogpc.mc_lib.ProxyClient", serverSide = "com.yogpc.mc_lib.ProxyCommon")
  	public static ProxyCommon proxy;
  
 -	@Mod.EventHandler
 +	@Mod.Init
  	public void init(FMLInitializationEvent event) {
+ 		new ItemArmorElectric(21478);// TODO IC2Plus
  	}
- }
 --- a/com/yogpc/qp/APowerTile.java
 +++ b/com/yogpc/qp/APowerTile.java
 @@ -3,13 +3,13 @@
@@ -60,18 +89,149 @@
 +		this.pp.configure(0, 0, (int) this.recv_max, 0, (int) this.stored_max);
  	}
  }
+--- a/com/yogpc/qp/BlockFrame.java
++++ b/com/yogpc/qp/BlockFrame.java
+@@ -7,6 +7,7 @@
+ import cpw.mods.fml.relauncher.SideOnly;
+ import net.minecraft.block.Block;
+ import net.minecraft.block.material.Material;
++import net.minecraft.client.renderer.texture.IconRegister;
+ import net.minecraft.entity.Entity;
+ import net.minecraft.item.Item;
+ import net.minecraft.util.AxisAlignedBB;
+@@ -23,7 +24,12 @@
+ 		setSides(true, true, true, true, true, true);
+ 		setHardness(0.5F);
+ 		setTickRandomly(true);
+-		this.setTextureName("buildcraft:blockFrame");// TODO buildcraft resource
++	}
++
++	@Override
++	@SideOnly(Side.CLIENT)
++	public void registerIcons(IconRegister ir) {
++		this.blockIcon = ir.registerIcon("buildcraft:blockFrame");// TODO buildcraft resource
+ 	}
+ 
+ 	@Override
+--- a/com/yogpc/qp/BlockInfMJSrc.java
++++ b/com/yogpc/qp/BlockInfMJSrc.java
+@@ -19,9 +19,12 @@
+ 
+ import net.minecraft.block.BlockContainer;
+ import net.minecraft.block.material.Material;
++import net.minecraft.client.renderer.texture.IconRegister;
+ import net.minecraft.entity.player.EntityPlayer;
+ import net.minecraft.tileentity.TileEntity;
+ import net.minecraft.world.World;
++import cpw.mods.fml.relauncher.SideOnly;
++import cpw.mods.fml.relauncher.Side;
+ 
+ public class BlockInfMJSrc extends BlockContainer {
+ 
+@@ -32,7 +35,12 @@
+ 		setStepSound(soundStoneFootstep);
+ 		setCreativeTab(QuarryPlus.ct);
+ 		setUnlocalizedName("InfMJSrc");
+-		setTextureName("portal");
++	}
++
++	@Override
++	@SideOnly(Side.CLIENT)
++	public void registerIcons(IconRegister ir) {
++		this.blockIcon = ir.registerIcon("portal");
+ 	}
+ 
+ 	@Override
+--- a/com/yogpc/qp/BlockPlainPipe.java
++++ b/com/yogpc/qp/BlockPlainPipe.java
+@@ -4,7 +4,10 @@
+ 
+ import net.minecraft.block.Block;
+ import net.minecraft.block.material.Material;
++import net.minecraft.client.renderer.texture.IconRegister;
+ import net.minecraft.item.Item;
++import cpw.mods.fml.relauncher.SideOnly;
++import cpw.mods.fml.relauncher.Side;
+ 
+ public class BlockPlainPipe extends Block {
+ 	public BlockPlainPipe(int id) {
+@@ -15,7 +18,12 @@
+ 		this.maxX = 0.75;
+ 		this.maxY = 1.0;
+ 		this.maxZ = 0.75;
+-		this.setTextureName("buildcraft:blockPlainPipe");// TODO buildcraft resource
++	}
++
++	@Override
++	@SideOnly(Side.CLIENT)
++	public void registerIcons(IconRegister ir) {
++		this.blockIcon = ir.registerIcon("buildcraft:blockPlainPipe");// TODO buildcraft resource
+ 	}
+ 
+ 	@Override
+--- a/com/yogpc/qp/BlockRefinery.java
++++ b/com/yogpc/qp/BlockRefinery.java
+@@ -21,6 +21,7 @@
+ 
+ import net.minecraft.block.BlockContainer;
+ import net.minecraft.block.material.Material;
++import net.minecraft.client.renderer.texture.IconRegister;
+ import net.minecraft.entity.EntityLiving;
+ import net.minecraft.entity.player.EntityPlayer;
+ import net.minecraft.item.Item;
+@@ -32,6 +33,8 @@
+ import net.minecraftforge.liquids.LiquidContainerRegistry;
+ import net.minecraftforge.liquids.LiquidStack;
+ import net.minecraftforge.liquids.ITankContainer;
++import cpw.mods.fml.relauncher.SideOnly;
++import cpw.mods.fml.relauncher.Side;
+ 
+ public class BlockRefinery extends BlockContainer {
+ 
+@@ -40,7 +43,12 @@
+ 		setHardness(5F);
+ 		setCreativeTab(QuarryPlus.ct);
+ 		setUnlocalizedName("RefineryPlus");
+-		setTextureName("buildcraft:refineryBack");// TODO buildcraft resource
++	}
++
++	@Override
++	@SideOnly(Side.CLIENT)
++	public void registerIcons(IconRegister ir) {
++		this.blockIcon = ir.registerIcon("buildcraft:refineryBack");// TODO buildcraft resource
+ 	}
+ 
+ 	@Override
+@@ -94,7 +102,7 @@
+ 
+ 	private static boolean fill(ITankContainer tank, ForgeDirection side, EntityPlayer player) {
+ 		ItemStack current = player.getCurrentEquippedItem();
+-		LiquidStack liquid = LiquidContainerRegistry.getFluidForFilledItem(current);
++		LiquidStack liquid = LiquidContainerRegistry.getLiquidForFilledItem(current);
+ 		if (liquid != null) {
+ 			int used = tank.fill(side, liquid, true);
+ 			if (used > 0) {
 --- a/com/yogpc/qp/QuarryPlus.java
 +++ b/com/yogpc/qp/QuarryPlus.java
-@@ -86,7 +86,7 @@
- 			if (l.w == event.world) l.destructor();
+@@ -99,7 +99,7 @@
+ 	@ForgeSubscribe
+ 	@SideOnly(Side.CLIENT)
+ 	public void loadTextures(TextureStitchEvent.Pre evt) {
+-		if (evt.map.getTextureType() == 0) {
++		if (evt.map.textureType == 0) {
+ 			TextureMap map = evt.map;
+ 			RenderEntityLaser.icons = new Icon[4];
+ 			RenderEntityLaser.icons[EntityLaser.DRILL] = map.registerIcon("buildcraft:blockDrillTexture");// TODO buildcraft resource
+@@ -109,7 +109,7 @@
+ 		}
  	}
  
 -	@Mod.EventHandler
 +	@Mod.PreInit
  	public void preInit(FMLPreInitializationEvent event) {
  		Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
- 		int[] id = new int[11];
-@@ -135,10 +135,10 @@
+ 		int[] id = new int[13];
+@@ -162,10 +162,10 @@
  	}
  
  	private static final void addAssemblyRecipe(int a, ItemStack b, ItemStack... c) {
@@ -86,29 +246,34 @@
  		GameRegistry.registerBlock(blockQuarry, ItemBlockQuarry.class, "QuarryPlus");
 --- a/com/yogpc/qp/TileBasic.java
 +++ b/com/yogpc/qp/TileBasic.java
-@@ -41,7 +41,10 @@
+@@ -44,8 +44,8 @@
+ import net.minecraft.tileentity.TileEntityChest;
  import net.minecraft.world.World;
  import net.minecraftforge.common.ForgeDirection;
- import buildcraft.api.gates.IAction;
+-import buildcraft.api.power.IPowerEmitter;
 -import buildcraft.api.transport.IPipeTile;
 +import buildcraft.api.transport.IPipeConnection;
 +import buildcraft.api.transport.IPipeEntry;
-+import buildcraft.api.transport.IPipedItem;
-+import buildcraft.core.EntityPassiveItem;
- import buildcraft.core.IMachine;
- import buildcraft.core.inventory.ITransactor;
- import buildcraft.core.inventory.Transactor;
-@@ -162,7 +165,7 @@
+ 
+ public abstract class TileBasic extends APowerTile implements IInventory, IEnchantableTile {
+ 	protected ForgeDirection pump = ForgeDirection.UNKNOWN;
+@@ -205,21 +205,22 @@
+ 		return moved;
  	}
  
++	private static final Class engcls = ReflectionHelper.getClass("buildcraft.energy.TileEngine");
++
  	static int injectToNearTile(World w, int x, int y, int z, ItemStack is) {
 -		List<IPipeTile> pp = new LinkedList<IPipeTile>();
 +		List<TileEntity> pp = new LinkedList<TileEntity>();
  		List<ForgeDirection> ppd = new LinkedList<ForgeDirection>();
- 		List<ITransactor> pi = new LinkedList<ITransactor>();
+ 		List<IInventory> pi = new LinkedList<IInventory>();
  		List<ForgeDirection> pid = new LinkedList<ForgeDirection>();
-@@ -173,10 +176,9 @@
- 				pi.add(i);
+ 		for (ForgeDirection d : ForgeDirection.VALID_DIRECTIONS) {
+ 			TileEntity t = w.getBlockTileEntity(x + d.offsetX, y + d.offsetY, z + d.offsetZ);
+-			if ((t instanceof IInventory) && !(t instanceof IPowerEmitter) && addToIInv((IInventory) t, is, d.getOpposite(), false) > 0) {
++			if ((t instanceof IInventory) && (engcls == null || !engcls.isInstance(t)) && addToIInv((IInventory) t, is, d.getOpposite(), false) > 0) {
+ 				pi.add((IInventory) t);
  				pid.add(d.getOpposite());
  			}
 -			if (t instanceof IPipeTile) {
@@ -121,14 +286,12 @@
  				ppd.add(d.getOpposite());
  			}
  		}
-@@ -186,7 +188,10 @@
+@@ -229,7 +230,8 @@
  		}
  		if (pp.size() > 0) {
  			int i = w.rand.nextInt(pp.size());
 -			return pp.get(i).injectItem(is, true, ppd.get(i));
-+			IPipeEntry p = (IPipeEntry) pp.get(i);
-+			IPipedItem entity = new EntityPassiveItem(w, pp.get(i).xCoord, pp.get(i).yCoord, pp.get(i).zCoord, is);
-+			p.entityEntering(entity, ppd.get(i));
++			((IPipeEntry) pp.get(i)).entityEntering(is, ppd.get(i));
 +			return is.stackSize;
  		}
  		return 0;
@@ -156,32 +319,19 @@
  		this.cInterval = this.interval;
 --- a/com/yogpc/qp/TileLaser.java
 +++ b/com/yogpc/qp/TileLaser.java
-@@ -27,7 +27,6 @@
- import static buildcraft.BuildCraftCore.actionOff;
- import buildcraft.api.gates.IAction;
- import buildcraft.api.gates.IActionReceptor;
--import buildcraft.core.EntityLaser;
- import buildcraft.core.IMachine;
- import buildcraft.core.triggers.ActionMachineControl;
- import net.minecraft.entity.player.EntityPlayer;
-@@ -197,13 +196,13 @@
- 		double avg = this.pa / 100;
- 
- 		if (avg <= 1.0) {
--			return EntityLaser.LASER_TEXTURES[0];
-+			return "/gfx/buildcraft/entities/laser_1.png";
- 		} else if (avg <= 2.0) {
--			return EntityLaser.LASER_TEXTURES[1];
-+			return "/gfx/buildcraft/entities/laser_2.png";
- 		} else if (avg <= 3.0) {
--			return EntityLaser.LASER_TEXTURES[2];
-+			return "/gfx/buildcraft/entities/laser_3.png";
- 		} else {
--			return EntityLaser.LASER_TEXTURES[3];
-+			return "/gfx/buildcraft/entities/laser_4.png";
+@@ -179,9 +179,9 @@
  		}
  	}
  
+-	public static final String[] LASER_TEXTURES = new String[] { new String("buildcraft", "textures/entities/laser_1.png"),// TODO buildcraft resource
+-			new String("buildcraft", "textures/entities/laser_2.png"), new String("buildcraft", "textures/entities/laser_3.png"),// TODO buildcraft resource
+-			new String("buildcraft", "textures/entities/laser_4.png"), new String("buildcraft", "textures/entities/stripes.png") };// TODO buildcraft resource
++	public static final String[] LASER_TEXTURES = new String[] { "/gfx/buildcraft/entities/laser_1.png",// TODO buildcraft resource
++			"/gfx/buildcraft/entities/laser_2.png", "/gfx/buildcraft/entities/laser_3.png",// TODO buildcraft resource
++			"/gfx/buildcraft/entities/laser_4.png", "/gfx/buildcraft/entities/stripes.png" };// TODO buildcraft resource
+ 
+ 	public String getTexture() {
+ 		double avg = this.pa / 100;
 --- a/com/yogpc/qp/TilePump.java
 +++ b/com/yogpc/qp/TilePump.java
 @@ -38,7 +38,7 @@
@@ -193,7 +343,7 @@
  import net.minecraftforge.liquids.LiquidContainerRegistry;
  import net.minecraftforge.liquids.LiquidDictionary;
  import net.minecraftforge.liquids.LiquidStack;
-@@ -135,7 +135,7 @@
+@@ -134,7 +134,7 @@
  			te = this.worldObj.getBlockTileEntity(this.xCoord + fd.offsetX, this.yCoord + fd.offsetY, this.zCoord + fd.offsetZ);
  			if (te instanceof ITankContainer) {
  				for (String s : this.mapping[fd.ordinal()]) {
@@ -202,7 +352,7 @@
  					if (pZ == -1) continue;
  					fs = this.liquids.get(pZ);
  					fs.amount -= ((ITankContainer) te).fill(fd.getOpposite(), fs, true);
-@@ -486,7 +486,7 @@
+@@ -485,7 +485,7 @@
  		if (this.liquids.size() > 0) {
  			ret[0] = StatCollector.translateToLocal("chat.pumpcontain");
  			for (int i = 0; i < this.liquids.size(); i++) {
@@ -211,7 +361,7 @@
  						.append(this.liquids.get(i).amount).append("mB").toString();
  			}
  		} else {
-@@ -520,6 +520,10 @@
+@@ -519,6 +519,10 @@
  	}
  
  	@Override
@@ -222,7 +372,7 @@
  	public LiquidStack drain(ForgeDirection fd, LiquidStack resource, boolean doDrain) {
  		if (resource == null) return null;
  		int index = this.liquids.indexOf(resource);
-@@ -535,13 +539,8 @@
+@@ -534,13 +538,8 @@
  	}
  
  	@Override
@@ -238,7 +388,7 @@
  	}
  
  	@Override
-@@ -550,8 +549,8 @@
+@@ -549,8 +548,8 @@
  		LinkedList<LiquidTank> ret = new LinkedList<LiquidTank>();
  		if (this.mapping[fd.ordinal()].size() <= 0) {
  			if (this.liquids.size() <= 0) {
@@ -249,7 +399,7 @@
  			} else {
  				for (LiquidStack fs : this.liquids)
  					ret.add(new LiquidTank(fs, Integer.MAX_VALUE));
-@@ -560,7 +559,7 @@
+@@ -559,7 +558,7 @@
  			int index;
  			LiquidStack fs;
  			for (String s : this.mapping[fd.ordinal()]) {
@@ -258,7 +408,7 @@
  				if (fs == null) continue;
  				index = this.liquids.indexOf(fs);
  				if (index != -1) ret.add(new LiquidTank(this.liquids.get(index), Integer.MAX_VALUE));
-@@ -571,6 +570,16 @@
+@@ -570,6 +569,16 @@
  	}
  
  	@Override
@@ -275,7 +425,7 @@
  	public LiquidStack drain(ForgeDirection fd, int maxDrain, boolean doDrain) {
  		if (fd.ordinal() < 0 || fd.ordinal() >= this.mapping.length) return drain(ForgeDirection.UP, maxDrain, doDrain);
  		if (this.mapping[fd.ordinal()].size() <= 0) {
-@@ -580,7 +589,7 @@
+@@ -579,7 +588,7 @@
  		int index;
  		LiquidStack fs;
  		for (String s : this.mapping[fd.ordinal()]) {
@@ -284,7 +434,7 @@
  			if (fs == null) continue;
  			index = this.liquids.indexOf(fs);
  			if (index == -1) continue;
-@@ -604,7 +613,7 @@
+@@ -603,7 +612,7 @@
  	 * 
  	 * */
  	static final boolean isLiquid(Block b, boolean s, World w, int x, int y, int z, int m) {
@@ -293,7 +443,7 @@
  		if (b == Block.waterStill || b == Block.waterMoving || b == Block.lavaStill || b == Block.lavaMoving) return !s || m == 0;
  		return false;
  	}
-@@ -614,12 +623,12 @@
+@@ -613,12 +622,12 @@
  		int meta = this.ebses[bx >> 4][bz >> 4][this.py >> 4].getExtBlockMetadata(bx & 0xF, this.py & 0xF, bz & 0xF);
  		if (isLiquid(b, false, null, 0, 0, 0, 0)) {
  			LiquidStack fs = null;
@@ -310,7 +460,7 @@
  			}
  			if (fs != null) {
  				int index = this.liquids.indexOf(fs);
-@@ -668,7 +677,13 @@
+@@ -667,7 +676,13 @@
  	public void doWork() {}
  
  	@Override
@@ -470,35 +620,106 @@
  		Minecraft.getMinecraft().fontRenderer.drawStringWithShadow(name,
  				(this.parent.width * 3 / 5 - Minecraft.getMinecraft().fontRenderer.getStringWidth(name)) / 2, var3 + 1, 0xFFFFFF);
  	}
---- a/com/yogpc/qp/client/RenderQuarry.java
-+++ b/com/yogpc/qp/client/RenderQuarry.java
-@@ -2,8 +2,6 @@
+--- a/com/yogpc/qp/client/RenderEntityLaser.java
++++ b/com/yogpc/qp/client/RenderEntityLaser.java
+@@ -23,11 +23,6 @@
+ 	private RenderEntityLaser() {}
  
- import org.lwjgl.opengl.GL11;
- 
--import static buildcraft.core.DefaultProps.TEXTURE_PATH_ENTITIES;
+ 	@Override
+-	protected String getEntityTexture(Entity entity) {
+-		return TextureMap.locationBlocksTexture;
+-	}
 -
- import com.yogpc.qp.TileQuarry;
- 
- import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
-@@ -14,8 +12,7 @@
- 	private void render(double fx, double fy, double fz, double tx, double ty, double tz) {
+-	@Override
+ 	public void doRender(Entity e, double i, double j, double k, float f, float f1) {
+ 		if (e.isDead) return;
  		GL11.glPushMatrix();
- 		GL11.glTranslated(0.5F, 0.5F, 0.5F);
--		RenderLaser.renderLaser(this.tileEntityRenderer.renderEngine, fx, fy, fz, tx, ty, tz, 0, new String("buildcraft", TEXTURE_PATH_ENTITIES
--				+ "/stripes.png"));
-+		RenderLaser.renderLaser(this.tileEntityRenderer.renderEngine, fx, fy, fz, tx, ty, tz, 0, "/gfx/buildcraft/entities/stripes.png");
- 		GL11.glPopMatrix();
- 	}
- 
+@@ -50,7 +45,7 @@
+ 	private static void doRender(RenderEngine tm, double i, double j, double k, double iSize, double jSize, double kSize, int tex) {
+ 		GL11.glPushMatrix();
+ 		GL11.glTranslated(i, j, k);
+-		tm.bindTexture(TextureMap.locationBlocksTexture);
++		tm.bindTexture("/terrain.png");
+ 		Tessellator t = Tessellator.instance;
+ 		RenderBlocks rb = new RenderBlocks();
+ 		for (int iBase = 0; iBase < iSize; ++iBase) {
 --- a/com/yogpc/qp/client/RenderRefinery.java
 +++ b/com/yogpc/qp/client/RenderRefinery.java
-@@ -40,7 +40,7 @@
+@@ -32,7 +32,7 @@
+ import net.minecraft.tileentity.TileEntity;
+ import net.minecraft.util.Icon;
+ import net.minecraft.world.IBlockAccess;
+-import net.minecraftforge.liquids.Fluid;
++import net.minecraft.item.ItemStack;
+ import net.minecraftforge.liquids.LiquidStack;
+ 
+ import org.lwjgl.opengl.GL11;
+@@ -46,7 +46,7 @@
+ 
  @SideOnly(Side.CLIENT)
  public class RenderRefinery extends TileEntitySpecialRenderer implements ISimpleBlockRenderingHandler {
- 	public static final RenderRefinery INSTANCE = new RenderRefinery();
 -	private static final String TEXTURE = new String("yogpstop_qp", "textures/blocks/refinery.png");
 +	private static final String TEXTURE = "/mods/yogpstop_qp/textures/blocks/refinery.png";
  	private static final float pixel = (float) (1.0 / 16.0);
- 	private final ModelRenderer tank;
- 	private final ModelRenderer magnet[] = new ModelRenderer[4];
+ 	private static final RenderBlocks renderBlocks = new RenderBlocks();
+ 	public static final RenderRefinery INSTANCE = new RenderRefinery();
+@@ -117,7 +117,7 @@
+ 
+ 		GL11.glRotatef(angle, 0, 1, 0);
+ 
+-		bindTexture(TEXTURE);
++		bindTextureByName(TEXTURE);
+ 
+ 		GL11.glPushMatrix();
+ 		GL11.glTranslatef(-0.5F, -0.5F, -0.5F);
+@@ -183,31 +183,30 @@
+ 					GL11.glPushMatrix();
+ 					GL11.glTranslatef(tx, ty, tz);
+ 				}
+-				bindTexture(TextureMap.locationBlocksTexture);
+-				setColor(liquid.getFluid().getColor(liquid));
++				bindTextureByName(liquid.getTextureSheet());
++				ItemStack stack = liquid.asItemStack();
++				setColor(stack.getItem().getColorFromItemStack(stack, 0));
+ 				GL11.glCallList(list[(int) (liquid.amount / buf * 99)]);
+ 				if (tx != 0 || ty != 0 || tz != 0) GL11.glPopMatrix();
+ 			}
+ 		}
+ 	}
+ 
+-	private static final Map<Fluid, int[]> stillRenderCache = new HashMap<Fluid, int[]>();
++	private static final Map<LiquidStack, int[]> stillRenderCache = new HashMap<LiquidStack, int[]>();
+ 
+ 	private static int[] getLiquidDisplayLists(LiquidStack fluidStack) {
+-		Fluid fluid = fluidStack.getFluid();
+-		if (fluid == null) return null;
+-		Map<Fluid, int[]> cache = stillRenderCache;
+-		int[] diplayLists = cache.get(fluid);
++		Map<LiquidStack, int[]> cache = stillRenderCache;
++		int[] diplayLists = cache.get(fluidStack);
+ 		if (diplayLists != null) return diplayLists;
+ 		diplayLists = new int[100];
+ 		Block baseBlock;
+ 		Icon texture;
+-		if (fluid.getBlockID() > -1) {
+-			baseBlock = Block.blocksList[fluid.getBlockID()];
+-			texture = fluid.getStillIcon();
++		if (fluidStack.itemID > -1) {
++			baseBlock = Block.blocksList[fluidStack.itemID];
++			texture = fluidStack.getRenderingIcon();
+ 		} else {
+ 			baseBlock = Block.waterStill;
+-			texture = fluid.getStillIcon();
++			texture = fluidStack.getRenderingIcon();
+ 		}
+ 		GL11.glDisable(GL11.GL_LIGHTING);
+ 		GL11.glDisable(GL11.GL_BLEND);
+@@ -231,7 +230,7 @@
+ 		GL11.glEnable(GL11.GL_CULL_FACE);
+ 		GL11.glEnable(GL11.GL_BLEND);
+ 		GL11.glEnable(GL11.GL_LIGHTING);
+-		cache.put(fluid, diplayLists);
++		cache.put(fluidStack, diplayLists);
+ 		return diplayLists;
+ 	}
+ 

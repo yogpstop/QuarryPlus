@@ -52,4 +52,13 @@ public class ReflectionHelper {
 			e.printStackTrace();
 		return null;
 	}
+
+	public static final Class getClass(String name) {
+		try {
+			return Class.forName(name, false, ReflectionHelper.class.getClassLoader());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
 }
