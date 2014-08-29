@@ -1,3 +1,74 @@
+--- a/com/yogpc/ip/ItemArmorElectric.java
++++ b/com/yogpc/ip/ItemArmorElectric.java
+@@ -23,15 +23,14 @@
+ import net.minecraft.item.ItemArmor;
+ import net.minecraft.item.ItemStack;
+ import net.minecraft.nbt.NBTTagCompound;
+-import net.minecraft.network.NetHandlerPlayServer;
+ import net.minecraft.util.DamageSource;
+ import net.minecraft.world.World;
+ import net.minecraftforge.common.ISpecialArmor;
+ import net.minecraftforge.common.EnumHelper;
+ 
+ public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElectricItem {
+-	public ItemArmorElectric() {
+-		super(EnumHelper.addArmorMaterial("ELECTRIC", 33, new int[] { 3, 8, 6, 3 }, 0), YogpstopLib.proxy.addNewArmourRendererPrefix("electric"), 1);
++	public ItemArmorElectric(int id) {
++		super(id, EnumHelper.addArmorMaterial("ELECTRIC", 33, new int[] { 3, 8, 6, 3 }, 0), YogpstopLib.proxy.addNewArmourRendererPrefix("electric"), 1);
+ 		this.setUnlocalizedName("electric_armor");
+ 		this.setCreativeTab(CreativeTabs.tabCombat);
+ 		this.setTextureName("yogpstop_qp:electric_armor");
+@@ -40,8 +39,6 @@
+ 		this.setMaxStackSize(1);
+ 	}
+ 
+-	private static final Field f = ReflectionHelper.getDeclaredField(NetHandlerPlayServer.class, "field_147365_f", "floatingTickCount");
+-	
+ 	private static final double maxFallSpeedOnHover = 0.35;
+ 
+ 	private void useJetpack(EntityPlayer p, ItemStack jetpack, boolean hover) {
+@@ -78,13 +75,7 @@
+ 				p.fallDistance = 0.0f;
+ 				p.distanceWalkedModified = 0.0f;
+ 				if (p instanceof EntityPlayerMP) {
+-					try {
+-						f.setInt(((EntityPlayerMP) p).playerNetServerHandler, 0);
+-					} catch (IllegalArgumentException e) {
+-						e.printStackTrace();
+-					} catch (IllegalAccessException e) {
+-						e.printStackTrace();
+-					}
++					((EntityPlayerMP) p).playerNetServerHandler.ticksForFloatKick = 0;
+ 				}
+ 			}
+ 			p.inventoryContainer.detectAndSendChanges();
+@@ -116,7 +107,7 @@
+ 	}
+ 
+ 	@Override
+-	public void onArmorTick(World world, EntityPlayer player, ItemStack itemStack) {
++	public void onArmorTickUpdate(World world, EntityPlayer player, ItemStack itemStack) {
+ 		if (player.inventory.armorInventory[2] != itemStack) return;
+ 		this.useJetpack(player, itemStack, toggleHover(player, itemStack));
+ 	}
+@@ -160,13 +151,13 @@
+ 	}
+ 
+ 	@Override
+-	public Item getChargedItem(ItemStack itemStack) {
+-		return this;
++	public int getChargedItemId(ItemStack itemStack) {
++		return this.itemID;
+ 	}
+ 
+ 	@Override
+-	public Item getEmptyItem(ItemStack itemStack) {
+-		return this;
++	public int getEmptyItemId(ItemStack itemStack) {
++		return this.itemID;
+ 	}
+ 
+ 	@Override
 --- a/com/yogpc/mc_lib/APacketTile.java
 +++ b/com/yogpc/mc_lib/APacketTile.java
 @@ -29,9 +29,6 @@
@@ -55,7 +126,7 @@
  	static final byte Tile = 0;
  	static final byte NBT = 1;
  	static final byte BTN = 2;
-@@ -98,7 +95,9 @@
+@@ -99,7 +96,9 @@
  	public static final byte remove_laser = 1;
  
  	@Override
@@ -66,7 +137,7 @@
  		if (packet.getChannel() == NBT) {
  			setNBTFromPacket(packet);
  		} else if (packet.getChannel() == BTN) {
-@@ -122,27 +121,28 @@
+@@ -126,27 +125,28 @@
  		}
  	}
  
@@ -108,60 +179,131 @@
  	private static void setNBTFromPacket(YogpstopPacket p) {
 --- a/com/yogpc/mc_lib/ProxyClient.java
 +++ b/com/yogpc/mc_lib/ProxyClient.java
-@@ -1,18 +1,9 @@
+@@ -1,43 +1,53 @@
  package com.yogpc.mc_lib;
  
--import net.minecraft.client.Minecraft;
++import java.util.EnumSet;
++
+ import net.minecraft.client.Minecraft;
+ import net.minecraft.client.gui.GuiScreen;
+ import net.minecraft.client.multiplayer.WorldClient;
+ import net.minecraft.client.settings.GameSettings;
+ import net.minecraft.client.settings.KeyBinding;
+ import net.minecraft.entity.Entity;
 -import net.minecraft.entity.player.EntityPlayer;
 -import net.minecraft.network.INetHandler;
 -import net.minecraft.network.NetHandlerPlayServer;
+ import net.minecraft.world.World;
+-import cpw.mods.fml.client.registry.ClientRegistry;
+ import cpw.mods.fml.client.registry.RenderingRegistry;
+-import cpw.mods.fml.common.FMLCommonHandler;
+-import net.minecraftforge.event.ForgeSubscribe;
+-import cpw.mods.fml.common.gameevent.TickEvent;
++import cpw.mods.fml.common.registry.TickRegistry;
++import cpw.mods.fml.common.ITickHandler;
++import cpw.mods.fml.common.TickType;
  import cpw.mods.fml.relauncher.Side;
  import cpw.mods.fml.relauncher.SideOnly;
  
  @SideOnly(Side.CLIENT)
- public class ProxyClient extends ProxyCommon {
+-public class ProxyClient extends ProxyCommon {
++public class ProxyClient extends ProxyCommon implements ITickHandler {
+ 	private int key = 0;
  
--	@Override
+ 	static {
+ 		for (Key k : Key.values()) {
+ 			if (k.name != null) {
+-				k.binding = new KeyBinding(k.name, k.id, "YogpstopLib");
+-				ClientRegistry.registerKeyBinding((KeyBinding) k.binding);
++				k.binding = new KeyBinding(k.name, k.id);
++				//ClientRegistry.registerKeyBinding((KeyBinding) k.binding);
+ 			}
+ 		}
+ 	}
+ 
+ 	public ProxyClient() {
+-		FMLCommonHandler.instance().bus().register(this);
++		TickRegistry.registerTickHandler(this, Side.CLIENT);
+ 	}
+ 
+-	@ForgeSubscribe
+-	public void keyUpdate(TickEvent.ClientTickEvent e) {
+-		if (e.phase != TickEvent.Phase.START) return;
++	@Override
++	public String getLabel() {
++		return "YogpstopLib";
++	}
++
++	@Override
++	public EnumSet<TickType> ticks() {
++		return EnumSet.of(TickType.CLIENT);
++	}
++
++	@Override
++	public void tickEnd(EnumSet<TickType> type, Object... data) {}
++
++	@Override
++	public void tickStart(EnumSet<TickType> type, Object... data) {
+ 		int prev = this.key;
+ 		this.key = 0;
+ 		GuiScreen currentScreen = Minecraft.getMinecraft().currentScreen;
+@@ -72,12 +82,6 @@
+ 	}
+ 
+ 	@Override
 -	public EntityPlayer getPacketPlayer(INetHandler inh) {
 -		if (inh instanceof NetHandlerPlayServer) return ((NetHandlerPlayServer) inh).playerEntity;
 -		return Minecraft.getMinecraft().thePlayer;
 -	}
- }
+-
+-	@Override
+ 	public int addNewArmourRendererPrefix(String s) {
+ 		return RenderingRegistry.addNewArmourRendererPrefix(s);
+ 	}
 --- a/com/yogpc/mc_lib/ProxyCommon.java
 +++ b/com/yogpc/mc_lib/ProxyCommon.java
-@@ -1,13 +1,6 @@
- package com.yogpc.mc_lib;
+@@ -5,8 +5,6 @@
  
--import net.minecraft.entity.player.EntityPlayer;
+ import net.minecraft.entity.Entity;
+ import net.minecraft.entity.player.EntityPlayer;
 -import net.minecraft.network.INetHandler;
 -import net.minecraft.network.NetHandlerPlayServer;
+ import net.minecraft.world.World;
  
  public class ProxyCommon {
+@@ -41,11 +39,6 @@
+ 		}
+ 	}
  
 -	public EntityPlayer getPacketPlayer(INetHandler inh) {
 -		if (inh instanceof NetHandlerPlayServer) return ((NetHandlerPlayServer) inh).playerEntity;
 -		return null;
 -	}
- }
+-
+ 	public int addNewArmourRendererPrefix(String s) {
+ 		return 0;
+ 	}
 --- a/com/yogpc/mc_lib/YogpstopLib.java
 +++ b/com/yogpc/mc_lib/YogpstopLib.java
-@@ -3,9 +3,11 @@
+@@ -5,9 +5,11 @@
  import cpw.mods.fml.common.Mod;
  import cpw.mods.fml.common.SidedProxy;
  import cpw.mods.fml.common.event.FMLInitializationEvent;
 +import cpw.mods.fml.common.network.NetworkMod;
  import cpw.mods.fml.common.network.NetworkRegistry;
  
- @Mod(modid = "YogpstopLib", name = "Yogpstop Library", version = "@VERSION@")
+ @Mod(modid = "YogpstopLib", name = "Yogpstop Library", version = "@VERSION@", dependencies = "after:IC2")
 +@NetworkMod(clientSideRequired = true, serverSideRequired = false, channels = { "YogpstopLib" }, packetHandler = PacketHandler.class)
  public class YogpstopLib {
  
  	@SidedProxy(clientSide = "com.yogpc.mc_lib.ProxyClient", serverSide = "com.yogpc.mc_lib.ProxyCommon")
-@@ -13,6 +15,5 @@
+@@ -15,7 +17,6 @@
  
  	@Mod.EventHandler
  	public void init(FMLInitializationEvent event) {
 -		PacketHandler.channels = NetworkRegistry.instance().newChannel("YogpstopLib", new YogpstopPacketCodec(), new PacketHandler());
+-		new ItemArmorElectric();// TODO IC2Plus
++		new ItemArmorElectric(21478);// TODO IC2Plus
  	}
  }
 --- a/com/yogpc/mc_lib/YogpstopPacket.java
@@ -175,7 +317,7 @@
  import net.minecraft.entity.player.EntityPlayer;
  import net.minecraft.nbt.CompressedStreamTools;
  import net.minecraft.nbt.NBTTagCompound;
-@@ -80,17 +80,22 @@
+@@ -85,17 +85,22 @@
  		return this.data;
  	}
  
@@ -238,7 +380,7 @@
  }
 --- a/com/yogpc/qp/BlockBreaker.java
 +++ b/com/yogpc/qp/BlockBreaker.java
-@@ -36,9 +36,7 @@
+@@ -35,9 +35,7 @@
  import net.minecraft.item.ItemStack;
  import net.minecraft.tileentity.TileEntity;
  import net.minecraft.util.Icon;
@@ -248,7 +390,7 @@
  import net.minecraftforge.common.FakePlayerFactory;
  import net.minecraftforge.common.ForgeDirection;
  
-@@ -50,8 +48,8 @@
+@@ -49,8 +47,8 @@
  	@SideOnly(Side.CLIENT)
  	protected Icon vectrial;
  
@@ -259,7 +401,7 @@
  		this.setCreativeTab(QuarryPlus.ct);
  		this.setHardness(3.5F);
  		this.setStepSound(soundStoneFootstep);
-@@ -107,9 +105,9 @@
+@@ -106,9 +104,9 @@
  		ForgeDirection fd = ForgeDirection.getOrientation(w.getBlockMetadata(x, y, z) & 7);
  		int tx = x + fd.offsetX, ty = y + fd.offsetY, tz = z + fd.offsetZ, meta = w.getBlockMetadata(tx, ty, tz);
  		if (ty < 1) return;
@@ -271,7 +413,7 @@
  		b.onBlockHarvested(w, tx, ty, tz, meta, player);
  		if (b.removeBlockByPlayer(w, player, tx, ty, tz)) b.onBlockDestroyedByPlayer(w, tx, ty, tz, meta);
  		else return;
-@@ -151,25 +149,25 @@
+@@ -150,25 +148,25 @@
  
  	static void setDispenserDefaultDirection(World w, int x, int y, int z) {
  		if (!w.isRemote) {
@@ -305,7 +447,7 @@
  				b0 = 4;
  			}
  			w.setBlockMetadataWithNotify(x, y, z, b0, 2);
-@@ -186,7 +184,7 @@
+@@ -185,7 +183,7 @@
  		ItemStack is;
  		for (int i = 0; i < count; i++) {
  			int id1 = idDropped(meta, world.rand, 0);
@@ -314,9 +456,107 @@
  				is = new ItemStack(id1, 1, damageDropped(meta));
  				EnchantmentHelper.enchantmentToIS(tile, is);
  				this.drop.add(is);
+--- a/com/yogpc/qp/BlockFrame.java
++++ b/com/yogpc/qp/BlockFrame.java
+@@ -18,8 +18,8 @@
+ public class BlockFrame extends Block {
+ 	private final boolean[] sides = new boolean[6];
+ 
+-	public BlockFrame() {
+-		super(Material.glass);
++	public BlockFrame(int id) {
++		super(id, Material.glass);
+ 		setSides(true, true, true, true, true, true);
+ 		setHardness(0.5F);
+ 		setTickRandomly(true);
+@@ -62,7 +62,7 @@
+ 
+ 	@Override
+ 	public int idDropped(int i, Random random, int j) {
+-		return null;
++		return 0;
+ 	}
+ 
+ 	@Override
+@@ -79,24 +79,24 @@
+ 	@Override
+ 	public AxisAlignedBB getCollisionBoundingBoxFromPool(World world, int i, int j, int k) {
+ 		float xMin = 0.25F, xMax = 0.75F, yMin = 0.25F, yMax = 0.75F, zMin = 0.25F, zMax = 0.75F;
+-		if (world.getBlock(i - 1, j, k) == this) xMin = 0;
+-		if (world.getBlock(i + 1, j, k) == this) xMax = 1;
+-		if (world.getBlock(i, j - 1, k) == this) yMin = 0;
+-		if (world.getBlock(i, j + 1, k) == this) yMax = 1;
+-		if (world.getBlock(i, j, k - 1) == this) zMin = 0;
+-		if (world.getBlock(i, j, k + 1) == this) zMax = 1;
++		if (world.getBlockId(i - 1, j, k) == this.blockID) xMin = 0;
++		if (world.getBlockId(i + 1, j, k) == this.blockID) xMax = 1;
++		if (world.getBlockId(i, j - 1, k) == this.blockID) yMin = 0;
++		if (world.getBlockId(i, j + 1, k) == this.blockID) yMax = 1;
++		if (world.getBlockId(i, j, k - 1) == this.blockID) zMin = 0;
++		if (world.getBlockId(i, j, k + 1) == this.blockID) zMax = 1;
+ 		return AxisAlignedBB.getBoundingBox(i + xMin, j + yMin, k + zMin, i + xMax, j + yMax, k + zMax);
+ 	}
+ 
+ 	@Override
+ 	public MovingObjectPosition collisionRayTrace(World world, int i, int j, int k, Vec3 vec3d, Vec3 vec3d1) {
+ 		float xMin = 0.25F, xMax = 0.75F, yMin = 0.25F, yMax = 0.75F, zMin = 0.25F, zMax = 0.75F;
+-		if (world.getBlock(i - 1, j, k) == this) xMin = 0;
+-		if (world.getBlock(i + 1, j, k) == this) xMax = 1;
+-		if (world.getBlock(i, j - 1, k) == this) yMin = 0;
+-		if (world.getBlock(i, j + 1, k) == this) yMax = 1;
+-		if (world.getBlock(i, j, k - 1) == this) zMin = 0;
+-		if (world.getBlock(i, j, k + 1) == this) zMax = 1;
++		if (world.getBlockId(i - 1, j, k) == this.blockID) xMin = 0;
++		if (world.getBlockId(i + 1, j, k) == this.blockID) xMax = 1;
++		if (world.getBlockId(i, j - 1, k) == this.blockID) yMin = 0;
++		if (world.getBlockId(i, j + 1, k) == this.blockID) yMax = 1;
++		if (world.getBlockId(i, j, k - 1) == this.blockID) zMin = 0;
++		if (world.getBlockId(i, j, k + 1) == this.blockID) zMax = 1;
+ 		setBlockBounds(xMin, yMin, zMin, xMax, yMax, zMax);
+ 		MovingObjectPosition r = super.collisionRayTrace(world, i, j, k, vec3d, vec3d1);
+ 		setBlockBounds(0, 0, 0, 1, 1, 1);
+@@ -108,32 +108,32 @@
+ 		setBlockBounds(0.25F, 0.25F, 0.25F, 0.75F, 0.75F, 0.75F);
+ 		super.addCollisionBoxesToList(world, i, j, k, axisalignedbb, arraylist, par7Entity);
+ 
+-		if (world.getBlock(i - 1, j, k) == this) {
++		if (world.getBlockId(i - 1, j, k) == this.blockID) {
+ 			setBlockBounds(0, 0.25F, 0.25F, 0.75F, 0.75F, 0.75F);
+ 			super.addCollisionBoxesToList(world, i, j, k, axisalignedbb, arraylist, par7Entity);
+ 		}
+ 
+-		if (world.getBlock(i + 1, j, k) == this) {
++		if (world.getBlockId(i + 1, j, k) == this.blockID) {
+ 			setBlockBounds(0.25F, 0.25F, 0.25F, 1, 0.75F, 0.75F);
+ 			super.addCollisionBoxesToList(world, i, j, k, axisalignedbb, arraylist, par7Entity);
+ 		}
+ 
+-		if (world.getBlock(i, j - 1, k) == this) {
++		if (world.getBlockId(i, j - 1, k) == this.blockID) {
+ 			setBlockBounds(0.25F, 0, 0.25F, 0.75F, 0.75F, 0.75F);
+ 			super.addCollisionBoxesToList(world, i, j, k, axisalignedbb, arraylist, par7Entity);
+ 		}
+ 
+-		if (world.getBlock(i, j + 1, k) == this) {
++		if (world.getBlockId(i, j + 1, k) == this.blockID) {
+ 			setBlockBounds(0.25F, 0.25F, 0.25F, 0.75F, 1, 0.75F);
+ 			super.addCollisionBoxesToList(world, i, j, k, axisalignedbb, arraylist, par7Entity);
+ 		}
+ 
+-		if (world.getBlock(i, j, k - 1) == this) {
++		if (world.getBlockId(i, j, k - 1) == this.blockID) {
+ 			setBlockBounds(0.25F, 0.25F, 1, 0.75F, 0.75F, 0.75F);
+ 			super.addCollisionBoxesToList(world, i, j, k, axisalignedbb, arraylist, par7Entity);
+ 		}
+ 
+-		if (world.getBlock(i, j, k + 1) == this) {
++		if (world.getBlockId(i, j, k + 1) == this.blockID) {
+ 			setBlockBounds(0.25F, 0.25F, 0.25F, 0.75F, 0.75F, 1);
+ 			super.addCollisionBoxesToList(world, i, j, k, axisalignedbb, arraylist, par7Entity);
+ 		}
 --- a/com/yogpc/qp/BlockInfMJSrc.java
 +++ b/com/yogpc/qp/BlockInfMJSrc.java
-@@ -29,8 +29,8 @@
+@@ -25,8 +25,8 @@
  
  public class BlockInfMJSrc extends BlockContainer {
  
@@ -329,15 +569,15 @@
  		setStepSound(soundStoneFootstep);
 --- a/com/yogpc/qp/BlockLaser.java
 +++ b/com/yogpc/qp/BlockLaser.java
-@@ -22,7 +22,6 @@
- import static buildcraft.silicon.SiliconProxy.laserBlockModel;
+@@ -21,7 +21,6 @@
+ 
  import cpw.mods.fml.relauncher.Side;
  import cpw.mods.fml.relauncher.SideOnly;
 -import net.minecraft.block.Block;
  import net.minecraft.block.BlockContainer;
  import net.minecraft.block.material.Material;
  import net.minecraft.client.renderer.texture.IconRegister;
-@@ -40,8 +39,8 @@
+@@ -39,8 +38,8 @@
  	@SideOnly(Side.CLIENT)
  	private Icon textureTop, textureBottom;
  
@@ -348,7 +588,7 @@
  		setHardness(10F);
  		setCreativeTab(QuarryPlus.ct);
  		this.setUnlocalizedName("LaserPlus");
-@@ -105,7 +104,7 @@
+@@ -104,7 +103,7 @@
  		ItemStack is;
  		for (int i = 0; i < count; i++) {
  			int it = idDropped(meta, world.rand, 0);
@@ -359,15 +599,15 @@
  				this.drop.add(is);
 --- a/com/yogpc/qp/BlockMarker.java
 +++ b/com/yogpc/qp/BlockMarker.java
-@@ -20,7 +20,6 @@
- import static buildcraft.BuildCraftCore.markerModel;
+@@ -19,7 +19,6 @@
+ 
  import cpw.mods.fml.relauncher.Side;
  import cpw.mods.fml.relauncher.SideOnly;
 -import net.minecraft.block.Block;
  import net.minecraft.block.BlockContainer;
  import net.minecraft.block.material.Material;
  import net.minecraft.client.renderer.texture.IconRegister;
-@@ -35,8 +34,8 @@
+@@ -34,8 +33,8 @@
  
  public class BlockMarker extends BlockContainer {
  
@@ -380,15 +620,15 @@
  		setUnlocalizedName("MarkerPlus");
 --- a/com/yogpc/qp/BlockMiningWell.java
 +++ b/com/yogpc/qp/BlockMiningWell.java
-@@ -22,7 +22,6 @@
- import buildcraft.api.tools.IToolWrench;
+@@ -21,7 +21,6 @@
+ 
  import cpw.mods.fml.relauncher.Side;
  import cpw.mods.fml.relauncher.SideOnly;
 -import net.minecraft.block.Block;
  import net.minecraft.block.BlockContainer;
  import net.minecraft.block.material.Material;
  import net.minecraft.client.renderer.texture.IconRegister;
-@@ -39,8 +38,8 @@
+@@ -38,8 +37,8 @@
  public class BlockMiningWell extends BlockContainer {
  	Icon textureFront, textureBack, textureTop, texW;
  
@@ -399,7 +639,7 @@
  		setHardness(1.5F);
  		setResistance(10F);
  		setCreativeTab(QuarryPlus.ct);
-@@ -110,7 +109,7 @@
+@@ -109,7 +108,7 @@
  		if (world.isRemote || tile == null) return;
  		int count = quantityDropped(meta, 0, world.rand);
  		int it = idDropped(meta, world.rand, 0);
@@ -423,7 +663,7 @@
  		setUnlocalizedName("EnchantMover");
 --- a/com/yogpc/qp/BlockPlacer.java
 +++ b/com/yogpc/qp/BlockPlacer.java
-@@ -35,9 +35,7 @@
+@@ -34,9 +34,7 @@
  import net.minecraft.nbt.NBTTagCompound;
  import net.minecraft.tileentity.TileEntity;
  import net.minecraft.util.Icon;
@@ -433,7 +673,7 @@
  import net.minecraftforge.common.FakePlayerFactory;
  import net.minecraftforge.common.ForgeDirection;
  
-@@ -50,8 +48,8 @@
+@@ -49,8 +47,8 @@
  	@SideOnly(Side.CLIENT)
  	protected Icon vectrial;
  
@@ -444,7 +684,7 @@
  		this.setCreativeTab(QuarryPlus.ct);
  		this.setHardness(3.5F);
  		this.setStepSound(soundStoneFootstep);
-@@ -94,7 +92,7 @@
+@@ -93,7 +91,7 @@
  		boolean flag1 = (i1 & 8) != 0;
  
  		if (flag && !flag1) {
@@ -453,7 +693,7 @@
  			par1World.setBlockMetadataWithNotify(par2, par3, par4, i1 | 8, 4);
  		} else if (!flag && flag1) {
  			par1World.setBlockMetadataWithNotify(par2, par3, par4, i1 & -9, 4);
-@@ -131,7 +129,7 @@
+@@ -130,7 +128,7 @@
  			ty = y + fd2.offsetY;
  			tz = z + fd2.offsetZ;
  
@@ -462,7 +702,7 @@
  			ItemStack is = null;
  			int i = 0;
  			for (; i < tile.getSizeInventory(); i++) {
-@@ -145,7 +143,7 @@
+@@ -144,7 +142,7 @@
  					if (is.getItem().onItemUseFirst(is, player, world, tx + fd5.offsetX, ty + fd5.offsetY, tz + fd5.offsetZ, sd6, 0.5F, 0.5F, 0.5F)) break;
  					if (is.getItem().onItemUseFirst(is, player, world, tx + fd6.offsetX, ty + fd6.offsetY, tz + fd6.offsetZ, sd5, 0.5F, 0.5F, 0.5F)) break;
  				}
@@ -471,17 +711,38 @@
  				if (k != null && k.onBlockActivated(world, tx, ty, tz, player, sd1, 0.5F, 0.5F, 0.5F)) break;
  				if (is != null) {
  					if (is.tryPlaceItemIntoWorld(player, world, tx, ty, tz, sd1, 0.5F, 0.5F, 0.5F)) break;
+--- a/com/yogpc/qp/BlockPlainPipe.java
++++ b/com/yogpc/qp/BlockPlainPipe.java
+@@ -7,8 +7,8 @@
+ import net.minecraft.item.Item;
+ 
+ public class BlockPlainPipe extends Block {
+-	public BlockPlainPipe() {
+-		super(Material.glass);
++	public BlockPlainPipe(int id) {
++		super(id, Material.glass);
+ 		this.minX = 0.25;
+ 		this.minY = 0.0;
+ 		this.minZ = 0.25;
+@@ -30,6 +30,6 @@
+ 
+ 	@Override
+ 	public int idDropped(int i, Random random, int fortune) {
+-		return null;
++		return 0;
+ 	}
+ }
 --- a/com/yogpc/qp/BlockPump.java
 +++ b/com/yogpc/qp/BlockPump.java
-@@ -22,7 +22,6 @@
- import buildcraft.api.tools.IToolWrench;
+@@ -21,7 +21,6 @@
+ 
  import cpw.mods.fml.relauncher.Side;
  import cpw.mods.fml.relauncher.SideOnly;
 -import net.minecraft.block.Block;
  import net.minecraft.block.BlockContainer;
  import net.minecraft.block.material.Material;
  import net.minecraft.client.renderer.texture.IconRegister;
-@@ -39,8 +38,8 @@
+@@ -38,8 +37,8 @@
  
  	private Icon textureTop, textureBottom, textureSide, texW, texC;
  
@@ -492,7 +753,7 @@
  		setHardness(5F);
  		setCreativeTab(QuarryPlus.ct);
  		setUnlocalizedName("PumpPlus");
-@@ -94,7 +93,7 @@
+@@ -93,7 +92,7 @@
  		if (world.isRemote || tile == null) return;
  		int count = quantityDropped(meta, 0, world.rand);
  		int it = idDropped(meta, world.rand, 0);
@@ -503,15 +764,15 @@
  				EnchantmentHelper.enchantmentToIS(tile, is);
 --- a/com/yogpc/qp/BlockQuarry.java
 +++ b/com/yogpc/qp/BlockQuarry.java
-@@ -22,7 +22,6 @@
- import buildcraft.api.tools.IToolWrench;
+@@ -21,7 +21,6 @@
+ 
  import cpw.mods.fml.relauncher.Side;
  import cpw.mods.fml.relauncher.SideOnly;
 -import net.minecraft.block.Block;
  import net.minecraft.block.BlockContainer;
  import net.minecraft.block.material.Material;
  import net.minecraft.client.renderer.texture.IconRegister;
-@@ -39,8 +38,8 @@
+@@ -38,8 +37,8 @@
  public class BlockQuarry extends BlockContainer {
  	Icon textureTop, textureFront, texBB, texNNB, texMF;
  
@@ -522,7 +783,7 @@
  		setHardness(1.5F);
  		setResistance(10F);
  		setStepSound(soundStoneFootstep);
-@@ -57,7 +56,7 @@
+@@ -56,7 +55,7 @@
  		if (world.isRemote || tile == null) return;
  		int count = quantityDropped(meta, 0, world.rand);
  		int it = idDropped(meta, world.rand, 0);
@@ -533,10 +794,10 @@
  				EnchantmentHelper.enchantmentToIS(tile, is);
 --- a/com/yogpc/qp/BlockRefinery.java
 +++ b/com/yogpc/qp/BlockRefinery.java
-@@ -21,7 +21,6 @@
+@@ -19,7 +19,6 @@
  
- import buildcraft.api.tools.IToolWrench;
- import static buildcraft.core.fluids.FluidUtils.handleRightClick;
+ import java.util.ArrayList;
+ 
 -import net.minecraft.block.Block;
  import net.minecraft.block.BlockContainer;
  import net.minecraft.block.material.Material;
@@ -552,7 +813,7 @@
  		setHardness(5F);
  		setCreativeTab(QuarryPlus.ct);
  		setUnlocalizedName("RefineryPlus");
-@@ -57,7 +56,7 @@
+@@ -58,7 +57,7 @@
  		if (world.isRemote || tile == null) return;
  		int count = quantityDropped(meta, 0, world.rand);
  		int it = idDropped(meta, world.rand, 0);
@@ -561,6 +822,15 @@
  			for (int i = 0; i < count; i++) {
  				ItemStack is = new ItemStack(it, 1, damageDropped(meta));
  				EnchantmentHelper.enchantmentToIS(tile, is);
+@@ -83,7 +82,7 @@
+ 	}
+ 
+ 	private static void consumeItem(EntityPlayer ep, ItemStack stack) {
+-		ItemStack container = stack.getItem().getContainerItem();
++		ItemStack container = stack.getItem().hasContainerItem() ? new ItemStack(stack.getItem().getContainerItem()) : null;
+ 		stack.stackSize--;
+ 		if (stack.stackSize > 0) ep.inventory.setInventorySlotContents(ep.inventory.currentItem, stack);
+ 		else ep.inventory.setInventorySlotContents(ep.inventory.currentItem, null);
 --- a/com/yogpc/qp/ChunkLoadingHandler.java
 +++ b/com/yogpc/qp/ChunkLoadingHandler.java
 @@ -19,7 +19,6 @@
@@ -732,15 +1002,7 @@
  					c.setInteger("Bmeta", OreDictionary.WILDCARD_VALUE);
 --- a/com/yogpc/qp/QuarryPlus.java
 +++ b/com/yogpc/qp/QuarryPlus.java
-@@ -20,7 +20,6 @@
- import java.lang.reflect.Field;
- 
- import com.yogpc.mc_lib.PacketHandler;
--import com.yogpc.mc_lib.YogpstopPacketCodec;
- 
- import buildcraft.BuildCraftBuilders;
- import buildcraft.BuildCraftCore;
-@@ -28,12 +27,9 @@
+@@ -28,13 +28,10 @@
  import buildcraft.BuildCraftFactory;
  import buildcraft.BuildCraftSilicon;
  import buildcraft.BuildCraftTransport;
@@ -748,13 +1010,14 @@
 -import buildcraft.api.transport.PipeWire;
 +import buildcraft.api.recipes.AssemblyRecipe;
  import net.minecraft.block.Block;
+ import net.minecraft.client.renderer.texture.TextureMap;
  import net.minecraft.creativetab.CreativeTabs;
 -import net.minecraft.block.Block;
 -import net.minecraft.item.Item;
  import net.minecraft.item.Item;
  import net.minecraft.item.ItemStack;
- import net.minecraftforge.common.Configuration;
-@@ -48,7 +44,6 @@
+ import net.minecraft.util.Icon;
+@@ -51,7 +48,6 @@
  import cpw.mods.fml.common.event.FMLInitializationEvent;
  import cpw.mods.fml.common.event.FMLPreInitializationEvent;
  import net.minecraftforge.event.ForgeSubscribe;
@@ -762,11 +1025,11 @@
  import cpw.mods.fml.common.registry.GameRegistry;
  import cpw.mods.fml.common.registry.LanguageRegistry;
  import cpw.mods.fml.common.network.NetworkRegistry;
-@@ -94,8 +89,20 @@
+@@ -116,8 +112,22 @@
  	@Mod.EventHandler
  	public void preInit(FMLPreInitializationEvent event) {
  		Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
-+		int[] id = new int[11];
++		int[] id = new int[13];
  		try {
  			cfg.load();
 +			id[0] = cfg.getBlock("Quarry", 1970).getInt();
@@ -779,11 +1042,13 @@
 +			id[7] = cfg.getBlock("Placer", 1977).getInt();
 +			id[8] = cfg.getBlock("Breaker", 1978).getInt();
 +			id[9] = cfg.getBlock("Laser", 1979).getInt();
-+			id[10] = cfg.getItem("Tools", 18463).getInt();
++			id[10] = cfg.getBlock("PlainPipe", 1980).getInt();
++			id[11] = cfg.getBlock("Frame", 1981).getInt();
++			id[12] = cfg.getItem("Tools", 18463).getInt();
  			Property RD = cfg.get(Configuration.CATEGORY_GENERAL, "RecipeDifficulty", 2);
  			RD.comment = "0:AsCheatRecipe,1:EasyRecipe,2:NormalRecipe(Default),3:HardRecipe,other:NormalRecipe";
  			RecipeDifficulty = RD.getInt(2);
-@@ -106,17 +113,17 @@
+@@ -128,19 +138,19 @@
  			cfg.save();
  		}
  		try {
@@ -797,6 +1062,8 @@
 -			blockPlacer = (new BlockPlacer());
 -			blockBreaker = (new BlockBreaker());
 -			blockLaser = (new BlockLaser());
+-			blockPlainPipe = (new BlockPlainPipe());
+-			blockFrame = (new BlockFrame());
 -			itemTool = (new ItemTool());
 +			blockQuarry = (new BlockQuarry(id[0]));
 +			blockMarker = (new BlockMarker(id[1]));
@@ -808,11 +1075,13 @@
 +			blockPlacer = (new BlockPlacer(id[7]));
 +			blockBreaker = (new BlockBreaker(id[8]));
 +			blockLaser = (new BlockLaser(id[9]));
-+			itemTool = (new ItemTool(id[10]));
++			blockPlainPipe = (new BlockPlainPipe(id[10]));
++			blockFrame = (new BlockFrame(id[11]));
++			itemTool = (new ItemTool(id[12]));
  		} catch (Exception e) {
  			e.printStackTrace();
  		}
-@@ -128,7 +135,7 @@
+@@ -152,7 +162,7 @@
  	}
  
  	private static final void addAssemblyRecipe(int a, ItemStack b, ItemStack... c) {
@@ -821,7 +1090,7 @@
  	}
  
  	@Mod.EventHandler
-@@ -190,7 +197,7 @@
+@@ -216,7 +226,7 @@
  			break;
  		case 1:
  			addAssemblyRecipe(160000, new ItemStack(blockQuarry, 1), new ItemStack(BuildCraftFactory.quarryBlock, 1), new ItemStack(redstoneChipset, 1, 3),
@@ -830,7 +1099,7 @@
  			addAssemblyRecipe(40000, new ItemStack(blockMover, 1), new ItemStack(Block.enchantmentTable, 1), new ItemStack(
  					BuildCraftFactory.autoWorkbenchBlock, 1), new ItemStack(Block.anvil, 1), new ItemStack(BuildCraftSilicon.laserBlock, 2), new ItemStack(
  					BuildCraftSilicon.assemblyTableBlock, 1));
-@@ -206,7 +213,7 @@
+@@ -232,7 +242,7 @@
  			addAssemblyRecipe(160000, new ItemStack(itemTool, 1, 2), new ItemStack(BuildCraftCore.wrenchItem, 2), new ItemStack(Item.bucketEmpty, 2),
  					new ItemStack(Item.bucketWater, 1), new ItemStack(Item.bucketLava, 1));
  			addAssemblyRecipe(80000, new ItemStack(blockMiningWell, 1), new ItemStack(BuildCraftFactory.miningWellBlock, 1), new ItemStack(redstoneChipset, 1,
@@ -839,7 +1108,7 @@
  			addAssemblyRecipe(40000, new ItemStack(blockBreaker, 1), new ItemStack(Block.dispenser, 1), new ItemStack(Item.pickaxeDiamond, 1),
  					new ItemStack(BuildCraftEnergy.engineBlock, 1, 1));
  			addAssemblyRecipe(80000, new ItemStack(blockPlacer, 1), new ItemStack(Block.dispenser, 1), new ItemStack(BuildCraftBuilders.fillerBlock, 1),
-@@ -216,7 +223,7 @@
+@@ -242,7 +252,7 @@
  			break;
  		case 3:
  			addAssemblyRecipe(800000, new ItemStack(blockQuarry, 1), new ItemStack(BuildCraftFactory.quarryBlock, 2), new ItemStack(redstoneChipset, 8, 3),
@@ -848,7 +1117,7 @@
  							Block.chest, 32));
  			addAssemblyRecipe(640000, new ItemStack(blockMover, 1), new ItemStack(Block.enchantmentTable, 1), new ItemStack(
  					BuildCraftSilicon.assemblyTableBlock, 1, 1), new ItemStack(Block.anvil, 2), new ItemStack(BuildCraftSilicon.laserBlock, 4), new ItemStack(
-@@ -238,7 +245,7 @@
+@@ -264,7 +274,7 @@
  					new ItemStack(Item.bucketWater, 1), new ItemStack(Item.bucketLava, 1), new ItemStack(BuildCraftEnergy.bucketOil, 1), new ItemStack(
  							BuildCraftEnergy.bucketFuel, 1), new ItemStack(BuildCraftEnergy.engineBlock, 1, 2));
  			addAssemblyRecipe(500000, new ItemStack(blockMiningWell, 1), new ItemStack(BuildCraftFactory.miningWellBlock, 2), new ItemStack(redstoneChipset, 8,
@@ -857,7 +1126,7 @@
  					Block.chest, 16));
  			addAssemblyRecipe(640000, new ItemStack(blockBreaker, 1), new ItemStack(Block.dispenser, 2), new ItemStack(Block.blockDiamond, 2),
  					new ItemStack(Item.redstone, 64), new ItemStack(blockQuarry, 1), new ItemStack(blockMiningWell, 1), new ItemStack(
-@@ -251,7 +258,7 @@
+@@ -277,7 +287,7 @@
  			break;
  		default:
  			addAssemblyRecipe(320000, new ItemStack(blockQuarry, 1), new ItemStack(BuildCraftFactory.quarryBlock, 1), new ItemStack(redstoneChipset, 2, 3),
@@ -866,7 +1135,7 @@
  							Block.chest, 8));
  			addAssemblyRecipe(320000, new ItemStack(blockMover, 1), new ItemStack(Block.enchantmentTable, 1), new ItemStack(
  					BuildCraftSilicon.assemblyTableBlock, 1, 1), new ItemStack(Block.anvil, 1), new ItemStack(BuildCraftSilicon.assemblyTableBlock, 1),
-@@ -272,7 +279,7 @@
+@@ -298,7 +308,7 @@
  					new ItemStack(Item.bucketWater, 1), new ItemStack(Item.bucketLava, 1), new ItemStack(BuildCraftEnergy.bucketOil, 1), new ItemStack(
  							BuildCraftEnergy.bucketFuel, 1));
  			addAssemblyRecipe(160000, new ItemStack(blockMiningWell, 1), new ItemStack(BuildCraftFactory.miningWellBlock, 1), new ItemStack(redstoneChipset, 2,
@@ -875,7 +1144,7 @@
  					Block.chest, 8));
  			addAssemblyRecipe(320000, new ItemStack(blockBreaker, 1), new ItemStack(Block.dispenser, 2), new ItemStack(Block.blockDiamond, 1),
  					new ItemStack(Item.redstone, 32), new ItemStack(blockQuarry, 1), new ItemStack(BuildCraftEnergy.engineBlock, 1, 2));
-@@ -317,7 +324,7 @@
+@@ -343,7 +353,7 @@
  			sb.append(bd.meta);
  		}
  		sb.append("  ");
@@ -893,8 +1162,8 @@
 -import cpw.mods.fml.common.registry.GameData;
  import net.minecraft.block.Block;
  import net.minecraft.entity.player.EntityPlayer;
- import net.minecraft.item.ItemStack;
-@@ -194,7 +193,7 @@
+ import net.minecraft.inventory.IInventory;
+@@ -237,7 +236,7 @@
  
  	protected boolean S_breakBlock(int x, int y, int z) {
  		Collection<ItemStack> dropped = new LinkedList<ItemStack>();
@@ -903,7 +1172,7 @@
  		if (b == null || b.isAirBlock(this.worldObj, x, y, z)) return true;
  		if (TilePump.isLiquid(b, false, null, 0, 0, 0, 0)) {
  			TileEntity te = this.worldObj.getBlockTileEntity(this.xCoord + this.pump.offsetX, this.yCoord + this.pump.offsetY, this.zCoord + this.pump.offsetZ);
-@@ -207,7 +206,7 @@
+@@ -250,7 +249,7 @@
  		}
  		if (!PowerManager.useEnergyB(this, b.getBlockHardness(this.worldObj, x, y, z), S_addDroppedItems(dropped, b, x, y, z), this.unbreaking, this)) return false;
  		this.cacheItems.addAll(dropped);
@@ -912,7 +1181,7 @@
  		this.worldObj.setBlockToAir(x, y, z);
  		return true;
  	}
-@@ -223,7 +222,7 @@
+@@ -266,7 +265,7 @@
  	private byte S_addDroppedItems(Collection<ItemStack> list, Block b, int x, int y, int z) {
  		int meta = this.worldObj.getBlockMetadata(x, y, z);
  		if (b.canSilkHarvest(this.worldObj, null, x, y, z, meta) && this.silktouch
@@ -921,7 +1190,7 @@
  			try {
  				list.add((ItemStack) createStackedBlock.invoke(b, meta));
  				return -1;
-@@ -233,7 +232,7 @@
+@@ -276,7 +275,7 @@
  				e.printStackTrace();
  			}
  		}
@@ -932,7 +1201,7 @@
  		}
 --- a/com/yogpc/qp/TileMarker.java
 +++ b/com/yogpc/qp/TileMarker.java
-@@ -194,7 +194,7 @@
+@@ -185,7 +185,7 @@
  		private final ArrayList<ItemStack> removeLink(final int x, final int y, final int z, final boolean bb) {
  			final ArrayList<ItemStack> ret = new ArrayList<ItemStack>();
  			final TileEntity te = this.w.getBlockTileEntity(x, y, z);
@@ -941,7 +1210,7 @@
  			if (b instanceof BlockMarker) {
  				if (te instanceof TileMarker) ((TileMarker) te).link = null;
  				ret.addAll(b.getBlockDropped(this.w, x, y, z, this.w.getBlockMetadata(x, y, z), 0));
-@@ -379,16 +379,16 @@
+@@ -365,16 +365,16 @@
  
  	private static void S_renewConnection(final Link l, final World w, final int x, final int y, final int z) {
  		int tx = 0, ty = 0, tz = 0;
@@ -963,7 +1232,7 @@
  					tx = -tx;
  					l.xn = x + tx;
  					break;
-@@ -398,13 +398,13 @@
+@@ -384,13 +384,13 @@
  		}
  		if (l.yx == l.yn) {
  			for (ty = 1; ty <= MAX_SIZE; ty++) {
@@ -981,7 +1250,7 @@
  					ty = -ty;
  					l.yn = y + ty;
  					break;
-@@ -414,13 +414,13 @@
+@@ -400,13 +400,13 @@
  		}
  		if (l.zx == l.zn) {
  			for (tz = 1; tz <= MAX_SIZE; tz++) {
@@ -999,7 +1268,7 @@
  					tz = -tz;
  					l.zn = z + tz;
  					break;
-@@ -568,6 +568,6 @@
+@@ -554,6 +554,6 @@
  	@Override
  	public void invalidate() {
  		super.invalidate();
@@ -1009,16 +1278,16 @@
  }
 --- a/com/yogpc/qp/TileMiningWell.java
 +++ b/com/yogpc/qp/TileMiningWell.java
-@@ -61,7 +61,7 @@
+@@ -59,7 +59,7 @@
  		if (this.worldObj.isRemote) return;
  		int depth = this.yCoord - 1;
  		while (!S_checkTarget(depth)) {
--			if (this.working) this.worldObj.setBlock(this.xCoord, depth, this.zCoord, plainPipeBlock);
-+			if (this.working) this.worldObj.setBlock(this.xCoord, depth, this.zCoord, plainPipeBlock.blockID);
+-			if (this.working) this.worldObj.setBlock(this.xCoord, depth, this.zCoord, QuarryPlus.blockPlainPipe);
++			if (this.working) this.worldObj.setBlock(this.xCoord, depth, this.zCoord, QuarryPlus.blockPlainPipe.blockID);
  			depth--;
  		}
  		if (this.working) S_breakBlock(this.xCoord, depth, this.zCoord);
-@@ -73,10 +73,11 @@
+@@ -71,10 +71,11 @@
  			G_destroy();
  			return true;
  		}
@@ -1026,18 +1295,18 @@
 +		Block b = Block.blocksList[this.worldObj.getChunkProvider().loadChunk(this.xCoord >> 4, this.zCoord >> 4)
 +				.getBlockID(this.xCoord & 0xF, depth, this.zCoord & 0xF)];
  		float h = b == null ? -1 : b.getBlockHardness(this.worldObj, this.xCoord, depth, this.zCoord);
- 		if (b == null || h < 0 || b == plainPipeBlock || b.isAirBlock(this.worldObj, this.xCoord, depth, this.zCoord)) return false;
+ 		if (b == null || h < 0 || b == QuarryPlus.blockPlainPipe || b.isAirBlock(this.worldObj, this.xCoord, depth, this.zCoord)) return false;
 -		if (this.pump == ForgeDirection.UNKNOWN && b.getMaterial().isLiquid()) return false;
 +		if (this.pump == ForgeDirection.UNKNOWN && this.worldObj.getBlockMaterial(this.xCoord, depth, this.zCoord).isLiquid()) return false;
  		if (!this.working) {
  			this.working = true;
  			G_renew_powerConfigure();
-@@ -112,7 +113,7 @@
+@@ -110,7 +111,7 @@
  		G_renew_powerConfigure();
  		PacketHandler.sendNowPacket(this, (byte) 0);
  		for (int depth = this.yCoord - 1; depth > 0; depth--) {
--			if (this.worldObj.getBlock(this.xCoord, depth, this.zCoord) != plainPipeBlock) {
-+			if (this.worldObj.getBlockId(this.xCoord, depth, this.zCoord) != plainPipeBlock.blockID) {
+-			if (this.worldObj.getBlock(this.xCoord, depth, this.zCoord) != QuarryPlus.blockPlainPipe) {
++			if (this.worldObj.getBlockId(this.xCoord, depth, this.zCoord) != QuarryPlus.blockPlainPipe.blockID) {
  				break;
  			}
  			this.worldObj.setBlockToAir(this.xCoord, depth, this.zCoord);
@@ -1051,7 +1320,7 @@
  import net.minecraft.nbt.NBTTagCompound;
  import net.minecraft.nbt.NBTTagList;
  import net.minecraft.nbt.NBTTagString;
-@@ -82,7 +81,7 @@
+@@ -81,7 +80,7 @@
  		this.unbreaking = nbttc.getByte("unbreaking");
  		this.connectTo = ForgeDirection.values()[nbttc.getByte("connectTo")];
  		if (nbttc.getTag("mapping0") instanceof NBTTagList) for (int i = 0; i < this.mapping.length; i++)
@@ -1060,7 +1329,7 @@
  		this.range = nbttc.getByte("range");
  		this.quarryRange = nbttc.getBoolean("quarryRange");
  		this.prev = (byte) (this.connectTo.ordinal() | (G_working() ? 0x80 : 0));
-@@ -383,7 +382,7 @@
+@@ -382,7 +381,7 @@
  		while (cp != cg) {
  			ebs_c = this.ebses[xb[cg] >> 4][zb[cg] >> 4][yb[cg] >> 4];
  			if (ebs_c != null) {
@@ -1069,7 +1338,7 @@
  				if (this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] == 0 && isLiquid(b_c, false, null, 0, 0, 0, 0)) {
  					this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] = 0x3F;
  
-@@ -429,7 +428,7 @@
+@@ -428,7 +427,7 @@
  					for (bx = 0; bx < this.block_side_x; bx++) {
  						for (bz = 0; bz < this.block_side_z; bz++) {
  							if ((this.blocks[this.py - this.yOffset][bx][bz] & 0x40) != 0) {
@@ -1078,7 +1347,7 @@
  								if (isLiquid(bb, false, null, 0, 0, 0, 0)) {
  									count++;
  								}
-@@ -439,7 +438,7 @@
+@@ -438,7 +437,7 @@
  				} else {
  					for (bz = 0; bz < this.block_side_z; bz++) {
  						if (this.blocks[this.py - this.yOffset][this.px][bz] != 0) {
@@ -1087,12 +1356,12 @@
  							meta = this.ebses[this.px >> 4][bz >> 4][this.py >> 4].getExtBlockMetadata(this.px & 0xF, this.py & 0xF, bz & 0xF);
  							if (isLiquid(bb, true, this.worldObj, this.px + this.xOffset, this.py, bz + this.zOffset, meta)) {
  								count++;
-@@ -458,14 +457,14 @@
+@@ -457,14 +456,14 @@
  				for (bx = 0; bx < this.block_side_x; bx++) {
  					for (bz = 0; bz < this.block_side_z; bz++) {
  						if ((this.blocks[this.py - this.yOffset][bx][bz] & 0x40) != 0) {
--							drainBlock(bx, bz, frameBlock);
-+							drainBlock(bx, bz, frameBlock.blockID);
+-							drainBlock(bx, bz, QuarryPlus.blockFrame);
++							drainBlock(bx, bz, QuarryPlus.blockFrame.blockID);
  						}
  					}
  				}
@@ -1104,7 +1373,7 @@
  					}
  				}
  			}
-@@ -611,8 +610,8 @@
+@@ -610,8 +609,8 @@
  		return false;
  	}
  
@@ -1117,7 +1386,7 @@
  			FluidStack fs = null;
 --- a/com/yogpc/qp/TileQuarry.java
 +++ b/com/yogpc/qp/TileQuarry.java
-@@ -90,8 +90,8 @@
+@@ -86,8 +86,8 @@
  
  	private boolean S_checkTarget() {
  		if (this.targetY > this.yMax) this.targetY = this.yMax;
@@ -1128,23 +1397,32 @@
  		float h = b == null ? -1 : b.getBlockHardness(this.worldObj, this.targetX, this.targetY, this.targetZ);
  		switch (this.now) {
  		case BREAKBLOCK:
-@@ -142,7 +142,7 @@
+@@ -134,7 +134,7 @@
  				PacketHandler.sendNowPacket(this, this.now);
  				return S_checkTarget();
  			}
--			if (b != null && b.getMaterial().isSolid() && b != frameBlock) {
-+			if (b != null && this.worldObj.getBlockMaterial(this.targetX, this.targetY, this.targetZ).isSolid() && b != frameBlock) {
+-			if (b != null && b.getMaterial().isSolid()
++			if (b != null && this.worldObj.getBlockMaterial(this.targetX, this.targetY, this.targetZ).isSolid()
+ 					&& !(b == QuarryPlus.blockFrame && this.worldObj.getBlockMetadata(this.targetX, this.targetY, this.targetZ) == 0)) {
  				this.now = NOTNEEDBREAK;
  				G_renew_powerConfigure();
- 				this.targetX = this.xMin;
-@@ -249,7 +249,7 @@
+@@ -241,7 +241,7 @@
  	private boolean S_makeFrame() {
  		this.digged = true;
  		if (!PowerManager.useEnergyF(this, this.unbreaking)) return false;
--		this.worldObj.setBlock(this.targetX, this.targetY, this.targetZ, frameBlock);
-+		this.worldObj.setBlock(this.targetX, this.targetY, this.targetZ, frameBlock.blockID);
+-		this.worldObj.setBlock(this.targetX, this.targetY, this.targetZ, QuarryPlus.blockFrame);
++		this.worldObj.setBlock(this.targetX, this.targetY, this.targetZ, QuarryPlus.blockFrame.blockID);
  		S_setNextTarget();
  		return true;
+ 	}
+@@ -384,7 +384,7 @@
+ 	}
+ 
+ 	private void S_setBreakableFrame(int x, int y, int z) {
+-		if (this.worldObj.getBlock(x, y, z) == QuarryPlus.blockFrame) {
++		if (this.worldObj.getBlockId(x, y, z) == QuarryPlus.blockFrame.blockID) {
+ 			this.worldObj.setBlockMetadataWithNotify(x, y, z, 1, 3);
+ 		}
  	}
 --- a/com/yogpc/qp/TileRefinery.java
 +++ b/com/yogpc/qp/TileRefinery.java
@@ -1160,24 +1438,72 @@
  				decreaseAnimation();
  				return;
  			}
---- a/com/yogpc/qp/client/RenderRefinery.java
-+++ b/com/yogpc/qp/client/RenderRefinery.java
-@@ -21,7 +21,7 @@
- import net.minecraft.client.model.ModelBase;
- import net.minecraft.client.model.ModelRenderer;
- import net.minecraft.client.renderer.RenderBlocks;
--import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
-+import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
- import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
- import net.minecraft.tileentity.TileEntity;
- import net.minecraft.util.ResourceLocation;
-@@ -61,8 +61,7 @@
- 			this.magnet[i].rotationPointY = 8;
- 			this.magnet[i].rotationPointZ = 8;
- 		}
--
--		this.tileEntityRenderer = TileEntityRendererDispatcher.instance;
-+		setTileEntityRenderer(TileEntityRenderer.instance);
- 	}
+--- a/com/yogpc/qp/client/RenderFrame.java
++++ b/com/yogpc/qp/client/RenderFrame.java
+@@ -28,7 +28,7 @@
  
  	@Override
+ 	public boolean renderWorldBlock(IBlockAccess w, int i, int j, int k, Block b, int m, RenderBlocks r) {
+-		if (w.getBlock(i - 1, j, k) == b) {
++		if (w.getBlockId(i - 1, j, k) == b.blockID) {
+ 			r.setRenderBounds(0.0F, 0.25F, 0.25F, 0.25F, 0.75F, 0.75F);
+ 			((BlockFrame) b).setSides(true, true, true, true, false, false);
+ 		} else {
+@@ -36,7 +36,7 @@
+ 			((BlockFrame) b).setSides(false, false, false, false, true, false);
+ 		}
+ 		r.renderStandardBlock(b, i, j, k);
+-		if (w.getBlock(i + 1, j, k) == b) {
++		if (w.getBlockId(i + 1, j, k) == b.blockID) {
+ 			r.setRenderBounds(0.75F, 0.25F, 0.25F, 1.0F, 0.75F, 0.75F);
+ 			((BlockFrame) b).setSides(true, true, true, true, false, false);
+ 		} else {
+@@ -44,7 +44,7 @@
+ 			((BlockFrame) b).setSides(false, false, false, false, false, true);
+ 		}
+ 		r.renderStandardBlock(b, i, j, k);
+-		if (w.getBlock(i, j - 1, k) == b) {
++		if (w.getBlockId(i, j - 1, k) == b.blockID) {
+ 			r.setRenderBounds(0.25F, 0.0F, 0.25F, 0.75F, 0.25F, 0.75F);
+ 			((BlockFrame) b).setSides(false, false, true, true, true, true);
+ 		} else {
+@@ -52,7 +52,7 @@
+ 			((BlockFrame) b).setSides(true, false, false, false, false, false);
+ 		}
+ 		r.renderStandardBlock(b, i, j, k);
+-		if (w.getBlock(i, j + 1, k) == b) {
++		if (w.getBlockId(i, j + 1, k) == b.blockID) {
+ 			r.setRenderBounds(0.25F, 0.75F, 0.25F, 0.75F, 1.0F, 0.75F);
+ 			((BlockFrame) b).setSides(false, false, true, true, true, true);
+ 		} else {
+@@ -60,7 +60,7 @@
+ 			((BlockFrame) b).setSides(false, true, false, false, false, false);
+ 		}
+ 		r.renderStandardBlock(b, i, j, k);
+-		if (w.getBlock(i, j, k - 1) == b) {
++		if (w.getBlockId(i, j, k - 1) == b.blockID) {
+ 			r.setRenderBounds(0.25F, 0.25F, 0.0F, 0.75F, 0.75F, 0.25F);
+ 			((BlockFrame) b).setSides(true, true, false, false, true, true);
+ 		} else {
+@@ -68,7 +68,7 @@
+ 			((BlockFrame) b).setSides(false, false, true, false, false, false);
+ 		}
+ 		r.renderStandardBlock(b, i, j, k);
+-		if (w.getBlock(i, j, k + 1) == b) {
++		if (w.getBlockId(i, j, k + 1) == b.blockID) {
+ 			r.setRenderBounds(0.25F, 0.25F, 0.75F, 0.75F, 0.75F, 1.0F);
+ 			((BlockFrame) b).setSides(true, true, false, false, true, true);
+ 		} else {
+--- a/com/yogpc/qp/client/RenderRefinery.java
++++ b/com/yogpc/qp/client/RenderRefinery.java
+@@ -203,8 +203,8 @@
+ 		diplayLists = new int[100];
+ 		Block baseBlock;
+ 		Icon texture;
+-		if (fluid.getBlock() != null) {
+-			baseBlock = fluid.getBlock();
++		if (fluid.getBlockID() > -1) {
++			baseBlock = Block.blocksList[fluid.getBlockID()];
+ 			texture = fluid.getStillIcon();
+ 		} else {
+ 			baseBlock = Block.waterStill;

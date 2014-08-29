@@ -112,7 +112,7 @@ public class RenderMarker implements ISimpleBlockRenderingHandler {
 	public boolean renderWorldBlock(IBlockAccess world, int x, int y, int z, Block block, int modelId, RenderBlocks renderer) {
 		Tessellator tessellator = Tessellator.instance;
 		float f = block.getMixedBrightnessForBlock(world, x, y, z);
-		if (block.getLightValue() > 0) f = 1.0F;
+		if (block.getLightValue(world, x, y, z) > 0) f = 1.0F;
 
 		tessellator.setColorOpaque_F(f, f, f);
 		renderMarkerWithMeta(world, block, x, y, z, world.getBlockMetadata(x, y, z));
