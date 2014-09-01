@@ -15,7 +15,7 @@ public class BlockPlainPipe extends Block {
 		this.maxX = 0.75;
 		this.maxY = 1.0;
 		this.maxZ = 0.75;
-		this.setBlockTextureName("buildcraft:blockPlainPipe");// TODO buildcraft resource
+		this.setBlockTextureName("yogpstop_qp:blockPlainPipe");
 	}
 
 	@Override

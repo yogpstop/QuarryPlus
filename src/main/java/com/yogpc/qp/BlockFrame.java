@@ -23,7 +23,7 @@ public class BlockFrame extends Block {
 		setSides(true, true, true, true, true, true);
 		setHardness(0.5F);
 		setTickRandomly(true);
-		this.setBlockTextureName("buildcraft:blockFrame");// TODO buildcraft resource
+		this.setBlockTextureName("yogpstop_qp:blockFrame");
 	}
 
 	@Override

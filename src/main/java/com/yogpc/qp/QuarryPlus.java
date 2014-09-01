@@ -97,10 +97,10 @@ public class QuarryPlus {
 		if (evt.map.getTextureType() == 0) {
 			TextureMap map = evt.map;
 			RenderEntityLaser.icons = new IIcon[4];
-			RenderEntityLaser.icons[EntityLaser.DRILL] = map.registerIcon("buildcraft:blockDrillTexture");// TODO buildcraft resource
-			RenderEntityLaser.icons[EntityLaser.DRILL_HEAD] = map.registerIcon("buildcraft:blockDrillHeadTexture");// TODO buildcraft resource
-			RenderEntityLaser.icons[EntityLaser.RED_LASER] = map.registerIcon("buildcraft:blockRedLaser");// TODO buildcraft resource
-			RenderEntityLaser.icons[EntityLaser.BLUE_LASER] = map.registerIcon("buildcraft:blockBlueLaser");// TODO buildcraft resource
+			RenderEntityLaser.icons[EntityLaser.DRILL] = map.registerIcon("yogpstop_qp:blockDrillTexture");
+			RenderEntityLaser.icons[EntityLaser.DRILL_HEAD] = map.registerIcon("yogpstop_qp:blockDrillHeadTexture");
+			RenderEntityLaser.icons[EntityLaser.RED_LASER] = map.registerIcon("yogpstop_qp:blockRedLaser");
+			RenderEntityLaser.icons[EntityLaser.BLUE_LASER] = map.registerIcon("yogpstop_qp:blockBlueLaser");
 		}
 	}
 

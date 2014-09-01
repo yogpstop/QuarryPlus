@@ -180,9 +180,9 @@ public class TileLaser extends APowerTile implements IEnchantableTile {
 		}
 	}
 
-	public static final ResourceLocation[] LASER_TEXTURES = new ResourceLocation[] { new ResourceLocation("buildcraft", "textures/entities/laser_1.png"),// TODO buildcraft resource
-			new ResourceLocation("buildcraft", "textures/entities/laser_2.png"), new ResourceLocation("buildcraft", "textures/entities/laser_3.png"),// TODO buildcraft resource
-			new ResourceLocation("buildcraft", "textures/entities/laser_4.png"), new ResourceLocation("buildcraft", "textures/entities/stripes.png") };// TODO buildcraft resource
+	public static final ResourceLocation[] LASER_TEXTURES = new ResourceLocation[] { new ResourceLocation("yogpstop_qp", "textures/entities/laser_1.png"),
+			new ResourceLocation("yogpstop_qp", "textures/entities/laser_2.png"), new ResourceLocation("yogpstop_qp", "textures/entities/laser_3.png"),
+			new ResourceLocation("yogpstop_qp", "textures/entities/laser_4.png"), new ResourceLocation("yogpstop_qp", "textures/entities/stripes.png") };
 
 	public ResourceLocation getTexture() {
 		double avg = this.pa / 100;

@@ -42,7 +42,7 @@ public class BlockRefinery extends BlockContainer {
 		setHardness(5F);
 		setCreativeTab(QuarryPlus.ct);
 		setBlockName("RefineryPlus");
-		setBlockTextureName("buildcraft:refineryBack");// TODO buildcraft resource
+		setBlockTextureName("yogpstop_qp:refineryDummy");
 	}
 
 	@Override
