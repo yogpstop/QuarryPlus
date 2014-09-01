@@ -1,14 +1,13 @@
 --- a/com/yogpc/ip/ItemArmorElectric.java
 +++ b/com/yogpc/ip/ItemArmorElectric.java
-@@ -4,6 +4,7 @@
+@@ -3,13 +3,17 @@
+ import ic2.api.ElectricItem;
  import ic2.api.IElectricItem;
  
- import java.lang.reflect.Field;
 +import java.util.EnumSet;
  import java.util.List;
  
  import com.yogpc.mc_lib.ProxyCommon;
-@@ -11,7 +12,10 @@
  import com.yogpc.mc_lib.YogpstopLib;
  
  import cpw.mods.fml.common.FMLCommonHandler;
@@ -19,7 +18,7 @@
  import cpw.mods.fml.common.Side;
  import cpw.mods.fml.common.asm.SideOnly;
  import net.minecraft.src.CreativeTabs;
-@@ -28,15 +32,17 @@
+@@ -26,15 +30,17 @@
  import net.minecraftforge.common.ISpecialArmor;
  import net.minecraftforge.common.EnumHelper;
  
@@ -39,7 +38,7 @@
  	}
  
  	private static final double maxFallSpeedOnHover = 0.35;
-@@ -108,12 +114,27 @@
+@@ -106,12 +112,27 @@
  	}
  
  	@Override

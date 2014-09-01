@@ -1,6 +1,6 @@
 --- a/com/yogpc/ip/ItemArmorElectric.java
 +++ b/com/yogpc/ip/ItemArmorElectric.java
-@@ -31,17 +31,12 @@
+@@ -29,17 +29,12 @@
  public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElectricItem {
  	public ItemArmorElectric(int id) {
  		super(id, EnumHelper.addArmorMaterial("ELECTRIC", 33, new int[] { 3, 8, 6, 3 }, 0), YogpstopLib.proxy.addNewArmourRendererPrefix("electric"), 1);
@@ -20,7 +20,7 @@
  	}
  
  	private static final double maxFallSpeedOnHover = 0.35;
-@@ -49,7 +44,8 @@
+@@ -47,7 +42,8 @@
  	private void useJetpack(EntityPlayer p, ItemStack jetpack, boolean hover) {
  		boolean jumping = YogpstopLib.proxy.getKey(p, ProxyCommon.Key.jump);
  		if (jumping || hover && p.motionY < -maxFallSpeedOnHover) {
@@ -30,7 +30,7 @@
  			if (charge <= 0.0) return;
  			float power = 0.7f;
  			if (charge / this.getMaxCharge() <= 0.05f) {
-@@ -135,13 +131,16 @@
+@@ -133,13 +129,16 @@
  	@Override
  	public ISpecialArmor.ArmorProperties getProperties(EntityLiving player, ItemStack armor, DamageSource source, double damage, int slot) {
  		if (source.isUnblockable()) return new ISpecialArmor.ArmorProperties(0, 0.0, 0);
@@ -602,15 +602,15 @@
  			return prop.getDouble(def);
 --- a/com/yogpc/qp/QuarryPlus.java
 +++ b/com/yogpc/qp/QuarryPlus.java
-@@ -20,7 +20,6 @@
- import java.lang.reflect.Field;
- 
+@@ -22,7 +22,6 @@
  import com.yogpc.mc_lib.PacketHandler;
+ import com.yogpc.mc_lib.ReflectionHelper;
+ import com.yogpc.mc_lib.YogpstopLib;
 -import com.yogpc.qp.client.RenderEntityLaser;
  
  import buildcraft.BuildCraftBuilders;
  import buildcraft.BuildCraftCore;
-@@ -33,13 +32,11 @@
+@@ -35,13 +34,11 @@
  import net.minecraft.creativetab.CreativeTabs;
  import net.minecraft.item.Item;
  import net.minecraft.item.ItemStack;
@@ -624,16 +624,16 @@
  import cpw.mods.fml.client.registry.RenderingRegistry;
  import cpw.mods.fml.common.SidedProxy;
  import cpw.mods.fml.common.Mod;
-@@ -49,8 +46,6 @@
+@@ -50,8 +47,6 @@
+ import net.minecraftforge.event.ForgeSubscribe;
  import cpw.mods.fml.common.registry.GameRegistry;
- import cpw.mods.fml.common.registry.LanguageRegistry;
  import cpw.mods.fml.common.network.NetworkRegistry;
 -import cpw.mods.fml.relauncher.Side;
 -import cpw.mods.fml.relauncher.SideOnly;
  
  @Mod(modid = "QuarryPlus", name = "QuarryPlus", version = "@VERSION@", dependencies = "required-after:YogpstopLib;required-after:BuildCraft|Builders;required-after:BuildCraft|Core;required-after:BuildCraft|Energy;required-after:BuildCraft|Factory;required-after:BuildCraft|Silicon;required-after:BuildCraft|Transport")
  public class QuarryPlus {
-@@ -94,19 +89,6 @@
+@@ -86,19 +81,6 @@
  			if (l.w == event.world) l.destructor();
  	}
  
@@ -653,18 +653,7 @@
  	@Mod.PreInit
  	public void preInit(FMLPreInitializationEvent event) {
  		Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
-@@ -152,7 +134,9 @@
- 		} catch (Exception e) {
- 			e.printStackTrace();
- 		}
--		LanguageRegistry.instance().loadLocalization("/lang/yogpstop/quarryplus/en_US.lang", "en_US", false);// TODO language deprecated
-+		LanguageRegistry.instance().loadLocalization("/lang/yogpstop/quarryplus/en_US.lang", "en_US", false);// TODO
-+																												// language
-+																												// deprecated
- 		LanguageRegistry.instance().loadLocalization("/lang/yogpstop/quarryplus/ja_JP.lang", "ja_JP", false);
- 		LanguageRegistry.instance().loadLocalization("/lang/yogpstop/quarryplus/ru_RU.lang", "ru_RU", false);
- 		ForgeChunkManager.setForcedChunkLoadingCallback(instance, new ChunkLoadingHandler());
-@@ -241,8 +225,8 @@
+@@ -231,8 +213,8 @@
  					new ItemStack(Item.bucketWater, 1), new ItemStack(Item.bucketLava, 1));
  			addAssemblyRecipe(80000, new ItemStack(blockMiningWell, 1), new ItemStack(BuildCraftFactory.miningWellBlock, 1), new ItemStack(redstoneChipset, 1,
  					3), new ItemStack(BuildCraftTransport.yellowPipeWire, 8));
@@ -675,7 +664,7 @@
  			addAssemblyRecipe(80000, new ItemStack(blockPlacer, 1), new ItemStack(Block.dispenser, 1), new ItemStack(BuildCraftBuilders.fillerBlock, 1),
  					new ItemStack(BuildCraftEnergy.engineBlock, 1, 1));
  			addAssemblyRecipe(160000, new ItemStack(blockLaser, 1), new ItemStack(BuildCraftSilicon.laserBlock, 1), new ItemStack(
-@@ -250,8 +234,7 @@
+@@ -240,8 +222,7 @@
  			break;
  		case 3:
  			addAssemblyRecipe(800000, new ItemStack(blockQuarry, 1), new ItemStack(BuildCraftFactory.quarryBlock, 2), new ItemStack(redstoneChipset, 8, 3),
@@ -685,7 +674,7 @@
  			addAssemblyRecipe(640000, new ItemStack(blockMover, 1), new ItemStack(Block.enchantmentTable, 1), new ItemStack(
  					BuildCraftSilicon.assemblyTableBlock, 1, 1), new ItemStack(Block.anvil, 2), new ItemStack(BuildCraftSilicon.laserBlock, 4), new ItemStack(
  					BuildCraftSilicon.assemblyTableBlock, 1), new ItemStack(redstoneChipset, 4, 3), new ItemStack(BuildCraftCore.diamondGearItem, 2));
-@@ -272,21 +255,18 @@
+@@ -262,21 +243,18 @@
  					new ItemStack(Item.bucketWater, 1), new ItemStack(Item.bucketLava, 1), new ItemStack(BuildCraftEnergy.bucketOil, 1), new ItemStack(
  							BuildCraftEnergy.bucketFuel, 1), new ItemStack(BuildCraftEnergy.engineBlock, 1, 2));
  			addAssemblyRecipe(500000, new ItemStack(blockMiningWell, 1), new ItemStack(BuildCraftFactory.miningWellBlock, 2), new ItemStack(redstoneChipset, 8,
@@ -714,7 +703,7 @@
  			addAssemblyRecipe(320000, new ItemStack(blockMover, 1), new ItemStack(Block.enchantmentTable, 1), new ItemStack(
  					BuildCraftSilicon.assemblyTableBlock, 1, 1), new ItemStack(Block.anvil, 1), new ItemStack(BuildCraftSilicon.assemblyTableBlock, 1),
  					new ItemStack(redstoneChipset, 4, 3), new ItemStack(BuildCraftSilicon.laserBlock, 4));
-@@ -306,10 +286,9 @@
+@@ -296,10 +274,9 @@
  					new ItemStack(Item.bucketWater, 1), new ItemStack(Item.bucketLava, 1), new ItemStack(BuildCraftEnergy.bucketOil, 1), new ItemStack(
  							BuildCraftEnergy.bucketFuel, 1));
  			addAssemblyRecipe(160000, new ItemStack(blockMiningWell, 1), new ItemStack(BuildCraftFactory.miningWellBlock, 1), new ItemStack(redstoneChipset, 2,
@@ -728,7 +717,7 @@
  			addAssemblyRecipe(640000, new ItemStack(blockPlacer, 1), new ItemStack(Block.dispenser, 2), new ItemStack(Block.blockDiamond, 1), new ItemStack(
  					Item.redstone, 32), new ItemStack(BuildCraftBuilders.fillerBlock, 1), new ItemStack(Block.blockGold, 2), new ItemStack(
  					BuildCraftEnergy.engineBlock, 1, 2));
-@@ -320,6 +299,8 @@
+@@ -310,6 +287,8 @@
  		proxy.registerTextures();
  		PacketHandler.registerStaticHandler(TileMarker.class);
  	}

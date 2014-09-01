@@ -1,6 +1,18 @@
 --- a/com/yogpc/ip/ItemArmorElectric.java
 +++ b/com/yogpc/ip/ItemArmorElectric.java
-@@ -23,15 +23,14 @@
+@@ -3,11 +3,9 @@
+ import ic2.api.item.ElectricItem;
+ import ic2.api.item.IElectricItem;
+ 
+-import java.lang.reflect.Field;
+ import java.util.List;
+ 
+ import com.yogpc.mc_lib.ProxyCommon;
+-import com.yogpc.mc_lib.ReflectionHelper;
+ import com.yogpc.mc_lib.YogpstopLib;
+ 
+ import cpw.mods.fml.common.FMLCommonHandler;
+@@ -23,15 +21,14 @@
  import net.minecraft.item.ItemArmor;
  import net.minecraft.item.ItemStack;
  import net.minecraft.nbt.NBTTagCompound;
@@ -18,16 +30,16 @@
  		this.setUnlocalizedName("electric_armor");
  		this.setCreativeTab(CreativeTabs.tabCombat);
  		this.setTextureName("yogpstop_qp:electric_armor");
-@@ -40,8 +39,6 @@
+@@ -40,8 +37,6 @@
  		this.setMaxStackSize(1);
  	}
  
--	private static final Field f = ReflectionHelper.getDeclaredField(NetHandlerPlayServer.class, "field_147365_f", "floatingTickCount");
+-	private static final Field f = ReflectionHelper.getField(NetHandlerPlayServer.class, "field_147365_f", "floatingTickCount");
 -	
  	private static final double maxFallSpeedOnHover = 0.35;
  
  	private void useJetpack(EntityPlayer p, ItemStack jetpack, boolean hover) {
-@@ -78,13 +75,7 @@
+@@ -78,13 +73,7 @@
  				p.fallDistance = 0.0f;
  				p.distanceWalkedModified = 0.0f;
  				if (p instanceof EntityPlayerMP) {
@@ -42,7 +54,7 @@
  				}
  			}
  			p.inventoryContainer.detectAndSendChanges();
-@@ -116,7 +107,7 @@
+@@ -116,7 +105,7 @@
  	}
  
  	@Override
@@ -51,7 +63,7 @@
  		if (player.inventory.armorInventory[2] != itemStack) return;
  		this.useJetpack(player, itemStack, toggleHover(player, itemStack));
  	}
-@@ -160,13 +151,13 @@
+@@ -160,13 +149,13 @@
  	}
  
  	@Override
@@ -118,15 +130,15 @@
  	@Retention(RetentionPolicy.RUNTIME)
  	@Target(ElementType.METHOD)
  	public static @interface Handler {}
-@@ -62,7 +60,6 @@
- 		}
+@@ -59,7 +57,6 @@
+ 		if (l.size() == 1) registeredStaticHandlers.put(c.getName(), l.get(0));
  	}
  
 -	public static EnumMap<Side, FMLEmbeddedChannel> channels;
  	static final byte Tile = 0;
  	static final byte NBT = 1;
  	static final byte BTN = 2;
-@@ -99,7 +96,9 @@
+@@ -96,7 +93,9 @@
  	public static final byte remove_laser = 1;
  
  	@Override
@@ -137,7 +149,7 @@
  		if (packet.getChannel() == NBT) {
  			setNBTFromPacket(packet);
  		} else if (packet.getChannel() == BTN) {
-@@ -126,27 +125,28 @@
+@@ -123,27 +122,28 @@
  		}
  	}
  
@@ -295,26 +307,101 @@
  	}
 --- a/com/yogpc/mc_lib/YogpstopLib.java
 +++ b/com/yogpc/mc_lib/YogpstopLib.java
-@@ -5,9 +5,11 @@
+@@ -1,13 +1,28 @@
+ package com.yogpc.mc_lib;
+ 
++import java.io.BufferedReader;
++import java.io.File;
++import java.io.FileInputStream;
++import java.io.InputStream;
++import java.io.InputStreamReader;
++import java.io.Reader;
++import java.util.Properties;
++import java.util.regex.Matcher;
++import java.util.regex.Pattern;
++import java.util.zip.ZipEntry;
++import java.util.zip.ZipInputStream;
++
++import com.google.common.base.Charsets;
+ import com.yogpc.ip.ItemArmorElectric;
+ 
  import cpw.mods.fml.common.Mod;
  import cpw.mods.fml.common.SidedProxy;
  import cpw.mods.fml.common.event.FMLInitializationEvent;
 +import cpw.mods.fml.common.network.NetworkMod;
- import cpw.mods.fml.common.network.NetworkRegistry;
+-import cpw.mods.fml.common.network.NetworkRegistry;
++import cpw.mods.fml.common.registry.LanguageRegistry;
  
  @Mod(modid = "YogpstopLib", name = "Yogpstop Library", version = "@VERSION@", dependencies = "after:IC2")
 +@NetworkMod(clientSideRequired = true, serverSideRequired = false, channels = { "YogpstopLib" }, packetHandler = PacketHandler.class)
  public class YogpstopLib {
  
  	@SidedProxy(clientSide = "com.yogpc.mc_lib.ProxyClient", serverSide = "com.yogpc.mc_lib.ProxyCommon")
-@@ -15,7 +17,6 @@
+@@ -15,7 +31,63 @@
  
  	@Mod.EventHandler
  	public void init(FMLInitializationEvent event) {
 -		PacketHandler.channels = NetworkRegistry.instance().newChannel("YogpstopLib", new YogpstopPacketCodec(), new PacketHandler());
 -		new ItemArmorElectric();// TODO IC2Plus
 +		new ItemArmorElectric(21478);// TODO IC2Plus
++	}
++
++	private static final Pattern lang = Pattern.compile("assets/(.*)/lang/(.*)\\.lang");
++	private static final Pattern format = Pattern.compile("%(\\d+\\$)?[\\d\\.]*[df]");
++
++	public static Properties parseLangFile(InputStream is) {
++		Properties table = new Properties();
++		try {
++			Reader r = new InputStreamReader(is, Charsets.UTF_8);
++			BufferedReader br = new BufferedReader(r);
++			String s;
++			while ((s = br.readLine()) != null)
++				if (!s.isEmpty() && s.charAt(0) != '#') {
++					String[] astring = s.split("=", 2);
++					if (astring.length == 2) table.put(astring[0], format.matcher(astring[1]).replaceAll("%$1s"));
++				}
++			br.close();
++			r.close();
++		} catch (Exception e) {}
++		return table;
++	}
++
++	private static void loadLangs_dir(File b, File f) {
++		String n = f.getPath().replace(b.getPath(), "").replace(File.separator, "/");
++		if (n.length() > 0 && n.charAt(0) == '/') n = n.substring(1);
++		Matcher m = lang.matcher(n);
++		if (m.matches()) {
++			try {
++				InputStream is = new FileInputStream(f);
++				LanguageRegistry.instance().addStringLocalization(parseLangFile(is), m.group(2));
++				is.close();
++			} catch (Exception e) {}
++		}
++		if (f.isDirectory()) for (File e : f.listFiles())
++			loadLangs_dir(b, e);
++	}
++
++	public static void loadLangs(File in) {
++		if (in.isDirectory()) {
++			loadLangs_dir(in, in);
++			return;
++		}
++		try {
++			InputStream is = new FileInputStream(in);
++			ZipInputStream zis = new ZipInputStream(is);
++			ZipEntry entry;
++			while ((entry = zis.getNextEntry()) != null) {
++				Matcher m = lang.matcher(entry.getName());
++				if (m.matches()) {
++					LanguageRegistry.instance().addStringLocalization(parseLangFile(zis), m.group(2));
++				}
++				zis.closeEntry();
++			}
++			zis.close();
++			is.close();
++		} catch (Exception e) {}
  	}
++
  }
 --- a/com/yogpc/mc_lib/YogpstopPacket.java
 +++ b/com/yogpc/mc_lib/YogpstopPacket.java
@@ -1012,7 +1099,15 @@
  					c.setInteger("Bmeta", OreDictionary.WILDCARD_VALUE);
 --- a/com/yogpc/qp/QuarryPlus.java
 +++ b/com/yogpc/qp/QuarryPlus.java
-@@ -28,13 +28,10 @@
+@@ -21,6 +21,7 @@
+ 
+ import com.yogpc.mc_lib.PacketHandler;
+ import com.yogpc.mc_lib.ReflectionHelper;
++import com.yogpc.mc_lib.YogpstopLib;
+ import com.yogpc.qp.client.RenderEntityLaser;
+ 
+ import buildcraft.BuildCraftBuilders;
+@@ -29,13 +30,10 @@
  import buildcraft.BuildCraftFactory;
  import buildcraft.BuildCraftSilicon;
  import buildcraft.BuildCraftTransport;
@@ -1027,15 +1122,15 @@
  import net.minecraft.item.Item;
  import net.minecraft.item.ItemStack;
  import net.minecraft.util.Icon;
-@@ -51,7 +48,6 @@
+@@ -52,7 +50,6 @@
  import cpw.mods.fml.common.event.FMLInitializationEvent;
  import cpw.mods.fml.common.event.FMLPreInitializationEvent;
  import net.minecraftforge.event.ForgeSubscribe;
 -import cpw.mods.fml.common.registry.GameData;
  import cpw.mods.fml.common.registry.GameRegistry;
- import cpw.mods.fml.common.registry.LanguageRegistry;
  import cpw.mods.fml.common.network.NetworkRegistry;
-@@ -116,8 +112,22 @@
+ import cpw.mods.fml.relauncher.Side;
+@@ -107,8 +104,22 @@
  	@Mod.EventHandler
  	public void preInit(FMLPreInitializationEvent event) {
  		Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
@@ -1058,7 +1153,7 @@
  			Property RD = cfg.get(Configuration.CATEGORY_GENERAL, "RecipeDifficulty", 2);
  			RD.comment = "0:AsCheatRecipe,1:EasyRecipe,2:NormalRecipe(Default),3:HardRecipe,other:NormalRecipe";
  			RecipeDifficulty = RD.getInt(2);
-@@ -128,19 +138,19 @@
+@@ -119,28 +130,29 @@
  			cfg.save();
  		}
  		try {
@@ -1091,7 +1186,9 @@
  		} catch (Exception e) {
  			e.printStackTrace();
  		}
-@@ -152,7 +162,7 @@
+ 		ForgeChunkManager.setForcedChunkLoadingCallback(instance, new ChunkLoadingHandler());
+ 		MinecraftForge.EVENT_BUS.register(this);
++		YogpstopLib.loadLangs(event.getSourceFile());
  	}
  
  	private static final void addAssemblyRecipe(int a, ItemStack b, ItemStack... c) {
@@ -1100,7 +1197,7 @@
  	}
  
  	@Mod.EventHandler
-@@ -216,7 +226,7 @@
+@@ -204,7 +216,7 @@
  			break;
  		case 1:
  			addAssemblyRecipe(160000, new ItemStack(blockQuarry, 1), new ItemStack(BuildCraftFactory.quarryBlock, 1), new ItemStack(redstoneChipset, 1, 3),
