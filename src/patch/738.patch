@@ -1,6 +1,6 @@
 --- a/com/yogpc/ip/ItemArmorElectric.java
 +++ b/com/yogpc/ip/ItemArmorElectric.java
-@@ -14,6 +14,7 @@
+@@ -12,6 +12,7 @@
  import cpw.mods.fml.common.registry.GameRegistry;
  import cpw.mods.fml.relauncher.Side;
  import cpw.mods.fml.relauncher.SideOnly;
@@ -8,7 +8,7 @@
  import net.minecraft.creativetab.CreativeTabs;
  import net.minecraft.entity.EntityLiving;
  import net.minecraft.entity.player.EntityPlayer;
-@@ -33,12 +34,17 @@
+@@ -31,12 +32,17 @@
  		super(id, EnumHelper.addArmorMaterial("ELECTRIC", 33, new int[] { 3, 8, 6, 3 }, 0), YogpstopLib.proxy.addNewArmourRendererPrefix("electric"), 1);
  		this.setUnlocalizedName("electric_armor");
  		this.setCreativeTab(CreativeTabs.tabCombat);
@@ -29,7 +29,7 @@
  	private void useJetpack(EntityPlayer p, ItemStack jetpack, boolean hover) {
 --- a/com/yogpc/mc_lib/YogpstopLib.java
 +++ b/com/yogpc/mc_lib/YogpstopLib.java
-@@ -15,7 +15,7 @@
+@@ -28,12 +28,12 @@
  	@SidedProxy(clientSide = "com.yogpc.mc_lib.ProxyClient", serverSide = "com.yogpc.mc_lib.ProxyCommon")
  	public static ProxyCommon proxy;
  
@@ -38,6 +38,12 @@
  	public void init(FMLInitializationEvent event) {
  		new ItemArmorElectric(21478);// TODO IC2Plus
  	}
+ 
+-	private static final Pattern lang = Pattern.compile("assets/(.*)/lang/(.*)\\.lang");
++	private static final Pattern lang = Pattern.compile("mods/(.*)/lang/(.*)\\.lang");
+ 	private static final Pattern format = Pattern.compile("%(\\d+\\$)?[\\d\\.]*[df]");
+ 
+ 	public static Properties parseLangFile(InputStream is) {
 --- a/com/yogpc/qp/APowerTile.java
 +++ b/com/yogpc/qp/APowerTile.java
 @@ -3,13 +3,13 @@
@@ -213,7 +219,7 @@
  			if (used > 0) {
 --- a/com/yogpc/qp/QuarryPlus.java
 +++ b/com/yogpc/qp/QuarryPlus.java
-@@ -99,7 +99,7 @@
+@@ -91,7 +91,7 @@
  	@ForgeSubscribe
  	@SideOnly(Side.CLIENT)
  	public void loadTextures(TextureStitchEvent.Pre evt) {
@@ -222,7 +228,7 @@
  			TextureMap map = evt.map;
  			RenderEntityLaser.icons = new Icon[4];
  			RenderEntityLaser.icons[EntityLaser.DRILL] = map.registerIcon("buildcraft:blockDrillTexture");// TODO buildcraft resource
-@@ -109,7 +109,7 @@
+@@ -101,7 +101,7 @@
  		}
  	}
  
@@ -231,7 +237,7 @@
  	public void preInit(FMLPreInitializationEvent event) {
  		Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
  		int[] id = new int[13];
-@@ -162,10 +162,10 @@
+@@ -152,10 +152,10 @@
  	}
  
  	private static final void addAssemblyRecipe(int a, ItemStack b, ItemStack... c) {
@@ -306,7 +312,7 @@
  import buildcraft.api.power.IPowerReceptor;
  
  import com.google.common.io.ByteArrayDataInput;
-@@ -65,8 +66,8 @@
+@@ -62,8 +63,8 @@
  				}
  			} catch (Exception e) {}
  			if (te instanceof IPowerReceptor) {
