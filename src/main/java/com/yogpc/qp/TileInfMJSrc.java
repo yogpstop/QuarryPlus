@@ -29,6 +29,7 @@ import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
 import com.yogpc.mc_lib.APacketTile;
 import com.yogpc.mc_lib.PacketHandler;
+import com.yogpc.mc_lib.ReflectionHelper;
 import com.yogpc.mc_lib.YogpstopPacket;
 
 import net.minecraft.entity.player.EntityPlayer;
@@ -41,14 +42,10 @@ public class TileInfMJSrc extends APacketTile {
 	public int interval = 1;
 	private int cInterval = 1;
 
-	static Method getMjBattery = null;
-	static Method addEnergy = null;
-	static {
-		try {
-			getMjBattery = Class.forName("buildcraft.api.mj.MjAPI").getMethod("getMjBattery", Object.class);
-			addEnergy = Class.forName("buildcraft.api.mj.IBatteryObject").getMethod("addEnergy", double.class);
-		} catch (Exception e) {}
-	}
+	private static final Method getMjBattery = ReflectionHelper.getMethod(ReflectionHelper.getClass("buildcraft.api.mj.MjAPI"),
+			new String[] { "getMjBattery" }, new Class<?>[] { Object.class });
+	private static final Method addEnergy = ReflectionHelper.getMethod(ReflectionHelper.getClass("buildcraft.api.mj.IBatteryObject"),
+			new String[] { "addEnergy" }, new Class<?>[] { double.class });
 
 	@Override
 	public void updateEntity() {

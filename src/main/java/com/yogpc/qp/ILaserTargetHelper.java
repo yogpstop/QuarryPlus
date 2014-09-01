@@ -6,38 +6,14 @@ import java.lang.reflect.Method;
 import com.yogpc.mc_lib.ReflectionHelper;
 
 public class ILaserTargetHelper {
-	private static Class<?> cls = null;
-	private static Method _getXCoord = null;
-	private static Method _getYCoord = null;
-	private static Method _getZCoord = null;
-	private static Method _requiresLaserEnergy = null;
-	private static Method _receiveLaserEnergy = null;
-	private static Method _isInvalidTarget = null;
-	static {
-		try {
-			cls = Class.forName("buildcraft.api.power.ILaserTarget");
-		} catch (ClassNotFoundException e1) {
-			try {
-				cls = Class.forName("buildcraft.silicon.ILaserTarget");
-			} catch (ClassNotFoundException e2) {
-				e1.printStackTrace();
-				e2.printStackTrace();
-			}
-		}
-		try {
-			_getXCoord = cls.getMethod("getXCoord", new Class<?>[] {});
-			_getYCoord = cls.getMethod("getYCoord", new Class<?>[] {});
-			_getZCoord = cls.getMethod("getZCoord", new Class<?>[] {});
-		} catch (NoSuchMethodException e) {
-			e.printStackTrace();
-		} catch (SecurityException e) {
-			e.printStackTrace();
-		}
-		_isInvalidTarget = ReflectionHelper.getDeclaredMethod(cls, new String[] { "isInvalidTarget", "isInvalid" }, new Class<?>[] {});
-		_receiveLaserEnergy = ReflectionHelper.getDeclaredMethod(cls, new String[] { "receiveLaserEnergy" }, new Class<?>[] { double.class },
-				new Class<?>[] { float.class });
-		_requiresLaserEnergy = ReflectionHelper.getDeclaredMethod(cls, new String[] { "requiresLaserEnergy", "hasCurrentWork" }, new Class<?>[] {});
-	}
+	private static final Class<?> cls = ReflectionHelper.getClass("buildcraft.api.power.ILaserTarget", "buildcraft.silicon.ILaserTarget");
+	private static final Method _getXCoord = ReflectionHelper.getMethod(cls, new String[] { "getXCoord" }, new Class<?>[] {});
+	private static final Method _getYCoord = ReflectionHelper.getMethod(cls, new String[] { "getYCoord" }, new Class<?>[] {});
+	private static final Method _getZCoord = ReflectionHelper.getMethod(cls, new String[] { "getZCoord" }, new Class<?>[] {});
+	private static final Method _requiresLaserEnergy = ReflectionHelper.getMethod(cls, new String[] { "isInvalidTarget", "isInvalid" }, new Class<?>[] {});
+	private static final Method _receiveLaserEnergy = ReflectionHelper.getMethod(cls, new String[] { "receiveLaserEnergy" }, new Class<?>[] { double.class },
+			new Class<?>[] { float.class });
+	private static final Method _isInvalidTarget = ReflectionHelper.getMethod(cls, new String[] { "requiresLaserEnergy", "hasCurrentWork" }, new Class<?>[] {});
 
 	private static Object call(Method m, Object o, Object[] a) {
 		try {

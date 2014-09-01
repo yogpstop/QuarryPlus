@@ -284,7 +284,7 @@ public abstract class TileBasic extends APowerTile implements IInventory, IEncha
 		return 0;
 	}
 
-	static final Method createStackedBlock = ReflectionHelper.getDeclaredMethod(Block.class, new String[] { "func_149644_j", "createStackedBlock" },
+	static final Method createStackedBlock = ReflectionHelper.getMethod(Block.class, new String[] { "func_149644_j", "createStackedBlock" },
 			new Class<?>[] { int.class });
 
 	@Override

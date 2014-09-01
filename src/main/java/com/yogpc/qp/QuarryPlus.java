@@ -20,6 +20,7 @@ package com.yogpc.qp;
 import java.lang.reflect.Field;
 
 import com.yogpc.mc_lib.PacketHandler;
+import com.yogpc.mc_lib.ReflectionHelper;
 import com.yogpc.qp.client.RenderEntityLaser;
 
 import buildcraft.BuildCraftBuilders;
@@ -73,16 +74,7 @@ public class QuarryPlus {
 			blockPlainPipe, blockFrame;
 	public static Item itemTool;
 	public static int RecipeDifficulty;
-	public static Field redstoneChipsetF = null;
-	static {
-		try {
-			redstoneChipsetF = BuildCraftSilicon.class.getField("redstoneChipset");
-		} catch (NoSuchFieldException e) {
-			e.printStackTrace();
-		} catch (SecurityException e) {
-			e.printStackTrace();
-		}
-	}
+	public static final Field redstoneChipsetF = ReflectionHelper.getField(BuildCraftSilicon.class, "redstoneChipset");
 	public static final int guiIdInfMJSrc = 1;
 	public static final int guiIdMover = 2;
 	public static final int guiIdFList = 3;

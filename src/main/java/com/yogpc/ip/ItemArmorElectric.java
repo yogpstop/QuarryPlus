@@ -41,7 +41,7 @@ public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElec
 		this.setMaxStackSize(1);
 	}
 
-	private static final Field f = ReflectionHelper.getDeclaredField(NetHandlerPlayServer.class, "field_147365_f", "floatingTickCount");
+	private static final Field f = ReflectionHelper.getField(NetHandlerPlayServer.class, "field_147365_f", "floatingTickCount");
 	
 	private static final double maxFallSpeedOnHover = 0.35;
 

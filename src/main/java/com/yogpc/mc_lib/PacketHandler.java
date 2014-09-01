@@ -59,11 +59,8 @@ public class PacketHandler extends SimpleChannelInboundHandler<YogpstopPacket> {
 	private static final Map<String, Method> registeredStaticHandlers = new HashMap<String, Method>();
 
 	public static final void registerStaticHandler(Class<?> c) {
-		List<Method> l = ReflectionHelper.getMethodsAnnotatedWith(c, Handler.class);
-		if (l.size() == 1) {
-			l.get(0).setAccessible(true);
-			registeredStaticHandlers.put(c.getName(), l.get(0));
-		}
+		List<Method> l = ReflectionHelper.getMethods(c, Handler.class);
+		if (l.size() == 1) registeredStaticHandlers.put(c.getName(), l.get(0));
 	}
 
 	public static EnumMap<Side, FMLEmbeddedChannel> channels;
