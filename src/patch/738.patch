@@ -109,13 +109,13 @@
  		setSides(true, true, true, true, true, true);
  		setHardness(0.5F);
  		setTickRandomly(true);
--		this.setTextureName("buildcraft:blockFrame");// TODO buildcraft resource
+-		this.setTextureName("yogpstop_qp:blockFrame");
 +	}
 +
 +	@Override
 +	@SideOnly(Side.CLIENT)
 +	public void registerIcons(IconRegister ir) {
-+		this.blockIcon = ir.registerIcon("buildcraft:blockFrame");// TODO buildcraft resource
++		this.blockIcon = ir.registerIcon("yogpstop_qp:blockFrame");
  	}
  
  	@Override
@@ -165,13 +165,13 @@
  		this.maxX = 0.75;
  		this.maxY = 1.0;
  		this.maxZ = 0.75;
--		this.setTextureName("buildcraft:blockPlainPipe");// TODO buildcraft resource
+-		this.setTextureName("yogpstop_qp:blockPlainPipe");
 +	}
 +
 +	@Override
 +	@SideOnly(Side.CLIENT)
 +	public void registerIcons(IconRegister ir) {
-+		this.blockIcon = ir.registerIcon("buildcraft:blockPlainPipe");// TODO buildcraft resource
++		this.blockIcon = ir.registerIcon("yogpstop_qp:blockPlainPipe");
  	}
  
  	@Override
@@ -198,13 +198,13 @@
  		setHardness(5F);
  		setCreativeTab(QuarryPlus.ct);
  		setUnlocalizedName("RefineryPlus");
--		setTextureName("buildcraft:refineryBack");// TODO buildcraft resource
+-		setTextureName("yogpstop_qp:refineryDummy");
 +	}
 +
 +	@Override
 +	@SideOnly(Side.CLIENT)
 +	public void registerIcons(IconRegister ir) {
-+		this.blockIcon = ir.registerIcon("buildcraft:refineryBack");// TODO buildcraft resource
++		this.blockIcon = ir.registerIcon("yogpstop_qp:refineryDummy");
  	}
  
  	@Override
@@ -227,7 +227,7 @@
 +		if (evt.map.textureType == 0) {
  			TextureMap map = evt.map;
  			RenderEntityLaser.icons = new Icon[4];
- 			RenderEntityLaser.icons[EntityLaser.DRILL] = map.registerIcon("buildcraft:blockDrillTexture");// TODO buildcraft resource
+ 			RenderEntityLaser.icons[EntityLaser.DRILL] = map.registerIcon("yogpstop_qp:blockDrillTexture");
 @@ -101,7 +101,7 @@
  		}
  	}
@@ -329,12 +329,12 @@
  		}
  	}
  
--	public static final String[] LASER_TEXTURES = new String[] { new String("buildcraft", "textures/entities/laser_1.png"),// TODO buildcraft resource
--			new String("buildcraft", "textures/entities/laser_2.png"), new String("buildcraft", "textures/entities/laser_3.png"),// TODO buildcraft resource
--			new String("buildcraft", "textures/entities/laser_4.png"), new String("buildcraft", "textures/entities/stripes.png") };// TODO buildcraft resource
-+	public static final String[] LASER_TEXTURES = new String[] { "/gfx/buildcraft/entities/laser_1.png",// TODO buildcraft resource
-+			"/gfx/buildcraft/entities/laser_2.png", "/gfx/buildcraft/entities/laser_3.png",// TODO buildcraft resource
-+			"/gfx/buildcraft/entities/laser_4.png", "/gfx/buildcraft/entities/stripes.png" };// TODO buildcraft resource
+-	public static final String[] LASER_TEXTURES = new String[] { new String("yogpstop_qp", "textures/entities/laser_1.png"),
+-			new String("yogpstop_qp", "textures/entities/laser_2.png"), new String("yogpstop_qp", "textures/entities/laser_3.png"),
+-			new String("yogpstop_qp", "textures/entities/laser_4.png"), new String("yogpstop_qp", "textures/entities/stripes.png") };
++	public static final String[] LASER_TEXTURES = new String[] { new String("/mods/yogpstop_qp/textures/entities/laser_1.png"),
++			new String("/mods/yogpstop_qp/textures/entities/laser_2.png"), new String("/mods/yogpstop_qp/textures/entities/laser_3.png"),
++			new String("/mods/yogpstop_qp/textures/entities/laser_4.png"), new String("/mods/yogpstop_qp/textures/entities/stripes.png") };
  
  	public String getTexture() {
  		double avg = this.pa / 100;

@@ -131,19 +131,19 @@
  	static void setDispenserDefaultDirection(World w, int x, int y, int z) {
 --- a/com/yogpc/qp/BlockFrame.java
 +++ b/com/yogpc/qp/BlockFrame.java
-@@ -23,12 +23,12 @@
+@@ -23,12 +23,13 @@
  		setSides(true, true, true, true, true, true);
  		setHardness(0.5F);
  		setTickRandomly(true);
-+		this.blockIndexInTexture = 34;
++		this.blockIndexInTexture = 35;
  	}
  
  	@Override
--	@SideOnly(Side.CLIENT)
+ 	@SideOnly(Side.CLIENT)
 -	public void registerIcons(IconRegister ir) {
--		this.blockIndexInTexture = ir.registerIcon("buildcraft:blockFrame");// TODO buildcraft resource
+-		this.blockIndexInTexture = ir.registerIcon("yogpstop_qp:blockFrame");
 +	public String getTextureFile() {
-+		return "/gfx/buildcraft/blocks/blocks.png";// TODO buildcraft resource
++		return "/mods/yogpstop_qp/textures/textures.png";
  	}
  
  	@Override
@@ -391,7 +391,12 @@
  		super.breakBlock(world, x, y, z, b, meta);
 --- a/com/yogpc/qp/BlockPlainPipe.java
 +++ b/com/yogpc/qp/BlockPlainPipe.java
-@@ -5,8 +5,6 @@
+@@ -2,11 +2,11 @@
+ 
+ import java.util.Random;
+ 
++import cpw.mods.fml.relauncher.Side;
++import cpw.mods.fml.relauncher.SideOnly;
  import net.minecraft.block.Block;
  import net.minecraft.block.material.Material;
  import net.minecraft.item.Item;
@@ -400,19 +405,19 @@
  
  public class BlockPlainPipe extends Block {
  	public BlockPlainPipe(int id) {
-@@ -17,12 +15,12 @@
+@@ -17,12 +17,13 @@
  		this.maxX = 0.75;
  		this.maxY = 1.0;
  		this.maxZ = 0.75;
-+		this.blockIndexInTexture = 32;
++		this.blockIndexInTexture = 36;
  	}
  
  	@Override
--	@SideOnly(Side.CLIENT)
+ 	@SideOnly(Side.CLIENT)
 -	public void registerIcons(IconRegister ir) {
--		this.blockIndexInTexture = ir.registerIcon("buildcraft:blockPlainPipe");// TODO buildcraft resource
+-		this.blockIndexInTexture = ir.registerIcon("yogpstop_qp:blockPlainPipe");
 +	public String getTextureFile() {
-+		return "/gfx/buildcraft/blocks/blocks.png";// TODO buildcraft resource
++		return "/mods/yogpstop_qp/textures/textures.png";
  	}
  
  	@Override
@@ -499,7 +504,16 @@
  	private static ForgeDirection get2dOrientation(double x1, double z1, double x2, double z2) {
 --- a/com/yogpc/qp/BlockRefinery.java
 +++ b/com/yogpc/qp/BlockRefinery.java
-@@ -32,8 +32,6 @@
+@@ -19,6 +19,8 @@
+ 
+ import java.util.ArrayList;
+ 
++import cpw.mods.fml.relauncher.Side;
++import cpw.mods.fml.relauncher.SideOnly;
+ import net.minecraft.block.BlockContainer;
+ import net.minecraft.block.material.Material;
+ import net.minecraft.entity.EntityLiving;
+@@ -32,8 +34,6 @@
  import net.minecraftforge.liquids.LiquidContainerRegistry;
  import net.minecraftforge.liquids.LiquidStack;
  import net.minecraftforge.liquids.ITankContainer;
@@ -508,20 +522,23 @@
  
  public class BlockRefinery extends BlockContainer {
  
-@@ -45,12 +43,6 @@
+@@ -42,12 +42,13 @@
+ 		setHardness(5F);
+ 		setCreativeTab(QuarryPlus.ct);
+ 		setBlockName("RefineryPlus");
++		this.blockIndexInTexture = 17;
  	}
  
  	@Override
--	@SideOnly(Side.CLIENT)
+ 	@SideOnly(Side.CLIENT)
 -	public void registerIcons(IconRegister ir) {
--		this.blockIndexInTexture = ir.registerIcon("buildcraft:refineryBack");// TODO buildcraft resource
--	}
--
--	@Override
- 	public TileEntity createNewTileEntity(World w) {
- 		return new TileRefinery();
+-		this.blockIndexInTexture = ir.registerIcon("yogpstop_qp:refineryDummy");
++	public String getTextureFile() {
++		return "/mods/yogpstop_qp/textures/textures.png";
  	}
-@@ -82,10 +74,10 @@
+ 
+ 	@Override
+@@ -82,10 +83,10 @@
  	@Override
  	public void onBlockPlacedBy(World w, int x, int y, int z, EntityLiving el) {
  		super.onBlockPlacedBy(w, x, y, z, el);
@@ -534,7 +551,7 @@
  	}
  
  	private static void consumeItem(EntityPlayer ep, ItemStack stack) {
-@@ -123,17 +115,17 @@
+@@ -123,17 +124,17 @@
  			int meta = world.getBlockMetadata(x, y, z);
  			switch (ForgeDirection.values()[meta]) {
  			case WEST:
@@ -556,6 +573,23 @@
  				break;
  			}
  			return true;
+--- a/com/yogpc/qp/EntityLaser.java
++++ b/com/yogpc/qp/EntityLaser.java
+@@ -5,10 +5,10 @@
+ import net.minecraft.world.World;
+ 
+ public class EntityLaser extends Entity {
+-	public static final int DRILL = 0;
+-	public static final int DRILL_HEAD = 1;
+-	public static final int BLUE_LASER = 2;
+-	public static final int RED_LASER = 3;
++	public static final int DRILL = 21;
++	public static final int DRILL_HEAD = 20;
++	public static final int BLUE_LASER = 19;
++	public static final int RED_LASER = 18;
+ 
+ 	public double iSize, jSize, kSize;
+ 	public final int texture;
 --- a/com/yogpc/qp/ItemTool.java
 +++ b/com/yogpc/qp/ItemTool.java
 @@ -32,7 +32,6 @@
@@ -643,10 +677,10 @@
 -		if (evt.map.textureType == 0) {
 -			TextureMap map = evt.map;
 -			RenderEntityLaser.icons = new int[4];
--			RenderEntityLaser.icons[EntityLaser.DRILL] = map.registerIcon("buildcraft:blockDrillTexture");// TODO buildcraft resource
--			RenderEntityLaser.icons[EntityLaser.DRILL_HEAD] = map.registerIcon("buildcraft:blockDrillHeadTexture");// TODO buildcraft resource
--			RenderEntityLaser.icons[EntityLaser.RED_LASER] = map.registerIcon("buildcraft:blockRedLaser");// TODO buildcraft resource
--			RenderEntityLaser.icons[EntityLaser.BLUE_LASER] = map.registerIcon("buildcraft:blockBlueLaser");// TODO buildcraft resource
+-			RenderEntityLaser.icons[EntityLaser.DRILL] = map.registerIcon("yogpstop_qp:blockDrillTexture");
+-			RenderEntityLaser.icons[EntityLaser.DRILL_HEAD] = map.registerIcon("yogpstop_qp:blockDrillHeadTexture");
+-			RenderEntityLaser.icons[EntityLaser.RED_LASER] = map.registerIcon("yogpstop_qp:blockRedLaser");
+-			RenderEntityLaser.icons[EntityLaser.BLUE_LASER] = map.registerIcon("yogpstop_qp:blockBlueLaser");
 -		}
 -	}
 -
@@ -1032,7 +1066,15 @@
  		this.drawTexturedModalRect(k, l, 0, 0, this.xSize, this.ySize);
 --- a/com/yogpc/qp/client/RenderEntityLaser.java
 +++ b/com/yogpc/qp/client/RenderEntityLaser.java
-@@ -40,10 +40,10 @@
+@@ -15,7 +15,6 @@
+ 
+ @SideOnly(Side.CLIENT)
+ public class RenderEntityLaser extends Render {
+-	public static int[] icons;
+ 	public static RenderEntityLaser INSTANCE = new RenderEntityLaser();
+ 
+ 	private RenderEntityLaser() {}
+@@ -40,10 +39,10 @@
  		doRender(tm, ed.posX, ed.posY, ed.posZ, ed.iSize, ed.jSize, ed.kSize, ed.texture);
  	}
  
@@ -1041,11 +1083,11 @@
  		GL11.glPushMatrix();
  		GL11.glTranslated(i, j, k);
 -		tm.bindTexture("/terrain.png");
-+		tm.bindTexture(tm.getTexture("/terrain.png"));
++		tm.bindTexture(tm.getTexture("/mods/yogpstop_qp/textures/textures.png"));
  		Tessellator t = Tessellator.instance;
  		RenderBlocks rb = new RenderBlocks();
  		for (int iBase = 0; iBase < iSize; ++iBase) {
-@@ -54,8 +54,6 @@
+@@ -54,8 +53,6 @@
  					double remainZ = kSize - kBase;
  					GL11.glPushMatrix();
  					GL11.glTranslatef(iBase, jBase, kBase);
