@@ -58,7 +58,7 @@ import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-@Mod(modid = "QuarryPlus", name = "QuarryPlus", version = "@VERSION@", dependencies = "required-after:YogpstopLib;required-after:BuildCraft|Builders;required-after:BuildCraft|Core;required-after:BuildCraft|Energy;required-after:BuildCraft|Factory;required-after:BuildCraft|Silicon;required-after:BuildCraft|Transport")
+@Mod(modid = "QuarryPlus", name = "QuarryPlus", version = "{version}", dependencies = "required-after:YogpstopLib;required-after:BuildCraft|Builders;required-after:BuildCraft|Core;required-after:BuildCraft|Energy;required-after:BuildCraft|Factory;required-after:BuildCraft|Silicon;required-after:BuildCraft|Transport")
 public class QuarryPlus {
 	public static final CreativeTabs ct = new CreativeTabQuarryPlus();
 	@SidedProxy(clientSide = "com.yogpc.qp.client.ClientProxy", serverSide = "com.yogpc.qp.CommonProxy")

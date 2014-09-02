@@ -332,7 +332,7 @@
 -import cpw.mods.fml.common.network.NetworkRegistry;
 +import cpw.mods.fml.common.registry.LanguageRegistry;
  
- @Mod(modid = "YogpstopLib", name = "Yogpstop Library", version = "@VERSION@", dependencies = "after:IC2")
+ @Mod(modid = "YogpstopLib", name = "Yogpstop Library", version = "{version}", dependencies = "after:IC2")
 +@NetworkMod(clientSideRequired = true, serverSideRequired = false, channels = { "YogpstopLib" }, packetHandler = PacketHandler.class)
  public class YogpstopLib {
  

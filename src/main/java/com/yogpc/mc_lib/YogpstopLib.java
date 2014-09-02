@@ -7,7 +7,7 @@ import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.network.NetworkRegistry;
 
-@Mod(modid = "YogpstopLib", name = "Yogpstop Library", version = "@VERSION@", dependencies = "after:IC2")
+@Mod(modid = "YogpstopLib", name = "Yogpstop Library", version = "{version}", dependencies = "after:IC2")
 public class YogpstopLib {
 
 	@SidedProxy(clientSide = "com.yogpc.mc_lib.ProxyClient", serverSide = "com.yogpc.mc_lib.ProxyCommon")
