@@ -14,15 +14,15 @@ public class ProxyCommon {
 
 	public boolean getKey(EntityPlayer p, Key k) {
 		if (!this.keys.containsKey(p)) return false;
-		return (this.keys.get(p) & (1 << k.ordinal())) != 0;
+		return (this.keys.get(p).intValue() & (1 << k.ordinal())) != 0;
 	}
 
 	public int keysToInt(EntityPlayer p) {
-		return this.keys.containsKey(p) ? this.keys.get(p) : 0;
+		return this.keys.containsKey(p) ? this.keys.get(p).intValue() : 0;
 	}
 
 	public void setKeys(EntityPlayer p, int r) {
-		this.keys.put(p, r);
+		this.keys.put(p, new Integer(r));
 	}
 
 	public static enum Key {

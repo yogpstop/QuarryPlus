@@ -268,7 +268,7 @@ public abstract class TileBasic extends APowerTile implements IInventory, IEncha
 		if (b.canSilkHarvest(this.worldObj, null, x, y, z, meta) && this.silktouch
 				&& (this.silktouchList.contains(new BlockData(GameData.getBlockRegistry().getNameForObject(b), meta)) == this.silktouchInclude)) {
 			try {
-				list.add((ItemStack) createStackedBlock.invoke(b, meta));
+				list.add((ItemStack) createStackedBlock.invoke(b, new Integer(meta)));
 				return -1;
 			} catch (Exception e) {
 				e.printStackTrace();

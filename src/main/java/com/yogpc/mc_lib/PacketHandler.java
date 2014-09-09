@@ -140,7 +140,7 @@ public class PacketHandler extends SimpleChannelInboundHandler<YogpstopPacket> {
 
 	public static void sendPacketToDimension(YogpstopPacket p, int d) {
 		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.DIMENSION);
-		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS).set(d);
+		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS).set(new Integer(d));
 		channels.get(Side.SERVER).writeOutbound(p);
 	}
 

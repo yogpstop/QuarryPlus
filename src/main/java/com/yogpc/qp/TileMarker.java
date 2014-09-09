@@ -502,7 +502,8 @@ public class TileMarker extends APacketTile implements IAreaProvider {
 			this.link = new Link(this.worldObj, badi.readInt(), badi.readInt(), badi.readInt(), badi.readInt(), badi.readInt(), badi.readInt());
 			this.link.init();
 			this.link.makeLaser();
-		case PacketHandler.StC_UPDATE_MARKER:
+        //$FALL-THROUGH$
+      case PacketHandler.StC_UPDATE_MARKER:
 			G_updateSignal();
 			break;
 		}

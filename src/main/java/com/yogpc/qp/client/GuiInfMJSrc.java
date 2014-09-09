@@ -113,7 +113,9 @@ public class GuiInfMJSrc extends GuiScreenA {
 		int yb = this.height - 214 >> 1;
 		drawTexturedModalRect(xb, yb, 0, 0, 176, 214);
 		drawCenteredString(this.fontRendererObj, StatCollector.translateToLocal("tile.InfMJSrc.name"), this.width / 2, yb + 6, 0xFFFFFF);
-		drawCenteredString(this.fontRendererObj, String.format("x:%d, y:%d, z:%d", this.tile.xCoord, this.tile.yCoord, this.tile.zCoord), this.width / 2,
+		StringBuilder sb = new StringBuilder();
+		sb.append("x:").append(this.tile.xCoord).append(" y:").append(this.tile.yCoord).append("z: ").append(this.tile.zCoord);
+		drawCenteredString(this.fontRendererObj, sb.toString(), this.width / 2,
 				yb + 20, 0xFFFFFF);
 		this.fontRendererObj.drawStringWithShadow("Energy(MJ)", this.width / 2 - 70, yb + 39, 0xFFFFFF);
 		this.fontRendererObj.drawStringWithShadow("Interval(tick)", this.width / 2 - 70, yb + 88, 0xFFFFFF);

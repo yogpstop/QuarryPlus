@@ -133,7 +133,10 @@ public class BlockMarker extends BlockContainer {
 				TileMarker.Link l = ((TileMarker) world.getTileEntity(x, y, z)).link;
 				if (l == null) return true;
 				ep.addChatMessage(new ChatComponentText(StatCollector.translateToLocal("chat.markerarea")));
-				ep.addChatMessage(new ChatComponentText(String.format("x:%d y:%d z:%d - x:%d y:%d z:%d", l.xn, l.yn, l.zn, l.xx, l.yx, l.zx)));
+				StringBuilder sb = new StringBuilder();
+				sb.append("x:").append(l.xn).append(" y:").append(l.yn).append(" z:").append(l.zn).append(" - ");
+                sb.append("x:").append(l.xx).append(" y:").append(l.yx).append(" z:").append(l.zx);
+				ep.addChatMessage(new ChatComponentText(sb.toString()));
 				return true;
 			}
 			((TileMarker) world.getTileEntity(x, y, z)).S_tryConnection();

@@ -75,7 +75,8 @@ public class TileQuarry extends TileBasic {
 			}
 			if (!done) break;
 			this.now = BREAKBLOCK;
-		case NOTNEEDBREAK:
+        //$FALL-THROUGH$
+      case NOTNEEDBREAK:
 		case BREAKBLOCK:
 			if (S_breakBlock()) while (!S_checkTarget())
 				S_setNextTarget();

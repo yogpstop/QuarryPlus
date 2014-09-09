@@ -117,7 +117,7 @@ public class BlockBreaker extends BlockContainer {
 		if (b.canSilkHarvest(w, player, tx, ty, tz, meta) && tile.silktouch) {
 			alis = new ArrayList<ItemStack>();
 			try {
-				ItemStack is = (ItemStack) TileBasic.createStackedBlock.invoke(b, meta);
+				ItemStack is = (ItemStack) TileBasic.createStackedBlock.invoke(b, new Integer(meta));
 				if (is != null) alis.add(is);
 			} catch (IllegalAccessException e) {
 				e.printStackTrace();

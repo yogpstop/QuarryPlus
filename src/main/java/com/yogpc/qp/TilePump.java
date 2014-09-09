@@ -82,7 +82,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IEnchantable
 		this.unbreaking = nbttc.getByte("unbreaking");
 		this.connectTo = ForgeDirection.values()[nbttc.getByte("connectTo")];
 		if (nbttc.getTag("mapping0") instanceof NBTTagList) for (int i = 0; i < this.mapping.length; i++)
-			readStringCollection(nbttc.getTagList(String.format("mapping%d", i), 8), this.mapping[i]);
+			readStringCollection(nbttc.getTagList(new StringBuilder().append("mapping").append(i).toString(), 8), this.mapping[i]);
 		this.range = nbttc.getByte("range");
 		this.quarryRange = nbttc.getBoolean("quarryRange");
 		this.prev = (byte) (this.connectTo.ordinal() | (G_working() ? 0x80 : 0));
@@ -109,7 +109,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IEnchantable
 		nbttc.setByte("unbreaking", this.unbreaking);
 		nbttc.setByte("connectTo", (byte) this.connectTo.ordinal());
 		for (int i = 0; i < this.mapping.length; i++)
-			nbttc.setTag(String.format("mapping%d", i), writeStringCollection(this.mapping[i]));
+			nbttc.setTag(new StringBuilder().append("mapping").append(i).toString(), writeStringCollection(this.mapping[i]));
 		nbttc.setByte("range", this.range);
 		nbttc.setBoolean("quarryRange", this.quarryRange);
 		if (this.silktouch) {
@@ -553,7 +553,7 @@ public class TilePump extends APacketTile implements IFluidHandler, IEnchantable
 		if (this.mapping[fd.ordinal()].size() <= 0) {
 			if (this.liquids.size() <= 0) {
 				for (Integer i : FluidRegistry.getRegisteredFluidIDs().values())
-					ret.add(new FluidTankInfo(new FluidStack(i, 0), Integer.MAX_VALUE));
+					ret.add(new FluidTankInfo(new FluidStack(i.intValue(), 0), Integer.MAX_VALUE));
 			} else {
 				for (FluidStack fs : this.liquids)
 					ret.add(new FluidTankInfo(fs, Integer.MAX_VALUE));

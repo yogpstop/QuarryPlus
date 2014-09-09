@@ -59,7 +59,7 @@ public class TileInfMJSrc extends APacketTile {
 			try {
 				if (getMjBattery != null) o = getMjBattery.invoke(null, te);
 				if (o != null && addEnergy != null) {
-					addEnergy.invoke(o, this.power);
+					addEnergy.invoke(o, new Float(this.power));
 					continue;
 				}
 			} catch (Exception e) {}
