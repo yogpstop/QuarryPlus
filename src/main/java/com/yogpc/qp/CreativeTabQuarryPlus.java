@@ -5,13 +5,13 @@ import net.minecraft.item.Item;
 
 public class CreativeTabQuarryPlus extends CreativeTabs {
 
-	public CreativeTabQuarryPlus() {
-		super("QuarryPlus");
-	}
+  public CreativeTabQuarryPlus() {
+    super("QuarryPlus");
+  }
 
-	@Override
-	public Item getTabIconItem() {
-		return Item.getItemFromBlock(QuarryPlus.blockQuarry);
-	}
+  @Override
+  public Item getTabIconItem() {
+    return Item.getItemFromBlock(QuarryPlus.blockQuarry);
+  }
 
 }

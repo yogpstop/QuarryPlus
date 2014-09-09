@@ -1,17 +1,13 @@
 /*
- * Copyright (C) 2012,2013 yogpstop
- * This program is free software: you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public License
- * as published by the Free Software Foundation, either version 3 of
- * the License, or (at your option) any later version.
+ * Copyright (C) 2012,2013 yogpstop This program is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any later version.
  * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
  * 
- * You should have received a copy of the
- * GNU Lesser General Public License along with this program.
+ * You should have received a copy of the GNU Lesser General Public License along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -28,32 +24,34 @@ import net.minecraftforge.common.ForgeChunkManager.Ticket;
 import com.google.common.collect.Lists;
 
 public class ChunkLoadingHandler implements ForgeChunkManager.OrderedLoadingCallback {
-	@Override
-	public void ticketsLoaded(List<Ticket> tickets, World world) {
-		for (Ticket ticket : tickets) {
-			int quarryX = ticket.getModData().getInteger("quarryX");
-			int quarryY = ticket.getModData().getInteger("quarryY");
-			int quarryZ = ticket.getModData().getInteger("quarryZ");
-			TileEntity te = world.getTileEntity(quarryX, quarryY, quarryZ);
-			if (te instanceof TileQuarry) ((TileQuarry) te).forceChunkLoading(ticket);
-			else if (te instanceof TileMarker) ((TileMarker) te).forceChunkLoading(ticket);
-		}
-	}
+  @Override
+  public void ticketsLoaded(final List<Ticket> tickets, final World world) {
+    for (final Ticket ticket : tickets) {
+      final int quarryX = ticket.getModData().getInteger("quarryX");
+      final int quarryY = ticket.getModData().getInteger("quarryY");
+      final int quarryZ = ticket.getModData().getInteger("quarryZ");
+      final TileEntity te = world.getTileEntity(quarryX, quarryY, quarryZ);
+      if (te instanceof TileQuarry)
+        ((TileQuarry) te).forceChunkLoading(ticket);
+      else if (te instanceof TileMarker)
+        ((TileMarker) te).forceChunkLoading(ticket);
+    }
+  }
 
-	@Override
-	public List<Ticket> ticketsLoaded(List<Ticket> tickets, World world, int maxTicketCount) {
-		List<Ticket> validTickets = Lists.newArrayList();
-		for (Ticket ticket : tickets) {
-			int quarryX = ticket.getModData().getInteger("quarryX");
-			int quarryY = ticket.getModData().getInteger("quarryY");
-			int quarryZ = ticket.getModData().getInteger("quarryZ");
+  @Override
+  public List<Ticket> ticketsLoaded(final List<Ticket> tickets, final World world,
+      final int maxTicketCount) {
+    final List<Ticket> validTickets = Lists.newArrayList();
+    for (final Ticket ticket : tickets) {
+      final int quarryX = ticket.getModData().getInteger("quarryX");
+      final int quarryY = ticket.getModData().getInteger("quarryY");
+      final int quarryZ = ticket.getModData().getInteger("quarryZ");
 
-			Block b = world.getBlock(quarryX, quarryY, quarryZ);
-			if (b == QuarryPlus.blockQuarry || b == QuarryPlus.blockMarker) {
-				validTickets.add(ticket);
-			}
-		}
-		return validTickets;
-	}
+      final Block b = world.getBlock(quarryX, quarryY, quarryZ);
+      if (b == QuarryPlus.blockQuarry || b == QuarryPlus.blockMarker)
+        validTickets.add(ticket);
+    }
+    return validTickets;
+  }
 
 }
