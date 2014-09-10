@@ -7,6 +7,7 @@ import java.lang.reflect.Field;
 import java.util.List;
 
 import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -39,10 +40,15 @@ public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElec
         .addNewArmourRendererPrefix("electric"), 1);
     setUnlocalizedName("electric_armor");
     setCreativeTab(CreativeTabs.tabCombat);
-    setTextureName("yogpstop_qp:electric_armor");
+    setTextureName("yogpstop_qp:elecArmor");
     GameRegistry.registerItem(this, "qpArmor");
     setMaxDamage(100);
     setMaxStackSize(1);
+  }
+
+  @Override
+  public String getArmorTexture(ItemStack i, Entity e, int s, String t) {
+    return "yogpstop_qp:textures/models/armor/elecArmor_layer_1.png";
   }
 
   private static final Field f = ReflectionHelper.getField(NetHandlerPlayServer.class,

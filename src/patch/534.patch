@@ -1,6 +1,28 @@
 --- a/com/yogpc/ip/ItemArmorElectric.java
 +++ b/com/yogpc/ip/ItemArmorElectric.java
-@@ -30,17 +30,12 @@
+@@ -6,7 +6,6 @@
+ import java.util.List;
+ 
+ import net.minecraft.creativetab.CreativeTabs;
+-import net.minecraft.entity.Entity;
+ import net.minecraft.entity.EntityLiving;
+ import net.minecraft.entity.player.EntityPlayer;
+ import net.minecraft.entity.player.EntityPlayerMP;
+@@ -16,6 +15,7 @@
+ import net.minecraft.nbt.NBTTagCompound;
+ import net.minecraft.util.DamageSource;
+ import net.minecraft.world.World;
++import net.minecraftforge.common.IArmorTextureProvider;
+ import net.minecraftforge.common.ISpecialArmor;
+ import net.minecraftforge.common.EnumHelper;
+ 
+@@ -27,26 +27,28 @@
+ import cpw.mods.fml.relauncher.Side;
+ import cpw.mods.fml.relauncher.SideOnly;
+ 
+-public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElectricItem {
++public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElectricItem,
++    IArmorTextureProvider {
    public ItemArmorElectric(final int id) {
      super(id, EnumHelper.addArmorMaterial("ELECTRIC", 33, new int[] {3, 8, 6, 3}, 0), YogpstopLib.proxy
          .addNewArmourRendererPrefix("electric"), 1);
@@ -10,17 +32,26 @@
      GameRegistry.registerItem(this, "qpArmor");
      setMaxDamage(100);
      setMaxStackSize(1);
--  }
--
--  @Override
--  @SideOnly(Side.CLIENT)
++    this.iconIndex = 83;
+   }
+ 
+   @Override
+   @SideOnly(Side.CLIENT)
 -  public void registerIcons(final IconRegister ir) {
--    this.iconIndex = ir.registerIcon("yogpstop_qp:electric_armor");
-+    this.iconIndex = 0;// TODO
+-    this.iconIndex = ir.registerIcon("yogpstop_qp:elecArmor");
++  public String getTextureFile() {
++    return "/mods/yogpstop_qp/textures/textures.png";
+   }
+ 
+   @Override
+-  public String getArmorTexture(ItemStack i, Entity e, int s, int l) {
+-    return "yogpstop_qp:textures/models/armor/elecArmor_layer_1.png";
++  public String getArmorTextureFile(ItemStack i) {
++    return "/mods/yogpstop_qp/textures/models/armor/elecArmor_layer_1.png";
    }
  
    private static final double maxFallSpeedOnHover = 0.35;
-@@ -48,7 +43,9 @@
+@@ -54,7 +56,9 @@
    private void useJetpack(final EntityPlayer p, final ItemStack jetpack, final boolean hover) {
      final boolean jumping = YogpstopLib.proxy.getKey(p, ProxyCommon.Key.jump);
      if (jumping || hover && p.motionY < -maxFallSpeedOnHover) {
@@ -31,7 +62,7 @@
        if (charge <= 0.0)
          return;
        float power = 0.7f;
-@@ -138,14 +135,17 @@
+@@ -144,14 +148,17 @@
        final ItemStack armor, final DamageSource source, final double damage, final int slot) {
      if (source.isUnblockable())
        return new ISpecialArmor.ArmorProperties(0, 0.0, 0);
@@ -64,7 +95,23 @@
  import buildcraft.api.power.PowerFramework;
 --- a/com/yogpc/mc_lib/BlockWorkbench.java
 +++ b/com/yogpc/mc_lib/BlockWorkbench.java
-@@ -48,7 +48,6 @@
+@@ -22,12 +22,13 @@
+     setHardness(3F);
+     setCreativeTab(CreativeTabs.tabRedstone);
+     setBlockName("WorkbenchPlus");
++    this.blockIndexInTexture = 37;
+   }
+ 
+   @Override
+   @SideOnly(Side.CLIENT)
+-  public void registerIcons(final IconRegister ir) {
+-    this.blockIndexInTexture = ir.registerIcon("yogpstop_qp:workbench");
++  public String getTextureFile() {
++    return "/mods/yogpstop_qp/textures/textures.png";
+   }
+ 
+   @Override
+@@ -56,7 +57,6 @@
              w.spawnEntityInWorld(e);
            }
          }

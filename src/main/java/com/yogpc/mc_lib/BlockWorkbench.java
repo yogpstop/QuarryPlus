@@ -21,6 +21,7 @@ public class BlockWorkbench extends BlockContainer {
     setHardness(3F);
     setCreativeTab(CreativeTabs.tabRedstone);
     setBlockName("WorkbenchPlus");
+    setBlockTextureName("yogpstop_qp:workbench");
   }
 
   @Override

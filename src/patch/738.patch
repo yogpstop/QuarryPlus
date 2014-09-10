@@ -6,9 +6,9 @@
  
 +import net.minecraft.client.renderer.texture.IconRegister;
  import net.minecraft.creativetab.CreativeTabs;
+ import net.minecraft.entity.Entity;
  import net.minecraft.entity.EntityLiving;
- import net.minecraft.entity.player.EntityPlayer;
-@@ -17,7 +18,6 @@
+@@ -18,7 +19,6 @@
  import net.minecraft.world.World;
  import net.minecraftforge.common.ISpecialArmor;
  import net.minecraftforge.common.EnumHelper;
@@ -16,7 +16,7 @@
  
  import com.yogpc.mc_lib.ProxyCommon;
  import com.yogpc.mc_lib.YogpstopLib;
-@@ -27,19 +27,23 @@
+@@ -28,21 +28,25 @@
  import cpw.mods.fml.relauncher.Side;
  import cpw.mods.fml.relauncher.SideOnly;
  
@@ -28,22 +28,25 @@
          .addNewArmourRendererPrefix("electric"), 1);
      setUnlocalizedName("electric_armor");
      setCreativeTab(CreativeTabs.tabCombat);
--    setTextureName("yogpstop_qp:electric_armor");
+-    setTextureName("yogpstop_qp:elecArmor");
      GameRegistry.registerItem(this, "qpArmor");
      setMaxDamage(100);
      setMaxStackSize(1);
    }
  
-+  @Override
+   @Override
+-  public String getArmorTexture(ItemStack i, Entity e, int s, String t) {
 +  @SideOnly(Side.CLIENT)
 +  public void registerIcons(final IconRegister ir) {
-+    this.itemIcon = ir.registerIcon("yogpstop_qp:electric_armor");
++    this.itemIcon = ir.registerIcon("yogpstop_qp:elecArmor");
 +  }
 +
-   private static final double maxFallSpeedOnHover = 0.35;
++  @Override
++  public String getArmorTexture(ItemStack i, Entity e, int s, int l) {
+     return "yogpstop_qp:textures/models/armor/elecArmor_layer_1.png";
+   }
  
-   private void useJetpack(final EntityPlayer p, final ItemStack jetpack, final boolean hover) {
-@@ -183,24 +187,4 @@
+@@ -189,24 +193,4 @@
      return 2500;
    }
  
@@ -165,6 +168,34 @@
    public boolean isAddedToEnergyNet() {
      return true;
    }
+--- a/com/yogpc/mc_lib/BlockWorkbench.java
++++ b/com/yogpc/mc_lib/BlockWorkbench.java
+@@ -2,8 +2,11 @@
+ 
+ import java.util.Random;
+ 
++import cpw.mods.fml.relauncher.Side;
++import cpw.mods.fml.relauncher.SideOnly;
+ import net.minecraft.block.BlockContainer;
+ import net.minecraft.block.material.Material;
++import net.minecraft.client.renderer.texture.IconRegister;
+ import net.minecraft.creativetab.CreativeTabs;
+ import net.minecraft.entity.item.EntityItem;
+ import net.minecraft.entity.player.EntityPlayer;
+@@ -20,7 +23,12 @@
+     setHardness(3F);
+     setCreativeTab(CreativeTabs.tabRedstone);
+     setUnlocalizedName("WorkbenchPlus");
+-    setTextureName("yogpstop_qp:workbench");
++  }
++
++  @Override
++  @SideOnly(Side.CLIENT)
++  public void registerIcons(final IconRegister ir) {
++    this.blockIcon = ir.registerIcon("yogpstop_qp:workbench");
+   }
+ 
+   @Override
 --- a/com/yogpc/mc_lib/YogpstopLib.java
 +++ b/com/yogpc/mc_lib/YogpstopLib.java
 @@ -38,7 +38,7 @@

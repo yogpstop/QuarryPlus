@@ -13,10 +13,10 @@
  import net.minecraft.src.NBTTagCompound;
  import net.minecraft.src.DamageSource;
 -import net.minecraft.src.World;
+ import net.minecraftforge.common.IArmorTextureProvider;
  import net.minecraftforge.common.ISpecialArmor;
  import net.minecraftforge.common.EnumHelper;
- 
-@@ -22,11 +22,14 @@
+@@ -23,12 +23,14 @@
  import com.yogpc.mc_lib.YogpstopLib;
  
  import cpw.mods.fml.common.FMLCommonHandler;
@@ -27,22 +27,22 @@
  import cpw.mods.fml.common.asm.SideOnly;
 +import cpw.mods.fml.common.registry.TickRegistry;
  
--public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElectricItem {
-+public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElectricItem,
-+    ITickHandler {
+ public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElectricItem,
+-    IArmorTextureProvider {
++    IArmorTextureProvider, ITickHandler {
    public ItemArmorElectric(final int id) {
      super(id, EnumHelper.addArmorMaterial("ELECTRIC", 33, new int[] {3, 8, 6, 3}, 0), YogpstopLib.proxy
          .addNewArmourRendererPrefix("electric"), 1);
-@@ -36,6 +39,8 @@
+@@ -38,6 +40,8 @@
      setMaxDamage(100);
      setMaxStackSize(1);
-     this.iconIndex = 0;// TODO
+     this.iconIndex = 83;
 +    TickRegistry.registerTickHandler(this, Side.CLIENT);
 +    TickRegistry.registerTickHandler(this, Side.SERVER);
    }
  
-   private static final double maxFallSpeedOnHover = 0.35;
-@@ -109,13 +114,28 @@
+   @Override
+@@ -122,13 +126,28 @@
    }
  
    @Override
