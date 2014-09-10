@@ -24,10 +24,12 @@ import net.minecraftforge.fluids.FluidContainerRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidTankInfo;
 import net.minecraftforge.fluids.IFluidHandler;
-import buildcraft.core.recipes.RefineryRecipeManager;
+import buildcraft.api.recipes.BuildcraftRecipes;
+import buildcraft.api.recipes.IRefineryRecipeManager.IRefineryRecipe;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
+import com.yogpc.mc_lib.APowerTile;
 import com.yogpc.mc_lib.PacketHandler;
 import com.yogpc.mc_lib.YogpstopPacket;
 
@@ -96,43 +98,42 @@ public class TileRefinery extends APowerTile implements IFluidHandler, IEnchanta
           this.worldObj.provider.dimensionId, this.xCoord, this.yCoord, this.zCoord);
     this.ticks++;
     for (int i = this.efficiency + 1; i > 0; i--) {
-      final RefineryRecipeManager.RefineryRecipe r =
-          RefineryRecipeManager.INSTANCE.findRefineryRecipe(this.src1, this.src2);
+      final IRefineryRecipe r = BuildcraftRecipes.refinery.findRefineryRecipe(this.src1, this.src2);
       if (r == null) {
         decreaseAnimation();
         this.ticks = 0;
         return;
       }
-      if (this.res != null && r.result.amount > this.buf - this.res.amount) {
+      if (this.res != null && r.getResult().amount > this.buf - this.res.amount) {
         decreaseAnimation();
         return;
       }
-      if (r.timeRequired > this.ticks)
+      if (r.getTimeRequired() > this.ticks)
         return;
       if (i == 1)
         this.ticks = 0;
-      if (!PowerManager.useEnergyR(this, r.energyCost, this.unbreaking)) {
+      if (!PowerManager.useEnergyR(this, r.getEnergyCost(), this.unbreaking)) {
         decreaseAnimation();
         return;
       }
       increaseAnimation();
-      if (r.ingredient1.isFluidEqual(this.src1))
-        this.src1.amount -= r.ingredient1.amount;
+      if (r.getIngredient1().isFluidEqual(this.src1))
+        this.src1.amount -= r.getIngredient1().amount;
       else
-        this.src2.amount -= r.ingredient1.amount;
-      if (r.ingredient2 != null)
-        if (r.ingredient2.isFluidEqual(this.src2))
-          this.src2.amount -= r.ingredient2.amount;
+        this.src2.amount -= r.getIngredient1().amount;
+      if (r.getIngredient2() != null)
+        if (r.getIngredient2().isFluidEqual(this.src2))
+          this.src2.amount -= r.getIngredient2().amount;
         else
-          this.src1.amount -= r.ingredient2.amount;
+          this.src1.amount -= r.getIngredient2().amount;
       if (this.src1 != null && this.src1.amount == 0)
         this.src1 = null;
       if (this.src2 != null && this.src2.amount == 0)
         this.src2 = null;
       if (this.res == null)
-        this.res = r.result.copy();
+        this.res = r.getResult().copy();
       else
-        this.res.amount += r.result.amount;
+        this.res.amount += r.getResult().amount;
     }
   }
 

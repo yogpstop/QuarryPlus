@@ -1,4 +1,4 @@
-package com.yogpc.qp;
+package com.yogpc.mc_lib;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
@@ -7,8 +7,6 @@ import buildcraft.api.power.IPowerReceptor;
 import buildcraft.api.power.PowerHandler;
 import buildcraft.api.power.PowerHandler.PowerReceiver;
 import buildcraft.api.power.PowerHandler.Type;
-
-import com.yogpc.mc_lib.APacketTile;
 
 public abstract class APowerTile extends APacketTile implements IPowerReceptor {
   private final PowerHandler pp = new PowerHandler(this, Type.MACHINE);

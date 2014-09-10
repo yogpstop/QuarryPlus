@@ -38,6 +38,7 @@ import buildcraft.api.transport.IPipeTile;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
+import com.yogpc.mc_lib.APowerTile;
 import com.yogpc.mc_lib.PacketHandler;
 import com.yogpc.mc_lib.ReflectionHelper;
 import com.yogpc.mc_lib.YogpstopPacket;

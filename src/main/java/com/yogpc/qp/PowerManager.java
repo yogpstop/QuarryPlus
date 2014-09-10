@@ -17,6 +17,8 @@ import net.minecraftforge.common.config.ConfigCategory;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
 
+import com.yogpc.mc_lib.APowerTile;
+
 public class PowerManager {
   static double B_CF, B_CS, W_CF, W_CS;
   private static double B_BP, B_CE, B_CU, B_XR, B_MS;// Quarry:BreakBlock

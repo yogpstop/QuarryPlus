@@ -23,6 +23,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.util.ForgeDirection;
 
+import com.yogpc.mc_lib.APowerTile;
 import com.yogpc.mc_lib.PacketHandler;
 import com.yogpc.mc_lib.YogpstopPacket;
 

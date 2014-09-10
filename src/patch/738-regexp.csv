@@ -1,4 +1,3 @@
-SIMPLE,"buildcraft\\.core\\.fluids\\.FluidUtils","buildcraft.core.liquids.LiquidUtils"
 SIMPLE,"RefineryRecipes","RefineryRecipe"
 SIMPLE,"RefineryRecipe\\.Recipe","RefineryRecipe"
 SIMPLE,"isFluidEqual","isLiquidEqual"

@@ -1,5 +1,3 @@
-SIMPLE,"^import +buildcraft\\.core\\.render\\.LiquidRenderer *; *\n",""
-SIMPLE,"LiquidRenderer\\.",""
 SIMPLE,"^import +net\\.minecraft\\.client\\.renderer\\.texture\\..*; *\n",""
 SIMPLE,"^import +net\\.minecraft\\.util\\.Icon *; *\n",""
 SIMPLE,"^import +net\\.minecraftforge\\.common\\.FakePlayerFactory *; *\n",""

@@ -44,6 +44,7 @@ import buildcraft.api.power.PowerHandler.PowerReceiver;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
 import com.yogpc.mc_lib.APacketTile;
+import com.yogpc.mc_lib.APowerTile;
 import com.yogpc.mc_lib.PacketHandler;
 import com.yogpc.mc_lib.YogpstopPacket;
 
