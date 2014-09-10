@@ -14,7 +14,7 @@ import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.GameRegistry;
 
 @Mod(modid = "YogpstopLib", name = "Yogpstop Library", version = "{version}",
-    dependencies = "after:IC2")
+    dependencies = "after:IC2;after:BuildCraft|Core;after:CoFHCore")
 public class YogpstopLib {
 
   @SidedProxy(clientSide = "com.yogpc.mc_lib.ProxyClient",

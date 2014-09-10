@@ -78,6 +78,7 @@ SIMPLE,"func_149644_j","func_71880_c_"
 SIMPLE,"adjacentChestZPos","adjacentChestZPosition"
 SIMPLE,"setBlockTextureName","setTextureName"
 SIMPLE,"isSideSolid","isBlockSolidOnSide"
+SIMPLE,"canConnectEnergy","canInterface"
 METHOD,boolean,boolean,shouldRender3DInInventory,shouldRender3DInInventory,int,@SKIP@
 METHOD,void,void,elementClicked,elementClicked,int,int,boolean,boolean,int,@SKIP@,int,@SKIP@
 METHOD,void,void,drawSlot,drawSlot,int,int,int,int,int,int,int,int,Tessellator,Tessellator,int,@SKIP@,int,@SKIP@

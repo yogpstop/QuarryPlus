@@ -46,7 +46,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 @Mod(modid = "QuarryPlus", name = "QuarryPlus", version = "{version}",
-    dependencies = "required-after:YogpstopLib;after:BuildCraft|Core")
+    dependencies = "required-after:YogpstopLib")
 public class QuarryPlus {
   public static final CreativeTabs ct = new CreativeTabQuarryPlus();
   @SidedProxy(clientSide = "com.yogpc.qp.client.ClientProxy",

@@ -8,7 +8,23 @@
  import net.minecraft.creativetab.CreativeTabs;
  import net.minecraft.entity.EntityLiving;
  import net.minecraft.entity.player.EntityPlayer;
-@@ -32,12 +33,17 @@
+@@ -17,7 +18,6 @@
+ import net.minecraft.world.World;
+ import net.minecraftforge.common.ISpecialArmor;
+ import net.minecraftforge.common.EnumHelper;
+-import cofh.api.energy.IEnergyContainerItem;
+ 
+ import com.yogpc.mc_lib.ProxyCommon;
+ import com.yogpc.mc_lib.YogpstopLib;
+@@ -27,19 +27,23 @@
+ import cpw.mods.fml.relauncher.Side;
+ import cpw.mods.fml.relauncher.SideOnly;
+ 
+-public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElectricItem,
+-    IEnergyContainerItem {
++public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElectricItem {
+   public ItemArmorElectric(final int id) {
+     super(id, EnumHelper.addArmorMaterial("ELECTRIC", 33, new int[] {3, 8, 6, 3}, 0), YogpstopLib.proxy
          .addNewArmourRendererPrefix("electric"), 1);
      setUnlocalizedName("electric_armor");
      setCreativeTab(CreativeTabs.tabCombat);
@@ -27,32 +43,63 @@
    private static final double maxFallSpeedOnHover = 0.35;
  
    private void useJetpack(final EntityPlayer p, final ItemStack jetpack, final boolean hover) {
+@@ -183,24 +187,4 @@
+     return 2500;
+   }
+ 
+-  @Override
+-  public int extractEnergy(final ItemStack is, final int am, final boolean sim) {
+-    return 0;
+-  }
+-
+-  @Override
+-  public int getEnergyStored(final ItemStack is) {
+-    return (int) (ElectricItem.manager.getCharge(is) * 4);
+-  }
+-
+-  @Override
+-  public int getMaxEnergyStored(final ItemStack is) {
+-    return (int) (getMaxCharge(is) * 4);
+-  }
+-
+-  @Override
+-  public int receiveEnergy(final ItemStack is, final int am, final boolean sim) {
+-    return (int) (ElectricItem.manager.charge(is, (int) ((double) am / 4), Integer.MAX_VALUE, false, false) * 4);
+-  }
+-
+ }
 --- a/com/yogpc/mc_lib/APowerTile.java
 +++ b/com/yogpc/mc_lib/APowerTile.java
-@@ -1,13 +1,13 @@
+@@ -1,17 +1,16 @@
  package com.yogpc.mc_lib;
  
++import ic2.api.Direction;
+ import ic2.api.energy.tile.IEnergySink;
  import net.minecraft.nbt.NBTTagCompound;
+ import net.minecraft.tileentity.TileEntity;
 -import net.minecraft.world.World;
  import net.minecraftforge.common.ForgeDirection;
  import buildcraft.api.power.IPowerReceptor;
  import buildcraft.api.power.IPowerProvider;
+-import cofh.api.energy.IEnergyHandler;
 +import buildcraft.api.power.PowerFramework;
  
- public abstract class APowerTile extends APacketTile implements IPowerReceptor {
+-public abstract class APowerTile extends APacketTile implements IPowerReceptor, IEnergyHandler,
+-    IEnergySink {
 -  private final IPowerProvider pp = new IPowerProvider(this, Type.MACHINE);
++public abstract class APowerTile extends APacketTile implements IPowerReceptor, IEnergySink {
 +  private final IPowerProvider pp = PowerFramework.currentFramework.createPowerProvider();
-   private double stored, recv_max, stored_max;
+   private double all, maxGot, max, got;
  
    @Override
-@@ -30,8 +30,13 @@
+@@ -32,8 +31,13 @@
    public final void doWork() {}
  
    @Override
 -  public final World getWorld() {
 -    return this.worldObj;
 +  public final int powerRequest(final ForgeDirection d) {
-+    return (int) Math.ceil(Math.min(this.recv_max, this.stored_max - this.stored));
++    return (int) Math.ceil(Math.min(this.maxGot, this.max - this.all));
 +  }
 +
 +  @Override
@@ -61,23 +108,63 @@
    }
  
    @Override
-@@ -40,7 +45,7 @@
-     this.stored = nbttc.getDouble("storedEnergy");
-     this.stored_max = nbttc.getDouble("MAX_stored");
-     this.recv_max = nbttc.getDouble("MAX_receive");
--    this.pp.configure(0, (float) this.recv_max, 0, (float) this.stored_max);
-+    this.pp.configure(0, 0, (int) this.recv_max, 0, (int) this.stored_max);
+@@ -42,7 +46,7 @@
+     this.all = nbttc.getDouble("storedEnergy");
+     this.max = nbttc.getDouble("MAX_stored");
+     this.maxGot = nbttc.getDouble("MAX_receive");
+-    this.pp.configure(0, (float) this.maxGot, 0, (float) this.max);
++    this.pp.configure(0, 0, (int) this.maxGot, 0, (int) this.max);
    }
  
    @Override
-@@ -77,6 +82,6 @@
-   public final void configure(final double max, final double maxstored) {
-     this.recv_max = max;
-     this.stored_max = maxstored;
--    this.pp.configure(0, (float) this.recv_max, 0, (float) this.stored_max);
-+    this.pp.configure(0, 0, (int) this.recv_max, 0, (int) this.stored_max);
+@@ -86,32 +90,17 @@
+   public final void configure(final double x, final double maxstored) {
+     this.maxGot = x;
+     this.max = maxstored;
+-    this.pp.configure(0, (float) this.maxGot, 0, (float) this.max);
+-  }
+-
+-  @Override
+-  public int getEnergyStored(final ForgeDirection d) {
+-    return (int) (this.all * 10);
+-  }
+-
+-  @Override
+-  public int getMaxEnergyStored(final ForgeDirection d) {
+-    return (int) (this.max * 10);
+-  }
+-
+-  @Override
+-  public int receiveEnergy(final ForgeDirection d, final int am, final boolean sim) {
+-    return (int) getEnergy((double) am / 10) * 10;
++    this.pp.configure(0, 0, (int) this.maxGot, 0, (int) this.max);
    }
- }
+ 
+   @Override
+   public int demandsEnergy() {
+-    return Math.min(this.maxGot - this.got, this.max - this.all - this.got) * 2.5;
++    return (int) (Math.min(this.maxGot - this.got, this.max - this.all - this.got) * 2.5);
+   }
+ 
+   @Override
+   public int injectEnergy(final Direction d, final int am) {
+-    return getEnergy(am / 2.5) * 2.5;
++    return (int) (getEnergy(am / 2.5) * 2.5);
+   }
+ 
+   @Override
+@@ -120,11 +109,6 @@
+   }
+ 
+   @Override
+-  public int extractEnergy(final ForgeDirection d, final int am, final boolean sim) {
+-    return 0;
+-  }
+-
+-  @Override
+   public boolean isAddedToEnergyNet() {
+     return true;
+   }
 --- a/com/yogpc/mc_lib/YogpstopLib.java
 +++ b/com/yogpc/mc_lib/YogpstopLib.java
 @@ -38,7 +38,7 @@

@@ -8,7 +8,7 @@
  import java.util.List;
  
  import net.minecraft.src.CreativeTabs;
-@@ -13,19 +14,21 @@
+@@ -14,7 +15,6 @@
  import net.minecraft.src.ItemStack;
  import net.minecraft.src.NBTTagCompound;
  import net.minecraft.src.DamageSource;
@@ -16,7 +16,7 @@
  import net.minecraftforge.common.ISpecialArmor;
  import net.minecraftforge.common.EnumHelper;
  
- import com.yogpc.mc_lib.ProxyCommon;
+@@ -22,11 +22,14 @@
  import com.yogpc.mc_lib.YogpstopLib;
  
  import cpw.mods.fml.common.FMLCommonHandler;
@@ -73,6 +73,29 @@
    @SideOnly(Side.CLIENT)
    public EnumRarity getRarity(final ItemStack stack) {
      return EnumRarity.uncommon;
+--- a/com/yogpc/mc_lib/APowerTile.java
++++ b/com/yogpc/mc_lib/APowerTile.java
+@@ -94,7 +94,7 @@
+ 
+   @Override
+   public boolean demandsEnergy() {
+-    return (int) (Math.min(this.maxGot - this.got, this.max - this.all - this.got) * 2.5);
++    return (Math.min(this.maxGot - this.got, this.max - this.all - this.got) * 2.5) > 0;
+   }
+ 
+   @Override
+@@ -103,11 +103,6 @@
+   }
+ 
+   @Override
+-  public int getMaxSafeInput() {
+-    return 3;
+-  }
+-
+-  @Override
+   public boolean isAddedToEnergyNet() {
+     return true;
+   }
 --- a/com/yogpc/qp/client/RenderRefinery.java
 +++ b/com/yogpc/qp/client/RenderRefinery.java
 @@ -177,7 +177,7 @@

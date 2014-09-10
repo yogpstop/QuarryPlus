@@ -11,3 +11,5 @@ SIMPLE,"net\\.minecraft\\.[a-zA-Z0-9\\. ]*\\.(?=[^,\\(\\);\\.]*)","net.minecraft
 SIMPLE,"net\\.minecraft\\.src\\.Minecraft(?=[^a-zA-Z0-9])","net.minecraft.client.Minecraft"
 SIMPLE,"cpw\\.mods\\.fml\\.relauncher\\.SideOnly","cpw.mods.fml.common.asm.SideOnly"
 SIMPLE,"cpw\\.mods\\.fml\\.relauncher\\.Side","cpw.mods.fml.common.Side"
+SIMPLE,"ic2\\.api\\.energy\\.tile\\.IEnergySink","ic2.api.IEnergySink"
+METHOD,int,boolean,demandsEnergy,demandsEnergy

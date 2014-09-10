@@ -21,6 +21,7 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ISpecialArmor;
 import net.minecraftforge.common.util.EnumHelper;
+import cofh.api.energy.IEnergyContainerItem;
 
 import com.yogpc.mc_lib.ProxyCommon;
 import com.yogpc.mc_lib.ReflectionHelper;
@@ -31,7 +32,8 @@ import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElectricItem {
+public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElectricItem,
+    IEnergyContainerItem {
   public ItemArmorElectric() {
     super(EnumHelper.addArmorMaterial("ELECTRIC", 33, new int[] {3, 8, 6, 3}, 0), YogpstopLib.proxy
         .addNewArmourRendererPrefix("electric"), 1);
@@ -193,6 +195,26 @@ public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElec
   @Override
   public double getTransferLimit(final ItemStack itemStack) {
     return 2500;
+  }
+
+  @Override
+  public int extractEnergy(final ItemStack is, final int am, final boolean sim) {
+    return 0;
+  }
+
+  @Override
+  public int getEnergyStored(final ItemStack is) {
+    return (int) (ElectricItem.manager.getCharge(is) * 4);
+  }
+
+  @Override
+  public int getMaxEnergyStored(final ItemStack is) {
+    return (int) (getMaxCharge(is) * 4);
+  }
+
+  @Override
+  public int receiveEnergy(final ItemStack is, final int am, final boolean sim) {
+    return (int) (ElectricItem.manager.charge(is, (double) am / 4, Integer.MAX_VALUE, false, false) * 4);
   }
 
 }

@@ -54,10 +54,10 @@
    }
 --- a/com/yogpc/mc_lib/APowerTile.java
 +++ b/com/yogpc/mc_lib/APowerTile.java
-@@ -1,7 +1,6 @@
- package com.yogpc.mc_lib;
- 
+@@ -4,7 +4,6 @@
+ import ic2.api.energy.tile.IEnergySink;
  import net.minecraft.nbt.NBTTagCompound;
+ import net.minecraft.tileentity.TileEntity;
 -import net.minecraftforge.common.ForgeDirection;
  import buildcraft.api.power.IPowerReceptor;
  import buildcraft.api.power.IPowerProvider;
@@ -96,15 +96,7 @@
              default:
 --- a/com/yogpc/qp/BlockBreaker.java
 +++ b/com/yogpc/qp/BlockBreaker.java
-@@ -29,6 +29,7 @@
- import net.minecraft.tileentity.TileEntity;
- import net.minecraft.world.World;
- import net.minecraftforge.common.ForgeDirection;
-+import buildcraft.core.proxy.CoreProxy;
- import cpw.mods.fml.relauncher.Side;
- import cpw.mods.fml.relauncher.SideOnly;
- 
-@@ -46,6 +47,10 @@
+@@ -46,6 +46,10 @@
      setHardness(3.5F);
      setStepSound(soundStoneFootstep);
      setBlockName("BreakerPlus");
@@ -115,7 +107,7 @@
    }
  
    @Override
-@@ -71,11 +76,8 @@
+@@ -71,11 +75,8 @@
  
    @Override
    @SideOnly(Side.CLIENT)
@@ -129,7 +121,16 @@
    }
  
    @Override
-@@ -143,10 +145,10 @@
+@@ -105,7 +106,7 @@
+     final Block b = Block.blocksList[w.getBlockId(tx, ty, tz)];
+     if (b == null || b.isAirBlock(w, x, y, z))
+       return;
+-    final EntityPlayer player = CommonProxy.getPlayer(w);
++    final EntityPlayer player = CommonProxy.getPlayer(w, x, y, z);
+     b.onBlockHarvested(w, tx, ty, tz, meta, player);
+     if (b.removeBlockByPlayer(w, player, tx, ty, tz))
+       b.onBlockDestroyedByPlayer(w, tx, ty, tz, meta);
+@@ -143,10 +144,10 @@
  
    @Override
    public void onBlockPlacedBy(final World world, final int x, final int y, final int z, final EntityLiving ent) {
@@ -364,15 +365,7 @@
    @Override
 --- a/com/yogpc/qp/BlockPlacer.java
 +++ b/com/yogpc/qp/BlockPlacer.java
-@@ -28,6 +28,7 @@
- import net.minecraft.tileentity.TileEntity;
- import net.minecraft.world.World;
- import net.minecraftforge.common.ForgeDirection;
-+import buildcraft.core.proxy.CoreProxy;
- import cpw.mods.fml.relauncher.Side;
- import cpw.mods.fml.relauncher.SideOnly;
- 
-@@ -46,6 +47,10 @@
+@@ -46,6 +46,10 @@
      setHardness(3.5F);
      setStepSound(soundStoneFootstep);
      setBlockName("PlacerPlus");
@@ -383,7 +376,7 @@
    }
  
    @Override
-@@ -71,11 +76,8 @@
+@@ -71,11 +75,8 @@
  
    @Override
    @SideOnly(Side.CLIENT)
@@ -397,7 +390,16 @@
    }
  
    @Override
-@@ -188,7 +190,7 @@
+@@ -127,7 +128,7 @@
+       ty = y + fd2.offsetY;
+       tz = z + fd2.offsetZ;
+ 
+-      final EntityPlayer player = CommonProxy.getPlayer(world);
++      final EntityPlayer player = CommonProxy.getPlayer(world, x, y, z);
+       ItemStack is = null;
+       int i = 0;
+       for (; i < tile.getSizeInventory(); i++) {
+@@ -188,7 +189,7 @@
    @Override
    public void onBlockPlacedBy(final World par1World, final int par2, final int par3, final int par4, final EntityLiving par5EntityLiving) {
      final int l =
@@ -406,7 +408,7 @@
      par1World.setBlockMetadataWithNotify(par2, par3, par4, l);
    }
  
-@@ -229,7 +231,6 @@
+@@ -229,7 +230,6 @@
          }
        }
  
@@ -575,6 +577,52 @@
            break;
        }
        return true;
+--- a/com/yogpc/qp/CommonProxy.java
++++ b/com/yogpc/qp/CommonProxy.java
+@@ -13,6 +13,43 @@
+ 
+ package com.yogpc.qp;
+ 
++import net.minecraft.entity.player.EntityPlayer;
++import net.minecraft.util.ChunkCoordinates;
++import net.minecraft.world.World;
++
+ public class CommonProxy {
++  private static EntityPlayer player;
++
+   public void registerTextures() {}
++
++  private static EntityPlayer createNewPlayer(World w) {
++    EntityPlayer p = new EntityPlayer(w) {
++      @Override
++      public void sendChatToPlayer(String var1) {}
++
++      @Override
++      public boolean canCommandSenderUseCommand(int var1, String var2) {
++        return false;
++      }
++
++      @Override
++      public ChunkCoordinates getPlayerCoordinates() {
++        return null;
++      }
++
++    };
++    p.username = "[QuarryPlus]";
++    return p;
++  }
++
++  public static EntityPlayer getPlayer(World w, int x, int y, int z) {
++    if (player == null)
++      player = createNewPlayer(w);
++    else
++      player.worldObj = w;
++    player.posX = x;
++    player.posY = y;
++    player.posZ = z;
++    return player;
++  }
+ }
 --- a/com/yogpc/qp/EntityLaser.java
 +++ b/com/yogpc/qp/EntityLaser.java
 @@ -5,10 +5,10 @@
@@ -666,7 +714,7 @@
 -import cpw.mods.fml.relauncher.SideOnly;
  
  @Mod(modid = "QuarryPlus", name = "QuarryPlus", version = "{version}",
-     dependencies = "required-after:YogpstopLib;after:BuildCraft|Core")
+     dependencies = "required-after:YogpstopLib")
 @@ -80,23 +75,6 @@
          l.destructor();
    }

@@ -1,6 +1,6 @@
 --- a/com/yogpc/ip/ItemArmorElectric.java
 +++ b/com/yogpc/ip/ItemArmorElectric.java
-@@ -78,7 +78,7 @@
+@@ -80,7 +80,7 @@
            }
          }
        }
@@ -9,16 +9,16 @@
        {
          p.fallDistance = 0.0f;
          p.distanceWalkedModified = 0.0f;
-@@ -137,7 +137,7 @@
+@@ -139,7 +139,7 @@
    @SideOnly(Side.CLIENT)
    public void getSubItems(final Item item, final CreativeTabs par2CreativeTabs, final List itemList) {
      final ItemStack charged = new ItemStack(this, 1);
 -    ElectricItem.manager.charge(charged, Double.POSITIVE_INFINITY, Integer.MAX_VALUE, true, false);
 +    ElectricItem.manager.charge(charged, Integer.MAX_VALUE, Integer.MAX_VALUE, true, false);
      itemList.add(charged);
-     itemList.add(new ItemStack(this, 1, this.getMaxDamage()));
+     itemList.add(new ItemStack(this, 1, getMaxDamage()));
    }
-@@ -162,7 +162,7 @@
+@@ -164,7 +164,7 @@
    @Override
    public void damageArmor(final EntityLivingBase entity, final ItemStack stack,
        final DamageSource source, final int damage, final int slot) {
@@ -27,6 +27,15 @@
    }
  
    @Override
+@@ -214,7 +214,7 @@
+ 
+   @Override
+   public int receiveEnergy(final ItemStack is, final int am, final boolean sim) {
+-    return (int) (ElectricItem.manager.charge(is, (double) am / 4, Integer.MAX_VALUE, false, false) * 4);
++    return (int) (ElectricItem.manager.charge(is, (int) ((double) am / 4), Integer.MAX_VALUE, false, false) * 4);
+   }
+ 
+ }
 --- a/com/yogpc/mc_lib/PacketHandler.java
 +++ b/com/yogpc/mc_lib/PacketHandler.java
 @@ -33,7 +33,6 @@
@@ -49,7 +58,7 @@
                cache.getInteger("z"));
 --- a/com/yogpc/qp/TilePump.java
 +++ b/com/yogpc/qp/TilePump.java
-@@ -525,8 +525,8 @@
+@@ -526,8 +526,8 @@
        for (int i = 0; i < this.liquids.size(); i++)
          ret[i + 1] =
              new StringBuilder().append("    ")

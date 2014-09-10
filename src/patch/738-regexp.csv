@@ -35,3 +35,7 @@ SIMPLE,"getTextureManager\\( *\\)","renderEngine"
 SIMPLE,"(texture\\.|)TextureManager","RenderEngine"
 SIMPLE,"import +net\\.minecraft\\.util\\.ResourceLocation *; *\n",""
 SIMPLE,"ResourceLocation","String"
+METHOD,double,int,demandedEnergyUnits,demandsEnergy
+METHOD,double,int,injectEnergyUnits,injectEnergy,ForgeDirection,Direction,double,int
+METHOD,boolean,boolean,canInterface,isAddedToEnergyNet,ForgeDirection,@SKIP@
+METHOD,boolean,boolean,acceptsEnergyFrom,acceptsEnergyFrom,TileEntity,TileEntity,ForgeDirection,Direction
