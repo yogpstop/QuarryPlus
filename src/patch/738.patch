@@ -27,27 +27,10 @@
    private static final double maxFallSpeedOnHover = 0.35;
  
    private void useJetpack(final EntityPlayer p, final ItemStack jetpack, final boolean hover) {
---- a/com/yogpc/mc_lib/YogpstopLib.java
-+++ b/com/yogpc/mc_lib/YogpstopLib.java
-@@ -31,12 +31,12 @@
-       serverSide = "com.yogpc.mc_lib.ProxyCommon")
-   public static ProxyCommon proxy;
- 
--  @Mod.EventHandler
-+  @Mod.Init
-   public void init(final FMLInitializationEvent event) {
-     new ItemArmorElectric(21478);// TODO IC2Plus
-   }
- 
--  private static final Pattern lang = Pattern.compile("assets/(.*)/lang/(.*)\\.lang");
-+  private static final Pattern lang = Pattern.compile("mods/(.*)/lang/(.*)\\.lang");
-   private static final Pattern format = Pattern.compile("%(\\d+\\$)?[\\d\\.]*[df]");
- 
-   public static Properties parseLangFile(final InputStream is) {
---- a/com/yogpc/qp/APowerTile.java
-+++ b/com/yogpc/qp/APowerTile.java
-@@ -1,15 +1,15 @@
- package com.yogpc.qp;
+--- a/com/yogpc/mc_lib/APowerTile.java
++++ b/com/yogpc/mc_lib/APowerTile.java
+@@ -1,13 +1,13 @@
+ package com.yogpc.mc_lib;
  
  import net.minecraft.nbt.NBTTagCompound;
 -import net.minecraft.world.World;
@@ -56,15 +39,13 @@
  import buildcraft.api.power.IPowerProvider;
 +import buildcraft.api.power.PowerFramework;
  
- import com.yogpc.mc_lib.APacketTile;
- 
  public abstract class APowerTile extends APacketTile implements IPowerReceptor {
 -  private final IPowerProvider pp = new IPowerProvider(this, Type.MACHINE);
 +  private final IPowerProvider pp = PowerFramework.currentFramework.createPowerProvider();
    private double stored, recv_max, stored_max;
  
    @Override
-@@ -32,8 +32,13 @@
+@@ -30,8 +30,13 @@
    public final void doWork() {}
  
    @Override
@@ -80,7 +61,7 @@
    }
  
    @Override
-@@ -42,7 +47,7 @@
+@@ -40,7 +45,7 @@
      this.stored = nbttc.getDouble("storedEnergy");
      this.stored_max = nbttc.getDouble("MAX_stored");
      this.recv_max = nbttc.getDouble("MAX_receive");
@@ -89,7 +70,7 @@
    }
  
    @Override
-@@ -79,6 +84,6 @@
+@@ -77,6 +82,6 @@
    public final void configure(final double max, final double maxstored) {
      this.recv_max = max;
      this.stored_max = maxstored;
@@ -97,6 +78,26 @@
 +    this.pp.configure(0, 0, (int) this.recv_max, 0, (int) this.stored_max);
    }
  }
+--- a/com/yogpc/mc_lib/YogpstopLib.java
++++ b/com/yogpc/mc_lib/YogpstopLib.java
+@@ -38,7 +38,7 @@
+ 
+   private Block workbench;
+ 
+-  @Mod.EventHandler
++  @Mod.Init
+   public void init(final FMLInitializationEvent event) {
+     new ItemArmorElectric(21478);// TODO IC2Plus
+     try {
+@@ -53,7 +53,7 @@
+     GameRegistry.registerTileEntity(TileWorkbench.class, "WorkbenchPlus");
+   }
+ 
+-  private static final Pattern lang = Pattern.compile("assets/(.*)/lang/(.*)\\.lang");
++  private static final Pattern lang = Pattern.compile("mods/(.*)/lang/(.*)\\.lang");
+   private static final Pattern format = Pattern.compile("%(\\d+\\$)?[\\d\\.]*[df]");
+ 
+   public static Properties parseLangFile(final InputStream is) {
 --- a/com/yogpc/qp/BlockFrame.java
 +++ b/com/yogpc/qp/BlockFrame.java
 @@ -5,6 +5,7 @@
@@ -186,10 +187,7 @@
  import net.minecraft.entity.EntityLiving;
  import net.minecraft.entity.player.EntityPlayer;
  import net.minecraft.item.Item;
-@@ -25,9 +26,11 @@
- import net.minecraft.util.MathHelper;
- import net.minecraft.world.World;
- import net.minecraftforge.common.ForgeDirection;
+@@ -28,6 +29,8 @@
  import net.minecraftforge.liquids.LiquidContainerRegistry;
  import net.minecraftforge.liquids.LiquidStack;
  import net.minecraftforge.liquids.ITankContainer;
@@ -223,19 +221,15 @@
        if (used > 0) {
 --- a/com/yogpc/qp/QuarryPlus.java
 +++ b/com/yogpc/qp/QuarryPlus.java
-@@ -22,10 +22,11 @@
- import net.minecraft.item.ItemStack;
- import net.minecraft.util.Icon;
- import net.minecraftforge.client.event.TextureStitchEvent;
- import net.minecraftforge.common.ForgeChunkManager;
+@@ -24,6 +24,7 @@
  import net.minecraftforge.common.MinecraftForge;
  import net.minecraftforge.common.Configuration;
  import net.minecraftforge.common.Property;
 +import net.minecraftforge.event.ForgeSubscribe;
  import net.minecraftforge.event.world.WorldEvent;
  import net.minecraftforge.oredict.OreDictionary;
- import buildcraft.BuildCraftBuilders;
-@@ -46,7 +47,6 @@
+ 
+@@ -37,7 +38,6 @@
  import cpw.mods.fml.common.SidedProxy;
  import cpw.mods.fml.common.event.FMLInitializationEvent;
  import cpw.mods.fml.common.event.FMLPreInitializationEvent;
@@ -243,7 +237,7 @@
  import cpw.mods.fml.common.network.NetworkRegistry;
  import cpw.mods.fml.common.registry.GameRegistry;
  import cpw.mods.fml.relauncher.Side;
-@@ -99,7 +99,7 @@
+@@ -85,7 +85,7 @@
    @ForgeSubscribe
    @SideOnly(Side.CLIENT)
    public void loadTextures(final TextureStitchEvent.Pre evt) {
@@ -252,7 +246,7 @@
        final TextureMap map = evt.map;
        RenderEntityLaser.icons = new Icon[4];
        RenderEntityLaser.icons[EntityLaser.DRILL] =
-@@ -113,7 +113,7 @@
+@@ -99,7 +99,7 @@
      }
    }
  
@@ -261,12 +255,8 @@
    public void preInit(final FMLPreInitializationEvent event) {
      final Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
      final int[] id = new int[13];
-@@ -165,10 +165,10 @@
-   }
- 
-   private static final void addAssemblyRecipe(final int a, final ItemStack b, final ItemStack... c) {
--    AssemblyRecipe.assemblyRecipes.add(new AssemblyRecipe(a, b, c));
-+    AssemblyRecipe.assemblyRecipes.add(new AssemblyRecipe(c, a, b));
+@@ -150,7 +150,7 @@
+     YogpstopLib.loadLangs(event.getSourceFile());
    }
  
 -  @Mod.EventHandler
@@ -287,7 +277,7 @@
  
  import com.google.common.io.ByteArrayDataInput;
  import com.google.common.io.ByteStreams;
-@@ -217,24 +217,24 @@
+@@ -218,24 +218,24 @@
      return moved;
    }
  
@@ -319,7 +309,7 @@
          ppd.add(d.getOpposite());
        }
      }
-@@ -244,7 +244,8 @@
+@@ -245,7 +245,8 @@
      }
      if (pp.size() > 0) {
        final int i = w.rand.nextInt(pp.size());
@@ -353,7 +343,7 @@
      this.cInterval = this.interval;
 --- a/com/yogpc/qp/TileLaser.java
 +++ b/com/yogpc/qp/TileLaser.java
-@@ -182,11 +182,11 @@
+@@ -183,11 +183,11 @@
    }
  
    public static final String[] LASER_TEXTURES = new String[] {
@@ -372,7 +362,7 @@
      final double avg = this.pa / 100;
 --- a/com/yogpc/qp/TilePump.java
 +++ b/com/yogpc/qp/TilePump.java
-@@ -28,15 +28,15 @@
+@@ -28,7 +28,7 @@
  import net.minecraft.world.World;
  import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
  import net.minecraftforge.common.ForgeDirection;
@@ -381,15 +371,7 @@
  import net.minecraftforge.liquids.LiquidContainerRegistry;
  import net.minecraftforge.liquids.LiquidDictionary;
  import net.minecraftforge.liquids.LiquidStack;
- import net.minecraftforge.liquids.LiquidTank;
- import net.minecraftforge.liquids.ILiquid;
- import net.minecraftforge.liquids.ITankContainer;
- import buildcraft.api.power.IPowerReceptor;
- import buildcraft.api.power.IPowerProvider;
- 
- import com.google.common.io.ByteArrayDataInput;
- import com.google.common.io.ByteStreams;
-@@ -139,7 +139,7 @@
+@@ -140,7 +140,7 @@
                this.zCoord + fd.offsetZ);
        if (te instanceof ITankContainer)
          for (final String s : this.mapping[fd.ordinal()]) {
@@ -398,7 +380,7 @@
            if (pZ == -1)
              continue;
            fs = this.liquids.get(pZ);
-@@ -520,7 +520,7 @@
+@@ -521,7 +521,7 @@
        for (int i = 0; i < this.liquids.size(); i++)
          ret[i + 1] =
              new StringBuilder().append("    ")
@@ -407,7 +389,7 @@
                  .append(this.liquids.get(i).amount).append("mB").toString();
      } else
        ret[0] = StatCollector.translateToLocal("chat.pumpcontainno");
-@@ -552,6 +552,10 @@
+@@ -553,6 +553,10 @@
    }
  
    @Override
@@ -418,7 +400,7 @@
    public LiquidStack drain(final ForgeDirection fd, final LiquidStack resource, final boolean doDrain) {
      if (resource == null)
        return null;
-@@ -573,13 +577,8 @@
+@@ -574,13 +578,8 @@
    }
  
    @Override
@@ -434,7 +416,7 @@
    }
  
    @Override
-@@ -589,8 +588,8 @@
+@@ -590,8 +589,8 @@
      final LinkedList<LiquidTank> ret = new LinkedList<LiquidTank>();
      if (this.mapping[fd.ordinal()].size() <= 0) {
        if (this.liquids.size() <= 0)
@@ -445,7 +427,7 @@
        else
          for (final LiquidStack fs : this.liquids)
            ret.add(new LiquidTank(fs, Integer.MAX_VALUE));
-@@ -598,7 +597,7 @@
+@@ -599,7 +598,7 @@
        int index;
        LiquidStack fs;
        for (final String s : this.mapping[fd.ordinal()]) {
@@ -454,7 +436,7 @@
          if (fs == null)
            continue;
          index = this.liquids.indexOf(fs);
-@@ -612,6 +611,16 @@
+@@ -613,6 +612,16 @@
    }
  
    @Override
@@ -471,7 +453,7 @@
    public LiquidStack drain(final ForgeDirection fd, final int maxDrain, final boolean doDrain) {
      if (fd.ordinal() < 0 || fd.ordinal() >= this.mapping.length)
        return drain(ForgeDirection.UP, maxDrain, doDrain);
-@@ -623,7 +632,7 @@
+@@ -624,7 +633,7 @@
      int index;
      LiquidStack fs;
      for (final String s : this.mapping[fd.ordinal()]) {
@@ -480,7 +462,7 @@
        if (fs == null)
          continue;
        index = this.liquids.indexOf(fs);
-@@ -646,7 +655,7 @@
+@@ -647,7 +656,7 @@
    static final boolean isLiquid(final Block b, final boolean s, final World w, final int x,
        final int y, final int z, final int m) {
      if (b instanceof ILiquid)
@@ -489,7 +471,7 @@
      if (b == Block.waterStill || b == Block.waterMoving || b == Block.lavaStill
          || b == Block.lavaMoving)
        return !s || m == 0;
-@@ -662,15 +671,12 @@
+@@ -663,15 +672,12 @@
      if (isLiquid(b, false, null, 0, 0, 0, 0)) {
        LiquidStack fs = null;
        if (b instanceof ILiquid
@@ -509,7 +491,7 @@
        if (fs != null) {
          final int index = this.liquids.indexOf(fs);
          if (index != -1)
-@@ -721,7 +727,13 @@
+@@ -722,7 +728,13 @@
    public void doWork() {}
  
    @Override
@@ -527,7 +509,7 @@
  }
 --- a/com/yogpc/qp/TileRefinery.java
 +++ b/com/yogpc/qp/TileRefinery.java
-@@ -19,11 +19,11 @@
+@@ -19,7 +19,7 @@
  import net.minecraft.entity.player.EntityPlayer;
  import net.minecraft.nbt.NBTTagCompound;
  import net.minecraftforge.common.ForgeDirection;
@@ -536,10 +518,6 @@
  import net.minecraftforge.liquids.LiquidContainerRegistry;
  import net.minecraftforge.liquids.LiquidStack;
  import net.minecraftforge.liquids.LiquidTank;
- import net.minecraftforge.liquids.ITankContainer;
- import buildcraft.api.recipes.RefineryRecipe;
- 
- import com.google.common.io.ByteArrayDataInput;
 @@ -238,7 +238,6 @@
      return 0;
    }
@@ -689,23 +667,9 @@
      Minecraft.getMinecraft().fontRenderer
          .drawStringWithShadow(
              name,
---- a/com/yogpc/qp/client/GuiPlacer.java
-+++ b/com/yogpc/qp/client/GuiPlacer.java
-@@ -14,8 +14,8 @@
- package com.yogpc.qp.client;
- 
- import net.minecraft.client.gui.inventory.GuiContainer;
- import net.minecraft.util.StatCollector;
- import net.minecraft.entity.player.InventoryPlayer;
- 
- import org.lwjgl.opengl.GL11;
- 
 --- a/com/yogpc/qp/client/RenderEntityLaser.java
 +++ b/com/yogpc/qp/client/RenderEntityLaser.java
-@@ -1,12 +1,11 @@
- package com.yogpc.qp.client;
- 
- import net.minecraft.client.renderer.RenderBlocks;
+@@ -4,7 +4,6 @@
  import net.minecraft.client.renderer.Tessellator;
  import net.minecraft.client.renderer.entity.Render;
  import net.minecraft.client.renderer.RenderEngine;
@@ -713,8 +677,6 @@
  import net.minecraft.entity.Entity;
  import net.minecraft.block.Block;
  import net.minecraft.util.Icon;
- 
- import org.lwjgl.opengl.GL11;
 @@ -24,11 +23,6 @@
    private RenderEntityLaser() {}
  

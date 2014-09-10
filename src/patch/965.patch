@@ -103,6 +103,55 @@
 +    return PacketHandler.getPacket(new YogpstopPacket(this));
    }
  }
+--- a/com/yogpc/mc_lib/APowerTile.java
++++ b/com/yogpc/mc_lib/APowerTile.java
+@@ -19,7 +19,7 @@
+     double remain_receive;
+     remain_receive =
+         Math.min(this.recv_max - tick_received, this.stored_max - this.stored - tick_received);
+-    tick_received += this.pp.useEnergy(0, remain_receive, true);
++    tick_received += this.pp.useEnergy(0, (float) remain_receive, true);
+     this.stored += tick_received;
+   }
+ 
+@@ -42,7 +42,7 @@
+     this.stored = nbttc.getDouble("storedEnergy");
+     this.stored_max = nbttc.getDouble("MAX_stored");
+     this.recv_max = nbttc.getDouble("MAX_receive");
+-    this.pp.configure(0, this.recv_max, 0, this.stored_max);
++    this.pp.configure(0, (float) this.recv_max, 0, (float) this.stored_max);
+   }
+ 
+   @Override
+@@ -79,6 +79,6 @@
+   public final void configure(final double max, final double maxstored) {
+     this.recv_max = max;
+     this.stored_max = maxstored;
+-    this.pp.configure(0, this.recv_max, 0, this.stored_max);
++    this.pp.configure(0, (float) this.recv_max, 0, (float) this.stored_max);
+   }
+ }
+--- a/com/yogpc/mc_lib/BlockWorkbench.java
++++ b/com/yogpc/mc_lib/BlockWorkbench.java
+@@ -2,7 +2,6 @@
+ 
+ import java.util.Random;
+ 
+-import net.minecraft.block.Block;
+ import net.minecraft.block.BlockContainer;
+ import net.minecraft.block.material.Material;
+ import net.minecraft.creativetab.CreativeTabs;
+@@ -16,8 +15,8 @@
+ public class BlockWorkbench extends BlockContainer {
+   private final Random random = new Random();
+ 
+-  protected BlockWorkbench() {
+-    super(Material.iron);
++  protected BlockWorkbench(int id) {
++    super(id, Material.iron);
+     setHardness(3F);
+     setCreativeTab(CreativeTabs.tabRedstone);
+     setUnlocalizedName("WorkbenchPlus");
 --- a/com/yogpc/mc_lib/PacketHandler.java
 +++ b/com/yogpc/mc_lib/PacketHandler.java
 @@ -22,7 +22,6 @@
@@ -325,9 +374,10 @@
    }
 --- a/com/yogpc/mc_lib/YogpstopLib.java
 +++ b/com/yogpc/mc_lib/YogpstopLib.java
-@@ -1,14 +1,30 @@
+@@ -1,20 +1,35 @@
  package com.yogpc.mc_lib;
  
+-import net.minecraft.block.Block;
 +import java.io.BufferedReader;
 +import java.io.File;
 +import java.io.FileInputStream;
@@ -340,6 +390,10 @@
 +import java.util.zip.ZipEntry;
 +import java.util.zip.ZipInputStream;
 +
+ import net.minecraft.block.Block;
+ import net.minecraft.item.Item;
+ import net.minecraft.item.ItemStack;
+ 
 +import com.google.common.base.Charsets;
  import com.yogpc.ip.ItemArmorElectric;
  
@@ -348,6 +402,7 @@
  import cpw.mods.fml.common.event.FMLInitializationEvent;
 -import cpw.mods.fml.common.network.NetworkRegistry;
 +import cpw.mods.fml.common.network.NetworkMod;
+ import cpw.mods.fml.common.registry.GameRegistry;
 +import cpw.mods.fml.common.registry.LanguageRegistry;
  
  @Mod(modid = "YogpstopLib", name = "Yogpstop Library", version = "{version}",
@@ -357,7 +412,7 @@
  public class YogpstopLib {
  
    @SidedProxy(clientSide = "com.yogpc.mc_lib.ProxyClient",
-@@ -17,9 +33,66 @@
+@@ -25,12 +40,9 @@
  
    @Mod.EventHandler
    public void init(final FMLInitializationEvent event) {
@@ -366,7 +421,16 @@
 -            new PacketHandler());
 -    new ItemArmorElectric();// TODO IC2Plus
 +    new ItemArmorElectric(21478);// TODO IC2Plus
-+  }
+     try {
+-      this.workbench = new BlockWorkbench();
++      this.workbench = new BlockWorkbench(3333);
+     } catch (final Exception e) {
+       e.printStackTrace();
+     }
+@@ -40,4 +52,64 @@
+     GameRegistry.registerBlock(this.workbench, "WorkbenchPlus");
+     GameRegistry.registerTileEntity(TileWorkbench.class, "WorkbenchPlus");
+   }
 +
 +  private static final Pattern lang = Pattern.compile("assets/(.*)/lang/(.*)\\.lang");
 +  private static final Pattern format = Pattern.compile("%(\\d+\\$)?[\\d\\.]*[df]");
@@ -426,7 +490,7 @@
 +      is.close();
 +    } catch (final Exception e) {
 +    }
-   }
++  }
  }
 --- a/com/yogpc/mc_lib/YogpstopPacket.java
 +++ b/com/yogpc/mc_lib/YogpstopPacket.java
@@ -471,34 +535,6 @@
 +    System.arraycopy(this.header, 0, d, 4, this.header.length);
 +    System.arraycopy(this.data, 0, d, 4 + this.header.length, this.data.length);
 +    return d;
-   }
- }
---- a/com/yogpc/qp/APowerTile.java
-+++ b/com/yogpc/qp/APowerTile.java
-@@ -21,7 +21,7 @@
-     double remain_receive;
-     remain_receive =
-         Math.min(this.recv_max - tick_received, this.stored_max - this.stored - tick_received);
--    tick_received += this.pp.useEnergy(0, remain_receive, true);
-+    tick_received += this.pp.useEnergy(0, (float) remain_receive, true);
-     this.stored += tick_received;
-   }
- 
-@@ -44,7 +44,7 @@
-     this.stored = nbttc.getDouble("storedEnergy");
-     this.stored_max = nbttc.getDouble("MAX_stored");
-     this.recv_max = nbttc.getDouble("MAX_receive");
--    this.pp.configure(0, this.recv_max, 0, this.stored_max);
-+    this.pp.configure(0, (float) this.recv_max, 0, (float) this.stored_max);
-   }
- 
-   @Override
-@@ -81,6 +81,6 @@
-   public final void configure(final double max, final double maxstored) {
-     this.recv_max = max;
-     this.stored_max = maxstored;
--    this.pp.configure(0, this.recv_max, 0, this.stored_max);
-+    this.pp.configure(0, (float) this.recv_max, 0, (float) this.stored_max);
    }
  }
 --- a/com/yogpc/qp/BlockBreaker.java
@@ -1144,7 +1180,7 @@
            c.setInteger("Bmeta", OreDictionary.WILDCARD_VALUE);
 --- a/com/yogpc/qp/QuarryPlus.java
 +++ b/com/yogpc/qp/QuarryPlus.java
-@@ -18,16 +18,14 @@
+@@ -16,8 +16,6 @@
  import net.minecraft.block.Block;
  import net.minecraft.client.renderer.texture.TextureMap;
  import net.minecraft.creativetab.CreativeTabs;
@@ -1153,31 +1189,15 @@
  import net.minecraft.item.Item;
  import net.minecraft.item.ItemStack;
  import net.minecraft.util.Icon;
- import net.minecraftforge.client.event.TextureStitchEvent;
- import net.minecraftforge.common.ForgeChunkManager;
- import net.minecraftforge.common.MinecraftForge;
- import net.minecraftforge.common.Configuration;
- import net.minecraftforge.common.Property;
- import net.minecraftforge.event.world.WorldEvent;
- import net.minecraftforge.oredict.OreDictionary;
- import buildcraft.BuildCraftBuilders;
-@@ -36,11 +34,11 @@
- import buildcraft.BuildCraftFactory;
- import buildcraft.BuildCraftSilicon;
- import buildcraft.BuildCraftTransport;
--import buildcraft.api.recipes.BuildcraftRecipes;
--import buildcraft.api.transport.PipeWire;
-+import buildcraft.api.recipes.AssemblyRecipe;
+@@ -31,6 +29,7 @@
  
  import com.yogpc.mc_lib.PacketHandler;
- import com.yogpc.mc_lib.ReflectionHelper;
+ import com.yogpc.mc_lib.WorkbenchRecipe;
 +import com.yogpc.mc_lib.YogpstopLib;
  import com.yogpc.qp.client.RenderEntityLaser;
  
  import cpw.mods.fml.client.registry.RenderingRegistry;
-@@ -48,9 +48,8 @@
- import cpw.mods.fml.common.SidedProxy;
- import cpw.mods.fml.common.event.FMLInitializationEvent;
+@@ -40,7 +39,6 @@
  import cpw.mods.fml.common.event.FMLPreInitializationEvent;
  import net.minecraftforge.event.ForgeSubscribe;
  import cpw.mods.fml.common.network.NetworkRegistry;
@@ -1185,7 +1205,7 @@
  import cpw.mods.fml.common.registry.GameRegistry;
  import cpw.mods.fml.relauncher.Side;
  import cpw.mods.fml.relauncher.SideOnly;
-@@ -119,8 +116,22 @@
+@@ -104,8 +102,22 @@
    @Mod.EventHandler
    public void preInit(final FMLPreInitializationEvent event) {
      final Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
@@ -1208,7 +1228,7 @@
        final Property RD = cfg.get(Configuration.CATEGORY_GENERAL, "RecipeDifficulty", 2);
        RD.comment =
            "0:AsCheatRecipe,1:EasyRecipe,2:NormalRecipe(Default),3:HardRecipe,other:NormalRecipe";
-@@ -132,28 +143,29 @@
+@@ -117,24 +129,25 @@
        cfg.save();
      }
      try {
@@ -1246,67 +1266,8 @@
 +    YogpstopLib.loadLangs(event.getSourceFile());
    }
  
-   private static final void addAssemblyRecipe(final int a, final ItemStack b, final ItemStack... c) {
--    BuildcraftRecipes.assemblyTable.addRecipe(a, b, c);
-+    AssemblyRecipe.assemblyRecipes.add(new AssemblyRecipe(a, b, c));
-   }
- 
    @Mod.EventHandler
-@@ -237,7 +249,7 @@
-       case 1:
-         addAssemblyRecipe(160000, new ItemStack(blockQuarry, 1), new ItemStack(
-             BuildCraftFactory.quarryBlock, 1), new ItemStack(redstoneChipset, 1, 3), new ItemStack(
--            BuildCraftTransport.pipeWire, 8, PipeWire.YELLOW.ordinal()));
-+                BuildCraftTransport.yellowPipeWire, 8));
-         addAssemblyRecipe(40000, new ItemStack(blockMover, 1), new ItemStack(
-             Block.enchantmentTable, 1), new ItemStack(BuildCraftFactory.autoWorkbenchBlock, 1),
-             new ItemStack(Block.anvil, 1), new ItemStack(BuildCraftSilicon.laserBlock, 2),
-@@ -261,7 +273,7 @@
-             Item.bucketWater, 1), new ItemStack(Item.bucketLava, 1));
-         addAssemblyRecipe(80000, new ItemStack(blockMiningWell, 1), new ItemStack(
-             BuildCraftFactory.miningWellBlock, 1), new ItemStack(redstoneChipset, 1, 3),
--            new ItemStack(BuildCraftTransport.pipeWire, 8, PipeWire.YELLOW.ordinal()));
-+            new ItemStack(BuildCraftTransport.yellowPipeWire, 8));
-         addAssemblyRecipe(40000, new ItemStack(blockBreaker, 1),
-             new ItemStack(Block.dispenser, 1), new ItemStack(Item.pickaxeDiamond, 1),
-             new ItemStack(BuildCraftEnergy.engineBlock, 1, 1));
-@@ -275,7 +287,7 @@
-       case 3:
-         addAssemblyRecipe(800000, new ItemStack(blockQuarry, 1), new ItemStack(
-             BuildCraftFactory.quarryBlock, 2), new ItemStack(redstoneChipset, 8, 3), new ItemStack(
--            BuildCraftTransport.pipeWire, 16, PipeWire.YELLOW.ordinal()), new ItemStack(
-+                BuildCraftTransport.yellowPipeWire, 16), new ItemStack(
-             redstoneChipset, 2, 4), new ItemStack(Block.chest, 32));
-         addAssemblyRecipe(640000, new ItemStack(blockMover, 1), new ItemStack(
-             Block.enchantmentTable, 1), new ItemStack(BuildCraftSilicon.assemblyTableBlock, 1, 1),
-@@ -309,7 +321,7 @@
-             new ItemStack(BuildCraftEnergy.engineBlock, 1, 2));
-         addAssemblyRecipe(500000, new ItemStack(blockMiningWell, 1), new ItemStack(
-             BuildCraftFactory.miningWellBlock, 2), new ItemStack(redstoneChipset, 8, 3),
--            new ItemStack(BuildCraftTransport.pipeWire, 16, PipeWire.YELLOW.ordinal()),
-+            new ItemStack(BuildCraftTransport.yellowPipeWire, 16),
-             new ItemStack(redstoneChipset, 1, 4), new ItemStack(Block.chest, 16));
-         addAssemblyRecipe(640000, new ItemStack(blockBreaker, 1),
-             new ItemStack(Block.dispenser, 2), new ItemStack(Block.blockDiamond, 2),
-@@ -327,7 +339,7 @@
-       default:
-         addAssemblyRecipe(320000, new ItemStack(blockQuarry, 1), new ItemStack(
-             BuildCraftFactory.quarryBlock, 1), new ItemStack(redstoneChipset, 2, 3), new ItemStack(
--            BuildCraftTransport.pipeWire, 16, PipeWire.YELLOW.ordinal()), new ItemStack(
-+                BuildCraftTransport.yellowPipeWire, 16), new ItemStack(
-             redstoneChipset, 1, 4), new ItemStack(Block.chest, 8));
-         addAssemblyRecipe(320000, new ItemStack(blockMover, 1), new ItemStack(
-             Block.enchantmentTable, 1), new ItemStack(BuildCraftSilicon.assemblyTableBlock, 1, 1),
-@@ -358,7 +370,7 @@
-             BuildCraftEnergy.bucketOil, 1), new ItemStack(BuildCraftEnergy.bucketFuel, 1));
-         addAssemblyRecipe(160000, new ItemStack(blockMiningWell, 1), new ItemStack(
-             BuildCraftFactory.miningWellBlock, 1), new ItemStack(redstoneChipset, 2, 3),
--            new ItemStack(BuildCraftTransport.pipeWire, 16, PipeWire.YELLOW.ordinal()),
-+            new ItemStack(BuildCraftTransport.yellowPipeWire, 16),
-             new ItemStack(redstoneChipset, 1, 4), new ItemStack(Block.chest, 8));
-         addAssemblyRecipe(320000, new ItemStack(blockBreaker, 1),
-             new ItemStack(Block.dispenser, 2), new ItemStack(Block.blockDiamond, 1),
-@@ -408,7 +420,7 @@
+@@ -241,7 +254,7 @@
        sb.append(bd.meta);
      }
      sb.append("  ");
@@ -1317,7 +1278,7 @@
  }
 --- a/com/yogpc/qp/TileBasic.java
 +++ b/com/yogpc/qp/TileBasic.java
-@@ -43,8 +43,6 @@
+@@ -44,8 +44,6 @@
  import com.yogpc.mc_lib.YogpstopPacket;
  import com.yogpc.qp.QuarryPlus.BlockData;
  
@@ -1326,7 +1287,7 @@
  public abstract class TileBasic extends APowerTile implements IInventory, IEnchantableTile {
    protected ForgeDirection pump = ForgeDirection.UNKNOWN;
  
-@@ -253,8 +251,8 @@
+@@ -254,8 +252,8 @@
  
    protected boolean S_breakBlock(final int x, final int y, final int z) {
      final Collection<ItemStack> dropped = new LinkedList<ItemStack>();
@@ -1337,7 +1298,7 @@
      if (b == null || b.isAirBlock(this.worldObj, x, y, z))
        return true;
      if (TilePump.isLiquid(b, false, null, 0, 0, 0, 0)) {
-@@ -273,7 +271,7 @@
+@@ -274,7 +272,7 @@
        return false;
      this.cacheItems.addAll(dropped);
      this.worldObj.playAuxSFXAtEntity(null, 2001, x, y, z,
@@ -1346,7 +1307,7 @@
      this.worldObj.setBlockToAir(x, y, z);
      return true;
    }
-@@ -294,8 +292,7 @@
+@@ -295,8 +293,7 @@
      final int meta = this.worldObj.getBlockMetadata(x, y, z);
      if (b.canSilkHarvest(this.worldObj, null, x, y, z, meta)
          && this.silktouch
@@ -1356,7 +1317,7 @@
        try {
          list.add((ItemStack) createStackedBlock.invoke(b, new Integer(meta)));
          return -1;
-@@ -304,7 +301,7 @@
+@@ -305,7 +302,7 @@
        } catch (final Error e) {
          e.printStackTrace();
        }
@@ -1492,7 +1453,7 @@
  import net.minecraft.nbt.NBTTagCompound;
  import net.minecraft.nbt.NBTTagList;
  import net.minecraft.nbt.NBTTagString;
-@@ -83,7 +82,7 @@
+@@ -84,7 +83,7 @@
      if (nbttc.getTag("mapping0") instanceof NBTTagList)
        for (int i = 0; i < this.mapping.length; i++)
          readStringCollection(
@@ -1501,7 +1462,7 @@
              this.mapping[i]);
      this.range = nbttc.getByte("range");
      this.quarryRange = nbttc.getBoolean("quarryRange");
-@@ -405,7 +404,7 @@
+@@ -406,7 +405,7 @@
      while (cp != cg) {
        ebs_c = this.ebses[xb[cg] >> 4][zb[cg] >> 4][yb[cg] >> 4];
        if (ebs_c != null) {
@@ -1510,7 +1471,7 @@
          if (this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] == 0
              && isLiquid(b_c, false, null, 0, 0, 0, 0)) {
            this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] = 0x3F;
-@@ -466,8 +465,7 @@
+@@ -467,8 +466,7 @@
              for (bz = 0; bz < this.block_side_z; bz++)
                if ((this.blocks[this.py - this.yOffset][bx][bz] & 0x40) != 0) {
                  bb =
@@ -1520,7 +1481,7 @@
                  if (isLiquid(bb, false, null, 0, 0, 0, 0))
                    count++;
                }
-@@ -475,8 +473,7 @@
+@@ -476,8 +474,7 @@
            for (bz = 0; bz < this.block_side_z; bz++)
              if (this.blocks[this.py - this.yOffset][this.px][bz] != 0) {
                bb =
@@ -1530,7 +1491,7 @@
                meta =
                    this.ebses[this.px >> 4][bz >> 4][this.py >> 4].getExtBlockMetadata(
                        this.px & 0xF, this.py & 0xF, bz & 0xF);
-@@ -498,11 +495,11 @@
+@@ -499,11 +496,11 @@
          for (bx = 0; bx < this.block_side_x; bx++)
            for (bz = 0; bz < this.block_side_z; bz++)
              if ((this.blocks[this.py - this.yOffset][bx][bz] & 0x40) != 0)
@@ -1544,7 +1505,7 @@
      S_sendNowPacket();
      return this.py < this.cy;
    }
-@@ -657,10 +654,9 @@
+@@ -658,10 +655,9 @@
      return false;
    }
  
@@ -1600,20 +1561,16 @@
  
 --- a/com/yogpc/qp/TileRefinery.java
 +++ b/com/yogpc/qp/TileRefinery.java
-@@ -107,11 +107,11 @@
-         decreaseAnimation();
-         return;
-       }
--      if (r.timeRequired > this.ticks)
-+      if (r.delay > this.ticks)
-         return;
-       if (i == 1)
-         this.ticks = 0;
--      if (!PowerManager.useEnergyR(this, r.energyCost, this.unbreaking)) {
-+      if (!PowerManager.useEnergyR(this, r.energy, this.unbreaking)) {
-         decreaseAnimation();
-         return;
-       }
+@@ -24,8 +24,7 @@
+ import net.minecraftforge.fluids.FluidStack;
+ import net.minecraftforge.fluids.FluidTankInfo;
+ import net.minecraftforge.fluids.IFluidHandler;
+-import buildcraft.api.recipes.BuildcraftRecipes;
+-import buildcraft.api.recipes.RefineryRecipes.RecipeManager.RefineryRecipes.Recipe;
++import buildcraft.api.recipes.RefineryRecipes;
+ 
+ import com.google.common.io.ByteArrayDataInput;
+ import com.google.common.io.ByteStreams;
 --- a/com/yogpc/qp/client/RenderFrame.java
 +++ b/com/yogpc/qp/client/RenderFrame.java
 @@ -29,7 +29,7 @@
