@@ -1,92 +1,97 @@
 --- a/com/yogpc/ip/ItemArmorElectric.java
 +++ b/com/yogpc/ip/ItemArmorElectric.java
-@@ -3,13 +3,17 @@
+@@ -3,6 +3,7 @@
  import ic2.api.ElectricItem;
  import ic2.api.IElectricItem;
  
 +import java.util.EnumSet;
  import java.util.List;
  
+ import net.minecraft.src.CreativeTabs;
+@@ -13,19 +14,21 @@
+ import net.minecraft.src.ItemStack;
+ import net.minecraft.src.NBTTagCompound;
+ import net.minecraft.src.DamageSource;
+-import net.minecraft.src.World;
+ import net.minecraftforge.common.ISpecialArmor;
+ import net.minecraftforge.common.EnumHelper;
+ 
  import com.yogpc.mc_lib.ProxyCommon;
  import com.yogpc.mc_lib.YogpstopLib;
  
  import cpw.mods.fml.common.FMLCommonHandler;
+-import cpw.mods.fml.common.registry.GameRegistry;
 +import cpw.mods.fml.common.ITickHandler;
-+import cpw.mods.fml.common.TickType;
- import cpw.mods.fml.common.registry.GameRegistry;
-+import cpw.mods.fml.common.registry.TickRegistry;
  import cpw.mods.fml.common.Side;
++import cpw.mods.fml.common.TickType;
  import cpw.mods.fml.common.asm.SideOnly;
- import net.minecraft.src.CreativeTabs;
-@@ -26,15 +30,17 @@
- import net.minecraftforge.common.ISpecialArmor;
- import net.minecraftforge.common.EnumHelper;
++import cpw.mods.fml.common.registry.TickRegistry;
  
 -public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElectricItem {
-+public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElectricItem, ITickHandler {
- 	public ItemArmorElectric(int id) {
- 		super(id, EnumHelper.addArmorMaterial("ELECTRIC", 33, new int[] { 3, 8, 6, 3 }, 0), YogpstopLib.proxy.addNewArmourRendererPrefix("electric"), 1);
- 		this.setItemName("electric_armor");
- 		this.setCreativeTab(CreativeTabs.tabCombat);
--		
-+
- 		this.setMaxDamage(100);
- 		this.setMaxStackSize(1);
- 		this.iconIndex = 0;// TODO
-+		TickRegistry.registerTickHandler(this, Side.CLIENT);
-+		TickRegistry.registerTickHandler(this, Side.SERVER);
- 	}
++public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElectricItem,
++    ITickHandler {
+   public ItemArmorElectric(final int id) {
+     super(id, EnumHelper.addArmorMaterial("ELECTRIC", 33, new int[] {3, 8, 6, 3}, 0), YogpstopLib.proxy
+         .addNewArmourRendererPrefix("electric"), 1);
+@@ -36,6 +39,8 @@
+     setMaxDamage(100);
+     setMaxStackSize(1);
+     this.iconIndex = 0;// TODO
++    TickRegistry.registerTickHandler(this, Side.CLIENT);
++    TickRegistry.registerTickHandler(this, Side.SERVER);
+   }
  
- 	private static final double maxFallSpeedOnHover = 0.35;
-@@ -106,12 +112,27 @@
- 	}
+   private static final double maxFallSpeedOnHover = 0.35;
+@@ -109,13 +114,28 @@
+   }
  
- 	@Override
--	public void onArmorTickUpdate(World world, EntityPlayer player, ItemStack itemStack) {
--		if (player.inventory.armorInventory[2] != itemStack) return;
-+	public void tickStart(EnumSet<TickType> type, Object... tickData) {
-+		EntityPlayer player = (EntityPlayer) tickData[0];
-+		ItemStack itemStack = player.inventory.armorInventory[2];
-+		if (this != itemStack.getItem()) return;
- 		this.useJetpack(player, itemStack, toggleHover(player, itemStack));
- 	}
+   @Override
+-  public void onArmorTickUpdate(final World world, final EntityPlayer player, final ItemStack itemStack) {
+-    if (player.inventory.armorInventory[2] != itemStack)
++  public void tickStart(final EnumSet<TickType> type, final Object... tickData) {
++    final EntityPlayer player = (EntityPlayer) tickData[0];
++    final ItemStack itemStack = player.inventory.armorInventory[2];
++    if (this != itemStack.getItem())
+       return;
+     useJetpack(player, itemStack, toggleHover(player, itemStack));
+   }
  
- 	@Override
-+	public void tickEnd(EnumSet<TickType> type, Object... tickData) {}
+   @Override
++  public void tickEnd(final EnumSet<TickType> type, final Object... tickData) {}
 +
-+	@Override
-+	public EnumSet<TickType> ticks() {
-+		return EnumSet.of(TickType.PLAYER);
-+	}
++  @Override
++  public EnumSet<TickType> ticks() {
++    return EnumSet.of(TickType.PLAYER);
++  }
 +
-+	@Override
-+	public String getLabel() {
-+		return "JetPack";
-+	}
++  @Override
++  public String getLabel() {
++    return "JetPack";
++  }
 +
-+	@Override
- 	@SideOnly(Side.CLIENT)
- 	public EnumRarity getRarity(ItemStack stack) {
- 		return EnumRarity.uncommon;
++  @Override
+   @SideOnly(Side.CLIENT)
+   public EnumRarity getRarity(final ItemStack stack) {
+     return EnumRarity.uncommon;
 --- a/com/yogpc/qp/client/RenderRefinery.java
 +++ b/com/yogpc/qp/client/RenderRefinery.java
-@@ -181,7 +181,7 @@
- 					GL11.glPushMatrix();
- 					GL11.glTranslatef(tx, ty, tz);
- 				}
--				bindTextureByName(Block.blocksList[liquid.shiftedIndex].getTextureFile());
-+				bindTextureByName(Block.blocksList[liquid.itemID].getTextureFile());
- 				ItemStack stack = liquid.asItemStack();
- 				setColor(stack.getItem().getColorFromItemStack(stack, 0));
- 				GL11.glCallList(list[(int) (liquid.amount / buf * 99)]);
-@@ -198,8 +198,8 @@
- 		if (diplayLists != null) return diplayLists;
- 		diplayLists = new int[100];
- 		Block baseBlock;
--		if (fluidStack.shiftedIndex > -1) {
--			baseBlock = Block.blocksList[fluidStack.shiftedIndex];
-+		if (fluidStack.itemID > -1) {
-+			baseBlock = Block.blocksList[fluidStack.itemID];
- 		} else {
- 			baseBlock = Block.waterStill;
- 		}
+@@ -177,7 +177,7 @@
+           GL11.glPushMatrix();
+           GL11.glTranslatef(tx, ty, tz);
+         }
+-        bindTextureByName(Block.blocksList[liquid.shiftedIndex].getTextureFile());
++        bindTextureByName(Block.blocksList[liquid.itemID].getTextureFile());
+         final ItemStack stack = liquid.asItemStack();
+         setColor(stack.getItem().getColorFromItemStack(stack, 0));
+         GL11.glCallList(list[(int) (liquid.amount / buf * 99)]);
+@@ -196,8 +196,8 @@
+       return diplayLists;
+     diplayLists = new int[100];
+     Block baseBlock;
+-    if (fluidStack.shiftedIndex > -1) {
+-      baseBlock = Block.blocksList[fluidStack.shiftedIndex];
++    if (fluidStack.itemID > -1) {
++      baseBlock = Block.blocksList[fluidStack.itemID];
+     } else {
+       baseBlock = Block.waterStill;
+     }

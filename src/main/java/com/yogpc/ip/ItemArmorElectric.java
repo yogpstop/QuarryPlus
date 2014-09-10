@@ -139,7 +139,7 @@ public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElec
     final ItemStack charged = new ItemStack(this, 1);
     ElectricItem.manager.charge(charged, Double.POSITIVE_INFINITY, Integer.MAX_VALUE, true, false);
     itemList.add(charged);
-    itemList.add(new ItemStack(this, 1, this.getMaxDamage()));
+    itemList.add(new ItemStack(this, 1, getMaxDamage()));
   }
 
   @Override

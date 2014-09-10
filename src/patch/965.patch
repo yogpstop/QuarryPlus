@@ -1,18 +1,18 @@
 --- a/com/yogpc/ip/ItemArmorElectric.java
 +++ b/com/yogpc/ip/ItemArmorElectric.java
-@@ -3,11 +3,9 @@
+@@ -3,7 +3,6 @@
  import ic2.api.item.ElectricItem;
  import ic2.api.item.IElectricItem;
  
 -import java.lang.reflect.Field;
  import java.util.List;
  
- import com.yogpc.mc_lib.ProxyCommon;
--import com.yogpc.mc_lib.ReflectionHelper;
- import com.yogpc.mc_lib.YogpstopLib;
- 
- import cpw.mods.fml.common.FMLCommonHandler;
-@@ -23,15 +21,14 @@
+ import net.minecraft.creativetab.CreativeTabs;
+@@ -11,18 +10,15 @@
+ import net.minecraft.entity.player.EntityPlayer;
+ import net.minecraft.entity.player.EntityPlayerMP;
+ import net.minecraft.item.EnumRarity;
+-import net.minecraft.item.Item;
  import net.minecraft.item.ItemArmor;
  import net.minecraft.item.ItemStack;
  import net.minecraft.nbt.NBTTagCompound;
@@ -22,81 +22,90 @@
  import net.minecraftforge.common.ISpecialArmor;
  import net.minecraftforge.common.EnumHelper;
  
+ import com.yogpc.mc_lib.ProxyCommon;
+-import com.yogpc.mc_lib.ReflectionHelper;
+ import com.yogpc.mc_lib.YogpstopLib;
+ 
+ import cpw.mods.fml.common.FMLCommonHandler;
+@@ -31,8 +27,8 @@
+ import cpw.mods.fml.relauncher.SideOnly;
+ 
  public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElectricItem {
--	public ItemArmorElectric() {
--		super(EnumHelper.addArmorMaterial("ELECTRIC", 33, new int[] { 3, 8, 6, 3 }, 0), YogpstopLib.proxy.addNewArmourRendererPrefix("electric"), 1);
-+	public ItemArmorElectric(int id) {
-+		super(id, EnumHelper.addArmorMaterial("ELECTRIC", 33, new int[] { 3, 8, 6, 3 }, 0), YogpstopLib.proxy.addNewArmourRendererPrefix("electric"), 1);
- 		this.setUnlocalizedName("electric_armor");
- 		this.setCreativeTab(CreativeTabs.tabCombat);
- 		this.setTextureName("yogpstop_qp:electric_armor");
-@@ -40,8 +37,6 @@
- 		this.setMaxStackSize(1);
- 	}
+-  public ItemArmorElectric() {
+-    super(EnumHelper.addArmorMaterial("ELECTRIC", 33, new int[] {3, 8, 6, 3}, 0), YogpstopLib.proxy
++  public ItemArmorElectric(final int id) {
++    super(id, EnumHelper.addArmorMaterial("ELECTRIC", 33, new int[] {3, 8, 6, 3}, 0), YogpstopLib.proxy
+         .addNewArmourRendererPrefix("electric"), 1);
+     setUnlocalizedName("electric_armor");
+     setCreativeTab(CreativeTabs.tabCombat);
+@@ -42,9 +38,6 @@
+     setMaxStackSize(1);
+   }
  
--	private static final Field f = ReflectionHelper.getField(NetHandlerPlayServer.class, "field_147365_f", "floatingTickCount");
--	
- 	private static final double maxFallSpeedOnHover = 0.35;
+-  private static final Field f = ReflectionHelper.getField(NetHandlerPlayServer.class,
+-      "field_147365_f", "floatingTickCount");
+-
+   private static final double maxFallSpeedOnHover = 0.35;
  
- 	private void useJetpack(EntityPlayer p, ItemStack jetpack, boolean hover) {
-@@ -78,13 +73,7 @@
- 				p.fallDistance = 0.0f;
- 				p.distanceWalkedModified = 0.0f;
- 				if (p instanceof EntityPlayerMP) {
--					try {
--						f.setInt(((EntityPlayerMP) p).playerNetServerHandler, 0);
--					} catch (IllegalArgumentException e) {
--						e.printStackTrace();
--					} catch (IllegalAccessException e) {
--						e.printStackTrace();
--					}
-+					((EntityPlayerMP) p).playerNetServerHandler.ticksForFloatKick = 0;
- 				}
- 			}
- 			p.inventoryContainer.detectAndSendChanges();
-@@ -116,7 +105,7 @@
- 	}
+   private void useJetpack(final EntityPlayer p, final ItemStack jetpack, final boolean hover) {
+@@ -82,13 +75,7 @@
+         p.fallDistance = 0.0f;
+         p.distanceWalkedModified = 0.0f;
+         if (p instanceof EntityPlayerMP)
+-          try {
+-            f.setInt(((EntityPlayerMP) p).playerNetServerHandler, 0);
+-          } catch (final IllegalArgumentException e) {
+-            e.printStackTrace();
+-          } catch (final IllegalAccessException e) {
+-            e.printStackTrace();
+-          }
++          ((EntityPlayerMP) p).playerNetServerHandler.ticksForFloatKick = 0;
+       }
+       p.inventoryContainer.detectAndSendChanges();
+     }
+@@ -120,7 +107,7 @@
+   }
  
- 	@Override
--	public void onArmorTick(World world, EntityPlayer player, ItemStack itemStack) {
-+	public void onArmorTickUpdate(World world, EntityPlayer player, ItemStack itemStack) {
- 		if (player.inventory.armorInventory[2] != itemStack) return;
- 		this.useJetpack(player, itemStack, toggleHover(player, itemStack));
- 	}
-@@ -160,13 +149,13 @@
- 	}
+   @Override
+-  public void onArmorTick(final World world, final EntityPlayer player, final ItemStack itemStack) {
++  public void onArmorTickUpdate(final World world, final EntityPlayer player, final ItemStack itemStack) {
+     if (player.inventory.armorInventory[2] != itemStack)
+       return;
+     useJetpack(player, itemStack, toggleHover(player, itemStack));
+@@ -170,13 +157,13 @@
+   }
  
- 	@Override
--	public Item getChargedItem(ItemStack itemStack) {
--		return this;
-+	public int getChargedItemId(ItemStack itemStack) {
-+		return this.itemID;
- 	}
+   @Override
+-  public Item getChargedItem(final ItemStack itemStack) {
+-    return this;
++  public int getChargedItemId(final ItemStack itemStack) {
++    return this.itemID;
+   }
  
- 	@Override
--	public Item getEmptyItem(ItemStack itemStack) {
--		return this;
-+	public int getEmptyItemId(ItemStack itemStack) {
-+		return this.itemID;
- 	}
+   @Override
+-  public Item getEmptyItem(final ItemStack itemStack) {
+-    return this;
++  public int getEmptyItemId(final ItemStack itemStack) {
++    return this.itemID;
+   }
  
- 	@Override
+   @Override
 --- a/com/yogpc/mc_lib/APacketTile.java
 +++ b/com/yogpc/mc_lib/APacketTile.java
-@@ -29,9 +29,6 @@
+@@ -24,9 +24,6 @@
  
- 	@Override
- 	public final Packet getDescriptionPacket() {
--		ByteBuf buf = Unpooled.buffer();
--		buf.writeByte(0);
--		new YogpstopPacket(this).writeData(buf);
--		return new FMLProxyPacket(buf, "YogpstopLib");
-+		return PacketHandler.getPacket(new YogpstopPacket(this));
- 	}
+   @Override
+   public final Packet getDescriptionPacket() {
+-    final ByteBuf buf = Unpooled.buffer();
+-    buf.writeByte(0);
+-    new YogpstopPacket(this).writeData(buf);
+-    return new FMLProxyPacket(buf, "YogpstopLib");
++    return PacketHandler.getPacket(new YogpstopPacket(this));
+   }
  }
 --- a/com/yogpc/mc_lib/PacketHandler.java
 +++ b/com/yogpc/mc_lib/PacketHandler.java
-@@ -26,7 +26,6 @@
+@@ -22,7 +22,6 @@
  import java.lang.annotation.RetentionPolicy;
  import java.lang.annotation.Target;
  import java.lang.reflect.Method;
@@ -104,7 +113,7 @@
  import java.util.HashMap;
  import java.util.List;
  import java.util.Map;
-@@ -35,19 +34,18 @@
+@@ -31,19 +30,18 @@
  import net.minecraft.inventory.Container;
  import net.minecraft.nbt.CompressedStreamTools;
  import net.minecraft.nbt.NBTTagCompound;
@@ -127,71 +136,78 @@
 -@Sharable
 -public class PacketHandler extends SimpleChannelInboundHandler<YogpstopPacket> {
 +public class PacketHandler implements IPacketHandler {
- 	@Retention(RetentionPolicy.RUNTIME)
- 	@Target(ElementType.METHOD)
- 	public static @interface Handler {}
-@@ -59,7 +57,6 @@
- 		if (l.size() == 1) registeredStaticHandlers.put(c.getName(), l.get(0));
- 	}
+   @Retention(RetentionPolicy.RUNTIME)
+   @Target(ElementType.METHOD)
+   public static @interface Handler {
+@@ -57,7 +55,6 @@
+       registeredStaticHandlers.put(c.getName(), l.get(0));
+   }
  
--	public static EnumMap<Side, FMLEmbeddedChannel> channels;
- 	static final byte Tile = 0;
- 	static final byte NBT = 1;
- 	static final byte BTN = 2;
-@@ -96,7 +93,9 @@
- 	public static final byte remove_laser = 1;
+-  public static EnumMap<Side, FMLEmbeddedChannel> channels;
+   static final byte Tile = 0;
+   static final byte NBT = 1;
+   static final byte BTN = 2;
+@@ -94,8 +91,9 @@
+   public static final byte remove_laser = 1;
  
- 	@Override
--	protected void channelRead0(ChannelHandlerContext ctx, YogpstopPacket packet) throws Exception {
-+	public void onPacketData(INetworkManager network, Packet250CustomPayload _packet, Player player) {
-+		YogpstopPacket packet = new YogpstopPacket();
-+		packet.readData(_packet.data, player);
- 		if (packet.getChannel() == NBT) {
- 			setNBTFromPacket(packet);
- 		} else if (packet.getChannel() == BTN) {
-@@ -123,27 +122,28 @@
- 		}
- 	}
+   @Override
+-  protected void channelRead0(final ChannelHandlerContext ctx, final YogpstopPacket packet)
+-      throws Exception {
++  public void onPacketData(final INetworkManager network, final Packet250CustomPayload _packet, final Player player) {
++    final YogpstopPacket packet = new YogpstopPacket();
++    packet.readData(_packet.data, player);
+     if (packet.getChannel() == NBT)
+       setNBTFromPacket(packet);
+     else if (packet.getChannel() == BTN) {
+@@ -125,33 +123,29 @@
+           | packet.getData()[1] << 16 | packet.getData()[2] << 8 | packet.getData()[3]);
+   }
  
-+	public static Packet250CustomPayload getPacket(YogpstopPacket p) {
-+		Packet250CustomPayload pkt = new Packet250CustomPayload();
-+		pkt.channel = "YogpstopLib";
-+		pkt.data = p.writeData();
-+		pkt.length = pkt.data.length;
-+		return pkt;
-+	}
++  public static Packet250CustomPayload getPacket(final YogpstopPacket p) {
++    final Packet250CustomPayload pkt = new Packet250CustomPayload();
++    pkt.channel = "YogpstopLib";
++    pkt.data = p.writeData();
++    pkt.length = pkt.data.length;
++    return pkt;
++  }
 +
- 	public static void sendPacketToServer(YogpstopPacket p) {
--		channels.get(Side.CLIENT).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.TOSERVER);
--		channels.get(Side.CLIENT).writeOutbound(p);
-+		PacketDispatcher.sendPacketToServer(getPacket(p));
- 	}
+   public static void sendPacketToServer(final YogpstopPacket p) {
+-    channels.get(Side.CLIENT).attr(FMLOutboundHandler.FML_MESSAGETARGET)
+-        .set(OutboundTarget.TOSERVER);
+-    channels.get(Side.CLIENT).writeOutbound(p);
++    PacketDispatcher.sendPacketToServer(getPacket(p));
+   }
  
- 	public static void sendPacketToAround(YogpstopPacket p, int d, int x, int y, int z) {
--		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.ALLAROUNDPOINT);
--		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS).set(new NetworkRegistry.TargetPoint(d, x, y, z, 256));
--		channels.get(Side.SERVER).writeOutbound(p);
-+		PacketDispatcher.sendPacketToAllAround(x, y, z, 256, d, getPacket(p));
- 	}
+   public static void sendPacketToAround(final YogpstopPacket p, final int d, final int x,
+       final int y, final int z) {
+-    channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET)
+-        .set(OutboundTarget.ALLAROUNDPOINT);
+-    channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS)
+-        .set(new NetworkRegistry.TargetPoint(d, x, y, z, 256));
+-    channels.get(Side.SERVER).writeOutbound(p);
++    PacketDispatcher.sendPacketToAllAround(x, y, z, 256, d, getPacket(p));
+   }
  
- 	public static void sendPacketToDimension(YogpstopPacket p, int d) {
--		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(OutboundTarget.DIMENSION);
--		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS).set(d);
--		channels.get(Side.SERVER).writeOutbound(p);
-+		PacketDispatcher.sendPacketToAllInDimension(getPacket(p), d);
- 	}
+   public static void sendPacketToDimension(final YogpstopPacket p, final int d) {
+-    channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET)
+-        .set(OutboundTarget.DIMENSION);
+-    channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS).set(new Integer(d));
+-    channels.get(Side.SERVER).writeOutbound(p);
++    PacketDispatcher.sendPacketToAllInDimension(getPacket(p), d);
+   }
  
- 	public static void sendPacketToPlayer(YogpstopPacket p, EntityPlayer e) {
--		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(FMLOutboundHandler.OutboundTarget.PLAYER);
--		channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS).set(e);
--		channels.get(Side.SERVER).writeOutbound(p);
-+		PacketDispatcher.sendPacketToPlayer(getPacket(p), (Player) e);
- 	}
+   public static void sendPacketToPlayer(final YogpstopPacket p, final EntityPlayer e) {
+-    channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET)
+-        .set(FMLOutboundHandler.OutboundTarget.PLAYER);
+-    channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS).set(e);
+-    channels.get(Side.SERVER).writeOutbound(p);
++    PacketDispatcher.sendPacketToPlayer(getPacket(p), (Player) e);
+   }
  
- 	private static void setNBTFromPacket(YogpstopPacket p) {
+   private static void setNBTFromPacket(final YogpstopPacket p) {
 --- a/com/yogpc/mc_lib/ProxyClient.java
 +++ b/com/yogpc/mc_lib/ProxyClient.java
-@@ -1,43 +1,63 @@
+@@ -1,43 +1,62 @@
  package com.yogpc.mc_lib;
  
 +import java.util.ArrayList;
@@ -213,75 +229,76 @@
 -import cpw.mods.fml.common.FMLCommonHandler;
 -import net.minecraftforge.event.ForgeSubscribe;
 -import cpw.mods.fml.common.gameevent.TickEvent;
-+import cpw.mods.fml.common.registry.TickRegistry;
 +import cpw.mods.fml.common.ITickHandler;
 +import cpw.mods.fml.common.TickType;
++import cpw.mods.fml.common.registry.TickRegistry;
  import cpw.mods.fml.relauncher.Side;
  import cpw.mods.fml.relauncher.SideOnly;
  
  @SideOnly(Side.CLIENT)
 -public class ProxyClient extends ProxyCommon {
 +public class ProxyClient extends ProxyCommon implements ITickHandler {
- 	private int key = 0;
+   private int key = 0;
  
- 	static {
-+		List<KeyBinding> bs = new ArrayList<KeyBinding>();
- 		for (Key k : Key.values()) {
- 			if (k.name != null) {
--				k.binding = new KeyBinding(k.name, k.id, "YogpstopLib");
--				ClientRegistry.registerKeyBinding((KeyBinding) k.binding);
-+				k.binding = new KeyBinding(k.name, k.id);
-+				bs.add((KeyBinding) k.binding);
- 			}
- 		}
-+		GameSettings set = Minecraft.getMinecraft().gameSettings;
-+		KeyBinding[] add = bs.toArray(new KeyBinding[bs.size()]);
-+		KeyBinding[] all = new KeyBinding[set.keyBindings.length + add.length];
-+		System.arraycopy(set.keyBindings, 0, all, 0, set.keyBindings.length);
-+		System.arraycopy(add, 0, all, set.keyBindings.length, add.length);
-+		set.keyBindings = all;
-+		set.loadOptions();
- 	}
+   static {
++    final List<KeyBinding> bs = new ArrayList<KeyBinding>();
+     for (final Key k : Key.values())
+       if (k.name != null) {
+-        k.binding = new KeyBinding(k.name, k.id, "YogpstopLib");
+-        ClientRegistry.registerKeyBinding((KeyBinding) k.binding);
++        k.binding = new KeyBinding(k.name, k.id);
++        bs.add((KeyBinding) k.binding);
+       }
++    final GameSettings set = Minecraft.getMinecraft().gameSettings;
++    final KeyBinding[] add = bs.toArray(new KeyBinding[bs.size()]);
++    final KeyBinding[] all = new KeyBinding[set.keyBindings.length + add.length];
++    System.arraycopy(set.keyBindings, 0, all, 0, set.keyBindings.length);
++    System.arraycopy(add, 0, all, set.keyBindings.length, add.length);
++    set.keyBindings = all;
++    set.loadOptions();
+   }
  
- 	public ProxyClient() {
--		FMLCommonHandler.instance().bus().register(this);
-+		TickRegistry.registerTickHandler(this, Side.CLIENT);
- 	}
+   public ProxyClient() {
+-    FMLCommonHandler.instance().bus().register(this);
++    TickRegistry.registerTickHandler(this, Side.CLIENT);
+   }
  
--	@ForgeSubscribe
--	public void keyUpdate(TickEvent.ClientTickEvent e) {
--		if (e.phase != TickEvent.Phase.START) return;
-+	@Override
-+	public String getLabel() {
-+		return "YogpstopLib";
-+	}
+-  @ForgeSubscribe
+-  public void keyUpdate(final TickEvent.ClientTickEvent e) {
+-    if (e.phase != TickEvent.Phase.START)
+-      return;
++  @Override
++  public String getLabel() {
++    return "YogpstopLib";
++  }
++  
++  @Override
++  public EnumSet<TickType> ticks() {
++    return EnumSet.of(TickType.CLIENT);
++  }
 +
-+	@Override
-+	public EnumSet<TickType> ticks() {
-+		return EnumSet.of(TickType.CLIENT);
-+	}
++  @Override
++  public void tickEnd(final EnumSet<TickType> type, final Object... data) {}
 +
-+	@Override
-+	public void tickEnd(EnumSet<TickType> type, Object... data) {}
-+
-+	@Override
-+	public void tickStart(EnumSet<TickType> type, Object... data) {
- 		int prev = this.key;
- 		this.key = 0;
- 		GuiScreen currentScreen = Minecraft.getMinecraft().currentScreen;
-@@ -72,12 +92,6 @@
- 	}
++  @Override
++  public void tickStart(final EnumSet<TickType> type, final Object... data) {
+     final int prev = this.key;
+     this.key = 0;
+     final GuiScreen currentScreen = Minecraft.getMinecraft().currentScreen;
+@@ -66,13 +85,6 @@
+   }
  
- 	@Override
--	public EntityPlayer getPacketPlayer(INetHandler inh) {
--		if (inh instanceof NetHandlerPlayServer) return ((NetHandlerPlayServer) inh).playerEntity;
--		return Minecraft.getMinecraft().thePlayer;
--	}
+   @Override
+-  public EntityPlayer getPacketPlayer(final INetHandler inh) {
+-    if (inh instanceof NetHandlerPlayServer)
+-      return ((NetHandlerPlayServer) inh).playerEntity;
+-    return Minecraft.getMinecraft().thePlayer;
+-  }
 -
--	@Override
- 	public int addNewArmourRendererPrefix(String s) {
- 		return RenderingRegistry.addNewArmourRendererPrefix(s);
- 	}
+-  @Override
+   public int addNewArmourRendererPrefix(final String s) {
+     return RenderingRegistry.addNewArmourRendererPrefix(s);
+   }
 --- a/com/yogpc/mc_lib/ProxyCommon.java
 +++ b/com/yogpc/mc_lib/ProxyCommon.java
 @@ -5,8 +5,6 @@
@@ -293,21 +310,22 @@
  import net.minecraft.world.World;
  
  public class ProxyCommon {
-@@ -41,11 +39,6 @@
- 		}
- 	}
+@@ -42,12 +40,6 @@
+     }
+   }
  
--	public EntityPlayer getPacketPlayer(INetHandler inh) {
--		if (inh instanceof NetHandlerPlayServer) return ((NetHandlerPlayServer) inh).playerEntity;
--		return null;
--	}
+-  public EntityPlayer getPacketPlayer(final INetHandler inh) {
+-    if (inh instanceof NetHandlerPlayServer)
+-      return ((NetHandlerPlayServer) inh).playerEntity;
+-    return null;
+-  }
 -
- 	public int addNewArmourRendererPrefix(String s) {
- 		return 0;
- 	}
+   public int addNewArmourRendererPrefix(final String s) {
+     return 0;
+   }
 --- a/com/yogpc/mc_lib/YogpstopLib.java
 +++ b/com/yogpc/mc_lib/YogpstopLib.java
-@@ -1,13 +1,28 @@
+@@ -1,14 +1,30 @@
  package com.yogpc.mc_lib;
  
 +import java.io.BufferedReader;
@@ -328,156 +346,164 @@
  import cpw.mods.fml.common.Mod;
  import cpw.mods.fml.common.SidedProxy;
  import cpw.mods.fml.common.event.FMLInitializationEvent;
-+import cpw.mods.fml.common.network.NetworkMod;
 -import cpw.mods.fml.common.network.NetworkRegistry;
++import cpw.mods.fml.common.network.NetworkMod;
 +import cpw.mods.fml.common.registry.LanguageRegistry;
  
- @Mod(modid = "YogpstopLib", name = "Yogpstop Library", version = "{version}", dependencies = "after:IC2")
-+@NetworkMod(clientSideRequired = true, serverSideRequired = false, channels = { "YogpstopLib" }, packetHandler = PacketHandler.class)
+ @Mod(modid = "YogpstopLib", name = "Yogpstop Library", version = "{version}",
+     dependencies = "after:IC2")
++@NetworkMod(clientSideRequired = true, serverSideRequired = false, channels = {"YogpstopLib"},
++    packetHandler = PacketHandler.class)
  public class YogpstopLib {
  
- 	@SidedProxy(clientSide = "com.yogpc.mc_lib.ProxyClient", serverSide = "com.yogpc.mc_lib.ProxyCommon")
-@@ -15,7 +31,63 @@
+   @SidedProxy(clientSide = "com.yogpc.mc_lib.ProxyClient",
+@@ -17,9 +33,66 @@
  
- 	@Mod.EventHandler
- 	public void init(FMLInitializationEvent event) {
--		PacketHandler.channels = NetworkRegistry.instance().newChannel("YogpstopLib", new YogpstopPacketCodec(), new PacketHandler());
--		new ItemArmorElectric();// TODO IC2Plus
-+		new ItemArmorElectric(21478);// TODO IC2Plus
-+	}
+   @Mod.EventHandler
+   public void init(final FMLInitializationEvent event) {
+-    PacketHandler.channels =
+-        NetworkRegistry.instance().newChannel("YogpstopLib", new YogpstopPacketCodec(),
+-            new PacketHandler());
+-    new ItemArmorElectric();// TODO IC2Plus
++    new ItemArmorElectric(21478);// TODO IC2Plus
++  }
 +
-+	private static final Pattern lang = Pattern.compile("assets/(.*)/lang/(.*)\\.lang");
-+	private static final Pattern format = Pattern.compile("%(\\d+\\$)?[\\d\\.]*[df]");
++  private static final Pattern lang = Pattern.compile("assets/(.*)/lang/(.*)\\.lang");
++  private static final Pattern format = Pattern.compile("%(\\d+\\$)?[\\d\\.]*[df]");
 +
-+	public static Properties parseLangFile(InputStream is) {
-+		Properties table = new Properties();
-+		try {
-+			Reader r = new InputStreamReader(is, Charsets.UTF_8);
-+			BufferedReader br = new BufferedReader(r);
-+			String s;
-+			while ((s = br.readLine()) != null)
-+				if (!s.isEmpty() && s.charAt(0) != '#') {
-+					String[] astring = s.split("=", 2);
-+					if (astring.length == 2) table.put(astring[0], format.matcher(astring[1]).replaceAll("%$1s"));
-+				}
-+			br.close();
-+			r.close();
-+		} catch (Exception e) {}
-+		return table;
-+	}
++  public static Properties parseLangFile(final InputStream is) {
++    final Properties table = new Properties();
++    try {
++      final Reader r = new InputStreamReader(is, Charsets.UTF_8);
++      final BufferedReader br = new BufferedReader(r);
++      String s;
++      while ((s = br.readLine()) != null)
++        if (!s.isEmpty() && s.charAt(0) != '#') {
++          final String[] astring = s.split("=", 2);
++          if (astring.length == 2)
++            table.put(astring[0], format.matcher(astring[1]).replaceAll("%$1s"));
++        }
++      br.close();
++      r.close();
++    } catch (final Exception e) {
++    }
++    return table;
++  }
 +
-+	private static void loadLangs_dir(File b, File f) {
-+		String n = f.getPath().replace(b.getPath(), "").replace(File.separator, "/");
-+		if (n.length() > 0 && n.charAt(0) == '/') n = n.substring(1);
-+		Matcher m = lang.matcher(n);
-+		if (m.matches()) {
-+			try {
-+				InputStream is = new FileInputStream(f);
-+				LanguageRegistry.instance().addStringLocalization(parseLangFile(is), m.group(2));
-+				is.close();
-+			} catch (Exception e) {}
-+		}
-+		if (f.isDirectory()) for (File e : f.listFiles())
-+			loadLangs_dir(b, e);
-+	}
++  private static void loadLangs_dir(final File b, final File f) {
++    String n = f.getPath().replace(b.getPath(), "").replace(File.separator, "/");
++    if (n.length() > 0 && n.charAt(0) == '/')
++      n = n.substring(1);
++    final Matcher m = lang.matcher(n);
++    if (m.matches())
++      try {
++        final InputStream is = new FileInputStream(f);
++        LanguageRegistry.instance().addStringLocalization(parseLangFile(is), m.group(2));
++        is.close();
++      } catch (final Exception e) {
++      }
++    if (f.isDirectory())
++      for (final File e : f.listFiles())
++        loadLangs_dir(b, e);
++  }
 +
-+	public static void loadLangs(File in) {
-+		if (in.isDirectory()) {
-+			loadLangs_dir(in, in);
-+			return;
-+		}
-+		try {
-+			InputStream is = new FileInputStream(in);
-+			ZipInputStream zis = new ZipInputStream(is);
-+			ZipEntry entry;
-+			while ((entry = zis.getNextEntry()) != null) {
-+				Matcher m = lang.matcher(entry.getName());
-+				if (m.matches()) {
-+					LanguageRegistry.instance().addStringLocalization(parseLangFile(zis), m.group(2));
-+				}
-+				zis.closeEntry();
-+			}
-+			zis.close();
-+			is.close();
-+		} catch (Exception e) {}
- 	}
-+
++  public static void loadLangs(final File in) {
++    if (in.isDirectory()) {
++      loadLangs_dir(in, in);
++      return;
++    }
++    try {
++      final InputStream is = new FileInputStream(in);
++      final ZipInputStream zis = new ZipInputStream(is);
++      ZipEntry entry;
++      while ((entry = zis.getNextEntry()) != null) {
++        final Matcher m = lang.matcher(entry.getName());
++        if (m.matches())
++          LanguageRegistry.instance().addStringLocalization(parseLangFile(zis), m.group(2));
++        zis.closeEntry();
++      }
++      zis.close();
++      is.close();
++    } catch (final Exception e) {
++    }
+   }
  }
 --- a/com/yogpc/mc_lib/YogpstopPacket.java
 +++ b/com/yogpc/mc_lib/YogpstopPacket.java
-@@ -4,7 +4,7 @@
- import java.io.DataOutputStream;
- import java.io.IOException;
- 
--import cpw.mods.fml.common.network.NetworkRegistry;
-+import cpw.mods.fml.common.network.Player;
- import net.minecraft.entity.player.EntityPlayer;
+@@ -9,7 +9,7 @@
  import net.minecraft.nbt.CompressedStreamTools;
  import net.minecraft.nbt.NBTTagCompound;
-@@ -85,17 +85,22 @@
- 		return this.data;
- 	}
+ import net.minecraft.tileentity.TileEntity;
+-import cpw.mods.fml.common.network.NetworkRegistry;
++import cpw.mods.fml.common.network.Player;
  
--	public void readData(ByteBuf d, ChannelHandlerContext ctx) {
--		this.ep = YogpstopLib.proxy.getPacketPlayer(ctx.channel().attr(NetworkRegistry.NET_HANDLER).get());
--		this.header = new byte[d.readInt()];
--		d.readBytes(this.header);
--		this.data = new byte[d.readableBytes()];
--		d.readBytes(this.data);
-+	public void readData(byte[] d, Player p) {
-+		this.ep = (EntityPlayer) p;
-+		this.header = new byte[d[0] << 24 | (d[1] & 0xFF) << 16 | (d[2] & 0xFF) << 8 | (d[3] & 0xFF)];
-+		this.data = new byte[d.length - this.header.length - 4];
-+		System.arraycopy(d, 4, this.header, 0, this.header.length);
-+		System.arraycopy(d, 4 + this.header.length, this.data, 0, this.data.length);
- 	}
+ public final class YogpstopPacket {
+   private byte[] header;
+@@ -88,18 +88,22 @@
+     return this.data;
+   }
  
--	public void writeData(ByteBuf d) {
--		d.writeInt(this.header.length);
--		d.writeBytes(this.header);
--		d.writeBytes(this.data);
-+	public byte[] writeData() {
-+		byte[] d = new byte[this.data.length + this.header.length + 4];
-+		d[0] = (byte) (this.header.length >> 24);
-+		d[1] = (byte) (this.header.length >> 16);
-+		d[2] = (byte) (this.header.length >> 8);
-+		d[3] = (byte) this.header.length;
-+		System.arraycopy(this.header, 0, d, 4, this.header.length);
-+		System.arraycopy(this.data, 0, d, 4 + this.header.length, this.data.length);
-+		return d;
- 	}
+-  public void readData(final ByteBuf d, final ChannelHandlerContext ctx) {
+-    this.ep =
+-        YogpstopLib.proxy.getPacketPlayer(ctx.channel().attr(NetworkRegistry.NET_HANDLER).get());
+-    this.header = new byte[d.readInt()];
+-    d.readBytes(this.header);
+-    this.data = new byte[d.readableBytes()];
+-    d.readBytes(this.data);
++  public void readData(final byte[] d, final Player p) {
++    this.ep = (EntityPlayer) p;
++    this.header = new byte[d[0] << 24 | (d[1] & 0xFF) << 16 | (d[2] & 0xFF) << 8 | (d[3] & 0xFF)];
++    this.data = new byte[d.length - this.header.length - 4];
++    System.arraycopy(d, 4, this.header, 0, this.header.length);
++    System.arraycopy(d, 4 + this.header.length, this.data, 0, this.data.length);
+   }
+ 
+-  public void writeData(final ByteBuf d) {
+-    d.writeInt(this.header.length);
+-    d.writeBytes(this.header);
+-    d.writeBytes(this.data);
++  public byte[] writeData() {
++    final byte[] d = new byte[this.data.length + this.header.length + 4];
++    d[0] = (byte) (this.header.length >> 24);
++    d[1] = (byte) (this.header.length >> 16);
++    d[2] = (byte) (this.header.length >> 8);
++    d[3] = (byte) this.header.length;
++    System.arraycopy(this.header, 0, d, 4, this.header.length);
++    System.arraycopy(this.data, 0, d, 4 + this.header.length, this.data.length);
++    return d;
+   }
  }
 --- a/com/yogpc/qp/APowerTile.java
 +++ b/com/yogpc/qp/APowerTile.java
-@@ -20,7 +20,7 @@
- 		double tick_received = 0;
- 		double remain_receive;
- 		remain_receive = Math.min(this.recv_max - tick_received, this.stored_max - this.stored - tick_received);
--		tick_received += this.pp.useEnergy(0, remain_receive, true);
-+		tick_received += this.pp.useEnergy(0, (float) remain_receive, true);
- 		this.stored += tick_received;
- 	}
+@@ -21,7 +21,7 @@
+     double remain_receive;
+     remain_receive =
+         Math.min(this.recv_max - tick_received, this.stored_max - this.stored - tick_received);
+-    tick_received += this.pp.useEnergy(0, remain_receive, true);
++    tick_received += this.pp.useEnergy(0, (float) remain_receive, true);
+     this.stored += tick_received;
+   }
  
-@@ -43,7 +43,7 @@
- 		this.stored = nbttc.getDouble("storedEnergy");
- 		this.stored_max = nbttc.getDouble("MAX_stored");
- 		this.recv_max = nbttc.getDouble("MAX_receive");
--		this.pp.configure(0, this.recv_max, 0, this.stored_max);
-+		this.pp.configure(0, (float) this.recv_max, 0, (float) this.stored_max);
- 	}
+@@ -44,7 +44,7 @@
+     this.stored = nbttc.getDouble("storedEnergy");
+     this.stored_max = nbttc.getDouble("MAX_stored");
+     this.recv_max = nbttc.getDouble("MAX_receive");
+-    this.pp.configure(0, this.recv_max, 0, this.stored_max);
++    this.pp.configure(0, (float) this.recv_max, 0, (float) this.stored_max);
+   }
  
- 	@Override
-@@ -79,6 +79,6 @@
- 	public final void configure(double max, double maxstored) {
- 		this.recv_max = max;
- 		this.stored_max = maxstored;
--		this.pp.configure(0, this.recv_max, 0, this.stored_max);
-+		this.pp.configure(0, (float) this.recv_max, 0, (float) this.stored_max);
- 	}
+   @Override
+@@ -81,6 +81,6 @@
+   public final void configure(final double max, final double maxstored) {
+     this.recv_max = max;
+     this.stored_max = maxstored;
+-    this.pp.configure(0, this.recv_max, 0, this.stored_max);
++    this.pp.configure(0, (float) this.recv_max, 0, (float) this.stored_max);
+   }
  }
 --- a/com/yogpc/qp/BlockBreaker.java
 +++ b/com/yogpc/qp/BlockBreaker.java
-@@ -35,9 +35,7 @@
+@@ -29,9 +29,7 @@
  import net.minecraft.item.ItemStack;
  import net.minecraft.tileentity.TileEntity;
  import net.minecraft.util.Icon;
@@ -486,281 +512,298 @@
 -import net.minecraft.world.WorldServer;
  import net.minecraftforge.common.FakePlayerFactory;
  import net.minecraftforge.common.ForgeDirection;
+ import cpw.mods.fml.relauncher.Side;
+@@ -45,8 +43,8 @@
+   @SideOnly(Side.CLIENT)
+   protected Icon vectrial;
  
-@@ -49,8 +47,8 @@
- 	@SideOnly(Side.CLIENT)
- 	protected Icon vectrial;
+-  protected BlockBreaker() {
+-    super(Material.rock);
++  protected BlockBreaker(final int id) {
++    super(id, Material.rock);
+     setCreativeTab(QuarryPlus.ct);
+     setHardness(3.5F);
+     setStepSound(soundStoneFootstep);
+@@ -107,10 +105,10 @@
+         w.getBlockMetadata(tx, ty, tz);
+     if (ty < 1)
+       return;
+-    final Block b = w.getBlock(tx, ty, tz);
++    final Block b = Block.blocksList[w.getBlockId(tx, ty, tz)];
+     if (b == null || b.isAirBlock(w, x, y, z))
+       return;
+-    final EntityPlayer player = FakePlayerFactory.getMinecraft((WorldServer) w);
++    final EntityPlayer player = FakePlayerFactory.getMinecraft(w);
+     b.onBlockHarvested(w, tx, ty, tz, meta, player);
+     if (b.removeBlockByPlayer(w, player, tx, ty, tz))
+       b.onBlockDestroyedByPlayer(w, tx, ty, tz, meta);
+@@ -157,22 +155,22 @@
  
--	protected BlockBreaker() {
--		super(Material.rock);
-+	protected BlockBreaker(int id) {
-+		super(id, Material.rock);
- 		this.setCreativeTab(QuarryPlus.ct);
- 		this.setHardness(3.5F);
- 		this.setStepSound(soundStoneFootstep);
-@@ -106,9 +104,9 @@
- 		ForgeDirection fd = ForgeDirection.getOrientation(w.getBlockMetadata(x, y, z) & 7);
- 		int tx = x + fd.offsetX, ty = y + fd.offsetY, tz = z + fd.offsetZ, meta = w.getBlockMetadata(tx, ty, tz);
- 		if (ty < 1) return;
--		Block b = w.getBlock(tx, ty, tz);
-+		Block b = Block.blocksList[w.getBlockId(tx, ty, tz)];
- 		if (b == null || b.isAirBlock(w, x, y, z)) return;
--		final EntityPlayer player = FakePlayerFactory.getMinecraft((WorldServer) w);
-+		final EntityPlayer player = FakePlayerFactory.getMinecraft(w);
- 		b.onBlockHarvested(w, tx, ty, tz, meta, player);
- 		if (b.removeBlockByPlayer(w, player, tx, ty, tz)) b.onBlockDestroyedByPlayer(w, tx, ty, tz, meta);
- 		else return;
-@@ -150,25 +148,25 @@
+   static void setDispenserDefaultDirection(final World w, final int x, final int y, final int z) {
+     if (!w.isRemote) {
+-      final Block b1 = w.getBlock(x, y, z - 1);
+-      final Block b2 = w.getBlock(x, y, z + 1);
+-      final Block b3 = w.getBlock(x - 1, y, z);
+-      final Block b4 = w.getBlock(x + 1, y, z);
++      final int b1 = w.getBlockId(x, y, z - 1);
++      final int b2 = w.getBlockId(x, y, z + 1);
++      final int b3 = w.getBlockId(x - 1, y, z);
++      final int b4 = w.getBlockId(x + 1, y, z);
+       byte b0 = 3;
  
- 	static void setDispenserDefaultDirection(World w, int x, int y, int z) {
- 		if (!w.isRemote) {
--			Block b1 = w.getBlock(x, y, z - 1);
--			Block b2 = w.getBlock(x, y, z + 1);
--			Block b3 = w.getBlock(x - 1, y, z);
--			Block b4 = w.getBlock(x + 1, y, z);
-+			int b1 = w.getBlockId(x, y, z - 1);
-+			int b2 = w.getBlockId(x, y, z + 1);
-+			int b3 = w.getBlockId(x - 1, y, z);
-+			int b4 = w.getBlockId(x + 1, y, z);
- 			byte b0 = 3;
+-      if (b1.func_149730_j() && !b2.func_149730_j())
++      if (Block.opaqueCubeLookup[b1] && !Block.opaqueCubeLookup[b2])
+         b0 = 3;
  
--			if (b1.func_149730_j() && !b2.func_149730_j()) {
-+			if (Block.opaqueCubeLookup[b1] && !Block.opaqueCubeLookup[b2]) {
- 				b0 = 3;
- 			}
+-      if (b2.func_149730_j() && !b1.func_149730_j())
++      if (Block.opaqueCubeLookup[b2] && !Block.opaqueCubeLookup[b1])
+         b0 = 2;
  
--			if (b2.func_149730_j() && !b1.func_149730_j()) {
-+			if (Block.opaqueCubeLookup[b2] && !Block.opaqueCubeLookup[b1]) {
- 				b0 = 2;
- 			}
+-      if (b3.func_149730_j() && !b4.func_149730_j())
++      if (Block.opaqueCubeLookup[b3] && !Block.opaqueCubeLookup[b4])
+         b0 = 5;
  
--			if (b3.func_149730_j() && !b4.func_149730_j()) {
-+			if (Block.opaqueCubeLookup[b3] && !Block.opaqueCubeLookup[b4]) {
- 				b0 = 5;
- 			}
- 
--			if (b4.func_149730_j() && !b3.func_149730_j()) {
-+			if (Block.opaqueCubeLookup[b4] && !Block.opaqueCubeLookup[b3]) {
- 				b0 = 4;
- 			}
- 			w.setBlockMetadataWithNotify(x, y, z, b0, 2);
-@@ -185,7 +183,7 @@
- 		ItemStack is;
- 		for (int i = 0; i < count; i++) {
- 			int id1 = idDropped(meta, world.rand, 0);
--			if (id1 != null) {
-+			if (id1 != 0) {
- 				is = new ItemStack(id1, 1, damageDropped(meta));
- 				EnchantmentHelper.enchantmentToIS(tile, is);
- 				this.drop.add(is);
+-      if (b4.func_149730_j() && !b3.func_149730_j())
++      if (Block.opaqueCubeLookup[b4] && !Block.opaqueCubeLookup[b3])
+         b0 = 4;
+       w.setBlockMetadataWithNotify(x, y, z, b0, 2);
+     }
+@@ -188,7 +186,7 @@
+     ItemStack is;
+     for (int i = 0; i < count; i++) {
+       final int id1 = idDropped(meta, world.rand, 0);
+-      if (id1 != null) {
++      if (id1 != 0) {
+         is = new ItemStack(id1, 1, damageDropped(meta));
+         EnchantmentHelper.enchantmentToIS(tile, is);
+         this.drop.add(is);
 --- a/com/yogpc/qp/BlockFrame.java
 +++ b/com/yogpc/qp/BlockFrame.java
-@@ -18,8 +18,8 @@
+@@ -6,7 +6,6 @@
+ import net.minecraft.block.Block;
+ import net.minecraft.block.material.Material;
+ import net.minecraft.entity.Entity;
+-import net.minecraft.item.Item;
+ import net.minecraft.util.AxisAlignedBB;
+ import net.minecraft.util.MovingObjectPosition;
+ import net.minecraft.util.Vec3;
+@@ -18,8 +17,8 @@
  public class BlockFrame extends Block {
- 	private final boolean[] sides = new boolean[6];
+   private final boolean[] sides = new boolean[6];
  
--	public BlockFrame() {
--		super(Material.glass);
-+	public BlockFrame(int id) {
-+		super(id, Material.glass);
- 		setSides(true, true, true, true, true, true);
- 		setHardness(0.5F);
- 		setTickRandomly(true);
-@@ -62,7 +62,7 @@
+-  public BlockFrame() {
+-    super(Material.glass);
++  public BlockFrame(final int id) {
++    super(id, Material.glass);
+     setSides(true, true, true, true, true, true);
+     setHardness(0.5F);
+     setTickRandomly(true);
+@@ -65,7 +64,7 @@
  
- 	@Override
- 	public int idDropped(int i, Random random, int j) {
--		return null;
-+		return 0;
- 	}
+   @Override
+   public int idDropped(final int i, final Random random, final int j) {
+-    return null;
++    return 0;
+   }
  
- 	@Override
-@@ -79,24 +79,24 @@
- 	@Override
- 	public AxisAlignedBB getCollisionBoundingBoxFromPool(World world, int i, int j, int k) {
- 		float xMin = 0.25F, xMax = 0.75F, yMin = 0.25F, yMax = 0.75F, zMin = 0.25F, zMax = 0.75F;
--		if (world.getBlock(i - 1, j, k) == this) xMin = 0;
--		if (world.getBlock(i + 1, j, k) == this) xMax = 1;
--		if (world.getBlock(i, j - 1, k) == this) yMin = 0;
--		if (world.getBlock(i, j + 1, k) == this) yMax = 1;
--		if (world.getBlock(i, j, k - 1) == this) zMin = 0;
--		if (world.getBlock(i, j, k + 1) == this) zMax = 1;
-+		if (world.getBlockId(i - 1, j, k) == this.blockID) xMin = 0;
-+		if (world.getBlockId(i + 1, j, k) == this.blockID) xMax = 1;
-+		if (world.getBlockId(i, j - 1, k) == this.blockID) yMin = 0;
-+		if (world.getBlockId(i, j + 1, k) == this.blockID) yMax = 1;
-+		if (world.getBlockId(i, j, k - 1) == this.blockID) zMin = 0;
-+		if (world.getBlockId(i, j, k + 1) == this.blockID) zMax = 1;
- 		return AxisAlignedBB.getBoundingBox(i + xMin, j + yMin, k + zMin, i + xMax, j + yMax, k + zMax);
- 	}
+   @Override
+@@ -84,17 +83,17 @@
+   public AxisAlignedBB getCollisionBoundingBoxFromPool(final World world, final int i, final int j,
+       final int k) {
+     float xMin = 0.25F, xMax = 0.75F, yMin = 0.25F, yMax = 0.75F, zMin = 0.25F, zMax = 0.75F;
+-    if (world.getBlock(i - 1, j, k) == this)
++    if (world.getBlockId(i - 1, j, k) == this.blockID)
+       xMin = 0;
+-    if (world.getBlock(i + 1, j, k) == this)
++    if (world.getBlockId(i + 1, j, k) == this.blockID)
+       xMax = 1;
+-    if (world.getBlock(i, j - 1, k) == this)
++    if (world.getBlockId(i, j - 1, k) == this.blockID)
+       yMin = 0;
+-    if (world.getBlock(i, j + 1, k) == this)
++    if (world.getBlockId(i, j + 1, k) == this.blockID)
+       yMax = 1;
+-    if (world.getBlock(i, j, k - 1) == this)
++    if (world.getBlockId(i, j, k - 1) == this.blockID)
+       zMin = 0;
+-    if (world.getBlock(i, j, k + 1) == this)
++    if (world.getBlockId(i, j, k + 1) == this.blockID)
+       zMax = 1;
+     return AxisAlignedBB.getBoundingBox(i + xMin, j + yMin, k + zMin, i + xMax, j + yMax, k + zMax);
+   }
+@@ -103,17 +102,17 @@
+   public MovingObjectPosition collisionRayTrace(final World world, final int i, final int j,
+       final int k, final Vec3 vec3d, final Vec3 vec3d1) {
+     float xMin = 0.25F, xMax = 0.75F, yMin = 0.25F, yMax = 0.75F, zMin = 0.25F, zMax = 0.75F;
+-    if (world.getBlock(i - 1, j, k) == this)
++    if (world.getBlockId(i - 1, j, k) == this.blockID)
+       xMin = 0;
+-    if (world.getBlock(i + 1, j, k) == this)
++    if (world.getBlockId(i + 1, j, k) == this.blockID)
+       xMax = 1;
+-    if (world.getBlock(i, j - 1, k) == this)
++    if (world.getBlockId(i, j - 1, k) == this.blockID)
+       yMin = 0;
+-    if (world.getBlock(i, j + 1, k) == this)
++    if (world.getBlockId(i, j + 1, k) == this.blockID)
+       yMax = 1;
+-    if (world.getBlock(i, j, k - 1) == this)
++    if (world.getBlockId(i, j, k - 1) == this.blockID)
+       zMin = 0;
+-    if (world.getBlock(i, j, k + 1) == this)
++    if (world.getBlockId(i, j, k + 1) == this.blockID)
+       zMax = 1;
+     setBlockBounds(xMin, yMin, zMin, xMax, yMax, zMax);
+     final MovingObjectPosition r = super.collisionRayTrace(world, i, j, k, vec3d, vec3d1);
+@@ -127,32 +126,32 @@
+     setBlockBounds(0.25F, 0.25F, 0.25F, 0.75F, 0.75F, 0.75F);
+     super.addCollisionBoxesToList(world, i, j, k, axisalignedbb, arraylist, par7Entity);
  
- 	@Override
- 	public MovingObjectPosition collisionRayTrace(World world, int i, int j, int k, Vec3 vec3d, Vec3 vec3d1) {
- 		float xMin = 0.25F, xMax = 0.75F, yMin = 0.25F, yMax = 0.75F, zMin = 0.25F, zMax = 0.75F;
--		if (world.getBlock(i - 1, j, k) == this) xMin = 0;
--		if (world.getBlock(i + 1, j, k) == this) xMax = 1;
--		if (world.getBlock(i, j - 1, k) == this) yMin = 0;
--		if (world.getBlock(i, j + 1, k) == this) yMax = 1;
--		if (world.getBlock(i, j, k - 1) == this) zMin = 0;
--		if (world.getBlock(i, j, k + 1) == this) zMax = 1;
-+		if (world.getBlockId(i - 1, j, k) == this.blockID) xMin = 0;
-+		if (world.getBlockId(i + 1, j, k) == this.blockID) xMax = 1;
-+		if (world.getBlockId(i, j - 1, k) == this.blockID) yMin = 0;
-+		if (world.getBlockId(i, j + 1, k) == this.blockID) yMax = 1;
-+		if (world.getBlockId(i, j, k - 1) == this.blockID) zMin = 0;
-+		if (world.getBlockId(i, j, k + 1) == this.blockID) zMax = 1;
- 		setBlockBounds(xMin, yMin, zMin, xMax, yMax, zMax);
- 		MovingObjectPosition r = super.collisionRayTrace(world, i, j, k, vec3d, vec3d1);
- 		setBlockBounds(0, 0, 0, 1, 1, 1);
-@@ -108,32 +108,32 @@
- 		setBlockBounds(0.25F, 0.25F, 0.25F, 0.75F, 0.75F, 0.75F);
- 		super.addCollisionBoxesToList(world, i, j, k, axisalignedbb, arraylist, par7Entity);
+-    if (world.getBlock(i - 1, j, k) == this) {
++    if (world.getBlockId(i - 1, j, k) == this.blockID) {
+       setBlockBounds(0, 0.25F, 0.25F, 0.75F, 0.75F, 0.75F);
+       super.addCollisionBoxesToList(world, i, j, k, axisalignedbb, arraylist, par7Entity);
+     }
  
--		if (world.getBlock(i - 1, j, k) == this) {
-+		if (world.getBlockId(i - 1, j, k) == this.blockID) {
- 			setBlockBounds(0, 0.25F, 0.25F, 0.75F, 0.75F, 0.75F);
- 			super.addCollisionBoxesToList(world, i, j, k, axisalignedbb, arraylist, par7Entity);
- 		}
+-    if (world.getBlock(i + 1, j, k) == this) {
++    if (world.getBlockId(i + 1, j, k) == this.blockID) {
+       setBlockBounds(0.25F, 0.25F, 0.25F, 1, 0.75F, 0.75F);
+       super.addCollisionBoxesToList(world, i, j, k, axisalignedbb, arraylist, par7Entity);
+     }
  
--		if (world.getBlock(i + 1, j, k) == this) {
-+		if (world.getBlockId(i + 1, j, k) == this.blockID) {
- 			setBlockBounds(0.25F, 0.25F, 0.25F, 1, 0.75F, 0.75F);
- 			super.addCollisionBoxesToList(world, i, j, k, axisalignedbb, arraylist, par7Entity);
- 		}
+-    if (world.getBlock(i, j - 1, k) == this) {
++    if (world.getBlockId(i, j - 1, k) == this.blockID) {
+       setBlockBounds(0.25F, 0, 0.25F, 0.75F, 0.75F, 0.75F);
+       super.addCollisionBoxesToList(world, i, j, k, axisalignedbb, arraylist, par7Entity);
+     }
  
--		if (world.getBlock(i, j - 1, k) == this) {
-+		if (world.getBlockId(i, j - 1, k) == this.blockID) {
- 			setBlockBounds(0.25F, 0, 0.25F, 0.75F, 0.75F, 0.75F);
- 			super.addCollisionBoxesToList(world, i, j, k, axisalignedbb, arraylist, par7Entity);
- 		}
+-    if (world.getBlock(i, j + 1, k) == this) {
++    if (world.getBlockId(i, j + 1, k) == this.blockID) {
+       setBlockBounds(0.25F, 0.25F, 0.25F, 0.75F, 1, 0.75F);
+       super.addCollisionBoxesToList(world, i, j, k, axisalignedbb, arraylist, par7Entity);
+     }
  
--		if (world.getBlock(i, j + 1, k) == this) {
-+		if (world.getBlockId(i, j + 1, k) == this.blockID) {
- 			setBlockBounds(0.25F, 0.25F, 0.25F, 0.75F, 1, 0.75F);
- 			super.addCollisionBoxesToList(world, i, j, k, axisalignedbb, arraylist, par7Entity);
- 		}
+-    if (world.getBlock(i, j, k - 1) == this) {
++    if (world.getBlockId(i, j, k - 1) == this.blockID) {
+       setBlockBounds(0.25F, 0.25F, 1, 0.75F, 0.75F, 0.75F);
+       super.addCollisionBoxesToList(world, i, j, k, axisalignedbb, arraylist, par7Entity);
+     }
  
--		if (world.getBlock(i, j, k - 1) == this) {
-+		if (world.getBlockId(i, j, k - 1) == this.blockID) {
- 			setBlockBounds(0.25F, 0.25F, 1, 0.75F, 0.75F, 0.75F);
- 			super.addCollisionBoxesToList(world, i, j, k, axisalignedbb, arraylist, par7Entity);
- 		}
- 
--		if (world.getBlock(i, j, k + 1) == this) {
-+		if (world.getBlockId(i, j, k + 1) == this.blockID) {
- 			setBlockBounds(0.25F, 0.25F, 0.25F, 0.75F, 0.75F, 1);
- 			super.addCollisionBoxesToList(world, i, j, k, axisalignedbb, arraylist, par7Entity);
- 		}
+-    if (world.getBlock(i, j, k + 1) == this) {
++    if (world.getBlockId(i, j, k + 1) == this.blockID) {
+       setBlockBounds(0.25F, 0.25F, 0.25F, 0.75F, 0.75F, 1);
+       super.addCollisionBoxesToList(world, i, j, k, axisalignedbb, arraylist, par7Entity);
+     }
 --- a/com/yogpc/qp/BlockInfMJSrc.java
 +++ b/com/yogpc/qp/BlockInfMJSrc.java
-@@ -25,8 +25,8 @@
+@@ -21,8 +21,8 @@
  
  public class BlockInfMJSrc extends BlockContainer {
  
--	public BlockInfMJSrc() {
--		super(Material.iron);
-+	public BlockInfMJSrc(int id) {
-+		super(id, Material.iron);
- 		setHardness(1.5F);
- 		setResistance(10F);
- 		setStepSound(soundStoneFootstep);
+-  public BlockInfMJSrc() {
+-    super(Material.iron);
++  public BlockInfMJSrc(final int id) {
++    super(id, Material.iron);
+     setHardness(1.5F);
+     setResistance(10F);
+     setStepSound(soundStoneFootstep);
 --- a/com/yogpc/qp/BlockLaser.java
 +++ b/com/yogpc/qp/BlockLaser.java
-@@ -21,7 +21,6 @@
+@@ -15,7 +15,6 @@
  
- import cpw.mods.fml.relauncher.Side;
- import cpw.mods.fml.relauncher.SideOnly;
+ import java.util.ArrayList;
+ 
 -import net.minecraft.block.Block;
  import net.minecraft.block.BlockContainer;
  import net.minecraft.block.material.Material;
  import net.minecraft.client.renderer.texture.IconRegister;
-@@ -39,8 +38,8 @@
- 	@SideOnly(Side.CLIENT)
- 	private Icon textureTop, textureBottom;
+@@ -35,8 +34,8 @@
+   @SideOnly(Side.CLIENT)
+   private Icon textureTop, textureBottom;
  
--	public BlockLaser() {
--		super(Material.iron);
-+	public BlockLaser(int id) {
-+		super(id, Material.iron);
- 		setHardness(10F);
- 		setCreativeTab(QuarryPlus.ct);
- 		this.setUnlocalizedName("LaserPlus");
-@@ -104,7 +103,7 @@
- 		ItemStack is;
- 		for (int i = 0; i < count; i++) {
- 			int it = idDropped(meta, world.rand, 0);
--			if (it != null) {
-+			if (it != 0) {
- 				is = new ItemStack(it, 1, damageDropped(meta));
- 				EnchantmentHelper.enchantmentToIS(tile, is);
- 				this.drop.add(is);
+-  public BlockLaser() {
+-    super(Material.iron);
++  public BlockLaser(final int id) {
++    super(id, Material.iron);
+     setHardness(10F);
+     setCreativeTab(QuarryPlus.ct);
+     setUnlocalizedName("LaserPlus");
+@@ -107,7 +106,7 @@
+     ItemStack is;
+     for (int i = 0; i < count; i++) {
+       final int it = idDropped(meta, world.rand, 0);
+-      if (it != null) {
++      if (it != 0) {
+         is = new ItemStack(it, 1, damageDropped(meta));
+         EnchantmentHelper.enchantmentToIS(tile, is);
+         this.drop.add(is);
 --- a/com/yogpc/qp/BlockMarker.java
 +++ b/com/yogpc/qp/BlockMarker.java
-@@ -19,7 +19,6 @@
+@@ -13,7 +13,6 @@
  
- import cpw.mods.fml.relauncher.Side;
- import cpw.mods.fml.relauncher.SideOnly;
+ package com.yogpc.qp;
+ 
+-import net.minecraft.block.Block;
+ import net.minecraft.block.BlockContainer;
+ import net.minecraft.block.material.Material;
+ import net.minecraft.client.renderer.texture.IconRegister;
+@@ -30,8 +29,8 @@
+ 
+ public class BlockMarker extends BlockContainer {
+ 
+-  public BlockMarker() {
+-    super(Material.circuits);
++  public BlockMarker(final int id) {
++    super(id, Material.circuits);
+     setLightValue(0.5F);
+     setCreativeTab(QuarryPlus.ct);
+     setUnlocalizedName("MarkerPlus");
+--- a/com/yogpc/qp/BlockMiningWell.java
++++ b/com/yogpc/qp/BlockMiningWell.java
+@@ -15,7 +15,6 @@
+ 
+ import java.util.ArrayList;
+ 
 -import net.minecraft.block.Block;
  import net.minecraft.block.BlockContainer;
  import net.minecraft.block.material.Material;
  import net.minecraft.client.renderer.texture.IconRegister;
 @@ -34,8 +33,8 @@
- 
- public class BlockMarker extends BlockContainer {
- 
--	public BlockMarker() {
--		super(Material.circuits);
-+	public BlockMarker(int id) {
-+		super(id, Material.circuits);
- 		setLightValue(0.5F);
- 		setCreativeTab(QuarryPlus.ct);
- 		setUnlocalizedName("MarkerPlus");
---- a/com/yogpc/qp/BlockMiningWell.java
-+++ b/com/yogpc/qp/BlockMiningWell.java
-@@ -21,7 +21,6 @@
- 
- import cpw.mods.fml.relauncher.Side;
- import cpw.mods.fml.relauncher.SideOnly;
--import net.minecraft.block.Block;
- import net.minecraft.block.BlockContainer;
- import net.minecraft.block.material.Material;
- import net.minecraft.client.renderer.texture.IconRegister;
-@@ -38,8 +37,8 @@
  public class BlockMiningWell extends BlockContainer {
- 	Icon textureFront, textureBack, textureTop, texW;
+   Icon textureFront, textureBack, textureTop, texW;
  
--	public BlockMiningWell() {
--		super(Material.ground);
-+	public BlockMiningWell(int id) {
-+		super(id, Material.ground);
- 		setHardness(1.5F);
- 		setResistance(10F);
- 		setCreativeTab(QuarryPlus.ct);
-@@ -109,7 +108,7 @@
- 		if (world.isRemote || tile == null) return;
- 		int count = quantityDropped(meta, 0, world.rand);
- 		int it = idDropped(meta, world.rand, 0);
--		if (it != null) {
-+		if (it != 0) {
- 			for (int i = 0; i < count; i++) {
- 				ItemStack is = new ItemStack(it, 1, damageDropped(meta));
- 				EnchantmentHelper.enchantmentToIS(tile, is);
+-  public BlockMiningWell() {
+-    super(Material.ground);
++  public BlockMiningWell(final int id) {
++    super(id, Material.ground);
+     setHardness(1.5F);
+     setResistance(10F);
+     setCreativeTab(QuarryPlus.ct);
+@@ -119,7 +118,7 @@
+       return;
+     final int count = quantityDropped(meta, 0, world.rand);
+     final int it = idDropped(meta, world.rand, 0);
+-    if (it != null)
++    if (it != 0)
+       for (int i = 0; i < count; i++) {
+         final ItemStack is = new ItemStack(it, 1, damageDropped(meta));
+         EnchantmentHelper.enchantmentToIS(tile, is);
 --- a/com/yogpc/qp/BlockMover.java
 +++ b/com/yogpc/qp/BlockMover.java
-@@ -29,8 +29,8 @@
+@@ -25,8 +25,8 @@
  public class BlockMover extends Block {
- 	Icon textureTop, textureBottom;
+   Icon textureTop, textureBottom;
  
--	public BlockMover() {
--		super(Material.iron);
-+	public BlockMover(int id) {
-+		super(id, Material.iron);
- 		setHardness(1.2F);
- 		this.setCreativeTab(QuarryPlus.ct);
- 		setUnlocalizedName("EnchantMover");
+-  public BlockMover() {
+-    super(Material.iron);
++  public BlockMover(final int id) {
++    super(id, Material.iron);
+     setHardness(1.2F);
+     setCreativeTab(QuarryPlus.ct);
+     setUnlocalizedName("EnchantMover");
 --- a/com/yogpc/qp/BlockPlacer.java
 +++ b/com/yogpc/qp/BlockPlacer.java
-@@ -34,9 +34,7 @@
+@@ -28,9 +28,7 @@
  import net.minecraft.nbt.NBTTagCompound;
  import net.minecraft.tileentity.TileEntity;
  import net.minecraft.util.Icon;
@@ -769,129 +812,132 @@
 -import net.minecraft.world.WorldServer;
  import net.minecraftforge.common.FakePlayerFactory;
  import net.minecraftforge.common.ForgeDirection;
+ import cpw.mods.fml.relauncher.Side;
+@@ -45,8 +43,8 @@
+   @SideOnly(Side.CLIENT)
+   protected Icon vectrial;
  
-@@ -49,8 +47,8 @@
- 	@SideOnly(Side.CLIENT)
- 	protected Icon vectrial;
+-  protected BlockPlacer() {
+-    super(Material.rock);
++  protected BlockPlacer(final int id) {
++    super(id, Material.rock);
+     setCreativeTab(QuarryPlus.ct);
+     setHardness(3.5F);
+     setStepSound(soundStoneFootstep);
+@@ -92,7 +90,7 @@
+     final boolean flag1 = (i1 & 8) != 0;
  
--	protected BlockPlacer() {
--		super(Material.rock);
-+	protected BlockPlacer(int id) {
-+		super(id, Material.rock);
- 		this.setCreativeTab(QuarryPlus.ct);
- 		this.setHardness(3.5F);
- 		this.setStepSound(soundStoneFootstep);
-@@ -93,7 +91,7 @@
- 		boolean flag1 = (i1 & 8) != 0;
+     if (flag && !flag1) {
+-      par1World.scheduleBlockUpdate(par2, par3, par4, this, 0);
++      par1World.scheduleBlockUpdate(par2, par3, par4, this.blockID, 0);
+       par1World.setBlockMetadataWithNotify(par2, par3, par4, i1 | 8, 4);
+     } else if (!flag && flag1)
+       par1World.setBlockMetadataWithNotify(par2, par3, par4, i1 & -9, 4);
+@@ -132,7 +130,7 @@
+       ty = y + fd2.offsetY;
+       tz = z + fd2.offsetZ;
  
- 		if (flag && !flag1) {
--			par1World.scheduleBlockUpdate(par2, par3, par4, this, 0);
-+			par1World.scheduleBlockUpdate(par2, par3, par4, this.blockID, 0);
- 			par1World.setBlockMetadataWithNotify(par2, par3, par4, i1 | 8, 4);
- 		} else if (!flag && flag1) {
- 			par1World.setBlockMetadataWithNotify(par2, par3, par4, i1 & -9, 4);
-@@ -130,7 +128,7 @@
- 			ty = y + fd2.offsetY;
- 			tz = z + fd2.offsetZ;
- 
--			final EntityPlayer player = FakePlayerFactory.getMinecraft((WorldServer) world);
-+			final EntityPlayer player = FakePlayerFactory.getMinecraft(world);
- 			ItemStack is = null;
- 			int i = 0;
- 			for (; i < tile.getSizeInventory(); i++) {
-@@ -144,7 +142,7 @@
- 					if (is.getItem().onItemUseFirst(is, player, world, tx + fd5.offsetX, ty + fd5.offsetY, tz + fd5.offsetZ, sd6, 0.5F, 0.5F, 0.5F)) break;
- 					if (is.getItem().onItemUseFirst(is, player, world, tx + fd6.offsetX, ty + fd6.offsetY, tz + fd6.offsetZ, sd5, 0.5F, 0.5F, 0.5F)) break;
- 				}
--				Block k = world.getBlock(tx, ty, tz);
-+				Block k = Block.blocksList[world.getBlockId(tx, ty, tz)];
- 				if (k != null && k.onBlockActivated(world, tx, ty, tz, player, sd1, 0.5F, 0.5F, 0.5F)) break;
- 				if (is != null) {
- 					if (is.tryPlaceItemIntoWorld(player, world, tx, ty, tz, sd1, 0.5F, 0.5F, 0.5F)) break;
+-      final EntityPlayer player = FakePlayerFactory.getMinecraft((WorldServer) world);
++      final EntityPlayer player = FakePlayerFactory.getMinecraft(world);
+       ItemStack is = null;
+       int i = 0;
+       for (; i < tile.getSizeInventory(); i++) {
+@@ -159,7 +157,7 @@
+               tz + fd6.offsetZ, sd5, 0.5F, 0.5F, 0.5F))
+             break;
+         }
+-        final Block k = world.getBlock(tx, ty, tz);
++        final Block k = Block.blocksList[world.getBlockId(tx, ty, tz)];
+         if (k != null && k.onBlockActivated(world, tx, ty, tz, player, sd1, 0.5F, 0.5F, 0.5F))
+           break;
+         if (is != null) {
 --- a/com/yogpc/qp/BlockPlainPipe.java
 +++ b/com/yogpc/qp/BlockPlainPipe.java
-@@ -7,8 +7,8 @@
- import net.minecraft.item.Item;
+@@ -4,11 +4,10 @@
+ 
+ import net.minecraft.block.Block;
+ import net.minecraft.block.material.Material;
+-import net.minecraft.item.Item;
  
  public class BlockPlainPipe extends Block {
--	public BlockPlainPipe() {
--		super(Material.glass);
-+	public BlockPlainPipe(int id) {
-+		super(id, Material.glass);
- 		this.minX = 0.25;
- 		this.minY = 0.0;
- 		this.minZ = 0.25;
-@@ -30,6 +30,6 @@
+-  public BlockPlainPipe() {
+-    super(Material.glass);
++  public BlockPlainPipe(final int id) {
++    super(id, Material.glass);
+     this.minX = 0.25;
+     this.minY = 0.0;
+     this.minZ = 0.25;
+@@ -30,6 +29,6 @@
  
- 	@Override
- 	public int idDropped(int i, Random random, int fortune) {
--		return null;
-+		return 0;
- 	}
+   @Override
+   public int idDropped(final int i, final Random random, final int fortune) {
+-    return null;
++    return 0;
+   }
  }
 --- a/com/yogpc/qp/BlockPump.java
 +++ b/com/yogpc/qp/BlockPump.java
-@@ -21,7 +21,6 @@
+@@ -15,7 +15,6 @@
  
- import cpw.mods.fml.relauncher.Side;
- import cpw.mods.fml.relauncher.SideOnly;
+ import java.util.ArrayList;
+ 
 -import net.minecraft.block.Block;
  import net.minecraft.block.BlockContainer;
  import net.minecraft.block.material.Material;
  import net.minecraft.client.renderer.texture.IconRegister;
-@@ -38,8 +37,8 @@
+@@ -34,8 +33,8 @@
  
- 	private Icon textureTop, textureBottom, textureSide, texW, texC;
+   private Icon textureTop, textureBottom, textureSide, texW, texC;
  
--	public BlockPump() {
--		super(Material.iron);
-+	public BlockPump(int id) {
-+		super(id, Material.iron);
- 		setHardness(5F);
- 		setCreativeTab(QuarryPlus.ct);
- 		setUnlocalizedName("PumpPlus");
-@@ -93,7 +92,7 @@
- 		if (world.isRemote || tile == null) return;
- 		int count = quantityDropped(meta, 0, world.rand);
- 		int it = idDropped(meta, world.rand, 0);
--		if (it != null) {
-+		if (it != 0) {
- 			for (int i = 0; i < count; i++) {
- 				ItemStack is = new ItemStack(it, 1, damageDropped(meta));
- 				EnchantmentHelper.enchantmentToIS(tile, is);
+-  public BlockPump() {
+-    super(Material.iron);
++  public BlockPump(final int id) {
++    super(id, Material.iron);
+     setHardness(5F);
+     setCreativeTab(QuarryPlus.ct);
+     setUnlocalizedName("PumpPlus");
+@@ -92,7 +91,7 @@
+       return;
+     final int count = quantityDropped(meta, 0, world.rand);
+     final int it = idDropped(meta, world.rand, 0);
+-    if (it != null)
++    if (it != 0)
+       for (int i = 0; i < count; i++) {
+         final ItemStack is = new ItemStack(it, 1, damageDropped(meta));
+         EnchantmentHelper.enchantmentToIS(tile, is);
 --- a/com/yogpc/qp/BlockQuarry.java
 +++ b/com/yogpc/qp/BlockQuarry.java
-@@ -21,7 +21,6 @@
+@@ -15,7 +15,6 @@
  
- import cpw.mods.fml.relauncher.Side;
- import cpw.mods.fml.relauncher.SideOnly;
+ import java.util.ArrayList;
+ 
 -import net.minecraft.block.Block;
  import net.minecraft.block.BlockContainer;
  import net.minecraft.block.material.Material;
  import net.minecraft.client.renderer.texture.IconRegister;
-@@ -38,8 +37,8 @@
+@@ -34,8 +33,8 @@
  public class BlockQuarry extends BlockContainer {
- 	Icon textureTop, textureFront, texBB, texNNB, texMF;
+   Icon textureTop, textureFront, texBB, texNNB, texMF;
  
--	public BlockQuarry() {
--		super(Material.iron);
-+	public BlockQuarry(int id) {
-+		super(id, Material.iron);
- 		setHardness(1.5F);
- 		setResistance(10F);
- 		setStepSound(soundStoneFootstep);
-@@ -56,7 +55,7 @@
- 		if (world.isRemote || tile == null) return;
- 		int count = quantityDropped(meta, 0, world.rand);
- 		int it = idDropped(meta, world.rand, 0);
--		if (it != null) {
-+		if (it != 0) {
- 			for (int i = 0; i < count; i++) {
- 				ItemStack is = new ItemStack(it, 1, damageDropped(meta));
- 				EnchantmentHelper.enchantmentToIS(tile, is);
+-  public BlockQuarry() {
+-    super(Material.iron);
++  public BlockQuarry(final int id) {
++    super(id, Material.iron);
+     setHardness(1.5F);
+     setResistance(10F);
+     setStepSound(soundStoneFootstep);
+@@ -53,7 +52,7 @@
+       return;
+     final int count = quantityDropped(meta, 0, world.rand);
+     final int it = idDropped(meta, world.rand, 0);
+-    if (it != null)
++    if (it != 0)
+       for (int i = 0; i < count; i++) {
+         final ItemStack is = new ItemStack(it, 1, damageDropped(meta));
+         EnchantmentHelper.enchantmentToIS(tile, is);
 --- a/com/yogpc/qp/BlockRefinery.java
 +++ b/com/yogpc/qp/BlockRefinery.java
-@@ -19,7 +19,6 @@
+@@ -15,7 +15,6 @@
  
  import java.util.ArrayList;
  
@@ -899,38 +945,38 @@
  import net.minecraft.block.BlockContainer;
  import net.minecraft.block.material.Material;
  import net.minecraft.entity.EntityLivingBase;
-@@ -36,8 +35,8 @@
+@@ -32,8 +31,8 @@
  
  public class BlockRefinery extends BlockContainer {
  
--	public BlockRefinery() {
--		super(Material.iron);
-+	public BlockRefinery(int id) {
-+		super(id, Material.iron);
- 		setHardness(5F);
- 		setCreativeTab(QuarryPlus.ct);
- 		setUnlocalizedName("RefineryPlus");
-@@ -58,7 +57,7 @@
- 		if (world.isRemote || tile == null) return;
- 		int count = quantityDropped(meta, 0, world.rand);
- 		int it = idDropped(meta, world.rand, 0);
--		if (it != null) {
-+		if (it != 0) {
- 			for (int i = 0; i < count; i++) {
- 				ItemStack is = new ItemStack(it, 1, damageDropped(meta));
- 				EnchantmentHelper.enchantmentToIS(tile, is);
-@@ -83,7 +82,7 @@
- 	}
+-  public BlockRefinery() {
+-    super(Material.iron);
++  public BlockRefinery(final int id) {
++    super(id, Material.iron);
+     setHardness(5F);
+     setCreativeTab(QuarryPlus.ct);
+     setUnlocalizedName("RefineryPlus");
+@@ -55,7 +54,7 @@
+       return;
+     final int count = quantityDropped(meta, 0, world.rand);
+     final int it = idDropped(meta, world.rand, 0);
+-    if (it != null)
++    if (it != 0)
+       for (int i = 0; i < count; i++) {
+         final ItemStack is = new ItemStack(it, 1, damageDropped(meta));
+         EnchantmentHelper.enchantmentToIS(tile, is);
+@@ -82,7 +81,7 @@
+   }
  
- 	private static void consumeItem(EntityPlayer ep, ItemStack stack) {
--		ItemStack container = stack.getItem().getContainerItem();
-+		ItemStack container = stack.getItem().hasContainerItem() ? new ItemStack(stack.getItem().getContainerItem()) : null;
- 		stack.stackSize--;
- 		if (stack.stackSize > 0) ep.inventory.setInventorySlotContents(ep.inventory.currentItem, stack);
- 		else ep.inventory.setInventorySlotContents(ep.inventory.currentItem, null);
+   private static void consumeItem(final EntityPlayer ep, final ItemStack stack) {
+-    final ItemStack container = stack.getItem().getContainerItem();
++    final ItemStack container = stack.getItem().hasContainerItem() ? new ItemStack(stack.getItem().getContainerItem()) : null;
+     stack.stackSize--;
+     if (stack.stackSize > 0)
+       ep.inventory.setInventorySlotContents(ep.inventory.currentItem, stack);
 --- a/com/yogpc/qp/ChunkLoadingHandler.java
 +++ b/com/yogpc/qp/ChunkLoadingHandler.java
-@@ -19,7 +19,6 @@
+@@ -15,7 +15,6 @@
  
  import java.util.List;
  
@@ -938,51 +984,51 @@
  import net.minecraft.tileentity.TileEntity;
  import net.minecraft.world.World;
  import net.minecraftforge.common.ForgeChunkManager;
-@@ -48,8 +47,8 @@
- 			int quarryY = ticket.getModData().getInteger("quarryY");
- 			int quarryZ = ticket.getModData().getInteger("quarryZ");
+@@ -47,8 +46,8 @@
+       final int quarryY = ticket.getModData().getInteger("quarryY");
+       final int quarryZ = ticket.getModData().getInteger("quarryZ");
  
--			Block b = world.getBlock(quarryX, quarryY, quarryZ);
--			if (b == QuarryPlus.blockQuarry || b == QuarryPlus.blockMarker) {
-+			int b = world.getBlockId(quarryX, quarryY, quarryZ);
-+			if (b == QuarryPlus.blockQuarry.blockID || b == QuarryPlus.blockMarker.blockID) {
- 				validTickets.add(ticket);
- 			}
- 		}
+-      final Block b = world.getBlock(quarryX, quarryY, quarryZ);
+-      if (b == QuarryPlus.blockQuarry || b == QuarryPlus.blockMarker)
++      final int b = world.getBlockId(quarryX, quarryY, quarryZ);
++      if (b == QuarryPlus.blockQuarry.blockID || b == QuarryPlus.blockMarker.blockID)
+         validTickets.add(ticket);
+     }
+     return validTickets;
 --- a/com/yogpc/qp/ContainerMover.java
 +++ b/com/yogpc/qp/ContainerMover.java
-@@ -81,7 +81,7 @@
+@@ -73,7 +73,7 @@
  
- 	@Override
- 	public boolean canInteractWith(EntityPlayer var1) {
--		return this.worldObj.getBlock(this.posX, this.posY, this.posZ) != QuarryPlus.blockMover ? false : var1.getDistanceSq(this.posX + 0.5D,
-+		return this.worldObj.getBlockId(this.posX, this.posY, this.posZ) != QuarryPlus.blockMover.blockID ? false : var1.getDistanceSq(this.posX + 0.5D,
- 				this.posY + 0.5D, this.posZ + 0.5D) <= 64.0D;
- 	}
+   @Override
+   public boolean canInteractWith(final EntityPlayer var1) {
+-    return this.worldObj.getBlock(this.posX, this.posY, this.posZ) != QuarryPlus.blockMover ? false
++    return this.worldObj.getBlockId(this.posX, this.posY, this.posZ) != QuarryPlus.blockMover.blockID ? false
+         : var1.getDistanceSq(this.posX + 0.5D, this.posY + 0.5D, this.posZ + 0.5D) <= 64.0D;
+   }
  
-@@ -115,7 +115,7 @@
- 						{
- 							NBTTagList nlist = new NBTTagList();
- 							for (int j = 0; j < list.tagCount(); j++) {
--								if (((NBTTagCompound)list.tagAt(j)).getShort("id") != eid) nlist.appendTag(((NBTTagCompound)list.tagAt(j)));
-+								if (((NBTTagCompound)list.tagAt(j)).getShort("id") != eid) nlist.appendTag(list.tagAt(j));
- 							}
- 							list = nlist;
- 						}
+@@ -111,7 +111,7 @@
+               final NBTTagList nlist = new NBTTagList();
+               for (int j = 0; j < list.tagCount(); j++)
+                 if (((NBTTagCompound)list.tagAt(j)).getShort("id") != eid)
+-                  nlist.appendTag(((NBTTagCompound)list.tagAt(j)));
++                  nlist.appendTag((list.tagAt(j)));
+               list = nlist;
+             }
+             is.getTagCompound().removeTag("ench");
 --- a/com/yogpc/qp/CreativeTabQuarryPlus.java
 +++ b/com/yogpc/qp/CreativeTabQuarryPlus.java
 @@ -11,7 +11,7 @@
  
- 	@Override
- 	public Item getTabIconItem() {
--		return Item.getItemFromBlock(QuarryPlus.blockQuarry);
-+		return Item.itemsList[QuarryPlus.blockQuarry.blockID];
- 	}
+   @Override
+   public Item getTabIconItem() {
+-    return Item.getItemFromBlock(QuarryPlus.blockQuarry);
++    return Item.itemsList[QuarryPlus.blockQuarry.blockID];
+   }
  
  }
 --- a/com/yogpc/qp/EnchantmentHelper.java
 +++ b/com/yogpc/qp/EnchantmentHelper.java
-@@ -22,6 +22,7 @@
+@@ -18,6 +18,7 @@
  
  import net.minecraft.enchantment.Enchantment;
  import net.minecraft.item.ItemStack;
@@ -992,7 +1038,7 @@
  
 --- a/com/yogpc/qp/ItemBlockBreaker.java
 +++ b/com/yogpc/qp/ItemBlockBreaker.java
-@@ -17,13 +17,12 @@
+@@ -13,13 +13,12 @@
  
  package com.yogpc.qp;
  
@@ -1002,14 +1048,14 @@
  
  public class ItemBlockBreaker extends ItemBlock implements IEnchantableItem {
  
--	public ItemBlockBreaker(Block b) {
-+	public ItemBlockBreaker(int b) {
- 		super(b);
- 	}
+-  public ItemBlockBreaker(final Block b) {
++  public ItemBlockBreaker(final int b) {
+     super(b);
+   }
  
 --- a/com/yogpc/qp/ItemBlockPump.java
 +++ b/com/yogpc/qp/ItemBlockPump.java
-@@ -17,13 +17,12 @@
+@@ -13,13 +13,12 @@
  
  package com.yogpc.qp;
  
@@ -1019,14 +1065,14 @@
  
  public class ItemBlockPump extends ItemBlock implements IEnchantableItem {
  
--	public ItemBlockPump(Block b) {
-+	public ItemBlockPump(int b) {
- 		super(b);
- 	}
+-  public ItemBlockPump(final Block b) {
++  public ItemBlockPump(final int b) {
+     super(b);
+   }
  
 --- a/com/yogpc/qp/ItemBlockQuarry.java
 +++ b/com/yogpc/qp/ItemBlockQuarry.java
-@@ -17,13 +17,12 @@
+@@ -13,13 +13,12 @@
  
  package com.yogpc.qp;
  
@@ -1036,14 +1082,14 @@
  
  public class ItemBlockQuarry extends ItemBlock implements IEnchantableItem {
  
--	public ItemBlockQuarry(Block b) {
-+	public ItemBlockQuarry(int b) {
- 		super(b);
- 	}
+-  public ItemBlockQuarry(final Block b) {
++  public ItemBlockQuarry(final int b) {
+     super(b);
+   }
  
 --- a/com/yogpc/qp/ItemBlockRefinery.java
 +++ b/com/yogpc/qp/ItemBlockRefinery.java
-@@ -17,13 +17,12 @@
+@@ -13,13 +13,12 @@
  
  package com.yogpc.qp;
  
@@ -1053,67 +1099,52 @@
  
  public class ItemBlockRefinery extends ItemBlock implements IEnchantableItem {
  
--	public ItemBlockRefinery(Block b) {
-+	public ItemBlockRefinery(int b) {
- 		super(b);
- 	}
+-  public ItemBlockRefinery(final Block b) {
++  public ItemBlockRefinery(final int b) {
+     super(b);
+   }
  
 --- a/com/yogpc/qp/ItemTool.java
 +++ b/com/yogpc/qp/ItemTool.java
-@@ -22,7 +22,6 @@
+@@ -30,15 +30,14 @@
  import com.yogpc.mc_lib.PacketHandler;
  import com.yogpc.qp.QuarryPlus.BlockData;
  
 -import cpw.mods.fml.common.registry.GameData;
  import cpw.mods.fml.relauncher.Side;
  import cpw.mods.fml.relauncher.SideOnly;
- import net.minecraft.block.Block;
-@@ -40,8 +39,8 @@
- public class ItemTool extends Item implements IEnchantableItem {
- 	Icon ile, ils;
  
--	public ItemTool() {
--		super();
-+	public ItemTool(int id) {
-+		super(id);
- 		setMaxStackSize(1);
- 		setHasSubtypes(true);
- 		this.setMaxDamage(0);
-@@ -76,7 +75,7 @@
- 				if (id == 35) f = true;
- 			}
- 			NBTTagCompound c = is.getTagCompound();
--			Block b = w.getBlock(x, y, z);
-+			Block b = Block.blocksList[w.getBlockId(x, y, z)];
- 			BlockData bd = null;
- 			if (c != null && c.hasKey("Bname")) {
- 				bd = new BlockData(c.getString("Bname"), c.getInteger("Bmeta"));
-@@ -100,7 +99,7 @@
- 					c = new NBTTagCompound();
- 					is.setTagCompound(c);
- 				}
--				String name = GameData.getBlockRegistry().getNameForObject(b);
-+				String name = Integer.toString(b.blockID);
- 				int meta = w.getBlockMetadata(x, y, z);
- 				if (c.hasKey("Bname") && name.equals(c.getString("Bname")) && meta == c.getInteger("Bmeta")) {
- 					c.setInteger("Bmeta", OreDictionary.WILDCARD_VALUE);
+ public class ItemTool extends Item implements IEnchantableItem {
+   Icon ile, ils;
+ 
+-  public ItemTool() {
+-    super();
++  public ItemTool(final int id) {
++    super(id);
+     setMaxStackSize(1);
+     setHasSubtypes(true);
+     setMaxDamage(0);
+@@ -78,7 +77,7 @@
+             f = true;
+         }
+       NBTTagCompound c = is.getTagCompound();
+-      final Block b = w.getBlock(x, y, z);
++      final Block b = Block.blocksList[w.getBlockId(x, y, z)];
+       BlockData bd = null;
+       if (c != null && c.hasKey("Bname")) {
+         bd = new BlockData(c.getString("Bname"), c.getInteger("Bmeta"));
+@@ -105,7 +104,7 @@
+           c = new NBTTagCompound();
+           is.setTagCompound(c);
+         }
+-        final String name = GameData.getBlockRegistry().getNameForObject(b);
++        final String name = Integer.toString(b.blockID);
+         final int meta = w.getBlockMetadata(x, y, z);
+         if (c.hasKey("Bname") && name.equals(c.getString("Bname")) && meta == c.getInteger("Bmeta"))
+           c.setInteger("Bmeta", OreDictionary.WILDCARD_VALUE);
 --- a/com/yogpc/qp/QuarryPlus.java
 +++ b/com/yogpc/qp/QuarryPlus.java
-@@ -21,6 +21,7 @@
- 
- import com.yogpc.mc_lib.PacketHandler;
- import com.yogpc.mc_lib.ReflectionHelper;
-+import com.yogpc.mc_lib.YogpstopLib;
- import com.yogpc.qp.client.RenderEntityLaser;
- 
- import buildcraft.BuildCraftBuilders;
-@@ -29,13 +30,10 @@
- import buildcraft.BuildCraftFactory;
- import buildcraft.BuildCraftSilicon;
- import buildcraft.BuildCraftTransport;
--import buildcraft.api.recipes.BuildcraftRecipes;
--import buildcraft.api.transport.PipeWire;
-+import buildcraft.api.recipes.AssemblyRecipe;
+@@ -18,16 +18,14 @@
  import net.minecraft.block.Block;
  import net.minecraft.client.renderer.texture.TextureMap;
  import net.minecraft.creativetab.CreativeTabs;
@@ -1122,304 +1153,338 @@
  import net.minecraft.item.Item;
  import net.minecraft.item.ItemStack;
  import net.minecraft.util.Icon;
-@@ -52,7 +50,6 @@
+ import net.minecraftforge.client.event.TextureStitchEvent;
+ import net.minecraftforge.common.ForgeChunkManager;
+ import net.minecraftforge.common.MinecraftForge;
+ import net.minecraftforge.common.Configuration;
+ import net.minecraftforge.common.Property;
+ import net.minecraftforge.event.world.WorldEvent;
+ import net.minecraftforge.oredict.OreDictionary;
+ import buildcraft.BuildCraftBuilders;
+@@ -36,11 +34,11 @@
+ import buildcraft.BuildCraftFactory;
+ import buildcraft.BuildCraftSilicon;
+ import buildcraft.BuildCraftTransport;
+-import buildcraft.api.recipes.BuildcraftRecipes;
+-import buildcraft.api.transport.PipeWire;
++import buildcraft.api.recipes.AssemblyRecipe;
+ 
+ import com.yogpc.mc_lib.PacketHandler;
+ import com.yogpc.mc_lib.ReflectionHelper;
++import com.yogpc.mc_lib.YogpstopLib;
+ import com.yogpc.qp.client.RenderEntityLaser;
+ 
+ import cpw.mods.fml.client.registry.RenderingRegistry;
+@@ -48,9 +48,8 @@
+ import cpw.mods.fml.common.SidedProxy;
  import cpw.mods.fml.common.event.FMLInitializationEvent;
  import cpw.mods.fml.common.event.FMLPreInitializationEvent;
  import net.minecraftforge.event.ForgeSubscribe;
+ import cpw.mods.fml.common.network.NetworkRegistry;
 -import cpw.mods.fml.common.registry.GameData;
  import cpw.mods.fml.common.registry.GameRegistry;
- import cpw.mods.fml.common.network.NetworkRegistry;
  import cpw.mods.fml.relauncher.Side;
-@@ -107,8 +104,22 @@
- 	@Mod.EventHandler
- 	public void preInit(FMLPreInitializationEvent event) {
- 		Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
-+		int[] id = new int[13];
- 		try {
- 			cfg.load();
-+			id[0] = cfg.getBlock("Quarry", 1970).getInt();
-+			id[1] = cfg.getBlock("Marker", 1971).getInt();
-+			id[2] = cfg.getBlock("EnchantMover", 1972).getInt();
-+			id[3] = cfg.getBlock("MiningWell", 1973).getInt();
-+			id[4] = cfg.getBlock("Pump", 1974).getInt();
-+			id[5] = cfg.getBlock("InfMJSrc", 1975).getInt();
-+			id[6] = cfg.getBlock("Refinery", 1976).getInt();
-+			id[7] = cfg.getBlock("Placer", 1977).getInt();
-+			id[8] = cfg.getBlock("Breaker", 1978).getInt();
-+			id[9] = cfg.getBlock("Laser", 1979).getInt();
-+			id[10] = cfg.getBlock("PlainPipe", 1980).getInt();
-+			id[11] = cfg.getBlock("Frame", 1981).getInt();
-+			id[12] = cfg.getItem("Tools", 18463).getInt();
- 			Property RD = cfg.get(Configuration.CATEGORY_GENERAL, "RecipeDifficulty", 2);
- 			RD.comment = "0:AsCheatRecipe,1:EasyRecipe,2:NormalRecipe(Default),3:HardRecipe,other:NormalRecipe";
- 			RecipeDifficulty = RD.getInt(2);
-@@ -119,28 +130,29 @@
- 			cfg.save();
- 		}
- 		try {
--			blockQuarry = (new BlockQuarry());
--			blockMarker = (new BlockMarker());
--			blockMover = (new BlockMover());
--			blockMiningWell = (new BlockMiningWell());
--			blockPump = (new BlockPump());
--			blockInfMJSrc = (new BlockInfMJSrc());
--			blockRefinery = (new BlockRefinery());
--			blockPlacer = (new BlockPlacer());
--			blockBreaker = (new BlockBreaker());
--			blockLaser = (new BlockLaser());
--			blockPlainPipe = (new BlockPlainPipe());
--			blockFrame = (new BlockFrame());
--			itemTool = (new ItemTool());
-+			blockQuarry = (new BlockQuarry(id[0]));
-+			blockMarker = (new BlockMarker(id[1]));
-+			blockMover = (new BlockMover(id[2]));
-+			blockMiningWell = (new BlockMiningWell(id[3]));
-+			blockPump = (new BlockPump(id[4]));
-+			blockInfMJSrc = (new BlockInfMJSrc(id[5]));
-+			blockRefinery = (new BlockRefinery(id[6]));
-+			blockPlacer = (new BlockPlacer(id[7]));
-+			blockBreaker = (new BlockBreaker(id[8]));
-+			blockLaser = (new BlockLaser(id[9]));
-+			blockPlainPipe = (new BlockPlainPipe(id[10]));
-+			blockFrame = (new BlockFrame(id[11]));
-+			itemTool = (new ItemTool(id[12]));
- 		} catch (Exception e) {
- 			e.printStackTrace();
- 		}
- 		ForgeChunkManager.setForcedChunkLoadingCallback(instance, new ChunkLoadingHandler());
- 		MinecraftForge.EVENT_BUS.register(this);
-+		YogpstopLib.loadLangs(event.getSourceFile());
- 	}
+ import cpw.mods.fml.relauncher.SideOnly;
+@@ -119,8 +116,22 @@
+   @Mod.EventHandler
+   public void preInit(final FMLPreInitializationEvent event) {
+     final Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
++    final int[] id = new int[13];
+     try {
+       cfg.load();
++      id[0] = cfg.getBlock("Quarry", 1970).getInt();
++      id[1] = cfg.getBlock("Marker", 1971).getInt();
++      id[2] = cfg.getBlock("EnchantMover", 1972).getInt();
++      id[3] = cfg.getBlock("MiningWell", 1973).getInt();
++      id[4] = cfg.getBlock("Pump", 1974).getInt();
++      id[5] = cfg.getBlock("InfMJSrc", 1975).getInt();
++      id[6] = cfg.getBlock("Refinery", 1976).getInt();
++      id[7] = cfg.getBlock("Placer", 1977).getInt();
++      id[8] = cfg.getBlock("Breaker", 1978).getInt();
++      id[9] = cfg.getBlock("Laser", 1979).getInt();
++      id[10] = cfg.getBlock("PlainPipe", 1980).getInt();
++      id[11] = cfg.getBlock("Frame", 1981).getInt();
++      id[12] = cfg.getItem("Tools", 18463).getInt();
+       final Property RD = cfg.get(Configuration.CATEGORY_GENERAL, "RecipeDifficulty", 2);
+       RD.comment =
+           "0:AsCheatRecipe,1:EasyRecipe,2:NormalRecipe(Default),3:HardRecipe,other:NormalRecipe";
+@@ -132,28 +143,29 @@
+       cfg.save();
+     }
+     try {
+-      blockQuarry = new BlockQuarry();
+-      blockMarker = new BlockMarker();
+-      blockMover = new BlockMover();
+-      blockMiningWell = new BlockMiningWell();
+-      blockPump = new BlockPump();
+-      blockInfMJSrc = new BlockInfMJSrc();
+-      blockRefinery = new BlockRefinery();
+-      blockPlacer = new BlockPlacer();
+-      blockBreaker = new BlockBreaker();
+-      blockLaser = new BlockLaser();
+-      blockPlainPipe = new BlockPlainPipe();
+-      blockFrame = new BlockFrame();
+-      itemTool = new ItemTool();
++      blockQuarry = new BlockQuarry(id[0]);
++      blockMarker = new BlockMarker(id[1]);
++      blockMover = new BlockMover(id[2]);
++      blockMiningWell = new BlockMiningWell(id[3]);
++      blockPump = new BlockPump(id[4]);
++      blockInfMJSrc = new BlockInfMJSrc(id[5]);
++      blockRefinery = new BlockRefinery(id[6]);
++      blockPlacer = new BlockPlacer(id[7]);
++      blockBreaker = new BlockBreaker(id[8]);
++      blockLaser = new BlockLaser(id[9]);
++      blockPlainPipe = new BlockPlainPipe(id[10]);
++      blockFrame = new BlockFrame(id[11]);
++      itemTool = new ItemTool(id[12]);
+     } catch (final Exception e) {
+       e.printStackTrace();
+     }
+     ForgeChunkManager.setForcedChunkLoadingCallback(instance, new ChunkLoadingHandler());
+     MinecraftForge.EVENT_BUS.register(this);
++    YogpstopLib.loadLangs(event.getSourceFile());
+   }
  
- 	private static final void addAssemblyRecipe(int a, ItemStack b, ItemStack... c) {
--		BuildcraftRecipes.assemblyTable.addRecipe(a, b, c);
-+		AssemblyRecipe.assemblyRecipes.add(new AssemblyRecipe(a, b, c));
- 	}
+   private static final void addAssemblyRecipe(final int a, final ItemStack b, final ItemStack... c) {
+-    BuildcraftRecipes.assemblyTable.addRecipe(a, b, c);
++    AssemblyRecipe.assemblyRecipes.add(new AssemblyRecipe(a, b, c));
+   }
  
- 	@Mod.EventHandler
-@@ -204,7 +216,7 @@
- 			break;
- 		case 1:
- 			addAssemblyRecipe(160000, new ItemStack(blockQuarry, 1), new ItemStack(BuildCraftFactory.quarryBlock, 1), new ItemStack(redstoneChipset, 1, 3),
--					new ItemStack(BuildCraftTransport.pipeWire, 8, PipeWire.YELLOW.ordinal()));
-+					new ItemStack(BuildCraftTransport.yellowPipeWire, 8));
- 			addAssemblyRecipe(40000, new ItemStack(blockMover, 1), new ItemStack(Block.enchantmentTable, 1), new ItemStack(
- 					BuildCraftFactory.autoWorkbenchBlock, 1), new ItemStack(Block.anvil, 1), new ItemStack(BuildCraftSilicon.laserBlock, 2), new ItemStack(
- 					BuildCraftSilicon.assemblyTableBlock, 1));
-@@ -232,7 +242,7 @@
- 			addAssemblyRecipe(160000, new ItemStack(itemTool, 1, 2), new ItemStack(BuildCraftCore.wrenchItem, 2), new ItemStack(Item.bucketEmpty, 2),
- 					new ItemStack(Item.bucketWater, 1), new ItemStack(Item.bucketLava, 1));
- 			addAssemblyRecipe(80000, new ItemStack(blockMiningWell, 1), new ItemStack(BuildCraftFactory.miningWellBlock, 1), new ItemStack(redstoneChipset, 1,
--					3), new ItemStack(BuildCraftTransport.pipeWire, 8, PipeWire.YELLOW.ordinal()));
-+					3), new ItemStack(BuildCraftTransport.yellowPipeWire, 8));
- 			addAssemblyRecipe(40000, new ItemStack(blockBreaker, 1), new ItemStack(Block.dispenser, 1), new ItemStack(Item.pickaxeDiamond, 1),
- 					new ItemStack(BuildCraftEnergy.engineBlock, 1, 1));
- 			addAssemblyRecipe(80000, new ItemStack(blockPlacer, 1), new ItemStack(Block.dispenser, 1), new ItemStack(BuildCraftBuilders.fillerBlock, 1),
-@@ -242,7 +252,7 @@
- 			break;
- 		case 3:
- 			addAssemblyRecipe(800000, new ItemStack(blockQuarry, 1), new ItemStack(BuildCraftFactory.quarryBlock, 2), new ItemStack(redstoneChipset, 8, 3),
--					new ItemStack(BuildCraftTransport.pipeWire, 16, PipeWire.YELLOW.ordinal()), new ItemStack(redstoneChipset, 2, 4), new ItemStack(
-+					new ItemStack(BuildCraftTransport.yellowPipeWire, 16), new ItemStack(redstoneChipset, 2, 4), new ItemStack(
- 							Block.chest, 32));
- 			addAssemblyRecipe(640000, new ItemStack(blockMover, 1), new ItemStack(Block.enchantmentTable, 1), new ItemStack(
- 					BuildCraftSilicon.assemblyTableBlock, 1, 1), new ItemStack(Block.anvil, 2), new ItemStack(BuildCraftSilicon.laserBlock, 4), new ItemStack(
-@@ -264,7 +274,7 @@
- 					new ItemStack(Item.bucketWater, 1), new ItemStack(Item.bucketLava, 1), new ItemStack(BuildCraftEnergy.bucketOil, 1), new ItemStack(
- 							BuildCraftEnergy.bucketFuel, 1), new ItemStack(BuildCraftEnergy.engineBlock, 1, 2));
- 			addAssemblyRecipe(500000, new ItemStack(blockMiningWell, 1), new ItemStack(BuildCraftFactory.miningWellBlock, 2), new ItemStack(redstoneChipset, 8,
--					3), new ItemStack(BuildCraftTransport.pipeWire, 16, PipeWire.YELLOW.ordinal()), new ItemStack(redstoneChipset, 1, 4), new ItemStack(
-+					3), new ItemStack(BuildCraftTransport.yellowPipeWire, 16), new ItemStack(redstoneChipset, 1, 4), new ItemStack(
- 					Block.chest, 16));
- 			addAssemblyRecipe(640000, new ItemStack(blockBreaker, 1), new ItemStack(Block.dispenser, 2), new ItemStack(Block.blockDiamond, 2),
- 					new ItemStack(Item.redstone, 64), new ItemStack(blockQuarry, 1), new ItemStack(blockMiningWell, 1), new ItemStack(
-@@ -277,7 +287,7 @@
- 			break;
- 		default:
- 			addAssemblyRecipe(320000, new ItemStack(blockQuarry, 1), new ItemStack(BuildCraftFactory.quarryBlock, 1), new ItemStack(redstoneChipset, 2, 3),
--					new ItemStack(BuildCraftTransport.pipeWire, 16, PipeWire.YELLOW.ordinal()), new ItemStack(redstoneChipset, 1, 4), new ItemStack(
-+					new ItemStack(BuildCraftTransport.yellowPipeWire, 16), new ItemStack(redstoneChipset, 1, 4), new ItemStack(
- 							Block.chest, 8));
- 			addAssemblyRecipe(320000, new ItemStack(blockMover, 1), new ItemStack(Block.enchantmentTable, 1), new ItemStack(
- 					BuildCraftSilicon.assemblyTableBlock, 1, 1), new ItemStack(Block.anvil, 1), new ItemStack(BuildCraftSilicon.assemblyTableBlock, 1),
-@@ -298,7 +308,7 @@
- 					new ItemStack(Item.bucketWater, 1), new ItemStack(Item.bucketLava, 1), new ItemStack(BuildCraftEnergy.bucketOil, 1), new ItemStack(
- 							BuildCraftEnergy.bucketFuel, 1));
- 			addAssemblyRecipe(160000, new ItemStack(blockMiningWell, 1), new ItemStack(BuildCraftFactory.miningWellBlock, 1), new ItemStack(redstoneChipset, 2,
--					3), new ItemStack(BuildCraftTransport.pipeWire, 16, PipeWire.YELLOW.ordinal()), new ItemStack(redstoneChipset, 1, 4), new ItemStack(
-+					3), new ItemStack(BuildCraftTransport.yellowPipeWire, 16), new ItemStack(redstoneChipset, 1, 4), new ItemStack(
- 					Block.chest, 8));
- 			addAssemblyRecipe(320000, new ItemStack(blockBreaker, 1), new ItemStack(Block.dispenser, 2), new ItemStack(Block.blockDiamond, 1),
- 					new ItemStack(Item.redstone, 32), new ItemStack(blockQuarry, 1), new ItemStack(BuildCraftEnergy.engineBlock, 1, 2));
-@@ -343,7 +353,7 @@
- 			sb.append(bd.meta);
- 		}
- 		sb.append("  ");
--		sb.append(GameData.getBlockRegistry().getObject(bd.name).getLocalizedName());
-+		sb.append(Block.blocksList[Integer.valueOf(bd.name)].getLocalizedName());
- 		return sb.toString();
- 	}
+   @Mod.EventHandler
+@@ -237,7 +249,7 @@
+       case 1:
+         addAssemblyRecipe(160000, new ItemStack(blockQuarry, 1), new ItemStack(
+             BuildCraftFactory.quarryBlock, 1), new ItemStack(redstoneChipset, 1, 3), new ItemStack(
+-            BuildCraftTransport.pipeWire, 8, PipeWire.YELLOW.ordinal()));
++                BuildCraftTransport.yellowPipeWire, 8));
+         addAssemblyRecipe(40000, new ItemStack(blockMover, 1), new ItemStack(
+             Block.enchantmentTable, 1), new ItemStack(BuildCraftFactory.autoWorkbenchBlock, 1),
+             new ItemStack(Block.anvil, 1), new ItemStack(BuildCraftSilicon.laserBlock, 2),
+@@ -261,7 +273,7 @@
+             Item.bucketWater, 1), new ItemStack(Item.bucketLava, 1));
+         addAssemblyRecipe(80000, new ItemStack(blockMiningWell, 1), new ItemStack(
+             BuildCraftFactory.miningWellBlock, 1), new ItemStack(redstoneChipset, 1, 3),
+-            new ItemStack(BuildCraftTransport.pipeWire, 8, PipeWire.YELLOW.ordinal()));
++            new ItemStack(BuildCraftTransport.yellowPipeWire, 8));
+         addAssemblyRecipe(40000, new ItemStack(blockBreaker, 1),
+             new ItemStack(Block.dispenser, 1), new ItemStack(Item.pickaxeDiamond, 1),
+             new ItemStack(BuildCraftEnergy.engineBlock, 1, 1));
+@@ -275,7 +287,7 @@
+       case 3:
+         addAssemblyRecipe(800000, new ItemStack(blockQuarry, 1), new ItemStack(
+             BuildCraftFactory.quarryBlock, 2), new ItemStack(redstoneChipset, 8, 3), new ItemStack(
+-            BuildCraftTransport.pipeWire, 16, PipeWire.YELLOW.ordinal()), new ItemStack(
++                BuildCraftTransport.yellowPipeWire, 16), new ItemStack(
+             redstoneChipset, 2, 4), new ItemStack(Block.chest, 32));
+         addAssemblyRecipe(640000, new ItemStack(blockMover, 1), new ItemStack(
+             Block.enchantmentTable, 1), new ItemStack(BuildCraftSilicon.assemblyTableBlock, 1, 1),
+@@ -309,7 +321,7 @@
+             new ItemStack(BuildCraftEnergy.engineBlock, 1, 2));
+         addAssemblyRecipe(500000, new ItemStack(blockMiningWell, 1), new ItemStack(
+             BuildCraftFactory.miningWellBlock, 2), new ItemStack(redstoneChipset, 8, 3),
+-            new ItemStack(BuildCraftTransport.pipeWire, 16, PipeWire.YELLOW.ordinal()),
++            new ItemStack(BuildCraftTransport.yellowPipeWire, 16),
+             new ItemStack(redstoneChipset, 1, 4), new ItemStack(Block.chest, 16));
+         addAssemblyRecipe(640000, new ItemStack(blockBreaker, 1),
+             new ItemStack(Block.dispenser, 2), new ItemStack(Block.blockDiamond, 2),
+@@ -327,7 +339,7 @@
+       default:
+         addAssemblyRecipe(320000, new ItemStack(blockQuarry, 1), new ItemStack(
+             BuildCraftFactory.quarryBlock, 1), new ItemStack(redstoneChipset, 2, 3), new ItemStack(
+-            BuildCraftTransport.pipeWire, 16, PipeWire.YELLOW.ordinal()), new ItemStack(
++                BuildCraftTransport.yellowPipeWire, 16), new ItemStack(
+             redstoneChipset, 1, 4), new ItemStack(Block.chest, 8));
+         addAssemblyRecipe(320000, new ItemStack(blockMover, 1), new ItemStack(
+             Block.enchantmentTable, 1), new ItemStack(BuildCraftSilicon.assemblyTableBlock, 1, 1),
+@@ -358,7 +370,7 @@
+             BuildCraftEnergy.bucketOil, 1), new ItemStack(BuildCraftEnergy.bucketFuel, 1));
+         addAssemblyRecipe(160000, new ItemStack(blockMiningWell, 1), new ItemStack(
+             BuildCraftFactory.miningWellBlock, 1), new ItemStack(redstoneChipset, 2, 3),
+-            new ItemStack(BuildCraftTransport.pipeWire, 16, PipeWire.YELLOW.ordinal()),
++            new ItemStack(BuildCraftTransport.yellowPipeWire, 16),
+             new ItemStack(redstoneChipset, 1, 4), new ItemStack(Block.chest, 8));
+         addAssemblyRecipe(320000, new ItemStack(blockBreaker, 1),
+             new ItemStack(Block.dispenser, 2), new ItemStack(Block.blockDiamond, 1),
+@@ -408,7 +420,7 @@
+       sb.append(bd.meta);
+     }
+     sb.append("  ");
+-    sb.append(GameData.getBlockRegistry().getObject(bd.name).getLocalizedName());
++    sb.append(Block.blocksList[Integer.parseInt(bd.name)].getLocalizedName());
+     return sb.toString();
+   }
  }
 --- a/com/yogpc/qp/TileBasic.java
 +++ b/com/yogpc/qp/TileBasic.java
-@@ -32,7 +32,6 @@
+@@ -43,8 +43,6 @@
  import com.yogpc.mc_lib.YogpstopPacket;
  import com.yogpc.qp.QuarryPlus.BlockData;
  
 -import cpw.mods.fml.common.registry.GameData;
- import net.minecraft.block.Block;
- import net.minecraft.entity.player.EntityPlayer;
- import net.minecraft.inventory.IInventory;
-@@ -237,7 +236,7 @@
+-
+ public abstract class TileBasic extends APowerTile implements IInventory, IEnchantableTile {
+   protected ForgeDirection pump = ForgeDirection.UNKNOWN;
  
- 	protected boolean S_breakBlock(int x, int y, int z) {
- 		Collection<ItemStack> dropped = new LinkedList<ItemStack>();
--		Block b = this.worldObj.getChunkProvider().loadChunk(x >> 4, z >> 4).getBlock(x & 0xF, y, z & 0xF);
-+		Block b = Block.blocksList[this.worldObj.getChunkProvider().loadChunk(x >> 4, z >> 4).getBlockID(x & 0xF, y, z & 0xF)];
- 		if (b == null || b.isAirBlock(this.worldObj, x, y, z)) return true;
- 		if (TilePump.isLiquid(b, false, null, 0, 0, 0, 0)) {
- 			TileEntity te = this.worldObj.getBlockTileEntity(this.xCoord + this.pump.offsetX, this.yCoord + this.pump.offsetY, this.zCoord + this.pump.offsetZ);
-@@ -250,7 +249,7 @@
- 		}
- 		if (!PowerManager.useEnergyB(this, b.getBlockHardness(this.worldObj, x, y, z), S_addDroppedItems(dropped, b, x, y, z), this.unbreaking, this)) return false;
- 		this.cacheItems.addAll(dropped);
--		this.worldObj.playAuxSFXAtEntity(null, 2001, x, y, z, Block.getIdFromBlock(b) | (this.worldObj.getBlockMetadata(x, y, z) << 12));
-+		this.worldObj.playAuxSFXAtEntity(null, 2001, x, y, z, b.blockID | (this.worldObj.getBlockMetadata(x, y, z) << 12));
- 		this.worldObj.setBlockToAir(x, y, z);
- 		return true;
- 	}
-@@ -266,7 +265,7 @@
- 	private byte S_addDroppedItems(Collection<ItemStack> list, Block b, int x, int y, int z) {
- 		int meta = this.worldObj.getBlockMetadata(x, y, z);
- 		if (b.canSilkHarvest(this.worldObj, null, x, y, z, meta) && this.silktouch
--				&& (this.silktouchList.contains(new BlockData(GameData.getBlockRegistry().getNameForObject(b), meta)) == this.silktouchInclude)) {
-+				&& (this.silktouchList.contains(new BlockData(Integer.toString(b.blockID), meta)) == this.silktouchInclude)) {
- 			try {
- 				list.add((ItemStack) createStackedBlock.invoke(b, meta));
- 				return -1;
-@@ -276,7 +275,7 @@
- 				e.printStackTrace();
- 			}
- 		}
--		if (this.fortuneList.contains(new BlockData(GameData.getBlockRegistry().getNameForObject(b), meta)) == this.fortuneInclude) {
-+		if (this.fortuneList.contains(new BlockData(Integer.toString(b.blockID), meta)) == this.fortuneInclude) {
- 			list.addAll(b.getBlockDropped(this.worldObj, x, y, z, meta, this.fortune));
- 			return this.fortune;
- 		}
+@@ -253,8 +251,8 @@
+ 
+   protected boolean S_breakBlock(final int x, final int y, final int z) {
+     final Collection<ItemStack> dropped = new LinkedList<ItemStack>();
+-    final Block b =
+-        this.worldObj.getChunkProvider().loadChunk(x >> 4, z >> 4).getBlock(x & 0xF, y, z & 0xF);
++    final Block b =Block.blocksList[
++        this.worldObj.getChunkProvider().loadChunk(x >> 4, z >> 4).getBlockID(x & 0xF, y, z & 0xF)];
+     if (b == null || b.isAirBlock(this.worldObj, x, y, z))
+       return true;
+     if (TilePump.isLiquid(b, false, null, 0, 0, 0, 0)) {
+@@ -273,7 +271,7 @@
+       return false;
+     this.cacheItems.addAll(dropped);
+     this.worldObj.playAuxSFXAtEntity(null, 2001, x, y, z,
+-        Block.getIdFromBlock(b) | this.worldObj.getBlockMetadata(x, y, z) << 12);
++        b.blockID | this.worldObj.getBlockMetadata(x, y, z) << 12);
+     this.worldObj.setBlockToAir(x, y, z);
+     return true;
+   }
+@@ -294,8 +292,7 @@
+     final int meta = this.worldObj.getBlockMetadata(x, y, z);
+     if (b.canSilkHarvest(this.worldObj, null, x, y, z, meta)
+         && this.silktouch
+-        && this.silktouchList.contains(new BlockData(GameData.getBlockRegistry()
+-            .getNameForObject(b), meta)) == this.silktouchInclude)
++        && this.silktouchList.contains(new BlockData(Integer.toString(b.blockID), meta)) == this.silktouchInclude)
+       try {
+         list.add((ItemStack) createStackedBlock.invoke(b, new Integer(meta)));
+         return -1;
+@@ -304,7 +301,7 @@
+       } catch (final Error e) {
+         e.printStackTrace();
+       }
+-    if (this.fortuneList.contains(new BlockData(GameData.getBlockRegistry().getNameForObject(b),
++    if (this.fortuneList.contains(new BlockData(Integer.toString(b.blockID),
+         meta)) == this.fortuneInclude) {
+       list.addAll(b.getBlockDropped(this.worldObj, x, y, z, meta, this.fortune));
+       return this.fortune;
 --- a/com/yogpc/qp/TileMarker.java
 +++ b/com/yogpc/qp/TileMarker.java
-@@ -185,7 +185,7 @@
- 		private final ArrayList<ItemStack> removeLink(final int x, final int y, final int z, final boolean bb) {
- 			final ArrayList<ItemStack> ret = new ArrayList<ItemStack>();
- 			final TileEntity te = this.w.getBlockTileEntity(x, y, z);
--			final Block b = this.w.getBlock(x, y, z);
-+			final Block b = Block.blocksList[this.w.getBlockId(x, y, z)];
- 			if (b instanceof BlockMarker) {
- 				if (te instanceof TileMarker) ((TileMarker) te).link = null;
- 				ret.addAll(b.getBlockDropped(this.w, x, y, z, this.w.getBlockMetadata(x, y, z), 0));
-@@ -365,16 +365,16 @@
- 
- 	private static void S_renewConnection(final Link l, final World w, final int x, final int y, final int z) {
- 		int tx = 0, ty = 0, tz = 0;
--		Block b;
-+		int b;
- 		if (l.xx == l.xn) {
- 			for (tx = 1; tx <= MAX_SIZE; tx++) {
--				b = w.getBlock(x + tx, y, z);
--				if (b instanceof BlockMarker && !linkList.contains(new BlockIndex(w, x + tx, y, z))) {
-+				b = w.getBlockId(x + tx, y, z);
-+				if (b == QuarryPlus.blockMarker.blockID && !linkList.contains(new BlockIndex(w, x + tx, y, z))) {
- 					l.xx = x + tx;
- 					break;
- 				}
--				b = w.getBlock(x - tx, y, z);
--				if (b instanceof BlockMarker && !linkList.contains(new BlockIndex(w, x - tx, y, z))) {
-+				b = w.getBlockId(x - tx, y, z);
-+				if (b == QuarryPlus.blockMarker.blockID && !linkList.contains(new BlockIndex(w, x - tx, y, z))) {
- 					tx = -tx;
- 					l.xn = x + tx;
- 					break;
-@@ -384,13 +384,13 @@
- 		}
- 		if (l.yx == l.yn) {
- 			for (ty = 1; ty <= MAX_SIZE; ty++) {
--				b = w.getBlock(x, y + ty, z);
--				if (b instanceof BlockMarker && !linkList.contains(new BlockIndex(w, x, y + ty, z))) {
-+				b = w.getBlockId(x, y + ty, z);
-+				if (b == QuarryPlus.blockMarker.blockID && !linkList.contains(new BlockIndex(w, x, y + ty, z))) {
- 					l.yx = y + ty;
- 					break;
- 				}
--				b = w.getBlock(x, y - ty, z);
--				if (b instanceof BlockMarker && !linkList.contains(new BlockIndex(w, x, y - ty, z))) {
-+				b = w.getBlockId(x, y - ty, z);
-+				if (b == QuarryPlus.blockMarker.blockID && !linkList.contains(new BlockIndex(w, x, y - ty, z))) {
- 					ty = -ty;
- 					l.yn = y + ty;
- 					break;
-@@ -400,13 +400,13 @@
- 		}
- 		if (l.zx == l.zn) {
- 			for (tz = 1; tz <= MAX_SIZE; tz++) {
--				b = w.getBlock(x, y, z + tz);
--				if (b instanceof BlockMarker && !linkList.contains(new BlockIndex(w, x, y, z + tz))) {
-+				b = w.getBlockId(x, y, z + tz);
-+				if (b == QuarryPlus.blockMarker.blockID && !linkList.contains(new BlockIndex(w, x, y, z + tz))) {
- 					l.zx = z + tz;
- 					break;
- 				}
--				b = w.getBlock(x, y, z - tz);
--				if (b instanceof BlockMarker && !linkList.contains(new BlockIndex(w, x, y, z - tz))) {
-+				b = w.getBlockId(x, y, z - tz);
-+				if (b == QuarryPlus.blockMarker.blockID && !linkList.contains(new BlockIndex(w, x, y, z - tz))) {
- 					tz = -tz;
- 					l.zn = z + tz;
- 					break;
-@@ -554,6 +554,6 @@
- 	@Override
- 	public void invalidate() {
- 		super.invalidate();
--		if (this.worldObj.getBlock(this.xCoord, this.yCoord, this.zCoord) != QuarryPlus.blockMarker) G_destroy();
-+		if (this.worldObj.getBlockId(this.xCoord, this.yCoord, this.zCoord) != QuarryPlus.blockMarker.blockID) G_destroy();
- 	}
+@@ -196,7 +196,7 @@
+         final boolean bb) {
+       final ArrayList<ItemStack> ret = new ArrayList<ItemStack>();
+       final TileEntity te = this.w.getBlockTileEntity(x, y, z);
+-      final Block b = this.w.getBlock(x, y, z);
++      final Block b = Block.blocksList[this.w.getBlockId(x, y, z)];
+       if (b instanceof BlockMarker) {
+         if (te instanceof TileMarker)
+           ((TileMarker) te).link = null;
+@@ -412,16 +412,16 @@
+   private static void S_renewConnection(final Link l, final World w, final int x, final int y,
+       final int z) {
+     int tx = 0, ty = 0, tz = 0;
+-    Block b;
++    int b;
+     if (l.xx == l.xn) {
+       for (tx = 1; tx <= MAX_SIZE; tx++) {
+-        b = w.getBlock(x + tx, y, z);
+-        if (b instanceof BlockMarker && !linkList.contains(new BlockIndex(w, x + tx, y, z))) {
++        b = w.getBlockId(x + tx, y, z);
++        if (b == QuarryPlus.blockMarker.blockID && !linkList.contains(new BlockIndex(w, x + tx, y, z))) {
+           l.xx = x + tx;
+           break;
+         }
+-        b = w.getBlock(x - tx, y, z);
+-        if (b instanceof BlockMarker && !linkList.contains(new BlockIndex(w, x - tx, y, z))) {
++        b = w.getBlockId(x - tx, y, z);
++        if (b == QuarryPlus.blockMarker.blockID && !linkList.contains(new BlockIndex(w, x - tx, y, z))) {
+           tx = -tx;
+           l.xn = x + tx;
+           break;
+@@ -432,13 +432,13 @@
+     }
+     if (l.yx == l.yn) {
+       for (ty = 1; ty <= MAX_SIZE; ty++) {
+-        b = w.getBlock(x, y + ty, z);
+-        if (b instanceof BlockMarker && !linkList.contains(new BlockIndex(w, x, y + ty, z))) {
++        b = w.getBlockId(x, y + ty, z);
++        if (b == QuarryPlus.blockMarker.blockID && !linkList.contains(new BlockIndex(w, x, y + ty, z))) {
+           l.yx = y + ty;
+           break;
+         }
+-        b = w.getBlock(x, y - ty, z);
+-        if (b instanceof BlockMarker && !linkList.contains(new BlockIndex(w, x, y - ty, z))) {
++        b = w.getBlockId(x, y - ty, z);
++        if (b == QuarryPlus.blockMarker.blockID && !linkList.contains(new BlockIndex(w, x, y - ty, z))) {
+           ty = -ty;
+           l.yn = y + ty;
+           break;
+@@ -449,13 +449,13 @@
+     }
+     if (l.zx == l.zn) {
+       for (tz = 1; tz <= MAX_SIZE; tz++) {
+-        b = w.getBlock(x, y, z + tz);
+-        if (b instanceof BlockMarker && !linkList.contains(new BlockIndex(w, x, y, z + tz))) {
++        b = w.getBlockId(x, y, z + tz);
++        if (b == QuarryPlus.blockMarker.blockID && !linkList.contains(new BlockIndex(w, x, y, z + tz))) {
+           l.zx = z + tz;
+           break;
+         }
+-        b = w.getBlock(x, y, z - tz);
+-        if (b instanceof BlockMarker && !linkList.contains(new BlockIndex(w, x, y, z - tz))) {
++        b = w.getBlockId(x, y, z - tz);
++        if (b == QuarryPlus.blockMarker.blockID && !linkList.contains(new BlockIndex(w, x, y, z - tz))) {
+           tz = -tz;
+           l.zn = z + tz;
+           break;
+@@ -626,7 +626,7 @@
+   @Override
+   public void invalidate() {
+     super.invalidate();
+-    if (this.worldObj.getBlock(this.xCoord, this.yCoord, this.zCoord) != QuarryPlus.blockMarker)
++    if (this.worldObj.getBlockId(this.xCoord, this.yCoord, this.zCoord) != QuarryPlus.blockMarker.blockID)
+       G_destroy();
+   }
  }
 --- a/com/yogpc/qp/TileMiningWell.java
 +++ b/com/yogpc/qp/TileMiningWell.java
-@@ -59,7 +59,7 @@
- 		if (this.worldObj.isRemote) return;
- 		int depth = this.yCoord - 1;
- 		while (!S_checkTarget(depth)) {
--			if (this.working) this.worldObj.setBlock(this.xCoord, depth, this.zCoord, QuarryPlus.blockPlainPipe);
-+			if (this.working) this.worldObj.setBlock(this.xCoord, depth, this.zCoord, QuarryPlus.blockPlainPipe.blockID);
- 			depth--;
- 		}
- 		if (this.working) S_breakBlock(this.xCoord, depth, this.zCoord);
-@@ -71,10 +71,11 @@
- 			G_destroy();
- 			return true;
- 		}
--		Block b = this.worldObj.getChunkProvider().loadChunk(this.xCoord >> 4, this.zCoord >> 4).getBlock(this.xCoord & 0xF, depth, this.zCoord & 0xF);
-+		Block b = Block.blocksList[this.worldObj.getChunkProvider().loadChunk(this.xCoord >> 4, this.zCoord >> 4)
-+				.getBlockID(this.xCoord & 0xF, depth, this.zCoord & 0xF)];
- 		float h = b == null ? -1 : b.getBlockHardness(this.worldObj, this.xCoord, depth, this.zCoord);
- 		if (b == null || h < 0 || b == QuarryPlus.blockPlainPipe || b.isAirBlock(this.worldObj, this.xCoord, depth, this.zCoord)) return false;
--		if (this.pump == ForgeDirection.UNKNOWN && b.getMaterial().isLiquid()) return false;
-+		if (this.pump == ForgeDirection.UNKNOWN && this.worldObj.getBlockMaterial(this.xCoord, depth, this.zCoord).isLiquid()) return false;
- 		if (!this.working) {
- 			this.working = true;
- 			G_renew_powerConfigure();
-@@ -110,7 +111,7 @@
- 		G_renew_powerConfigure();
- 		PacketHandler.sendNowPacket(this, (byte) 0);
- 		for (int depth = this.yCoord - 1; depth > 0; depth--) {
--			if (this.worldObj.getBlock(this.xCoord, depth, this.zCoord) != QuarryPlus.blockPlainPipe) {
-+			if (this.worldObj.getBlockId(this.xCoord, depth, this.zCoord) != QuarryPlus.blockPlainPipe.blockID) {
- 				break;
- 			}
- 			this.worldObj.setBlockToAir(this.xCoord, depth, this.zCoord);
+@@ -63,7 +63,7 @@
+     int depth = this.yCoord - 1;
+     while (!S_checkTarget(depth)) {
+       if (this.working)
+-        this.worldObj.setBlock(this.xCoord, depth, this.zCoord, QuarryPlus.blockPlainPipe);
++        this.worldObj.setBlock(this.xCoord, depth, this.zCoord, QuarryPlus.blockPlainPipe.blockID);
+       depth--;
+     }
+     if (this.working)
+@@ -76,15 +76,15 @@
+       G_destroy();
+       return true;
+     }
+-    final Block b =
++    final Block b = Block.blocksList[
+         this.worldObj.getChunkProvider().loadChunk(this.xCoord >> 4, this.zCoord >> 4)
+-            .getBlock(this.xCoord & 0xF, depth, this.zCoord & 0xF);
++            .getBlockID(this.xCoord & 0xF, depth, this.zCoord & 0xF)];
+     final float h =
+         b == null ? -1 : b.getBlockHardness(this.worldObj, this.xCoord, depth, this.zCoord);
+     if (b == null || h < 0 || b == QuarryPlus.blockPlainPipe
+         || b.isAirBlock(this.worldObj, this.xCoord, depth, this.zCoord))
+       return false;
+-    if (this.pump == ForgeDirection.UNKNOWN && b.getMaterial().isLiquid())
++    if (this.pump == ForgeDirection.UNKNOWN && this.worldObj.getBlockMaterial(this.xCoord, depth, this.zCoord).isLiquid())
+       return false;
+     if (!this.working) {
+       this.working = true;
+@@ -123,7 +123,7 @@
+     G_renew_powerConfigure();
+     PacketHandler.sendNowPacket(this, (byte) 0);
+     for (int depth = this.yCoord - 1; depth > 0; depth--) {
+-      if (this.worldObj.getBlock(this.xCoord, depth, this.zCoord) != QuarryPlus.blockPlainPipe)
++      if (this.worldObj.getBlockId(this.xCoord, depth, this.zCoord) != QuarryPlus.blockPlainPipe.blockID)
+         break;
+       this.worldObj.setBlockToAir(this.xCoord, depth, this.zCoord);
+     }
 --- a/com/yogpc/qp/TilePump.java
 +++ b/com/yogpc/qp/TilePump.java
-@@ -30,7 +30,6 @@
+@@ -20,7 +20,6 @@
  
  import net.minecraft.block.Block;
  import net.minecraft.entity.player.EntityPlayer;
@@ -1427,190 +1492,202 @@
  import net.minecraft.nbt.NBTTagCompound;
  import net.minecraft.nbt.NBTTagList;
  import net.minecraft.nbt.NBTTagString;
-@@ -81,7 +80,7 @@
- 		this.unbreaking = nbttc.getByte("unbreaking");
- 		this.connectTo = ForgeDirection.values()[nbttc.getByte("connectTo")];
- 		if (nbttc.getTag("mapping0") instanceof NBTTagList) for (int i = 0; i < this.mapping.length; i++)
--			readStringCollection(nbttc.getTagList(String.format("mapping%d", i), 8), this.mapping[i]);
-+			readStringCollection(nbttc.getTagList(String.format("mapping%d", i)), this.mapping[i]);
- 		this.range = nbttc.getByte("range");
- 		this.quarryRange = nbttc.getBoolean("quarryRange");
- 		this.prev = (byte) (this.connectTo.ordinal() | (G_working() ? 0x80 : 0));
-@@ -382,7 +381,7 @@
- 		while (cp != cg) {
- 			ebs_c = this.ebses[xb[cg] >> 4][zb[cg] >> 4][yb[cg] >> 4];
- 			if (ebs_c != null) {
--				b_c = ebs_c.getBlockByExtId(xb[cg] & 0xF, yb[cg] & 0xF, zb[cg] & 0xF);
-+				b_c = Block.blocksList[ebs_c.getExtBlockID(xb[cg] & 0xF, yb[cg] & 0xF, zb[cg] & 0xF)];
- 				if (this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] == 0 && isLiquid(b_c, false, null, 0, 0, 0, 0)) {
- 					this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] = 0x3F;
+@@ -83,7 +82,7 @@
+     if (nbttc.getTag("mapping0") instanceof NBTTagList)
+       for (int i = 0; i < this.mapping.length; i++)
+         readStringCollection(
+-            nbttc.getTagList(new StringBuilder().append("mapping").append(i).toString(), 8),
++            nbttc.getTagList(new StringBuilder().append("mapping").append(i).toString()),
+             this.mapping[i]);
+     this.range = nbttc.getByte("range");
+     this.quarryRange = nbttc.getBoolean("quarryRange");
+@@ -405,7 +404,7 @@
+     while (cp != cg) {
+       ebs_c = this.ebses[xb[cg] >> 4][zb[cg] >> 4][yb[cg] >> 4];
+       if (ebs_c != null) {
+-        b_c = ebs_c.getBlockByExtId(xb[cg] & 0xF, yb[cg] & 0xF, zb[cg] & 0xF);
++        b_c = Block.blocksList[ebs_c.getExtBlockID(xb[cg] & 0xF, yb[cg] & 0xF, zb[cg] & 0xF)];
+         if (this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] == 0
+             && isLiquid(b_c, false, null, 0, 0, 0, 0)) {
+           this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] = 0x3F;
+@@ -466,8 +465,7 @@
+             for (bz = 0; bz < this.block_side_z; bz++)
+               if ((this.blocks[this.py - this.yOffset][bx][bz] & 0x40) != 0) {
+                 bb =
+-                    this.ebses[bx >> 4][bz >> 4][this.py >> 4].getBlockByExtId(bx & 0xF,
+-                        this.py & 0xF, bz & 0xF);
++                    Block.blocksList[this.ebses[bx >> 4][bz >> 4][this.py >> 4].getExtBlockID(bx & 0xF, this.py & 0xF, bz & 0xF)];
+                 if (isLiquid(bb, false, null, 0, 0, 0, 0))
+                   count++;
+               }
+@@ -475,8 +473,7 @@
+           for (bz = 0; bz < this.block_side_z; bz++)
+             if (this.blocks[this.py - this.yOffset][this.px][bz] != 0) {
+               bb =
+-                  this.ebses[this.px >> 4][bz >> 4][this.py >> 4].getBlockByExtId(this.px & 0xF,
+-                      this.py & 0xF, bz & 0xF);
++                  Block.blocksList[this.ebses[this.px >> 4][bz >> 4][this.py >> 4].getExtBlockID(this.px & 0xF, this.py & 0xF, bz & 0xF)];
+               meta =
+                   this.ebses[this.px >> 4][bz >> 4][this.py >> 4].getExtBlockMetadata(
+                       this.px & 0xF, this.py & 0xF, bz & 0xF);
+@@ -498,11 +495,11 @@
+         for (bx = 0; bx < this.block_side_x; bx++)
+           for (bz = 0; bz < this.block_side_z; bz++)
+             if ((this.blocks[this.py - this.yOffset][bx][bz] & 0x40) != 0)
+-              drainBlock(bx, bz, QuarryPlus.blockFrame);
++              drainBlock(bx, bz, QuarryPlus.blockFrame.blockID);
+       } else
+         for (bz = 0; bz < this.block_side_z; bz++)
+           if (this.blocks[this.py - this.yOffset][this.px][bz] != 0)
+-            drainBlock(this.px, bz, Blocks.air);
++            drainBlock(this.px, bz, 0);
+     S_sendNowPacket();
+     return this.py < this.cy;
+   }
+@@ -657,10 +654,9 @@
+     return false;
+   }
  
-@@ -428,7 +427,7 @@
- 					for (bx = 0; bx < this.block_side_x; bx++) {
- 						for (bz = 0; bz < this.block_side_z; bz++) {
- 							if ((this.blocks[this.py - this.yOffset][bx][bz] & 0x40) != 0) {
--								bb = this.ebses[bx >> 4][bz >> 4][this.py >> 4].getBlockByExtId(bx & 0xF, this.py & 0xF, bz & 0xF);
-+								bb = Block.blocksList[this.ebses[bx >> 4][bz >> 4][this.py >> 4].getExtBlockID(bx & 0xF, this.py & 0xF, bz & 0xF)];
- 								if (isLiquid(bb, false, null, 0, 0, 0, 0)) {
- 									count++;
- 								}
-@@ -438,7 +437,7 @@
- 				} else {
- 					for (bz = 0; bz < this.block_side_z; bz++) {
- 						if (this.blocks[this.py - this.yOffset][this.px][bz] != 0) {
--							bb = this.ebses[this.px >> 4][bz >> 4][this.py >> 4].getBlockByExtId(this.px & 0xF, this.py & 0xF, bz & 0xF);
-+							bb = Block.blocksList[this.ebses[this.px >> 4][bz >> 4][this.py >> 4].getExtBlockID(this.px & 0xF, this.py & 0xF, bz & 0xF)];
- 							meta = this.ebses[this.px >> 4][bz >> 4][this.py >> 4].getExtBlockMetadata(this.px & 0xF, this.py & 0xF, bz & 0xF);
- 							if (isLiquid(bb, true, this.worldObj, this.px + this.xOffset, this.py, bz + this.zOffset, meta)) {
- 								count++;
-@@ -457,14 +456,14 @@
- 				for (bx = 0; bx < this.block_side_x; bx++) {
- 					for (bz = 0; bz < this.block_side_z; bz++) {
- 						if ((this.blocks[this.py - this.yOffset][bx][bz] & 0x40) != 0) {
--							drainBlock(bx, bz, QuarryPlus.blockFrame);
-+							drainBlock(bx, bz, QuarryPlus.blockFrame.blockID);
- 						}
- 					}
- 				}
- 			} else {
- 				for (bz = 0; bz < this.block_side_z; bz++) {
- 					if (this.blocks[this.py - this.yOffset][this.px][bz] != 0) {
--						drainBlock(this.px, bz, Blocks.air);
-+						drainBlock(this.px, bz, 0);
- 					}
- 				}
- 			}
-@@ -610,8 +609,8 @@
- 		return false;
- 	}
- 
--	private final void drainBlock(int bx, int bz, Block tb) {
--		Block b = this.ebses[bx >> 4][bz >> 4][this.py >> 4].getBlockByExtId(bx & 0xF, this.py & 0xF, bz & 0xF);
-+	private final void drainBlock(int bx, int bz, int tb) {
-+		Block b = Block.blocksList[this.ebses[bx >> 4][bz >> 4][this.py >> 4].getExtBlockID(bx & 0xF, this.py & 0xF, bz & 0xF)];
- 		int meta = this.ebses[bx >> 4][bz >> 4][this.py >> 4].getExtBlockMetadata(bx & 0xF, this.py & 0xF, bz & 0xF);
- 		if (isLiquid(b, false, null, 0, 0, 0, 0)) {
- 			FluidStack fs = null;
+-  private final void drainBlock(final int bx, final int bz, final Block tb) {
++  private final void drainBlock(final int bx, final int bz, final int tb) {
+     final Block b =
+-        this.ebses[bx >> 4][bz >> 4][this.py >> 4].getBlockByExtId(bx & 0xF, this.py & 0xF,
+-            bz & 0xF);
++        Block.blocksList[this.ebses[bx >> 4][bz >> 4][this.py >> 4].getExtBlockID(bx & 0xF, this.py & 0xF, bz & 0xF)];
+     final int meta =
+         this.ebses[bx >> 4][bz >> 4][this.py >> 4].getExtBlockMetadata(bx & 0xF, this.py & 0xF,
+             bz & 0xF);
 --- a/com/yogpc/qp/TileQuarry.java
 +++ b/com/yogpc/qp/TileQuarry.java
-@@ -86,8 +86,8 @@
+@@ -90,9 +90,9 @@
+   private boolean S_checkTarget() {
+     if (this.targetY > this.yMax)
+       this.targetY = this.yMax;
+-    final Block b =
++    final Block b =Block.blocksList[
+         this.worldObj.getChunkProvider().loadChunk(this.targetX >> 4, this.targetZ >> 4)
+-            .getBlock(this.targetX & 0xF, this.targetY, this.targetZ & 0xF);
++            .getBlockID(this.targetX & 0xF, this.targetY, this.targetZ & 0xF)];
+     final float h =
+         b == null ? -1 : b
+             .getBlockHardness(this.worldObj, this.targetX, this.targetY, this.targetZ);
+@@ -151,7 +151,7 @@
+           return S_checkTarget();
+         }
+         if (b != null
+-            && b.getMaterial().isSolid()
++            && this.worldObj.getBlockMaterial(this.targetX, this.targetY, this.targetZ).isSolid()
+             && !(b == QuarryPlus.blockFrame && this.worldObj.getBlockMetadata(this.targetX,
+                 this.targetY, this.targetZ) == 0)) {
+           this.now = NOTNEEDBREAK;
+@@ -274,7 +274,7 @@
+     this.digged = true;
+     if (!PowerManager.useEnergyF(this, this.unbreaking))
+       return false;
+-    this.worldObj.setBlock(this.targetX, this.targetY, this.targetZ, QuarryPlus.blockFrame);
++    this.worldObj.setBlock(this.targetX, this.targetY, this.targetZ, QuarryPlus.blockFrame.blockID);
+     S_setNextTarget();
+     return true;
+   }
+@@ -428,7 +428,7 @@
+   }
  
- 	private boolean S_checkTarget() {
- 		if (this.targetY > this.yMax) this.targetY = this.yMax;
--		Block b = this.worldObj.getChunkProvider().loadChunk(this.targetX >> 4, this.targetZ >> 4)
--				.getBlock(this.targetX & 0xF, this.targetY, this.targetZ & 0xF);
-+		Block b = Block.blocksList[this.worldObj.getChunkProvider().loadChunk(this.targetX >> 4, this.targetZ >> 4)
-+				.getBlockID(this.targetX & 0xF, this.targetY, this.targetZ & 0xF)];
- 		float h = b == null ? -1 : b.getBlockHardness(this.worldObj, this.targetX, this.targetY, this.targetZ);
- 		switch (this.now) {
- 		case BREAKBLOCK:
-@@ -134,7 +134,7 @@
- 				PacketHandler.sendNowPacket(this, this.now);
- 				return S_checkTarget();
- 			}
--			if (b != null && b.getMaterial().isSolid()
-+			if (b != null && this.worldObj.getBlockMaterial(this.targetX, this.targetY, this.targetZ).isSolid()
- 					&& !(b == QuarryPlus.blockFrame && this.worldObj.getBlockMetadata(this.targetX, this.targetY, this.targetZ) == 0)) {
- 				this.now = NOTNEEDBREAK;
- 				G_renew_powerConfigure();
-@@ -241,7 +241,7 @@
- 	private boolean S_makeFrame() {
- 		this.digged = true;
- 		if (!PowerManager.useEnergyF(this, this.unbreaking)) return false;
--		this.worldObj.setBlock(this.targetX, this.targetY, this.targetZ, QuarryPlus.blockFrame);
-+		this.worldObj.setBlock(this.targetX, this.targetY, this.targetZ, QuarryPlus.blockFrame.blockID);
- 		S_setNextTarget();
- 		return true;
- 	}
-@@ -384,7 +384,7 @@
- 	}
+   private void S_setBreakableFrame(final int x, final int y, final int z) {
+-    if (this.worldObj.getBlock(x, y, z) == QuarryPlus.blockFrame)
++    if (this.worldObj.getBlockId(x, y, z) == QuarryPlus.blockFrame.blockID)
+       this.worldObj.setBlockMetadataWithNotify(x, y, z, 1, 3);
+   }
  
- 	private void S_setBreakableFrame(int x, int y, int z) {
--		if (this.worldObj.getBlock(x, y, z) == QuarryPlus.blockFrame) {
-+		if (this.worldObj.getBlockId(x, y, z) == QuarryPlus.blockFrame.blockID) {
- 			this.worldObj.setBlockMetadataWithNotify(x, y, z, 1, 3);
- 		}
- 	}
 --- a/com/yogpc/qp/TileRefinery.java
 +++ b/com/yogpc/qp/TileRefinery.java
-@@ -107,9 +107,9 @@
- 				decreaseAnimation();
- 				return;
- 			}
--			if (r.timeRequired > this.ticks) return;
-+			if (r.delay > this.ticks) return;
- 			if (i == 1) this.ticks = 0;
--			if (!PowerManager.useEnergyR(this, r.energyCost, this.unbreaking)) {
-+			if (!PowerManager.useEnergyR(this, r.energy, this.unbreaking)) {
- 				decreaseAnimation();
- 				return;
- 			}
+@@ -107,11 +107,11 @@
+         decreaseAnimation();
+         return;
+       }
+-      if (r.timeRequired > this.ticks)
++      if (r.delay > this.ticks)
+         return;
+       if (i == 1)
+         this.ticks = 0;
+-      if (!PowerManager.useEnergyR(this, r.energyCost, this.unbreaking)) {
++      if (!PowerManager.useEnergyR(this, r.energy, this.unbreaking)) {
+         decreaseAnimation();
+         return;
+       }
 --- a/com/yogpc/qp/client/RenderFrame.java
 +++ b/com/yogpc/qp/client/RenderFrame.java
-@@ -28,7 +28,7 @@
- 
- 	@Override
- 	public boolean renderWorldBlock(IBlockAccess w, int i, int j, int k, Block b, int m, RenderBlocks r) {
--		if (w.getBlock(i - 1, j, k) == b) {
-+		if (w.getBlockId(i - 1, j, k) == b.blockID) {
- 			r.setRenderBounds(0.0F, 0.25F, 0.25F, 0.25F, 0.75F, 0.75F);
- 			((BlockFrame) b).setSides(true, true, true, true, false, false);
- 		} else {
-@@ -36,7 +36,7 @@
- 			((BlockFrame) b).setSides(false, false, false, false, true, false);
- 		}
- 		r.renderStandardBlock(b, i, j, k);
--		if (w.getBlock(i + 1, j, k) == b) {
-+		if (w.getBlockId(i + 1, j, k) == b.blockID) {
- 			r.setRenderBounds(0.75F, 0.25F, 0.25F, 1.0F, 0.75F, 0.75F);
- 			((BlockFrame) b).setSides(true, true, true, true, false, false);
- 		} else {
-@@ -44,7 +44,7 @@
- 			((BlockFrame) b).setSides(false, false, false, false, false, true);
- 		}
- 		r.renderStandardBlock(b, i, j, k);
--		if (w.getBlock(i, j - 1, k) == b) {
-+		if (w.getBlockId(i, j - 1, k) == b.blockID) {
- 			r.setRenderBounds(0.25F, 0.0F, 0.25F, 0.75F, 0.25F, 0.75F);
- 			((BlockFrame) b).setSides(false, false, true, true, true, true);
- 		} else {
-@@ -52,7 +52,7 @@
- 			((BlockFrame) b).setSides(true, false, false, false, false, false);
- 		}
- 		r.renderStandardBlock(b, i, j, k);
--		if (w.getBlock(i, j + 1, k) == b) {
-+		if (w.getBlockId(i, j + 1, k) == b.blockID) {
- 			r.setRenderBounds(0.25F, 0.75F, 0.25F, 0.75F, 1.0F, 0.75F);
- 			((BlockFrame) b).setSides(false, false, true, true, true, true);
- 		} else {
-@@ -60,7 +60,7 @@
- 			((BlockFrame) b).setSides(false, true, false, false, false, false);
- 		}
- 		r.renderStandardBlock(b, i, j, k);
--		if (w.getBlock(i, j, k - 1) == b) {
-+		if (w.getBlockId(i, j, k - 1) == b.blockID) {
- 			r.setRenderBounds(0.25F, 0.25F, 0.0F, 0.75F, 0.75F, 0.25F);
- 			((BlockFrame) b).setSides(true, true, false, false, true, true);
- 		} else {
-@@ -68,7 +68,7 @@
- 			((BlockFrame) b).setSides(false, false, true, false, false, false);
- 		}
- 		r.renderStandardBlock(b, i, j, k);
--		if (w.getBlock(i, j, k + 1) == b) {
-+		if (w.getBlockId(i, j, k + 1) == b.blockID) {
- 			r.setRenderBounds(0.25F, 0.25F, 0.75F, 0.75F, 0.75F, 1.0F);
- 			((BlockFrame) b).setSides(true, true, false, false, true, true);
- 		} else {
+@@ -29,7 +29,7 @@
+   @Override
+   public boolean renderWorldBlock(final IBlockAccess w, final int i, final int j, final int k,
+       final Block b, final int m, final RenderBlocks r) {
+-    if (w.getBlock(i - 1, j, k) == b) {
++    if (w.getBlockId(i - 1, j, k) == b.blockID) {
+       r.setRenderBounds(0.0F, 0.25F, 0.25F, 0.25F, 0.75F, 0.75F);
+       ((BlockFrame) b).setSides(true, true, true, true, false, false);
+     } else {
+@@ -37,7 +37,7 @@
+       ((BlockFrame) b).setSides(false, false, false, false, true, false);
+     }
+     r.renderStandardBlock(b, i, j, k);
+-    if (w.getBlock(i + 1, j, k) == b) {
++    if (w.getBlockId(i + 1, j, k) == b.blockID) {
+       r.setRenderBounds(0.75F, 0.25F, 0.25F, 1.0F, 0.75F, 0.75F);
+       ((BlockFrame) b).setSides(true, true, true, true, false, false);
+     } else {
+@@ -45,7 +45,7 @@
+       ((BlockFrame) b).setSides(false, false, false, false, false, true);
+     }
+     r.renderStandardBlock(b, i, j, k);
+-    if (w.getBlock(i, j - 1, k) == b) {
++    if (w.getBlockId(i, j - 1, k) == b.blockID) {
+       r.setRenderBounds(0.25F, 0.0F, 0.25F, 0.75F, 0.25F, 0.75F);
+       ((BlockFrame) b).setSides(false, false, true, true, true, true);
+     } else {
+@@ -53,7 +53,7 @@
+       ((BlockFrame) b).setSides(true, false, false, false, false, false);
+     }
+     r.renderStandardBlock(b, i, j, k);
+-    if (w.getBlock(i, j + 1, k) == b) {
++    if (w.getBlockId(i, j + 1, k) == b.blockID) {
+       r.setRenderBounds(0.25F, 0.75F, 0.25F, 0.75F, 1.0F, 0.75F);
+       ((BlockFrame) b).setSides(false, false, true, true, true, true);
+     } else {
+@@ -61,7 +61,7 @@
+       ((BlockFrame) b).setSides(false, true, false, false, false, false);
+     }
+     r.renderStandardBlock(b, i, j, k);
+-    if (w.getBlock(i, j, k - 1) == b) {
++    if (w.getBlockId(i, j, k - 1) == b.blockID) {
+       r.setRenderBounds(0.25F, 0.25F, 0.0F, 0.75F, 0.75F, 0.25F);
+       ((BlockFrame) b).setSides(true, true, false, false, true, true);
+     } else {
+@@ -69,7 +69,7 @@
+       ((BlockFrame) b).setSides(false, false, true, false, false, false);
+     }
+     r.renderStandardBlock(b, i, j, k);
+-    if (w.getBlock(i, j, k + 1) == b) {
++    if (w.getBlockId(i, j, k + 1) == b.blockID) {
+       r.setRenderBounds(0.25F, 0.25F, 0.75F, 0.75F, 0.75F, 1.0F);
+       ((BlockFrame) b).setSides(true, true, false, false, true, true);
+     } else {
 --- a/com/yogpc/qp/client/RenderRefinery.java
 +++ b/com/yogpc/qp/client/RenderRefinery.java
-@@ -203,8 +203,8 @@
- 		diplayLists = new int[100];
- 		Block baseBlock;
- 		Icon texture;
--		if (fluid.getBlock() != null) {
--			baseBlock = fluid.getBlock();
-+		if (fluid.getBlockID() > -1) {
-+			baseBlock = Block.blocksList[fluid.getBlockID()];
- 			texture = fluid.getStillIcon();
- 		} else {
- 			baseBlock = Block.waterStill;
+@@ -24,7 +24,6 @@
+ import net.minecraft.client.renderer.Tessellator;
+ import net.minecraft.client.renderer.texture.TextureMap;
+ import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+-import net.minecraft.block.Block;
+ import net.minecraft.tileentity.TileEntity;
+ import net.minecraft.util.Icon;
+ import net.minecraft.util.ResourceLocation;
+@@ -204,8 +203,8 @@
+     diplayLists = new int[100];
+     Block baseBlock;
+     Icon texture;
+-    if (fluid.getBlock() != null) {
+-      baseBlock = fluid.getBlock();
++    if (fluid.getBlockID() > -1) {
++      baseBlock = Block.blocksList[fluid.getBlockID()];
+       texture = fluid.getStillIcon();
+     } else {
+       baseBlock = Block.waterStill;
