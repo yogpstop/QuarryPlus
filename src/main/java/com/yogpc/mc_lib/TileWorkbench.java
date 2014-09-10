@@ -17,8 +17,11 @@ public class TileWorkbench extends APowerTile {
 
   void add(final EntityPlayer ep) {
     final ItemStack out = this.recipe.add(ep, this);
-    if (out != null && !ep.inventory.addItemStackToInventory(out))
-      ep.dropPlayerItemWithRandomChoice(out, false);
+    if (out != null) {
+      ep.inventory.markDirty();
+      if (!ep.inventory.addItemStackToInventory(out))
+        ep.dropPlayerItemWithRandomChoice(out, false);
+    }
   }
 
   void clicked(final EntityPlayer ep) {
