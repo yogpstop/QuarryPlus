@@ -1,21 +1,5 @@
 --- a/com/yogpc/ip/ItemArmorElectric.java
 +++ b/com/yogpc/ip/ItemArmorElectric.java
-@@ -5,6 +5,7 @@
- 
- import java.util.List;
- 
-+import net.minecraft.client.renderer.texture.IconRegister;
- import net.minecraft.creativetab.CreativeTabs;
- import net.minecraft.entity.Entity;
- import net.minecraft.entity.EntityLiving;
-@@ -18,7 +19,6 @@
- import net.minecraft.world.World;
- import net.minecraftforge.common.ISpecialArmor;
- import net.minecraftforge.common.EnumHelper;
--import cofh.api.energy.IEnergyContainerItem;
- 
- import com.yogpc.mc_lib.ProxyCommon;
- import com.yogpc.mc_lib.YogpstopLib;
 @@ -28,21 +28,25 @@
  import cpw.mods.fml.relauncher.Side;
  import cpw.mods.fml.relauncher.SideOnly;
@@ -73,19 +57,9 @@
  }
 --- a/com/yogpc/mc_lib/APowerTile.java
 +++ b/com/yogpc/mc_lib/APowerTile.java
-@@ -1,17 +1,16 @@
- package com.yogpc.mc_lib;
- 
-+import ic2.api.Direction;
- import ic2.api.energy.tile.IEnergySink;
- import net.minecraft.nbt.NBTTagCompound;
- import net.minecraft.tileentity.TileEntity;
--import net.minecraft.world.World;
- import net.minecraftforge.common.ForgeDirection;
+@@ -1,9 +1,8 @@
  import buildcraft.api.power.IPowerReceptor;
  import buildcraft.api.power.IPowerProvider;
--import cofh.api.energy.IEnergyHandler;
-+import buildcraft.api.power.PowerFramework;
  
 -public abstract class APowerTile extends APacketTile implements IPowerReceptor, IEnergyHandler,
 -    IEnergySink {
@@ -170,18 +144,6 @@
    }
 --- a/com/yogpc/mc_lib/BlockWorkbench.java
 +++ b/com/yogpc/mc_lib/BlockWorkbench.java
-@@ -2,8 +2,11 @@
- 
- import java.util.Random;
- 
-+import cpw.mods.fml.relauncher.Side;
-+import cpw.mods.fml.relauncher.SideOnly;
- import net.minecraft.block.BlockContainer;
- import net.minecraft.block.material.Material;
-+import net.minecraft.client.renderer.texture.IconRegister;
- import net.minecraft.creativetab.CreativeTabs;
- import net.minecraft.entity.item.EntityItem;
- import net.minecraft.entity.player.EntityPlayer;
 @@ -20,7 +23,12 @@
      setHardness(3F);
      setCreativeTab(CreativeTabs.tabRedstone);
@@ -218,14 +180,6 @@
    public static Properties parseLangFile(final InputStream is) {
 --- a/com/yogpc/qp/BlockFrame.java
 +++ b/com/yogpc/qp/BlockFrame.java
-@@ -5,6 +5,7 @@
- 
- import net.minecraft.block.Block;
- import net.minecraft.block.material.Material;
-+import net.minecraft.client.renderer.texture.IconRegister;
- import net.minecraft.entity.Entity;
- import net.minecraft.util.AxisAlignedBB;
- import net.minecraft.util.MovingObjectPosition;
 @@ -22,7 +23,12 @@
      setSides(true, true, true, true, true, true);
      setHardness(0.5F);
@@ -242,19 +196,6 @@
    @Override
 --- a/com/yogpc/qp/BlockInfMJSrc.java
 +++ b/com/yogpc/qp/BlockInfMJSrc.java
-@@ -15,9 +15,12 @@
- 
- import net.minecraft.block.BlockContainer;
- import net.minecraft.block.material.Material;
-+import net.minecraft.client.renderer.texture.IconRegister;
- import net.minecraft.entity.player.EntityPlayer;
- import net.minecraft.tileentity.TileEntity;
- import net.minecraft.world.World;
-+import cpw.mods.fml.relauncher.Side;
-+import cpw.mods.fml.relauncher.SideOnly;
- 
- public class BlockInfMJSrc extends BlockContainer {
- 
 @@ -28,7 +31,12 @@
      setStepSound(soundStoneFootstep);
      setCreativeTab(QuarryPlus.ct);
@@ -271,16 +212,6 @@
    @Override
 --- a/com/yogpc/qp/BlockPlainPipe.java
 +++ b/com/yogpc/qp/BlockPlainPipe.java
-@@ -4,6 +4,9 @@
- 
- import net.minecraft.block.Block;
- import net.minecraft.block.material.Material;
-+import net.minecraft.client.renderer.texture.IconRegister;
-+import cpw.mods.fml.relauncher.Side;
-+import cpw.mods.fml.relauncher.SideOnly;
- 
- public class BlockPlainPipe extends Block {
-   public BlockPlainPipe(final int id) {
 @@ -14,7 +17,12 @@
      this.maxX = 0.75;
      this.maxY = 1.0;
@@ -297,23 +228,6 @@
    @Override
 --- a/com/yogpc/qp/BlockRefinery.java
 +++ b/com/yogpc/qp/BlockRefinery.java
-@@ -17,6 +17,7 @@
- 
- import net.minecraft.block.BlockContainer;
- import net.minecraft.block.material.Material;
-+import net.minecraft.client.renderer.texture.IconRegister;
- import net.minecraft.entity.EntityLiving;
- import net.minecraft.entity.player.EntityPlayer;
- import net.minecraft.item.Item;
-@@ -28,6 +29,8 @@
- import net.minecraftforge.liquids.LiquidContainerRegistry;
- import net.minecraftforge.liquids.LiquidStack;
- import net.minecraftforge.liquids.ITankContainer;
-+import cpw.mods.fml.relauncher.Side;
-+import cpw.mods.fml.relauncher.SideOnly;
- 
- public class BlockRefinery extends BlockContainer {
- 
 @@ -36,7 +39,12 @@
      setHardness(5F);
      setCreativeTab(QuarryPlus.ct);
@@ -339,22 +253,6 @@
        if (used > 0) {
 --- a/com/yogpc/qp/QuarryPlus.java
 +++ b/com/yogpc/qp/QuarryPlus.java
-@@ -24,6 +24,7 @@
- import net.minecraftforge.common.MinecraftForge;
- import net.minecraftforge.common.Configuration;
- import net.minecraftforge.common.Property;
-+import net.minecraftforge.event.ForgeSubscribe;
- import net.minecraftforge.event.world.WorldEvent;
- import net.minecraftforge.oredict.OreDictionary;
- 
-@@ -37,7 +38,6 @@
- import cpw.mods.fml.common.SidedProxy;
- import cpw.mods.fml.common.event.FMLInitializationEvent;
- import cpw.mods.fml.common.event.FMLPreInitializationEvent;
--import net.minecraftforge.event.ForgeSubscribe;
- import cpw.mods.fml.common.network.NetworkRegistry;
- import cpw.mods.fml.common.registry.GameRegistry;
- import cpw.mods.fml.relauncher.Side;
 @@ -85,7 +85,7 @@
    @ForgeSubscribe
    @SideOnly(Side.CLIENT)
@@ -384,17 +282,6 @@
      GameRegistry.registerBlock(blockQuarry, ItemBlockQuarry.class, "QuarryPlus");
 --- a/com/yogpc/qp/TileBasic.java
 +++ b/com/yogpc/qp/TileBasic.java
-@@ -33,8 +33,8 @@
- import net.minecraft.tileentity.TileEntityChest;
- import net.minecraft.world.World;
- import net.minecraftforge.common.ForgeDirection;
--import buildcraft.api.power.IPowerEmitter;
--import buildcraft.api.transport.IPipeTile;
-+import buildcraft.api.transport.IPipeConnection;
-+import buildcraft.api.transport.IPipeEntry;
- 
- import com.google.common.io.ByteArrayDataInput;
- import com.google.common.io.ByteStreams;
 @@ -218,24 +218,24 @@
      return moved;
    }
@@ -439,14 +326,6 @@
    }
 --- a/com/yogpc/qp/TileInfMJSrc.java
 +++ b/com/yogpc/qp/TileInfMJSrc.java
-@@ -21,6 +21,7 @@
- import net.minecraft.nbt.NBTTagCompound;
- import net.minecraft.tileentity.TileEntity;
- import net.minecraftforge.common.ForgeDirection;
-+import buildcraft.api.power.IPowerProvider;
- import buildcraft.api.power.IPowerReceptor;
- 
- import com.google.common.io.ByteArrayDataInput;
 @@ -65,9 +66,9 @@
        } catch (final Exception e) {
        }
@@ -480,15 +359,6 @@
      final double avg = this.pa / 100;
 --- a/com/yogpc/qp/TilePump.java
 +++ b/com/yogpc/qp/TilePump.java
-@@ -28,7 +28,7 @@
- import net.minecraft.world.World;
- import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
- import net.minecraftforge.common.ForgeDirection;
--import net.minecraftforge.liquids.Fluid;
-+import net.minecraftforge.liquids.ILiquidTank;
- import net.minecraftforge.liquids.LiquidContainerRegistry;
- import net.minecraftforge.liquids.LiquidDictionary;
- import net.minecraftforge.liquids.LiquidStack;
 @@ -140,7 +140,7 @@
                this.zCoord + fd.offsetZ);
        if (te instanceof ITankContainer)
@@ -627,15 +497,6 @@
  }
 --- a/com/yogpc/qp/TileRefinery.java
 +++ b/com/yogpc/qp/TileRefinery.java
-@@ -19,7 +19,7 @@
- import net.minecraft.entity.player.EntityPlayer;
- import net.minecraft.nbt.NBTTagCompound;
- import net.minecraftforge.common.ForgeDirection;
--import net.minecraftforge.liquids.Fluid;
-+import net.minecraftforge.liquids.ILiquidTank;
- import net.minecraftforge.liquids.LiquidContainerRegistry;
- import net.minecraftforge.liquids.LiquidStack;
- import net.minecraftforge.liquids.LiquidTank;
 @@ -238,7 +238,6 @@
      return 0;
    }
@@ -704,14 +565,6 @@
        final int z) {
 --- a/com/yogpc/qp/client/GuiP_List.java
 +++ b/com/yogpc/qp/client/GuiP_List.java
-@@ -16,7 +16,6 @@
- import net.minecraft.client.gui.GuiButton;
- import net.minecraft.util.StatCollector;
- import net.minecraftforge.common.ForgeDirection;
--import net.minecraftforge.liquids.LiquidDictionary;
- 
- import com.yogpc.mc_lib.PacketHandler;
- import com.yogpc.qp.TilePump;
 @@ -91,9 +90,7 @@
          this.mc.displayGuiScreen(new GuiP_SelectSide(this.tile, this, par1.id == -5));
          break;
@@ -725,14 +578,6 @@
          break;
 --- a/com/yogpc/qp/client/GuiP_Manual.java
 +++ b/com/yogpc/qp/client/GuiP_Manual.java
-@@ -17,7 +17,6 @@
- import net.minecraft.client.gui.GuiScreen;
- import net.minecraft.client.gui.GuiTextField;
- import net.minecraft.util.StatCollector;
--import net.minecraftforge.liquids.LiquidDictionary;
- 
- import com.yogpc.mc_lib.PacketHandler;
- import com.yogpc.qp.TilePump;
 @@ -51,18 +50,14 @@
    public void actionPerformed(final GuiButton par1) {
      switch (par1.id) {
@@ -766,14 +611,6 @@
          var3 + 1, 0xFFFFFF);
 --- a/com/yogpc/qp/client/GuiP_SlotList.java
 +++ b/com/yogpc/qp/client/GuiP_SlotList.java
-@@ -19,7 +19,6 @@
- import net.minecraft.client.gui.GuiScreen;
- import net.minecraft.client.gui.GuiSlot;
- import net.minecraft.client.renderer.Tessellator;
--import net.minecraftforge.liquids.LiquidDictionary;
- import cpw.mods.fml.relauncher.Side;
- import cpw.mods.fml.relauncher.SideOnly;
- 
 @@ -59,9 +58,7 @@
  
    @Override
@@ -787,14 +624,6 @@
              name,
 --- a/com/yogpc/qp/client/RenderEntityLaser.java
 +++ b/com/yogpc/qp/client/RenderEntityLaser.java
-@@ -4,7 +4,6 @@
- import net.minecraft.client.renderer.Tessellator;
- import net.minecraft.client.renderer.entity.Render;
- import net.minecraft.client.renderer.RenderEngine;
--import net.minecraft.client.renderer.texture.TextureMap;
- import net.minecraft.entity.Entity;
- import net.minecraft.block.Block;
- import net.minecraft.util.Icon;
 @@ -24,11 +23,6 @@
    private RenderEntityLaser() {}
  
@@ -818,20 +647,6 @@
      for (int iBase = 0; iBase < iSize; ++iBase)
 --- a/com/yogpc/qp/client/RenderRefinery.java
 +++ b/com/yogpc/qp/client/RenderRefinery.java
-@@ -22,12 +22,11 @@
- import net.minecraft.client.renderer.GLAllocation;
- import net.minecraft.client.renderer.RenderBlocks;
- import net.minecraft.client.renderer.Tessellator;
--import net.minecraft.client.renderer.texture.TextureMap;
- import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
-+import net.minecraft.item.ItemStack;
- import net.minecraft.tileentity.TileEntity;
- import net.minecraft.util.Icon;
- import net.minecraft.world.IBlockAccess;
--import net.minecraftforge.liquids.Fluid;
- import net.minecraftforge.liquids.LiquidStack;
- 
- import org.lwjgl.opengl.GL11;
 @@ -42,8 +41,7 @@
  @SideOnly(Side.CLIENT)
  public class RenderRefinery extends TileEntitySpecialRenderer implements

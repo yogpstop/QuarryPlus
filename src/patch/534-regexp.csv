@@ -1,6 +1,3 @@
-SIMPLE,"^import +net\\.minecraft\\.client\\.renderer\\.texture\\..*; *\n",""
-SIMPLE,"^import +net\\.minecraft\\.util\\.Icon *; *\n",""
-SIMPLE,"^import +net\\.minecraftforge\\.common\\.FakePlayerFactory *; *\n",""
 SIMPLE,"net\\.minecraft\\.inventory\\.ISidedInventory","net.minecraftforge.common.ISidedInventory"
 SIMPLE,"(?<=\\W)Icon(?=\\W)","int"
 SIMPLE,"FakePlayerFactory\\.getMinecraft","CommonProxy.getPlayer"

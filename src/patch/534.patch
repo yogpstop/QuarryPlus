@@ -1,22 +1,6 @@
 --- a/com/yogpc/ip/ItemArmorElectric.java
 +++ b/com/yogpc/ip/ItemArmorElectric.java
-@@ -6,7 +6,6 @@
- import java.util.List;
- 
- import net.minecraft.creativetab.CreativeTabs;
--import net.minecraft.entity.Entity;
- import net.minecraft.entity.EntityLiving;
- import net.minecraft.entity.player.EntityPlayer;
- import net.minecraft.entity.player.EntityPlayerMP;
-@@ -16,6 +15,7 @@
- import net.minecraft.nbt.NBTTagCompound;
- import net.minecraft.util.DamageSource;
- import net.minecraft.world.World;
-+import net.minecraftforge.common.IArmorTextureProvider;
- import net.minecraftforge.common.ISpecialArmor;
- import net.minecraftforge.common.EnumHelper;
- 
-@@ -27,26 +27,28 @@
+@@ -26,26 +26,28 @@
  import cpw.mods.fml.relauncher.Side;
  import cpw.mods.fml.relauncher.SideOnly;
  
@@ -51,7 +35,7 @@
    }
  
    private static final double maxFallSpeedOnHover = 0.35;
-@@ -54,7 +56,9 @@
+@@ -53,7 +55,9 @@
    private void useJetpack(final EntityPlayer p, final ItemStack jetpack, final boolean hover) {
      final boolean jumping = YogpstopLib.proxy.getKey(p, ProxyCommon.Key.jump);
      if (jumping || hover && p.motionY < -maxFallSpeedOnHover) {
@@ -62,7 +46,7 @@
        if (charge <= 0.0)
          return;
        float power = 0.7f;
-@@ -144,14 +148,17 @@
+@@ -143,14 +147,17 @@
        final ItemStack armor, final DamageSource source, final double damage, final int slot) {
      if (source.isUnblockable())
        return new ISpecialArmor.ArmorProperties(0, 0.0, 0);
@@ -83,19 +67,9 @@
        return (int) Math.round(20.0 * 0.4 * 0.9);
      return 0;
    }
---- a/com/yogpc/mc_lib/APowerTile.java
-+++ b/com/yogpc/mc_lib/APowerTile.java
-@@ -4,7 +4,6 @@
- import ic2.api.energy.tile.IEnergySink;
- import net.minecraft.nbt.NBTTagCompound;
- import net.minecraft.tileentity.TileEntity;
--import net.minecraftforge.common.ForgeDirection;
- import buildcraft.api.power.IPowerReceptor;
- import buildcraft.api.power.IPowerProvider;
- import buildcraft.api.power.PowerFramework;
 --- a/com/yogpc/mc_lib/BlockWorkbench.java
 +++ b/com/yogpc/mc_lib/BlockWorkbench.java
-@@ -22,12 +22,13 @@
+@@ -21,12 +21,13 @@
      setHardness(3F);
      setCreativeTab(CreativeTabs.tabRedstone);
      setBlockName("WorkbenchPlus");
@@ -111,7 +85,7 @@
    }
  
    @Override
-@@ -56,7 +57,6 @@
+@@ -55,7 +56,6 @@
              w.spawnEntityInWorld(e);
            }
          }
@@ -121,7 +95,7 @@
    }
 --- a/com/yogpc/mc_lib/ProxyClient.java
 +++ b/com/yogpc/mc_lib/ProxyClient.java
-@@ -63,16 +63,16 @@
+@@ -62,16 +62,16 @@
      if (currentScreen == null || currentScreen.allowUserInput)
        for (final Key k : Key.values())
          if (k.binding instanceof KeyBinding) {
@@ -211,22 +185,7 @@
    @Override
 --- a/com/yogpc/qp/BlockInfMJSrc.java
 +++ b/com/yogpc/qp/BlockInfMJSrc.java
-@@ -13,13 +13,12 @@
- 
- package com.yogpc.qp;
- 
-+import net.minecraft.block.Block;
- import net.minecraft.block.BlockContainer;
- import net.minecraft.block.material.Material;
- import net.minecraft.entity.player.EntityPlayer;
- import net.minecraft.tileentity.TileEntity;
- import net.minecraft.world.World;
--import cpw.mods.fml.relauncher.Side;
--import cpw.mods.fml.relauncher.SideOnly;
- 
- public class BlockInfMJSrc extends BlockContainer {
- 
-@@ -30,12 +29,7 @@
+@@ -29,12 +29,7 @@
      setStepSound(soundStoneFootstep);
      setCreativeTab(QuarryPlus.ct);
      setBlockName("InfMJSrc");
@@ -242,7 +201,7 @@
    @Override
 --- a/com/yogpc/qp/BlockLaser.java
 +++ b/com/yogpc/qp/BlockLaser.java
-@@ -30,13 +30,16 @@
+@@ -29,13 +29,16 @@
  public class BlockLaser extends BlockContainer {
  
    @SideOnly(Side.CLIENT)
@@ -260,7 +219,7 @@
    }
  
    @Override
-@@ -81,16 +84,14 @@
+@@ -80,16 +83,14 @@
  
    @Override
    @SideOnly(Side.CLIENT)
@@ -282,7 +241,7 @@
    private final ArrayList<ItemStack> drop = new ArrayList<ItemStack>();
 --- a/com/yogpc/qp/BlockMarker.java
 +++ b/com/yogpc/qp/BlockMarker.java
-@@ -27,12 +27,17 @@
+@@ -26,12 +26,17 @@
  import cpw.mods.fml.relauncher.SideOnly;
  
  public class BlockMarker extends BlockContainer {
@@ -300,7 +259,7 @@
    }
  
    @Override
-@@ -45,7 +50,7 @@
+@@ -44,7 +49,7 @@
        final int z) {
      final float w = 0.15F;
      final float h = 0.65F;
@@ -309,7 +268,7 @@
      switch (dir) {
        case DOWN:
          setBlockBounds(0.5F - w, 1F - h, 0.5F - w, 0.5F + w, 1F, 0.5F + w);
-@@ -87,14 +92,14 @@
+@@ -86,14 +91,14 @@
    @Override
    public boolean canPlaceBlockOnSide(final World world, final int x, final int y, final int z,
        final int side) {
@@ -326,7 +285,7 @@
    }
  
    @Override
-@@ -105,7 +110,7 @@
+@@ -104,7 +109,7 @@
  
    private void dropTorchIfCantStay(final World w, final int x, final int y, final int z) {
      final int m = w.getBlockMetadata(x, y, z);
@@ -335,7 +294,7 @@
        dropBlockAsItem(w, x, y, z, m, 0);
        w.setBlock(x, y, z, 0);
      }
-@@ -154,7 +159,7 @@
+@@ -153,7 +158,7 @@
  
    @Override
    @SideOnly(Side.CLIENT)
@@ -347,7 +306,7 @@
  }
 --- a/com/yogpc/qp/BlockMiningWell.java
 +++ b/com/yogpc/qp/BlockMiningWell.java
-@@ -38,6 +38,11 @@
+@@ -37,6 +37,11 @@
      setCreativeTab(QuarryPlus.ct);
      setStepSound(soundStoneFootstep);
      setBlockName("MiningWellPlus");
@@ -359,7 +318,7 @@
    }
  
    @Override
-@@ -47,12 +52,8 @@
+@@ -46,12 +51,8 @@
  
    @Override
    @SideOnly(Side.CLIENT)
@@ -374,7 +333,7 @@
    }
  
    @Override
-@@ -85,8 +86,8 @@
+@@ -84,8 +85,8 @@
    public void onBlockPlacedBy(final World w, final int x, final int y, final int z, final EntityLiving el) {
      super.onBlockPlacedBy(w, x, y, z, el);
      final ForgeDirection orientation = get2dOrientation(el.posX, el.posZ, x, z);
@@ -483,7 +442,7 @@
    @Override
 --- a/com/yogpc/qp/BlockPump.java
 +++ b/com/yogpc/qp/BlockPump.java
-@@ -29,13 +29,18 @@
+@@ -28,13 +28,18 @@
  
  public class BlockPump extends BlockContainer {
  
@@ -503,7 +462,7 @@
    }
  
    @Override
-@@ -71,12 +76,8 @@
+@@ -70,12 +75,8 @@
  
    @Override
    @SideOnly(Side.CLIENT)
@@ -518,7 +477,7 @@
    }
  
    private final ArrayList<ItemStack> drop = new ArrayList<ItemStack>();
-@@ -107,7 +108,7 @@
+@@ -106,7 +107,7 @@
    @Override
    public void onBlockPlacedBy(final World w, final int x, final int y, final int z, final EntityLiving el) {
      super.onBlockPlacedBy(w, x, y, z, el);
@@ -529,7 +488,7 @@
    @Override
 --- a/com/yogpc/qp/BlockQuarry.java
 +++ b/com/yogpc/qp/BlockQuarry.java
-@@ -38,6 +38,12 @@
+@@ -37,6 +37,12 @@
      setStepSound(soundStoneFootstep);
      setCreativeTab(QuarryPlus.ct);
      setBlockName("QuarryPlus");
@@ -542,7 +501,7 @@
    }
  
    private final ArrayList<ItemStack> drop = new ArrayList<ItemStack>();
-@@ -102,13 +108,8 @@
+@@ -101,13 +107,8 @@
  
    @Override
    @SideOnly(Side.CLIENT)
@@ -558,7 +517,7 @@
    }
  
    @Override
-@@ -120,9 +121,9 @@
+@@ -119,9 +120,9 @@
    public void onBlockPlacedBy(final World w, final int x, final int y, final int z, final EntityLiving el) {
      super.onBlockPlacedBy(w, x, y, z, el);
      final ForgeDirection orientation = get2dOrientation(el.posX, el.posZ, x, z);
@@ -572,7 +531,7 @@
    private static ForgeDirection get2dOrientation(final double x1, final double z1, final double x2,
 --- a/com/yogpc/qp/BlockRefinery.java
 +++ b/com/yogpc/qp/BlockRefinery.java
-@@ -38,12 +38,13 @@
+@@ -37,12 +37,13 @@
      setHardness(5F);
      setCreativeTab(QuarryPlus.ct);
      setBlockName("RefineryPlus");
@@ -588,7 +547,7 @@
    }
  
    @Override
-@@ -79,11 +80,11 @@
+@@ -78,11 +79,11 @@
    @Override
    public void onBlockPlacedBy(final World w, final int x, final int y, final int z, final EntityLiving el) {
      super.onBlockPlacedBy(w, x, y, z, el);
@@ -602,7 +561,7 @@
    }
  
    private static void consumeItem(final EntityPlayer ep, final ItemStack stack) {
-@@ -128,17 +129,17 @@
+@@ -127,17 +128,17 @@
        final int meta = world.getBlockMetadata(x, y, z);
        switch (ForgeDirection.values()[meta]) {
          case WEST:
@@ -626,14 +585,9 @@
        return true;
 --- a/com/yogpc/qp/CommonProxy.java
 +++ b/com/yogpc/qp/CommonProxy.java
-@@ -13,6 +13,43 @@
+@@ -17,5 +17,38 @@
+ import net.minecraft.entity.player.EntityPlayer;
  
- package com.yogpc.qp;
- 
-+import net.minecraft.entity.player.EntityPlayer;
-+import net.minecraft.util.ChunkCoordinates;
-+import net.minecraft.world.World;
-+
  public class CommonProxy {
 +  private static EntityPlayer player;
 +
@@ -689,15 +643,7 @@
    public final int texture;
 --- a/com/yogpc/qp/ItemTool.java
 +++ b/com/yogpc/qp/ItemTool.java
-@@ -23,7 +23,6 @@
- import net.minecraft.nbt.NBTTagCompound;
- import net.minecraft.nbt.NBTTagList;
- import net.minecraft.world.World;
--import net.minecraftforge.oredict.OreDictionary;
- 
- import com.yogpc.mc_lib.PacketHandler;
- import com.yogpc.qp.QuarryPlus.BlockData;
-@@ -40,6 +39,9 @@
+@@ -38,6 +38,9 @@
      setHasSubtypes(true);
      setMaxDamage(0);
      setCreativeTab(QuarryPlus.ct);
@@ -707,7 +653,7 @@
    }
  
    @Override
-@@ -150,10 +152,8 @@
+@@ -148,10 +151,8 @@
  
    @Override
    @SideOnly(Side.CLIENT)
@@ -733,36 +679,7 @@
        return prop.getDouble(def);
 --- a/com/yogpc/qp/QuarryPlus.java
 +++ b/com/yogpc/qp/QuarryPlus.java
-@@ -17,19 +17,16 @@
- import net.minecraft.creativetab.CreativeTabs;
- import net.minecraft.item.Item;
- import net.minecraft.item.ItemStack;
--import net.minecraftforge.client.event.TextureStitchEvent;
- import net.minecraftforge.common.ForgeChunkManager;
- import net.minecraftforge.common.MinecraftForge;
- import net.minecraftforge.common.Configuration;
- import net.minecraftforge.common.Property;
- import net.minecraftforge.event.ForgeSubscribe;
- import net.minecraftforge.event.world.WorldEvent;
--import net.minecraftforge.oredict.OreDictionary;
- 
- import com.yogpc.mc_lib.PacketHandler;
- import com.yogpc.mc_lib.WorkbenchRecipe;
- import com.yogpc.mc_lib.YogpstopLib;
--import com.yogpc.qp.client.RenderEntityLaser;
- 
- import cpw.mods.fml.client.registry.RenderingRegistry;
- import cpw.mods.fml.common.Mod;
-@@ -38,8 +35,6 @@
- import cpw.mods.fml.common.event.FMLPreInitializationEvent;
- import cpw.mods.fml.common.network.NetworkRegistry;
- import cpw.mods.fml.common.registry.GameRegistry;
--import cpw.mods.fml.relauncher.Side;
--import cpw.mods.fml.relauncher.SideOnly;
- 
- @Mod(modid = "QuarryPlus", name = "QuarryPlus", version = "{version}",
-     dependencies = "required-after:YogpstopLib")
-@@ -80,23 +75,6 @@
+@@ -75,23 +75,6 @@
          l.destructor();
    }
  
@@ -786,7 +703,7 @@
    @Mod.PreInit
    public void preInit(final FMLPreInitializationEvent event) {
      final Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
-@@ -220,6 +198,8 @@
+@@ -215,6 +198,8 @@
      proxy.registerTextures();
      PacketHandler.registerStaticHandler(TileMarker.class);
    }
@@ -899,15 +816,7 @@
      final NBTTagList nbttaglist = par1NBTTagCompound.getTagList("Items");
 --- a/com/yogpc/qp/TilePump.java
 +++ b/com/yogpc/qp/TilePump.java
-@@ -17,6 +17,7 @@
- import java.io.DataOutputStream;
- import java.util.Collection;
- import java.util.LinkedList;
-+import java.util.Map.Entry;
- 
- import net.minecraft.block.Block;
- import net.minecraft.entity.player.EntityPlayer;
-@@ -140,7 +141,7 @@
+@@ -141,7 +141,7 @@
                this.zCoord + fd.offsetZ);
        if (te instanceof ITankContainer)
          for (final String s : this.mapping[fd.ordinal()]) {
@@ -916,7 +825,7 @@
            if (pZ == -1)
              continue;
            fs = this.liquids.get(pZ);
-@@ -521,7 +522,7 @@
+@@ -522,7 +522,7 @@
        for (int i = 0; i < this.liquids.size(); i++)
          ret[i + 1] =
              new StringBuilder().append("    ")
@@ -925,7 +834,7 @@
                  .append(this.liquids.get(i).amount).append("mB").toString();
      } else
        ret[0] = StatCollector.translateToLocal("chat.pumpcontainno");
-@@ -560,7 +561,7 @@
+@@ -561,7 +561,7 @@
    public LiquidStack drain(final ForgeDirection fd, final LiquidStack resource, final boolean doDrain) {
      if (resource == null)
        return null;
@@ -934,7 +843,7 @@
      if (index == -1)
        return null;
      final LiquidStack fs = this.liquids.get(index);
-@@ -598,10 +599,10 @@
+@@ -599,10 +599,10 @@
        int index;
        LiquidStack fs;
        for (final String s : this.mapping[fd.ordinal()]) {
@@ -947,7 +856,7 @@
          if (index != -1)
            ret.add(new LiquidTank(this.liquids.get(index), Integer.MAX_VALUE));
          else
-@@ -636,7 +637,7 @@
+@@ -637,7 +637,7 @@
        fs = LiquidDictionary.getLiquid(s, maxDrain);
        if (fs == null)
          continue;
@@ -956,7 +865,7 @@
        if (index == -1)
          continue;
        return drain(fd, this.liquids.get(index), doDrain);
-@@ -679,7 +680,7 @@
+@@ -680,7 +680,7 @@
        else if ((b == Block.lavaStill || b == Block.lavaMoving) && meta == 0)
          fs = new LiquidStack(Block.lavaStill, LiquidContainerRegistry.BUCKET_VOLUME);
        if (fs != null) {
@@ -965,13 +874,13 @@
          if (index != -1)
            this.liquids.get(index).amount += fs.amount;
          else
-@@ -737,4 +738,16 @@
+@@ -738,4 +738,16 @@
      final TileBasic tb = G_connected();
      return tb == null ? 0 : tb.powerRequest();
    }
 +
 +  private static String findLiquidName(final LiquidStack fs) {
-+    for (final Entry<String, LiquidStack> entry : LiquidDictionary.getLiquids().entrySet())
++    for (final Map.Entry<String, LiquidStack> entry : LiquidDictionary.getLiquids().entrySet())
 +      if (fs.isLiquidEqual(entry.getValue())) return entry.getKey();
 +    return null;
 +  }
@@ -984,16 +893,7 @@
  }
 --- a/com/yogpc/qp/client/ClientProxy.java
 +++ b/com/yogpc/qp/client/ClientProxy.java
-@@ -13,6 +13,8 @@
- 
- package com.yogpc.qp.client;
- 
-+import net.minecraftforge.client.MinecraftForgeClient;
-+
- import com.yogpc.qp.CommonProxy;
- import com.yogpc.qp.EntityLaser;
- import com.yogpc.qp.TileLaser;
-@@ -36,5 +38,7 @@
+@@ -37,5 +37,7 @@
      RenderingRegistry.registerBlockHandler(RenderLaserBlock.INSTANCE);
      RenderingRegistry.registerBlockHandler(RenderMarker.INSTANCE);
      RenderingRegistry.registerBlockHandler(RenderFrame.INSTANCE);
@@ -1003,17 +903,7 @@
  }
 --- a/com/yogpc/qp/client/GuiError.java
 +++ b/com/yogpc/qp/client/GuiError.java
-@@ -13,36 +13,38 @@
- 
- package com.yogpc.qp.client;
- 
--import net.minecraft.client.Minecraft;
- import net.minecraft.client.gui.GuiButton;
--import net.minecraft.client.gui.GuiErrorScreen;
- import net.minecraft.client.gui.GuiScreen;
-+import net.minecraft.client.gui.GuiSmallButton;
-+import net.minecraft.util.StatCollector;
- import cpw.mods.fml.relauncher.Side;
+@@ -20,28 +20,30 @@
  import cpw.mods.fml.relauncher.SideOnly;
  
  @SideOnly(Side.CLIENT)

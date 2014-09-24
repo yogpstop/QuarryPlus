@@ -38,14 +38,6 @@
  }
 --- a/com/yogpc/mc_lib/PacketHandler.java
 +++ b/com/yogpc/mc_lib/PacketHandler.java
-@@ -33,7 +33,6 @@
- import net.minecraft.entity.player.EntityPlayer;
- import net.minecraft.inventory.Container;
- import net.minecraft.nbt.CompressedStreamTools;
--import net.minecraft.nbt.NBTSizeTracker;
- import net.minecraft.nbt.NBTTagCompound;
- import net.minecraft.tileentity.TileEntity;
- 
 @@ -160,8 +159,7 @@
  
    private static void setNBTFromPacket(final YogpstopPacket p) {
@@ -71,14 +63,6 @@
      return ret;
 --- a/com/yogpc/qp/client/GuiP_List.java
 +++ b/com/yogpc/qp/client/GuiP_List.java
-@@ -14,7 +14,6 @@
- package com.yogpc.qp.client;
- 
- import net.minecraft.client.gui.GuiButton;
--import net.minecraft.client.gui.GuiYesNoCallback;
- import net.minecraft.util.StatCollector;
- import net.minecraftforge.common.util.ForgeDirection;
- import net.minecraftforge.fluids.FluidRegistry;
 @@ -26,7 +25,7 @@
  import cpw.mods.fml.relauncher.SideOnly;
  
@@ -100,14 +84,6 @@
          break;
 --- a/com/yogpc/qp/client/GuiP_Manual.java
 +++ b/com/yogpc/qp/client/GuiP_Manual.java
-@@ -16,7 +16,6 @@
- import net.minecraft.client.gui.GuiButton;
- import net.minecraft.client.gui.GuiScreen;
- import net.minecraft.client.gui.GuiTextField;
--import net.minecraft.client.gui.GuiYesNoCallback;
- import net.minecraft.util.StatCollector;
- import net.minecraftforge.fluids.FluidRegistry;
- 
 @@ -27,7 +26,7 @@
  import cpw.mods.fml.relauncher.SideOnly;
  
@@ -161,14 +137,6 @@
              name,
 --- a/com/yogpc/qp/client/GuiQ_List.java
 +++ b/com/yogpc/qp/client/GuiQ_List.java
-@@ -17,7 +17,6 @@
- import java.io.DataOutputStream;
- 
- import net.minecraft.client.gui.GuiButton;
--import net.minecraft.client.gui.GuiYesNoCallback;
- import net.minecraft.util.StatCollector;
- 
- import com.yogpc.mc_lib.PacketHandler;
 @@ -30,7 +29,7 @@
  import cpw.mods.fml.relauncher.SideOnly;
  
@@ -180,15 +148,7 @@
    private final TileBasic tile;
 --- a/com/yogpc/qp/client/GuiYesNo.java
 +++ b/com/yogpc/qp/client/GuiYesNo.java
-@@ -13,19 +13,19 @@
- 
- package com.yogpc.qp.client;
- 
--import net.minecraft.client.gui.GuiYesNoCallback;
-+import net.minecraft.client.gui.GuiScreen;
- import cpw.mods.fml.relauncher.Side;
- import cpw.mods.fml.relauncher.SideOnly;
- 
+@@ -20,12 +20,12 @@
  @SideOnly(Side.CLIENT)
  public class GuiYesNo extends net.minecraft.client.gui.GuiYesNo {
  

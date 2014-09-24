@@ -1,0 +1,17 @@
+F,net.minecraft.util.ChatComponentText,net.minecraft.network.NetHandlerPlayServer,net.minecraft.network.INetHandler,cpw.mods.fml.common.network.FMLEmbeddedChannel,cpw.mods.fml.common.network.FMLOutboundHandler,cpw.mods.fml.common.network.FMLOutboundHandler.,cpw.mods.fml.common.gameevent.,cpw.mods.fml.common.network.internal.FMLProxyPacket,io.netty.,buildcraft.api.recipes.BuildcraftRecipes,buildcraft.api.recipes.RefineryRecipes.RecipeManager.RefineryRecipes.Recipe
+A,com/yogpc/mc_lib/YogpstopLib,java.io.BufferedReader,java.io.File,java.io.FileInputStream,java.io.InputStream,java.io.InputStreamReader,java.io.Reader,java.util.Properties,java.util.regex.Matcher,java.util.regex.Pattern,java.util.zip.ZipEntry,java.util.zip.ZipInputStream,com.google.common.base.Charsets,cpw.mods.fml.common.network.NetworkMod,cpw.mods.fml.common.registry.LanguageRegistry
+R,com/yogpc/mc_lib/YogpstopLib,cpw.mods.fml.common.network.NetworkRegistry
+A,com/yogpc/mc_lib/ProxyClient,java.util.ArrayList,java.util.EnumSet,java.util.List,cpw.mods.fml.common.ITickHandler,cpw.mods.fml.common.TickType,cpw.mods.fml.common.registry.TickRegistry
+R,com/yogpc/mc_lib/ProxyClient,net.minecraft.entity.player.EntityPlayer,cpw.mods.fml.client.registry.ClientRegistry,cpw.mods.fml.common.FMLCommonHandler,net.minecraftforge.event.ForgeSubscribe
+R,com/yogpc/mc_lib/PacketHandler,cpw.mods.fml.common.network.NetworkRegistry,cpw.mods.fml.relauncher.Side,java.util.EnumMap
+A,com/yogpc/mc_lib/PacketHandler,net.minecraft.network.INetworkManager,net.minecraft.network.packet.Packet250CustomPayload,cpw.mods.fml.common.network.IPacketHandler,cpw.mods.fml.common.network.PacketDispatcher,cpw.mods.fml.common.network.Player
+A,com/yogpc/qp/TileRefinery,buildcraft.api.recipes.RefineryRecipes
+R,com/yogpc/mc_lib/YogpstopPacket,cpw.mods.fml.common.network.NetworkRegistry
+A,com/yogpc/mc_lib/YogpstopPacket,cpw.mods.fml.common.network.Player
+A,com/yogpc/qp/EnchantmentHelper,net.minecraft.nbt.NBTTagCompound
+A,com/yogpc/qp/QuarryPlus,com.yogpc.mc_lib.YogpstopLib
+R,com/yogpc/ip/ItemArmorElectric,com.yogpc.mc_lib.ReflectionHelper,net.minecraft.item.Item,java.lang.reflect.Field
+R,com/yogpc/qp/ItemTool,com/yogpc/qp/QuarryPlus,com/yogpc/qp/TileBasic,cpw.mods.fml.common.registry.GameData
+R,com/yogpc/qp/BlockPlacer,com/yogpc/qp/BlockBreaker,net.minecraft.world.IBlockAccess,net.minecraft.world.WorldServer
+R,com/yogpc/qp/BlockPlainPipe,com/yogpc/qp/BlockFrame,net.minecraft.item.Item
+R,com/yogpc/mc_lib/BlockWorkbench,com/yogpc/qp/BlockLaser,com/yogpc/qp/BlockMarker,com/yogpc/qp/BlockMiningWell,com/yogpc/qp/BlockPump,com/yogpc/qp/BlockQuarry,com/yogpc/qp/BlockRefinery,com/yogpc/qp/ChunkLoadingHandler,com/yogpc/qp/ItemBlockBreaker,com/yogpc/qp/ItemBlockPump,com/yogpc/qp/ItemBlockQuarry,com/yogpc/qp/ItemBlockRefinery,net.minecraft.block.Block

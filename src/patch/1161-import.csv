@@ -1,0 +1,3 @@
+F,net.minecraft.nbt.NBTSizeTracker
+F,net.minecraft.client.gui.GuiYesNoCallback
+A,com/yogpc/qp/client/GuiYesNo,net.minecraft.client.gui.GuiScreen

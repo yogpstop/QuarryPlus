@@ -1,46 +1,7 @@
 --- a/com/yogpc/ip/ItemArmorElectric.java
 +++ b/com/yogpc/ip/ItemArmorElectric.java
-@@ -3,7 +3,6 @@
- import ic2.api.item.ElectricItem;
- import ic2.api.item.IElectricItem;
- 
--import java.lang.reflect.Field;
- import java.util.List;
- 
- import net.minecraft.creativetab.CreativeTabs;
-@@ -11,11 +10,9 @@
- import net.minecraft.entity.player.EntityPlayer;
- import net.minecraft.entity.player.EntityPlayerMP;
- import net.minecraft.item.EnumRarity;
--import net.minecraft.item.Item;
- import net.minecraft.item.ItemArmor;
- import net.minecraft.item.ItemStack;
- import net.minecraft.nbt.NBTTagCompound;
--import net.minecraft.network.NetHandlerPlayServer;
- import net.minecraft.util.DamageSource;
- import net.minecraft.world.World;
- import net.minecraftforge.common.ISpecialArmor;
-@@ -23,7 +20,6 @@
- import cofh.api.energy.IEnergyContainerItem;
- 
- import com.yogpc.mc_lib.ProxyCommon;
--import com.yogpc.mc_lib.ReflectionHelper;
- import com.yogpc.mc_lib.YogpstopLib;
- 
- import cpw.mods.fml.common.FMLCommonHandler;
-@@ -33,8 +29,8 @@
- 
- public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElectricItem,
-     IEnergyContainerItem {
--  public ItemArmorElectric() {
--    super(EnumHelper.addArmorMaterial("ELECTRIC", 33, new int[] {3, 8, 6, 3}, 0), YogpstopLib.proxy
-+  public ItemArmorElectric(final int id) {
-+    super(id, EnumHelper.addArmorMaterial("ELECTRIC", 33, new int[] {3, 8, 6, 3}, 0), YogpstopLib.proxy
-         .addNewArmourRendererPrefix("electric"), 1);
-     setUnlocalizedName("electric_armor");
-     setCreativeTab(CreativeTabs.tabCombat);
-@@ -44,9 +40,6 @@
-     setMaxStackSize(1);
+@@ -49,9 +49,6 @@
+     return "yogpstop_qp:textures/models/armor/elecArmor_layer_1.png";
    }
  
 -  private static final Field f = ReflectionHelper.getField(NetHandlerPlayServer.class,
@@ -49,7 +10,7 @@
    private static final double maxFallSpeedOnHover = 0.35;
  
    private void useJetpack(final EntityPlayer p, final ItemStack jetpack, final boolean hover) {
-@@ -84,13 +77,7 @@
+@@ -89,13 +86,7 @@
          p.fallDistance = 0.0f;
          p.distanceWalkedModified = 0.0f;
          if (p instanceof EntityPlayerMP)
@@ -64,36 +25,9 @@
        }
        p.inventoryContainer.detectAndSendChanges();
      }
-@@ -122,7 +109,7 @@
-   }
- 
-   @Override
--  public void onArmorTick(final World world, final EntityPlayer player, final ItemStack itemStack) {
-+  public void onArmorTickUpdate(final World world, final EntityPlayer player, final ItemStack itemStack) {
-     if (player.inventory.armorInventory[2] != itemStack)
-       return;
-     useJetpack(player, itemStack, toggleHover(player, itemStack));
-@@ -172,13 +159,13 @@
-   }
- 
-   @Override
--  public Item getChargedItem(final ItemStack itemStack) {
--    return this;
-+  public int getChargedItemId(final ItemStack itemStack) {
-+    return this.itemID;
-   }
- 
-   @Override
--  public Item getEmptyItem(final ItemStack itemStack) {
--    return this;
-+  public int getEmptyItemId(final ItemStack itemStack) {
-+    return this.itemID;
-   }
- 
-   @Override
 --- a/com/yogpc/mc_lib/APacketTile.java
 +++ b/com/yogpc/mc_lib/APacketTile.java
-@@ -24,9 +24,6 @@
+@@ -23,9 +23,6 @@
  
    @Override
    public final Packet getDescriptionPacket() {
@@ -133,56 +67,11 @@
    }
  
    @Override
---- a/com/yogpc/mc_lib/BlockWorkbench.java
-+++ b/com/yogpc/mc_lib/BlockWorkbench.java
-@@ -2,7 +2,6 @@
- 
- import java.util.Random;
- 
--import net.minecraft.block.Block;
- import net.minecraft.block.BlockContainer;
- import net.minecraft.block.material.Material;
- import net.minecraft.creativetab.CreativeTabs;
-@@ -16,8 +15,8 @@
- public class BlockWorkbench extends BlockContainer {
-   private final Random random = new Random();
- 
--  protected BlockWorkbench() {
--    super(Material.iron);
-+  protected BlockWorkbench(int id) {
-+    super(id, Material.iron);
-     setHardness(3F);
-     setCreativeTab(CreativeTabs.tabRedstone);
-     setUnlocalizedName("WorkbenchPlus");
 --- a/com/yogpc/mc_lib/PacketHandler.java
 +++ b/com/yogpc/mc_lib/PacketHandler.java
-@@ -22,7 +22,6 @@
- import java.lang.annotation.RetentionPolicy;
- import java.lang.annotation.Target;
- import java.lang.reflect.Method;
--import java.util.EnumMap;
- import java.util.HashMap;
- import java.util.List;
- import java.util.Map;
-@@ -31,19 +30,18 @@
- import net.minecraft.inventory.Container;
- import net.minecraft.nbt.CompressedStreamTools;
- import net.minecraft.nbt.NBTTagCompound;
-+import net.minecraft.network.INetworkManager;
-+import net.minecraft.network.packet.Packet250CustomPayload;
- import net.minecraft.tileentity.TileEntity;
- 
+@@ -40,8 +40,7 @@
  import com.google.common.io.ByteArrayDataInput;
  import com.google.common.io.ByteStreams;
- 
--import cpw.mods.fml.common.network.FMLEmbeddedChannel;
--import cpw.mods.fml.common.network.FMLOutboundHandler;
--import cpw.mods.fml.common.network.FMLOutboundHandler.OutboundTarget;
--import cpw.mods.fml.common.network.NetworkRegistry;
--import cpw.mods.fml.relauncher.Side;
-+import cpw.mods.fml.common.network.IPacketHandler;
-+import cpw.mods.fml.common.network.PacketDispatcher;
-+import cpw.mods.fml.common.network.Player;
  
 -@Sharable
 -public class PacketHandler extends SimpleChannelInboundHandler<YogpstopPacket> {
@@ -190,7 +79,7 @@
    @Retention(RetentionPolicy.RUNTIME)
    @Target(ElementType.METHOD)
    public static @interface Handler {
-@@ -57,7 +55,6 @@
+@@ -55,7 +54,6 @@
        registeredStaticHandlers.put(c.getName(), l.get(0));
    }
  
@@ -198,7 +87,7 @@
    static final byte Tile = 0;
    static final byte NBT = 1;
    static final byte BTN = 2;
-@@ -94,8 +91,9 @@
+@@ -92,8 +90,9 @@
    public static final byte remove_laser = 1;
  
    @Override
@@ -210,7 +99,7 @@
      if (packet.getChannel() == NBT)
        setNBTFromPacket(packet);
      else if (packet.getChannel() == BTN) {
-@@ -125,33 +123,29 @@
+@@ -123,33 +122,29 @@
            | packet.getData()[1] << 16 | packet.getData()[2] << 8 | packet.getData()[3]);
    }
  
@@ -258,32 +147,7 @@
    private static void setNBTFromPacket(final YogpstopPacket p) {
 --- a/com/yogpc/mc_lib/ProxyClient.java
 +++ b/com/yogpc/mc_lib/ProxyClient.java
-@@ -1,43 +1,62 @@
- package com.yogpc.mc_lib;
- 
-+import java.util.ArrayList;
-+import java.util.EnumSet;
-+import java.util.List;
-+
- import net.minecraft.client.Minecraft;
- import net.minecraft.client.gui.GuiScreen;
- import net.minecraft.client.multiplayer.WorldClient;
- import net.minecraft.client.settings.GameSettings;
- import net.minecraft.client.settings.KeyBinding;
- import net.minecraft.entity.Entity;
--import net.minecraft.entity.player.EntityPlayer;
--import net.minecraft.network.INetHandler;
--import net.minecraft.network.NetHandlerPlayServer;
- import net.minecraft.world.World;
--import cpw.mods.fml.client.registry.ClientRegistry;
- import cpw.mods.fml.client.registry.RenderingRegistry;
--import cpw.mods.fml.common.FMLCommonHandler;
--import net.minecraftforge.event.ForgeSubscribe;
--import cpw.mods.fml.common.gameevent.TickEvent;
-+import cpw.mods.fml.common.ITickHandler;
-+import cpw.mods.fml.common.TickType;
-+import cpw.mods.fml.common.registry.TickRegistry;
- import cpw.mods.fml.relauncher.Side;
+@@ -18,25 +18,44 @@
  import cpw.mods.fml.relauncher.SideOnly;
  
  @SideOnly(Side.CLIENT)
@@ -322,7 +186,7 @@
 +  public String getLabel() {
 +    return "YogpstopLib";
 +  }
-+  
++
 +  @Override
 +  public EnumSet<TickType> ticks() {
 +    return EnumSet.of(TickType.CLIENT);
@@ -336,7 +200,7 @@
      final int prev = this.key;
      this.key = 0;
      final GuiScreen currentScreen = Minecraft.getMinecraft().currentScreen;
-@@ -66,13 +85,6 @@
+@@ -65,13 +84,6 @@
    }
  
    @Override
@@ -352,16 +216,7 @@
    }
 --- a/com/yogpc/mc_lib/ProxyCommon.java
 +++ b/com/yogpc/mc_lib/ProxyCommon.java
-@@ -5,8 +5,6 @@
- 
- import net.minecraft.entity.Entity;
- import net.minecraft.entity.player.EntityPlayer;
--import net.minecraft.network.INetHandler;
--import net.minecraft.network.NetHandlerPlayServer;
- import net.minecraft.world.World;
- 
- public class ProxyCommon {
-@@ -42,12 +40,6 @@
+@@ -40,12 +40,6 @@
      }
    }
  
@@ -376,36 +231,7 @@
    }
 --- a/com/yogpc/mc_lib/YogpstopLib.java
 +++ b/com/yogpc/mc_lib/YogpstopLib.java
-@@ -1,20 +1,35 @@
- package com.yogpc.mc_lib;
- 
--import net.minecraft.block.Block;
-+import java.io.BufferedReader;
-+import java.io.File;
-+import java.io.FileInputStream;
-+import java.io.InputStream;
-+import java.io.InputStreamReader;
-+import java.io.Reader;
-+import java.util.Properties;
-+import java.util.regex.Matcher;
-+import java.util.regex.Pattern;
-+import java.util.zip.ZipEntry;
-+import java.util.zip.ZipInputStream;
-+
- import net.minecraft.block.Block;
- import net.minecraft.item.Item;
- import net.minecraft.item.ItemStack;
- 
-+import com.google.common.base.Charsets;
- import com.yogpc.ip.ItemArmorElectric;
- 
- import cpw.mods.fml.common.Mod;
- import cpw.mods.fml.common.SidedProxy;
- import cpw.mods.fml.common.event.FMLInitializationEvent;
--import cpw.mods.fml.common.network.NetworkRegistry;
-+import cpw.mods.fml.common.network.NetworkMod;
- import cpw.mods.fml.common.registry.GameRegistry;
-+import cpw.mods.fml.common.registry.LanguageRegistry;
+@@ -27,6 +27,8 @@
  
  @Mod(modid = "YogpstopLib", name = "Yogpstop Library", version = "{version}",
      dependencies = "after:IC2;after:BuildCraft|Core;after:CoFHCore")
@@ -414,7 +240,7 @@
  public class YogpstopLib {
  
    @SidedProxy(clientSide = "com.yogpc.mc_lib.ProxyClient",
-@@ -25,12 +40,9 @@
+@@ -37,12 +39,9 @@
  
    @Mod.EventHandler
    public void init(final FMLInitializationEvent event) {
@@ -429,7 +255,7 @@
      } catch (final Exception e) {
        e.printStackTrace();
      }
-@@ -40,4 +52,64 @@
+@@ -52,4 +51,64 @@
      GameRegistry.registerBlock(this.workbench, "WorkbenchPlus");
      GameRegistry.registerTileEntity(TileWorkbench.class, "WorkbenchPlus");
    }
@@ -496,16 +322,7 @@
  }
 --- a/com/yogpc/mc_lib/YogpstopPacket.java
 +++ b/com/yogpc/mc_lib/YogpstopPacket.java
-@@ -9,7 +9,7 @@
- import net.minecraft.nbt.CompressedStreamTools;
- import net.minecraft.nbt.NBTTagCompound;
- import net.minecraft.tileentity.TileEntity;
--import cpw.mods.fml.common.network.NetworkRegistry;
-+import cpw.mods.fml.common.network.Player;
- 
- public final class YogpstopPacket {
-   private byte[] header;
-@@ -88,18 +88,22 @@
+@@ -87,18 +87,22 @@
      return this.data;
    }
  
@@ -541,28 +358,7 @@
  }
 --- a/com/yogpc/qp/BlockBreaker.java
 +++ b/com/yogpc/qp/BlockBreaker.java
-@@ -29,9 +29,7 @@
- import net.minecraft.item.ItemStack;
- import net.minecraft.tileentity.TileEntity;
- import net.minecraft.util.Icon;
--import net.minecraft.world.IBlockAccess;
- import net.minecraft.world.World;
--import net.minecraft.world.WorldServer;
- import net.minecraftforge.common.FakePlayerFactory;
- import net.minecraftforge.common.ForgeDirection;
- import cpw.mods.fml.relauncher.Side;
-@@ -45,8 +43,8 @@
-   @SideOnly(Side.CLIENT)
-   protected Icon vectrial;
- 
--  protected BlockBreaker() {
--    super(Material.rock);
-+  protected BlockBreaker(final int id) {
-+    super(id, Material.rock);
-     setCreativeTab(QuarryPlus.ct);
-     setHardness(3.5F);
-     setStepSound(soundStoneFootstep);
-@@ -107,10 +105,10 @@
+@@ -107,7 +107,7 @@
          w.getBlockMetadata(tx, ty, tz);
      if (ty < 1)
        return;
@@ -570,12 +366,8 @@
 +    final Block b = Block.blocksList[w.getBlockId(tx, ty, tz)];
      if (b == null || b.isAirBlock(w, x, y, z))
        return;
--    final EntityPlayer player = FakePlayerFactory.getMinecraft((WorldServer) w);
-+    final EntityPlayer player = FakePlayerFactory.getMinecraft(w);
-     b.onBlockHarvested(w, tx, ty, tz, meta, player);
-     if (b.removeBlockByPlayer(w, player, tx, ty, tz))
-       b.onBlockDestroyedByPlayer(w, tx, ty, tz, meta);
-@@ -157,22 +155,22 @@
+     final EntityPlayer player = FakePlayerFactory.getMinecraft(w);
+@@ -157,22 +157,22 @@
  
    static void setDispenserDefaultDirection(final World w, final int x, final int y, final int z) {
      if (!w.isRemote) {
@@ -606,7 +398,7 @@
          b0 = 4;
        w.setBlockMetadataWithNotify(x, y, z, b0, 2);
      }
-@@ -188,7 +186,7 @@
+@@ -188,7 +188,7 @@
      ItemStack is;
      for (int i = 0; i < count; i++) {
        final int id1 = idDropped(meta, world.rand, 0);
@@ -617,26 +409,7 @@
          this.drop.add(is);
 --- a/com/yogpc/qp/BlockFrame.java
 +++ b/com/yogpc/qp/BlockFrame.java
-@@ -6,7 +6,6 @@
- import net.minecraft.block.Block;
- import net.minecraft.block.material.Material;
- import net.minecraft.entity.Entity;
--import net.minecraft.item.Item;
- import net.minecraft.util.AxisAlignedBB;
- import net.minecraft.util.MovingObjectPosition;
- import net.minecraft.util.Vec3;
-@@ -18,8 +17,8 @@
- public class BlockFrame extends Block {
-   private final boolean[] sides = new boolean[6];
- 
--  public BlockFrame() {
--    super(Material.glass);
-+  public BlockFrame(final int id) {
-+    super(id, Material.glass);
-     setSides(true, true, true, true, true, true);
-     setHardness(0.5F);
-     setTickRandomly(true);
-@@ -65,7 +64,7 @@
+@@ -65,7 +65,7 @@
  
    @Override
    public int idDropped(final int i, final Random random, final int j) {
@@ -645,128 +418,9 @@
    }
  
    @Override
-@@ -84,17 +83,17 @@
-   public AxisAlignedBB getCollisionBoundingBoxFromPool(final World world, final int i, final int j,
-       final int k) {
-     float xMin = 0.25F, xMax = 0.75F, yMin = 0.25F, yMax = 0.75F, zMin = 0.25F, zMax = 0.75F;
--    if (world.getBlock(i - 1, j, k) == this)
-+    if (world.getBlockId(i - 1, j, k) == this.blockID)
-       xMin = 0;
--    if (world.getBlock(i + 1, j, k) == this)
-+    if (world.getBlockId(i + 1, j, k) == this.blockID)
-       xMax = 1;
--    if (world.getBlock(i, j - 1, k) == this)
-+    if (world.getBlockId(i, j - 1, k) == this.blockID)
-       yMin = 0;
--    if (world.getBlock(i, j + 1, k) == this)
-+    if (world.getBlockId(i, j + 1, k) == this.blockID)
-       yMax = 1;
--    if (world.getBlock(i, j, k - 1) == this)
-+    if (world.getBlockId(i, j, k - 1) == this.blockID)
-       zMin = 0;
--    if (world.getBlock(i, j, k + 1) == this)
-+    if (world.getBlockId(i, j, k + 1) == this.blockID)
-       zMax = 1;
-     return AxisAlignedBB.getBoundingBox(i + xMin, j + yMin, k + zMin, i + xMax, j + yMax, k + zMax);
-   }
-@@ -103,17 +102,17 @@
-   public MovingObjectPosition collisionRayTrace(final World world, final int i, final int j,
-       final int k, final Vec3 vec3d, final Vec3 vec3d1) {
-     float xMin = 0.25F, xMax = 0.75F, yMin = 0.25F, yMax = 0.75F, zMin = 0.25F, zMax = 0.75F;
--    if (world.getBlock(i - 1, j, k) == this)
-+    if (world.getBlockId(i - 1, j, k) == this.blockID)
-       xMin = 0;
--    if (world.getBlock(i + 1, j, k) == this)
-+    if (world.getBlockId(i + 1, j, k) == this.blockID)
-       xMax = 1;
--    if (world.getBlock(i, j - 1, k) == this)
-+    if (world.getBlockId(i, j - 1, k) == this.blockID)
-       yMin = 0;
--    if (world.getBlock(i, j + 1, k) == this)
-+    if (world.getBlockId(i, j + 1, k) == this.blockID)
-       yMax = 1;
--    if (world.getBlock(i, j, k - 1) == this)
-+    if (world.getBlockId(i, j, k - 1) == this.blockID)
-       zMin = 0;
--    if (world.getBlock(i, j, k + 1) == this)
-+    if (world.getBlockId(i, j, k + 1) == this.blockID)
-       zMax = 1;
-     setBlockBounds(xMin, yMin, zMin, xMax, yMax, zMax);
-     final MovingObjectPosition r = super.collisionRayTrace(world, i, j, k, vec3d, vec3d1);
-@@ -127,32 +126,32 @@
-     setBlockBounds(0.25F, 0.25F, 0.25F, 0.75F, 0.75F, 0.75F);
-     super.addCollisionBoxesToList(world, i, j, k, axisalignedbb, arraylist, par7Entity);
- 
--    if (world.getBlock(i - 1, j, k) == this) {
-+    if (world.getBlockId(i - 1, j, k) == this.blockID) {
-       setBlockBounds(0, 0.25F, 0.25F, 0.75F, 0.75F, 0.75F);
-       super.addCollisionBoxesToList(world, i, j, k, axisalignedbb, arraylist, par7Entity);
-     }
- 
--    if (world.getBlock(i + 1, j, k) == this) {
-+    if (world.getBlockId(i + 1, j, k) == this.blockID) {
-       setBlockBounds(0.25F, 0.25F, 0.25F, 1, 0.75F, 0.75F);
-       super.addCollisionBoxesToList(world, i, j, k, axisalignedbb, arraylist, par7Entity);
-     }
- 
--    if (world.getBlock(i, j - 1, k) == this) {
-+    if (world.getBlockId(i, j - 1, k) == this.blockID) {
-       setBlockBounds(0.25F, 0, 0.25F, 0.75F, 0.75F, 0.75F);
-       super.addCollisionBoxesToList(world, i, j, k, axisalignedbb, arraylist, par7Entity);
-     }
- 
--    if (world.getBlock(i, j + 1, k) == this) {
-+    if (world.getBlockId(i, j + 1, k) == this.blockID) {
-       setBlockBounds(0.25F, 0.25F, 0.25F, 0.75F, 1, 0.75F);
-       super.addCollisionBoxesToList(world, i, j, k, axisalignedbb, arraylist, par7Entity);
-     }
- 
--    if (world.getBlock(i, j, k - 1) == this) {
-+    if (world.getBlockId(i, j, k - 1) == this.blockID) {
-       setBlockBounds(0.25F, 0.25F, 1, 0.75F, 0.75F, 0.75F);
-       super.addCollisionBoxesToList(world, i, j, k, axisalignedbb, arraylist, par7Entity);
-     }
- 
--    if (world.getBlock(i, j, k + 1) == this) {
-+    if (world.getBlockId(i, j, k + 1) == this.blockID) {
-       setBlockBounds(0.25F, 0.25F, 0.25F, 0.75F, 0.75F, 1);
-       super.addCollisionBoxesToList(world, i, j, k, axisalignedbb, arraylist, par7Entity);
-     }
---- a/com/yogpc/qp/BlockInfMJSrc.java
-+++ b/com/yogpc/qp/BlockInfMJSrc.java
-@@ -21,8 +21,8 @@
- 
- public class BlockInfMJSrc extends BlockContainer {
- 
--  public BlockInfMJSrc() {
--    super(Material.iron);
-+  public BlockInfMJSrc(final int id) {
-+    super(id, Material.iron);
-     setHardness(1.5F);
-     setResistance(10F);
-     setStepSound(soundStoneFootstep);
 --- a/com/yogpc/qp/BlockLaser.java
 +++ b/com/yogpc/qp/BlockLaser.java
-@@ -15,7 +15,6 @@
- 
- import java.util.ArrayList;
- 
--import net.minecraft.block.Block;
- import net.minecraft.block.BlockContainer;
- import net.minecraft.block.material.Material;
- import net.minecraft.client.renderer.texture.IconRegister;
-@@ -35,8 +34,8 @@
-   @SideOnly(Side.CLIENT)
-   private Icon textureTop, textureBottom;
- 
--  public BlockLaser() {
--    super(Material.iron);
-+  public BlockLaser(final int id) {
-+    super(id, Material.iron);
-     setHardness(10F);
-     setCreativeTab(QuarryPlus.ct);
-     setUnlocalizedName("LaserPlus");
-@@ -107,7 +106,7 @@
+@@ -107,7 +107,7 @@
      ItemStack is;
      for (int i = 0; i < count; i++) {
        final int it = idDropped(meta, world.rand, 0);
@@ -775,49 +429,9 @@
          is = new ItemStack(it, 1, damageDropped(meta));
          EnchantmentHelper.enchantmentToIS(tile, is);
          this.drop.add(is);
---- a/com/yogpc/qp/BlockMarker.java
-+++ b/com/yogpc/qp/BlockMarker.java
-@@ -13,7 +13,6 @@
- 
- package com.yogpc.qp;
- 
--import net.minecraft.block.Block;
- import net.minecraft.block.BlockContainer;
- import net.minecraft.block.material.Material;
- import net.minecraft.client.renderer.texture.IconRegister;
-@@ -30,8 +29,8 @@
- 
- public class BlockMarker extends BlockContainer {
- 
--  public BlockMarker() {
--    super(Material.circuits);
-+  public BlockMarker(final int id) {
-+    super(id, Material.circuits);
-     setLightValue(0.5F);
-     setCreativeTab(QuarryPlus.ct);
-     setUnlocalizedName("MarkerPlus");
 --- a/com/yogpc/qp/BlockMiningWell.java
 +++ b/com/yogpc/qp/BlockMiningWell.java
-@@ -15,7 +15,6 @@
- 
- import java.util.ArrayList;
- 
--import net.minecraft.block.Block;
- import net.minecraft.block.BlockContainer;
- import net.minecraft.block.material.Material;
- import net.minecraft.client.renderer.texture.IconRegister;
-@@ -34,8 +33,8 @@
- public class BlockMiningWell extends BlockContainer {
-   Icon textureFront, textureBack, textureTop, texW;
- 
--  public BlockMiningWell() {
--    super(Material.ground);
-+  public BlockMiningWell(final int id) {
-+    super(id, Material.ground);
-     setHardness(1.5F);
-     setResistance(10F);
-     setCreativeTab(QuarryPlus.ct);
-@@ -119,7 +118,7 @@
+@@ -119,7 +119,7 @@
        return;
      final int count = quantityDropped(meta, 0, world.rand);
      final int it = idDropped(meta, world.rand, 0);
@@ -826,43 +440,9 @@
        for (int i = 0; i < count; i++) {
          final ItemStack is = new ItemStack(it, 1, damageDropped(meta));
          EnchantmentHelper.enchantmentToIS(tile, is);
---- a/com/yogpc/qp/BlockMover.java
-+++ b/com/yogpc/qp/BlockMover.java
-@@ -25,8 +25,8 @@
- public class BlockMover extends Block {
-   Icon textureTop, textureBottom;
- 
--  public BlockMover() {
--    super(Material.iron);
-+  public BlockMover(final int id) {
-+    super(id, Material.iron);
-     setHardness(1.2F);
-     setCreativeTab(QuarryPlus.ct);
-     setUnlocalizedName("EnchantMover");
 --- a/com/yogpc/qp/BlockPlacer.java
 +++ b/com/yogpc/qp/BlockPlacer.java
-@@ -28,9 +28,7 @@
- import net.minecraft.nbt.NBTTagCompound;
- import net.minecraft.tileentity.TileEntity;
- import net.minecraft.util.Icon;
--import net.minecraft.world.IBlockAccess;
- import net.minecraft.world.World;
--import net.minecraft.world.WorldServer;
- import net.minecraftforge.common.FakePlayerFactory;
- import net.minecraftforge.common.ForgeDirection;
- import cpw.mods.fml.relauncher.Side;
-@@ -45,8 +43,8 @@
-   @SideOnly(Side.CLIENT)
-   protected Icon vectrial;
- 
--  protected BlockPlacer() {
--    super(Material.rock);
-+  protected BlockPlacer(final int id) {
-+    super(id, Material.rock);
-     setCreativeTab(QuarryPlus.ct);
-     setHardness(3.5F);
-     setStepSound(soundStoneFootstep);
-@@ -92,7 +90,7 @@
+@@ -92,7 +92,7 @@
      final boolean flag1 = (i1 & 8) != 0;
  
      if (flag && !flag1) {
@@ -871,16 +451,7 @@
        par1World.setBlockMetadataWithNotify(par2, par3, par4, i1 | 8, 4);
      } else if (!flag && flag1)
        par1World.setBlockMetadataWithNotify(par2, par3, par4, i1 & -9, 4);
-@@ -132,7 +130,7 @@
-       ty = y + fd2.offsetY;
-       tz = z + fd2.offsetZ;
- 
--      final EntityPlayer player = FakePlayerFactory.getMinecraft((WorldServer) world);
-+      final EntityPlayer player = FakePlayerFactory.getMinecraft(world);
-       ItemStack is = null;
-       int i = 0;
-       for (; i < tile.getSizeInventory(); i++) {
-@@ -159,7 +157,7 @@
+@@ -159,7 +159,7 @@
                tz + fd6.offsetZ, sd5, 0.5F, 0.5F, 0.5F))
              break;
          }
@@ -891,21 +462,7 @@
          if (is != null) {
 --- a/com/yogpc/qp/BlockPlainPipe.java
 +++ b/com/yogpc/qp/BlockPlainPipe.java
-@@ -4,11 +4,10 @@
- 
- import net.minecraft.block.Block;
- import net.minecraft.block.material.Material;
--import net.minecraft.item.Item;
- 
- public class BlockPlainPipe extends Block {
--  public BlockPlainPipe() {
--    super(Material.glass);
-+  public BlockPlainPipe(final int id) {
-+    super(id, Material.glass);
-     this.minX = 0.25;
-     this.minY = 0.0;
-     this.minZ = 0.25;
-@@ -30,6 +29,6 @@
+@@ -30,6 +30,6 @@
  
    @Override
    public int idDropped(final int i, final Random random, final int fortune) {
@@ -915,26 +472,7 @@
  }
 --- a/com/yogpc/qp/BlockPump.java
 +++ b/com/yogpc/qp/BlockPump.java
-@@ -15,7 +15,6 @@
- 
- import java.util.ArrayList;
- 
--import net.minecraft.block.Block;
- import net.minecraft.block.BlockContainer;
- import net.minecraft.block.material.Material;
- import net.minecraft.client.renderer.texture.IconRegister;
-@@ -34,8 +33,8 @@
- 
-   private Icon textureTop, textureBottom, textureSide, texW, texC;
- 
--  public BlockPump() {
--    super(Material.iron);
-+  public BlockPump(final int id) {
-+    super(id, Material.iron);
-     setHardness(5F);
-     setCreativeTab(QuarryPlus.ct);
-     setUnlocalizedName("PumpPlus");
-@@ -92,7 +91,7 @@
+@@ -92,7 +92,7 @@
        return;
      final int count = quantityDropped(meta, 0, world.rand);
      final int it = idDropped(meta, world.rand, 0);
@@ -945,26 +483,7 @@
          EnchantmentHelper.enchantmentToIS(tile, is);
 --- a/com/yogpc/qp/BlockQuarry.java
 +++ b/com/yogpc/qp/BlockQuarry.java
-@@ -15,7 +15,6 @@
- 
- import java.util.ArrayList;
- 
--import net.minecraft.block.Block;
- import net.minecraft.block.BlockContainer;
- import net.minecraft.block.material.Material;
- import net.minecraft.client.renderer.texture.IconRegister;
-@@ -34,8 +33,8 @@
- public class BlockQuarry extends BlockContainer {
-   Icon textureTop, textureFront, texBB, texNNB, texMF;
- 
--  public BlockQuarry() {
--    super(Material.iron);
-+  public BlockQuarry(final int id) {
-+    super(id, Material.iron);
-     setHardness(1.5F);
-     setResistance(10F);
-     setStepSound(soundStoneFootstep);
-@@ -53,7 +52,7 @@
+@@ -53,7 +53,7 @@
        return;
      final int count = quantityDropped(meta, 0, world.rand);
      final int it = idDropped(meta, world.rand, 0);
@@ -975,26 +494,7 @@
          EnchantmentHelper.enchantmentToIS(tile, is);
 --- a/com/yogpc/qp/BlockRefinery.java
 +++ b/com/yogpc/qp/BlockRefinery.java
-@@ -15,7 +15,6 @@
- 
- import java.util.ArrayList;
- 
--import net.minecraft.block.Block;
- import net.minecraft.block.BlockContainer;
- import net.minecraft.block.material.Material;
- import net.minecraft.entity.EntityLivingBase;
-@@ -32,8 +31,8 @@
- 
- public class BlockRefinery extends BlockContainer {
- 
--  public BlockRefinery() {
--    super(Material.iron);
-+  public BlockRefinery(final int id) {
-+    super(id, Material.iron);
-     setHardness(5F);
-     setCreativeTab(QuarryPlus.ct);
-     setUnlocalizedName("RefineryPlus");
-@@ -55,7 +54,7 @@
+@@ -55,7 +55,7 @@
        return;
      final int count = quantityDropped(meta, 0, world.rand);
      final int it = idDropped(meta, world.rand, 0);
@@ -1003,7 +503,7 @@
        for (int i = 0; i < count; i++) {
          final ItemStack is = new ItemStack(it, 1, damageDropped(meta));
          EnchantmentHelper.enchantmentToIS(tile, is);
-@@ -82,7 +81,7 @@
+@@ -82,7 +82,7 @@
    }
  
    private static void consumeItem(final EntityPlayer ep, final ItemStack stack) {
@@ -1014,15 +514,7 @@
        ep.inventory.setInventorySlotContents(ep.inventory.currentItem, stack);
 --- a/com/yogpc/qp/ChunkLoadingHandler.java
 +++ b/com/yogpc/qp/ChunkLoadingHandler.java
-@@ -15,7 +15,6 @@
- 
- import java.util.List;
- 
--import net.minecraft.block.Block;
- import net.minecraft.tileentity.TileEntity;
- import net.minecraft.world.World;
- import net.minecraftforge.common.ForgeChunkManager;
-@@ -47,8 +46,8 @@
+@@ -47,8 +47,8 @@
        final int quarryY = ticket.getModData().getInteger("quarryY");
        final int quarryZ = ticket.getModData().getInteger("quarryZ");
  
@@ -1064,105 +556,9 @@
    }
  
  }
---- a/com/yogpc/qp/EnchantmentHelper.java
-+++ b/com/yogpc/qp/EnchantmentHelper.java
-@@ -18,6 +18,7 @@
- 
- import net.minecraft.enchantment.Enchantment;
- import net.minecraft.item.ItemStack;
-+import net.minecraft.nbt.NBTTagCompound;
- import net.minecraft.nbt.NBTTagList;
- import net.minecraft.util.StatCollector;
- 
---- a/com/yogpc/qp/ItemBlockBreaker.java
-+++ b/com/yogpc/qp/ItemBlockBreaker.java
-@@ -13,13 +13,12 @@
- 
- package com.yogpc.qp;
- 
--import net.minecraft.block.Block;
- import net.minecraft.item.ItemBlock;
- import net.minecraft.item.ItemStack;
- 
- public class ItemBlockBreaker extends ItemBlock implements IEnchantableItem {
- 
--  public ItemBlockBreaker(final Block b) {
-+  public ItemBlockBreaker(final int b) {
-     super(b);
-   }
- 
---- a/com/yogpc/qp/ItemBlockPump.java
-+++ b/com/yogpc/qp/ItemBlockPump.java
-@@ -13,13 +13,12 @@
- 
- package com.yogpc.qp;
- 
--import net.minecraft.block.Block;
- import net.minecraft.item.ItemBlock;
- import net.minecraft.item.ItemStack;
- 
- public class ItemBlockPump extends ItemBlock implements IEnchantableItem {
- 
--  public ItemBlockPump(final Block b) {
-+  public ItemBlockPump(final int b) {
-     super(b);
-   }
- 
---- a/com/yogpc/qp/ItemBlockQuarry.java
-+++ b/com/yogpc/qp/ItemBlockQuarry.java
-@@ -13,13 +13,12 @@
- 
- package com.yogpc.qp;
- 
--import net.minecraft.block.Block;
- import net.minecraft.item.ItemBlock;
- import net.minecraft.item.ItemStack;
- 
- public class ItemBlockQuarry extends ItemBlock implements IEnchantableItem {
- 
--  public ItemBlockQuarry(final Block b) {
-+  public ItemBlockQuarry(final int b) {
-     super(b);
-   }
- 
---- a/com/yogpc/qp/ItemBlockRefinery.java
-+++ b/com/yogpc/qp/ItemBlockRefinery.java
-@@ -13,13 +13,12 @@
- 
- package com.yogpc.qp;
- 
--import net.minecraft.block.Block;
- import net.minecraft.item.ItemBlock;
- import net.minecraft.item.ItemStack;
- 
- public class ItemBlockRefinery extends ItemBlock implements IEnchantableItem {
- 
--  public ItemBlockRefinery(final Block b) {
-+  public ItemBlockRefinery(final int b) {
-     super(b);
-   }
- 
 --- a/com/yogpc/qp/ItemTool.java
 +++ b/com/yogpc/qp/ItemTool.java
-@@ -30,15 +30,14 @@
- import com.yogpc.mc_lib.PacketHandler;
- import com.yogpc.qp.QuarryPlus.BlockData;
- 
--import cpw.mods.fml.common.registry.GameData;
- import cpw.mods.fml.relauncher.Side;
- import cpw.mods.fml.relauncher.SideOnly;
- 
- public class ItemTool extends Item implements IEnchantableItem {
-   Icon ile, ils;
- 
--  public ItemTool() {
--    super();
-+  public ItemTool(final int id) {
-+    super(id);
-     setMaxStackSize(1);
-     setHasSubtypes(true);
-     setMaxDamage(0);
-@@ -78,7 +77,7 @@
+@@ -78,7 +78,7 @@
              f = true;
          }
        NBTTagCompound c = is.getTagCompound();
@@ -1171,43 +567,9 @@
        BlockData bd = null;
        if (c != null && c.hasKey("Bname")) {
          bd = new BlockData(c.getString("Bname"), c.getInteger("Bmeta"));
-@@ -105,7 +104,7 @@
-           c = new NBTTagCompound();
-           is.setTagCompound(c);
-         }
--        final String name = GameData.getBlockRegistry().getNameForObject(b);
-+        final String name = Integer.toString(b.blockID);
-         final int meta = w.getBlockMetadata(x, y, z);
-         if (c.hasKey("Bname") && name.equals(c.getString("Bname")) && meta == c.getInteger("Bmeta"))
-           c.setInteger("Bmeta", OreDictionary.WILDCARD_VALUE);
 --- a/com/yogpc/qp/QuarryPlus.java
 +++ b/com/yogpc/qp/QuarryPlus.java
-@@ -16,8 +16,6 @@
- import net.minecraft.block.Block;
- import net.minecraft.client.renderer.texture.TextureMap;
- import net.minecraft.creativetab.CreativeTabs;
--import net.minecraft.block.Block;
--import net.minecraft.item.Item;
- import net.minecraft.item.Item;
- import net.minecraft.item.ItemStack;
- import net.minecraft.util.Icon;
-@@ -31,6 +29,7 @@
- 
- import com.yogpc.mc_lib.PacketHandler;
- import com.yogpc.mc_lib.WorkbenchRecipe;
-+import com.yogpc.mc_lib.YogpstopLib;
- import com.yogpc.qp.client.RenderEntityLaser;
- 
- import cpw.mods.fml.client.registry.RenderingRegistry;
-@@ -40,7 +39,6 @@
- import cpw.mods.fml.common.event.FMLPreInitializationEvent;
- import net.minecraftforge.event.ForgeSubscribe;
- import cpw.mods.fml.common.network.NetworkRegistry;
--import cpw.mods.fml.common.registry.GameData;
- import cpw.mods.fml.common.registry.GameRegistry;
- import cpw.mods.fml.relauncher.Side;
- import cpw.mods.fml.relauncher.SideOnly;
-@@ -104,8 +102,22 @@
+@@ -102,8 +103,22 @@
    @Mod.EventHandler
    public void preInit(final FMLPreInitializationEvent event) {
      final Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
@@ -1230,7 +592,7 @@
        final Property RD = cfg.get(Configuration.CATEGORY_GENERAL, "RecipeDifficulty", 2);
        RD.comment =
            "0:AsCheatRecipe,1:EasyRecipe,2:NormalRecipe(Default),3:HardRecipe,other:NormalRecipe";
-@@ -117,24 +129,25 @@
+@@ -115,24 +130,25 @@
        cfg.save();
      }
      try {
@@ -1269,27 +631,9 @@
    }
  
    @Mod.EventHandler
-@@ -241,7 +254,7 @@
-       sb.append(bd.meta);
-     }
-     sb.append("  ");
--    sb.append(GameData.getBlockRegistry().getObject(bd.name).getLocalizedName());
-+    sb.append(Block.blocksList[Integer.parseInt(bd.name)].getLocalizedName());
-     return sb.toString();
-   }
- }
 --- a/com/yogpc/qp/TileBasic.java
 +++ b/com/yogpc/qp/TileBasic.java
-@@ -44,8 +44,6 @@
- import com.yogpc.mc_lib.YogpstopPacket;
- import com.yogpc.qp.QuarryPlus.BlockData;
- 
--import cpw.mods.fml.common.registry.GameData;
--
- public abstract class TileBasic extends APowerTile implements IInventory, IEnchantableTile {
-   protected ForgeDirection pump = ForgeDirection.UNKNOWN;
- 
-@@ -254,8 +252,8 @@
+@@ -254,8 +254,8 @@
  
    protected boolean S_breakBlock(final int x, final int y, final int z) {
      final Collection<ItemStack> dropped = new LinkedList<ItemStack>();
@@ -1300,16 +644,7 @@
      if (b == null || b.isAirBlock(this.worldObj, x, y, z))
        return true;
      if (TilePump.isLiquid(b, false, null, 0, 0, 0, 0)) {
-@@ -274,7 +272,7 @@
-       return false;
-     this.cacheItems.addAll(dropped);
-     this.worldObj.playAuxSFXAtEntity(null, 2001, x, y, z,
--        Block.getIdFromBlock(b) | this.worldObj.getBlockMetadata(x, y, z) << 12);
-+        b.blockID | this.worldObj.getBlockMetadata(x, y, z) << 12);
-     this.worldObj.setBlockToAir(x, y, z);
-     return true;
-   }
-@@ -295,8 +293,7 @@
+@@ -295,8 +295,7 @@
      final int meta = this.worldObj.getBlockMetadata(x, y, z);
      if (b.canSilkHarvest(this.worldObj, null, x, y, z, meta)
          && this.silktouch
@@ -1319,15 +654,6 @@
        try {
          list.add((ItemStack) createStackedBlock.invoke(b, new Integer(meta)));
          return -1;
-@@ -305,7 +302,7 @@
-       } catch (final Error e) {
-         e.printStackTrace();
-       }
--    if (this.fortuneList.contains(new BlockData(GameData.getBlockRegistry().getNameForObject(b),
-+    if (this.fortuneList.contains(new BlockData(Integer.toString(b.blockID),
-         meta)) == this.fortuneInclude) {
-       list.addAll(b.getBlockDropped(this.worldObj, x, y, z, meta, this.fortune));
-       return this.fortune;
 --- a/com/yogpc/qp/TileMarker.java
 +++ b/com/yogpc/qp/TileMarker.java
 @@ -196,7 +196,7 @@
@@ -1447,15 +773,7 @@
      }
 --- a/com/yogpc/qp/TilePump.java
 +++ b/com/yogpc/qp/TilePump.java
-@@ -20,7 +20,6 @@
- 
- import net.minecraft.block.Block;
- import net.minecraft.entity.player.EntityPlayer;
--import net.minecraft.block.Block;
- import net.minecraft.nbt.NBTTagCompound;
- import net.minecraft.nbt.NBTTagList;
- import net.minecraft.nbt.NBTTagString;
-@@ -84,7 +83,7 @@
+@@ -83,7 +83,7 @@
      if (nbttc.getTag("mapping0") instanceof NBTTagList)
        for (int i = 0; i < this.mapping.length; i++)
          readStringCollection(
@@ -1464,7 +782,7 @@
              this.mapping[i]);
      this.range = nbttc.getByte("range");
      this.quarryRange = nbttc.getBoolean("quarryRange");
-@@ -406,7 +405,7 @@
+@@ -405,7 +405,7 @@
      while (cp != cg) {
        ebs_c = this.ebses[xb[cg] >> 4][zb[cg] >> 4][yb[cg] >> 4];
        if (ebs_c != null) {
@@ -1473,7 +791,7 @@
          if (this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] == 0
              && isLiquid(b_c, false, null, 0, 0, 0, 0)) {
            this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] = 0x3F;
-@@ -467,8 +466,7 @@
+@@ -466,8 +466,7 @@
              for (bz = 0; bz < this.block_side_z; bz++)
                if ((this.blocks[this.py - this.yOffset][bx][bz] & 0x40) != 0) {
                  bb =
@@ -1483,7 +801,7 @@
                  if (isLiquid(bb, false, null, 0, 0, 0, 0))
                    count++;
                }
-@@ -476,8 +474,7 @@
+@@ -475,8 +474,7 @@
            for (bz = 0; bz < this.block_side_z; bz++)
              if (this.blocks[this.py - this.yOffset][this.px][bz] != 0) {
                bb =
@@ -1493,7 +811,7 @@
                meta =
                    this.ebses[this.px >> 4][bz >> 4][this.py >> 4].getExtBlockMetadata(
                        this.px & 0xF, this.py & 0xF, bz & 0xF);
-@@ -499,11 +496,11 @@
+@@ -498,11 +496,11 @@
          for (bx = 0; bx < this.block_side_x; bx++)
            for (bz = 0; bz < this.block_side_z; bz++)
              if ((this.blocks[this.py - this.yOffset][bx][bz] & 0x40) != 0)
@@ -1507,7 +825,7 @@
      S_sendNowPacket();
      return this.py < this.cy;
    }
-@@ -658,10 +655,9 @@
+@@ -657,10 +655,9 @@
      return false;
    }
  
@@ -1561,85 +879,9 @@
        this.worldObj.setBlockMetadataWithNotify(x, y, z, 1, 3);
    }
  
---- a/com/yogpc/qp/TileRefinery.java
-+++ b/com/yogpc/qp/TileRefinery.java
-@@ -24,8 +24,7 @@
- import net.minecraftforge.fluids.FluidStack;
- import net.minecraftforge.fluids.FluidTankInfo;
- import net.minecraftforge.fluids.IFluidHandler;
--import buildcraft.api.recipes.BuildcraftRecipes;
--import buildcraft.api.recipes.RefineryRecipes.RecipeManager.RefineryRecipes.Recipe;
-+import buildcraft.api.recipes.RefineryRecipes;
- 
- import com.google.common.io.ByteArrayDataInput;
- import com.google.common.io.ByteStreams;
---- a/com/yogpc/qp/client/RenderFrame.java
-+++ b/com/yogpc/qp/client/RenderFrame.java
-@@ -29,7 +29,7 @@
-   @Override
-   public boolean renderWorldBlock(final IBlockAccess w, final int i, final int j, final int k,
-       final Block b, final int m, final RenderBlocks r) {
--    if (w.getBlock(i - 1, j, k) == b) {
-+    if (w.getBlockId(i - 1, j, k) == b.blockID) {
-       r.setRenderBounds(0.0F, 0.25F, 0.25F, 0.25F, 0.75F, 0.75F);
-       ((BlockFrame) b).setSides(true, true, true, true, false, false);
-     } else {
-@@ -37,7 +37,7 @@
-       ((BlockFrame) b).setSides(false, false, false, false, true, false);
-     }
-     r.renderStandardBlock(b, i, j, k);
--    if (w.getBlock(i + 1, j, k) == b) {
-+    if (w.getBlockId(i + 1, j, k) == b.blockID) {
-       r.setRenderBounds(0.75F, 0.25F, 0.25F, 1.0F, 0.75F, 0.75F);
-       ((BlockFrame) b).setSides(true, true, true, true, false, false);
-     } else {
-@@ -45,7 +45,7 @@
-       ((BlockFrame) b).setSides(false, false, false, false, false, true);
-     }
-     r.renderStandardBlock(b, i, j, k);
--    if (w.getBlock(i, j - 1, k) == b) {
-+    if (w.getBlockId(i, j - 1, k) == b.blockID) {
-       r.setRenderBounds(0.25F, 0.0F, 0.25F, 0.75F, 0.25F, 0.75F);
-       ((BlockFrame) b).setSides(false, false, true, true, true, true);
-     } else {
-@@ -53,7 +53,7 @@
-       ((BlockFrame) b).setSides(true, false, false, false, false, false);
-     }
-     r.renderStandardBlock(b, i, j, k);
--    if (w.getBlock(i, j + 1, k) == b) {
-+    if (w.getBlockId(i, j + 1, k) == b.blockID) {
-       r.setRenderBounds(0.25F, 0.75F, 0.25F, 0.75F, 1.0F, 0.75F);
-       ((BlockFrame) b).setSides(false, false, true, true, true, true);
-     } else {
-@@ -61,7 +61,7 @@
-       ((BlockFrame) b).setSides(false, true, false, false, false, false);
-     }
-     r.renderStandardBlock(b, i, j, k);
--    if (w.getBlock(i, j, k - 1) == b) {
-+    if (w.getBlockId(i, j, k - 1) == b.blockID) {
-       r.setRenderBounds(0.25F, 0.25F, 0.0F, 0.75F, 0.75F, 0.25F);
-       ((BlockFrame) b).setSides(true, true, false, false, true, true);
-     } else {
-@@ -69,7 +69,7 @@
-       ((BlockFrame) b).setSides(false, false, true, false, false, false);
-     }
-     r.renderStandardBlock(b, i, j, k);
--    if (w.getBlock(i, j, k + 1) == b) {
-+    if (w.getBlockId(i, j, k + 1) == b.blockID) {
-       r.setRenderBounds(0.25F, 0.25F, 0.75F, 0.75F, 0.75F, 1.0F);
-       ((BlockFrame) b).setSides(true, true, false, false, true, true);
-     } else {
 --- a/com/yogpc/qp/client/RenderRefinery.java
 +++ b/com/yogpc/qp/client/RenderRefinery.java
-@@ -24,7 +24,6 @@
- import net.minecraft.client.renderer.Tessellator;
- import net.minecraft.client.renderer.texture.TextureMap;
- import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
--import net.minecraft.block.Block;
- import net.minecraft.tileentity.TileEntity;
- import net.minecraft.util.Icon;
- import net.minecraft.util.ResourceLocation;
-@@ -204,8 +203,8 @@
+@@ -203,8 +203,8 @@
      diplayLists = new int[100];
      Block baseBlock;
      Icon texture;
