@@ -1,44 +1,19 @@
 --- a/com/yogpc/ip/ItemArmorElectric.java
 +++ b/com/yogpc/ip/ItemArmorElectric.java
-@@ -80,7 +80,7 @@
-           }
-         }
-       }
--      ElectricItem.manager.discharge(jetpack, hover ? 7 : 8, Integer.MAX_VALUE, true, false, false);
-+      ElectricItem.manager.discharge(jetpack, hover ? 7 : 8, Integer.MAX_VALUE, true, false);
-       {
-         p.fallDistance = 0.0f;
-         p.distanceWalkedModified = 0.0f;
-@@ -139,7 +139,7 @@
-   @SideOnly(Side.CLIENT)
-   public void getSubItems(final Item item, final CreativeTabs par2CreativeTabs, final List itemList) {
-     final ItemStack charged = new ItemStack(this, 1);
--    ElectricItem.manager.charge(charged, Double.POSITIVE_INFINITY, Integer.MAX_VALUE, true, false);
-+    ElectricItem.manager.charge(charged, Integer.MAX_VALUE, Integer.MAX_VALUE, true, false);
-     itemList.add(charged);
-     itemList.add(new ItemStack(this, 1, getMaxDamage()));
-   }
-@@ -164,7 +164,7 @@
+@@ -129,8 +129,8 @@
    @Override
-   public void damageArmor(final EntityLivingBase entity, final ItemStack stack,
-       final DamageSource source, final int damage, final int slot) {
--    ElectricItem.manager.discharge(stack, damage * 5000, Integer.MAX_VALUE, true, false, false);
-+    ElectricItem.manager.discharge(stack, damage * 5000, Integer.MAX_VALUE, true, false);
-   }
- 
-   @Override
-@@ -214,7 +214,7 @@
- 
-   @Override
-   public int receiveEnergy(final ItemStack is, final int am, final boolean sim) {
--    return (int) (ElectricItem.manager.charge(is, (double) am / 4, Integer.MAX_VALUE, false, false) * 4);
-+    return (int) (ElectricItem.manager.charge(is, (int) ((double) am / 4), Integer.MAX_VALUE, false, false) * 4);
-   }
- 
- }
+   public void onArmorTick(final World world, final EntityPlayer player, final ItemStack is) {
+     if (ElectricItem.manager != null)
+-      ElectricItemManager.charge(is, ElectricItem.manager.discharge(is, Double.MAX_VALUE,
+-          Integer.MAX_VALUE, true, false, false), getMaxCharge(is));
++      ElectricItemManager.charge(is, ElectricItem.manager.discharge(is, Integer.MAX_VALUE,
++          Integer.MAX_VALUE, true, false), getMaxCharge(is));
+     if (player.inventory.armorInventory[2] != is)
+       return;
+     useJetpack(player, is, toggleHover(player, is));
 --- a/com/yogpc/mc_lib/PacketHandler.java
 +++ b/com/yogpc/mc_lib/PacketHandler.java
-@@ -160,8 +159,7 @@
+@@ -159,8 +159,7 @@
  
    private static void setNBTFromPacket(final YogpstopPacket p) {
      try {
@@ -63,7 +38,7 @@
      return ret;
 --- a/com/yogpc/qp/client/GuiP_List.java
 +++ b/com/yogpc/qp/client/GuiP_List.java
-@@ -26,7 +25,7 @@
+@@ -25,7 +25,7 @@
  import cpw.mods.fml.relauncher.SideOnly;
  
  @SideOnly(Side.CLIENT)
@@ -72,7 +47,7 @@
    private GuiP_SlotList oreslot;
    private GuiButton delete, top, up, down, bottom;
    private final TilePump tile;
-@@ -94,8 +93,7 @@
+@@ -93,8 +93,7 @@
        case PacketHandler.CtS_REMOVE_MAPPING:
          String name = this.tile.mapping[this.dir].get(this.oreslot.currentore);
          if (FluidRegistry.isFluidRegistered(name))
@@ -84,7 +59,7 @@
          break;
 --- a/com/yogpc/qp/client/GuiP_Manual.java
 +++ b/com/yogpc/qp/client/GuiP_Manual.java
-@@ -27,7 +26,7 @@
+@@ -26,7 +26,7 @@
  import cpw.mods.fml.relauncher.SideOnly;
  
  @SideOnly(Side.CLIENT)
@@ -93,7 +68,7 @@
    private GuiTextField blockid;
    private final byte targetid;
    private final TilePump tile;
-@@ -57,15 +56,13 @@
+@@ -56,15 +56,13 @@
            return;
          if (this.tile.mapping[this.targetid].contains(name)) {
            if (FluidRegistry.isFluidRegistered(name))
@@ -137,7 +112,7 @@
              name,
 --- a/com/yogpc/qp/client/GuiQ_List.java
 +++ b/com/yogpc/qp/client/GuiQ_List.java
-@@ -30,7 +29,7 @@
+@@ -29,7 +29,7 @@
  import cpw.mods.fml.relauncher.SideOnly;
  
  @SideOnly(Side.CLIENT)
@@ -148,7 +123,7 @@
    private final TileBasic tile;
 --- a/com/yogpc/qp/client/GuiYesNo.java
 +++ b/com/yogpc/qp/client/GuiYesNo.java
-@@ -20,12 +20,12 @@
+@@ -19,12 +19,12 @@
  @SideOnly(Side.CLIENT)
  public class GuiYesNo extends net.minecraft.client.gui.GuiYesNo {
  

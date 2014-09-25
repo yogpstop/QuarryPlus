@@ -29,7 +29,6 @@ import com.yogpc.mc_lib.ReflectionHelper;
 import com.yogpc.mc_lib.YogpstopLib;
 
 import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
@@ -41,13 +40,12 @@ public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElec
     setUnlocalizedName("electric_armor");
     setCreativeTab(CreativeTabs.tabCombat);
     setTextureName("yogpstop_qp:elecArmor");
-    GameRegistry.registerItem(this, "qpArmor");
     setMaxDamage(100);
     setMaxStackSize(1);
   }
 
   @Override
-  public String getArmorTexture(ItemStack i, Entity e, int s, String t) {
+  public String getArmorTexture(final ItemStack i, final Entity e, final int s, final String t) {
     return "yogpstop_qp:textures/models/armor/elecArmor_layer_1.png";
   }
 
@@ -59,7 +57,7 @@ public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElec
   private void useJetpack(final EntityPlayer p, final ItemStack jetpack, final boolean hover) {
     final boolean jumping = YogpstopLib.proxy.getKey(p, ProxyCommon.Key.jump);
     if (jumping || hover && p.motionY < -maxFallSpeedOnHover) {
-      final double charge = ElectricItem.manager.getCharge(jetpack);
+      final double charge = ElectricItemManager.getCharge(jetpack);
       if (charge <= 0.0)
         return;
       float power = 0.7f;
@@ -86,7 +84,7 @@ public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElec
           }
         }
       }
-      ElectricItem.manager.discharge(jetpack, hover ? 7 : 8, Integer.MAX_VALUE, true, false, false);
+      ElectricItemManager.discharge(jetpack, hover ? 7 : 8, getMaxCharge(jetpack));
       {
         p.fallDistance = 0.0f;
         p.distanceWalkedModified = 0.0f;
@@ -129,10 +127,13 @@ public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElec
   }
 
   @Override
-  public void onArmorTick(final World world, final EntityPlayer player, final ItemStack itemStack) {
-    if (player.inventory.armorInventory[2] != itemStack)
+  public void onArmorTick(final World world, final EntityPlayer player, final ItemStack is) {
+    if (ElectricItem.manager != null)
+      ElectricItemManager.charge(is, ElectricItem.manager.discharge(is, Double.MAX_VALUE,
+          Integer.MAX_VALUE, true, false, false), getMaxCharge(is));
+    if (player.inventory.armorInventory[2] != is)
       return;
-    useJetpack(player, itemStack, toggleHover(player, itemStack));
+    useJetpack(player, is, toggleHover(player, is));
   }
 
   @Override
@@ -145,7 +146,7 @@ public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElec
   @SideOnly(Side.CLIENT)
   public void getSubItems(final Item item, final CreativeTabs par2CreativeTabs, final List itemList) {
     final ItemStack charged = new ItemStack(this, 1);
-    ElectricItem.manager.charge(charged, Double.POSITIVE_INFINITY, Integer.MAX_VALUE, true, false);
+    ElectricItemManager.charge(charged, Double.POSITIVE_INFINITY, getMaxCharge(charged));
     itemList.add(charged);
     itemList.add(new ItemStack(this, 1, getMaxDamage()));
   }
@@ -156,21 +157,21 @@ public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElec
     if (source.isUnblockable())
       return new ISpecialArmor.ArmorProperties(0, 0.0, 0);
     final int damageLimit =
-        (int) Math.min(Integer.MAX_VALUE, 25.0 * ElectricItem.manager.getCharge(armor) / 5000);
+        (int) Math.min(Integer.MAX_VALUE, 25.0 * ElectricItemManager.getCharge(armor) / 5000);
     return new ISpecialArmor.ArmorProperties(0, 0.4 * 0.9, damageLimit);
   }
 
   @Override
   public int getArmorDisplay(final EntityPlayer player, final ItemStack armor, final int slot) {
-    if (ElectricItem.manager.getCharge(armor) >= 5000)
+    if (ElectricItemManager.getCharge(armor) >= 5000)
       return (int) Math.round(20.0 * 0.4 * 0.9);
     return 0;
   }
 
   @Override
-  public void damageArmor(final EntityLivingBase entity, final ItemStack stack,
+  public void damageArmor(final EntityLivingBase entity, final ItemStack is,
       final DamageSource source, final int damage, final int slot) {
-    ElectricItem.manager.discharge(stack, damage * 5000, Integer.MAX_VALUE, true, false, false);
+    ElectricItemManager.discharge(is, damage * 5000, getMaxCharge(is));
   }
 
   @Override
@@ -210,7 +211,7 @@ public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElec
 
   @Override
   public int getEnergyStored(final ItemStack is) {
-    return (int) (ElectricItem.manager.getCharge(is) * 4);
+    return (int) (ElectricItemManager.getCharge(is) * 4);
   }
 
   @Override
@@ -220,7 +221,7 @@ public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElec
 
   @Override
   public int receiveEnergy(final ItemStack is, final int am, final boolean sim) {
-    return (int) (ElectricItem.manager.charge(is, (double) am / 4, Integer.MAX_VALUE, false, false) * 4);
+    return (int) (ElectricItemManager.charge(is, Math.min((double) am / 4, getTransferLimit(is)),
+        getMaxCharge(is)) * 4);
   }
-
 }

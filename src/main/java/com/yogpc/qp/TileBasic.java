@@ -191,15 +191,18 @@ public abstract class TileBasic extends APowerTile implements IInventory, IEncha
         a[i] = i;
     }
     int moved = 0, buf;
+    List<Integer> e = new ArrayList<Integer>();
     for (final int i : a) {
-      final ItemStack is2 = iii.getStackInSlot(i);
       if (iii instanceof ISidedInventory) {
-        if (!((ISidedInventory) iii).canInsertItem(i, is2, fd.ordinal()))
+        if (!((ISidedInventory) iii).canInsertItem(i, is1, fd.ordinal()))
           continue;
-      } else if (!iii.isItemValidForSlot(i, is2))
+      } else if (!iii.isItemValidForSlot(i, is1))
         continue;
-      if (is2 == null)
+      final ItemStack is2 = iii.getStackInSlot(i);
+      if (is2 == null) {
+        e.add(new Integer(i));
         continue;
+      }
       if (!is2.isItemEqual(is1))
         continue;
       if (!ItemStack.areItemStackTagsEqual(is2, is1))
@@ -211,6 +214,17 @@ public abstract class TileBasic extends APowerTile implements IInventory, IEncha
         moved += buf - is2.stackSize;
         if (doAdd)
           is2.stackSize = buf;
+        if (moved >= is1.stackSize)
+          break;
+      }
+    }
+    for (Integer i : e) {
+      buf = Math.min(iii.getInventoryStackLimit(), Math.min(is1.stackSize, is1.getMaxStackSize()));
+      if (buf > 0) {
+        final ItemStack is2 = is1.copy();
+        moved += is2.stackSize = buf;
+        if (doAdd)
+          iii.setInventorySlotContents(i.intValue(), is2);
         if (moved >= is1.stackSize)
           break;
       }

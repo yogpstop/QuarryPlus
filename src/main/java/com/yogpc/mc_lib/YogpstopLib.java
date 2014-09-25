@@ -28,16 +28,16 @@ public class YogpstopLib {
     PacketHandler.channels =
         NetworkRegistry.INSTANCE.newChannel("YogpstopLib", new YogpstopPacketCodec(),
             new PacketHandler());
-    new ItemArmorElectric();// TODO IC2Plus
+    GameRegistry.registerItem(new ItemArmorElectric(), "qpArmor");// TODO IC2Plus
     try {
       this.workbench = new BlockWorkbench();
     } catch (final Exception e) {
       e.printStackTrace();
     }
+    GameRegistry.registerBlock(this.workbench, "WorkbenchPlus");
+    GameRegistry.registerTileEntity(TileWorkbench.class, "WorkbenchPlus");
     GameRegistry.addRecipe(new ItemStack(this.workbench, 1), new Object[] {"III", "GDG", "RRR",
         Character.valueOf('D'), Blocks.diamond_block, Character.valueOf('R'), Items.redstone,
         Character.valueOf('I'), Blocks.iron_block, Character.valueOf('G'), Blocks.gold_block});
-    GameRegistry.registerBlock(this.workbench, "WorkbenchPlus");
-    GameRegistry.registerTileEntity(TileWorkbench.class, "WorkbenchPlus");
   }
 }

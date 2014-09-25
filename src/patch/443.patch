@@ -1,6 +1,6 @@
 --- a/com/yogpc/ip/ItemArmorElectric.java
 +++ b/com/yogpc/ip/ItemArmorElectric.java
-@@ -30,7 +30,7 @@
+@@ -29,7 +29,7 @@
  import cpw.mods.fml.common.asm.SideOnly;
  
  public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElectricItem,
@@ -9,7 +9,7 @@
    public ItemArmorElectric(final int id) {
      super(id, EnumHelper.addArmorMaterial("ELECTRIC", 33, new int[] {3, 8, 6, 3}, 0), YogpstopLib.proxy
          .addNewArmourRendererPrefix("electric"), 1);
-@@ -38,6 +40,8 @@
+@@ -38,6 +38,8 @@
      setMaxDamage(100);
      setMaxStackSize(1);
      this.iconIndex = 83;
@@ -18,18 +18,20 @@
    }
  
    @Override
-@@ -122,13 +126,28 @@
+@@ -120,15 +122,30 @@
    }
  
    @Override
--  public void onArmorTickUpdate(final World world, final EntityPlayer player, final ItemStack itemStack) {
--    if (player.inventory.armorInventory[2] != itemStack)
+-  public void onArmorTickUpdate(final World world, final EntityPlayer player, final ItemStack is) {
 +  public void tickStart(final EnumSet<TickType> type, final Object... tickData) {
 +    final EntityPlayer player = (EntityPlayer) tickData[0];
-+    final ItemStack itemStack = player.inventory.armorInventory[2];
-+    if (this != itemStack.getItem())
++    final ItemStack is = player.inventory.armorInventory[2];
+       ElectricItemManager.charge(is, ElectricItem.discharge(is, Integer.MAX_VALUE,
+           Integer.MAX_VALUE, true, false), getMaxCharge());
+-    if (player.inventory.armorInventory[2] != is)
++    if (this != is.getItem())
        return;
-     useJetpack(player, itemStack, toggleHover(player, itemStack));
+     useJetpack(player, is, toggleHover(player, is));
    }
  
    @Override

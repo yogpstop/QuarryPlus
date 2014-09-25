@@ -11,7 +11,7 @@ public class ReflectionHelper {
   public static final List<Method> getMethods(final Class<?> t, final Class<? extends Annotation> a) {
     final List<Method> ms = new ArrayList<Method>();
     Class<?> c = t;
-    while (c != Object.class) {
+    while (c != null && c != Object.class) {
       for (final Method m : c.getDeclaredMethods())
         if (m.isAnnotationPresent(a)) {
           m.setAccessible(true);
@@ -25,7 +25,7 @@ public class ReflectionHelper {
   public static final Method getMethod(final Class<?> t, final String[] sv, final Class<?>[]... av) {
     final Collection<Exception> ec = new ArrayList<Exception>();
     Class<?> c = t;
-    while (c != Object.class) {
+    while (c != null && c != Object.class) {
       for (final String element : sv)
         for (final Class<?>[] element2 : av)
           try {
@@ -45,7 +45,7 @@ public class ReflectionHelper {
   public static final Field getField(final Class<?> t, final String... sv) {
     final Collection<Exception> ec = new ArrayList<Exception>();
     Class<?> c = t;
-    while (c != Object.class) {
+    while (c != null && c != Object.class) {
       for (final String s : sv)
         try {
           final Field tmp = c.getDeclaredField(s);

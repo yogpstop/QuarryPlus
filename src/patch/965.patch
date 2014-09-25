@@ -1,6 +1,6 @@
 --- a/com/yogpc/ip/ItemArmorElectric.java
 +++ b/com/yogpc/ip/ItemArmorElectric.java
-@@ -49,9 +49,6 @@
+@@ -43,9 +43,6 @@
      return "yogpstop_qp:textures/models/armor/elecArmor_layer_1.png";
    }
  
@@ -10,7 +10,7 @@
    private static final double maxFallSpeedOnHover = 0.35;
  
    private void useJetpack(final EntityPlayer p, final ItemStack jetpack, final boolean hover) {
-@@ -89,13 +86,7 @@
+@@ -83,13 +80,7 @@
          p.fallDistance = 0.0f;
          p.distanceWalkedModified = 0.0f;
          if (p instanceof EntityPlayerMP)
@@ -69,7 +69,7 @@
    @Override
 --- a/com/yogpc/mc_lib/PacketHandler.java
 +++ b/com/yogpc/mc_lib/PacketHandler.java
-@@ -40,8 +40,7 @@
+@@ -39,8 +39,7 @@
  import com.google.common.io.ByteArrayDataInput;
  import com.google.common.io.ByteStreams;
  
@@ -79,7 +79,7 @@
    @Retention(RetentionPolicy.RUNTIME)
    @Target(ElementType.METHOD)
    public static @interface Handler {
-@@ -55,7 +54,6 @@
+@@ -54,7 +53,6 @@
        registeredStaticHandlers.put(c.getName(), l.get(0));
    }
  
@@ -87,7 +87,7 @@
    static final byte Tile = 0;
    static final byte NBT = 1;
    static final byte BTN = 2;
-@@ -92,8 +90,9 @@
+@@ -91,8 +89,9 @@
    public static final byte remove_laser = 1;
  
    @Override
@@ -99,7 +99,7 @@
      if (packet.getChannel() == NBT)
        setNBTFromPacket(packet);
      else if (packet.getChannel() == BTN) {
-@@ -123,33 +122,29 @@
+@@ -122,33 +121,29 @@
            | packet.getData()[1] << 16 | packet.getData()[2] << 8 | packet.getData()[3]);
    }
  
@@ -247,8 +247,8 @@
 -    PacketHandler.channels =
 -        NetworkRegistry.instance().newChannel("YogpstopLib", new YogpstopPacketCodec(),
 -            new PacketHandler());
--    new ItemArmorElectric();// TODO IC2Plus
-+    new ItemArmorElectric(21478);// TODO IC2Plus
+-    GameRegistry.registerItem(new ItemArmorElectric(), "qpArmor");// TODO IC2Plus
++    GameRegistry.registerItem(new ItemArmorElectric(21478), "qpArmor");// TODO IC2Plus
      try {
 -      this.workbench = new BlockWorkbench();
 +      this.workbench = new BlockWorkbench(3333);
@@ -256,8 +256,8 @@
        e.printStackTrace();
      }
 @@ -52,4 +51,64 @@
-     GameRegistry.registerBlock(this.workbench, "WorkbenchPlus");
-     GameRegistry.registerTileEntity(TileWorkbench.class, "WorkbenchPlus");
+         Character.valueOf('D'), Block.blockDiamond, Character.valueOf('R'), Item.redstone,
+         Character.valueOf('I'), Block.blockIron, Character.valueOf('G'), Block.blockGold});
    }
 +
 +  private static final Pattern lang = Pattern.compile("assets/(.*)/lang/(.*)\\.lang");
@@ -358,7 +358,7 @@
  }
 --- a/com/yogpc/qp/BlockBreaker.java
 +++ b/com/yogpc/qp/BlockBreaker.java
-@@ -107,7 +107,7 @@
+@@ -105,7 +105,7 @@
          w.getBlockMetadata(tx, ty, tz);
      if (ty < 1)
        return;
@@ -367,7 +367,7 @@
      if (b == null || b.isAirBlock(w, x, y, z))
        return;
      final EntityPlayer player = FakePlayerFactory.getMinecraft(w);
-@@ -157,22 +157,22 @@
+@@ -155,22 +155,22 @@
  
    static void setDispenserDefaultDirection(final World w, final int x, final int y, final int z) {
      if (!w.isRemote) {
@@ -398,7 +398,7 @@
          b0 = 4;
        w.setBlockMetadataWithNotify(x, y, z, b0, 2);
      }
-@@ -188,7 +188,7 @@
+@@ -186,7 +186,7 @@
      ItemStack is;
      for (int i = 0; i < count; i++) {
        final int id1 = idDropped(meta, world.rand, 0);
@@ -409,7 +409,7 @@
          this.drop.add(is);
 --- a/com/yogpc/qp/BlockFrame.java
 +++ b/com/yogpc/qp/BlockFrame.java
-@@ -65,7 +65,7 @@
+@@ -64,7 +64,7 @@
  
    @Override
    public int idDropped(final int i, final Random random, final int j) {
@@ -420,7 +420,7 @@
    @Override
 --- a/com/yogpc/qp/BlockLaser.java
 +++ b/com/yogpc/qp/BlockLaser.java
-@@ -107,7 +107,7 @@
+@@ -105,7 +105,7 @@
      ItemStack is;
      for (int i = 0; i < count; i++) {
        final int it = idDropped(meta, world.rand, 0);
@@ -431,7 +431,7 @@
          this.drop.add(is);
 --- a/com/yogpc/qp/BlockMiningWell.java
 +++ b/com/yogpc/qp/BlockMiningWell.java
-@@ -119,7 +119,7 @@
+@@ -117,7 +117,7 @@
        return;
      final int count = quantityDropped(meta, 0, world.rand);
      final int it = idDropped(meta, world.rand, 0);
@@ -442,7 +442,7 @@
          EnchantmentHelper.enchantmentToIS(tile, is);
 --- a/com/yogpc/qp/BlockPlacer.java
 +++ b/com/yogpc/qp/BlockPlacer.java
-@@ -92,7 +92,7 @@
+@@ -90,7 +90,7 @@
      final boolean flag1 = (i1 & 8) != 0;
  
      if (flag && !flag1) {
@@ -451,7 +451,7 @@
        par1World.setBlockMetadataWithNotify(par2, par3, par4, i1 | 8, 4);
      } else if (!flag && flag1)
        par1World.setBlockMetadataWithNotify(par2, par3, par4, i1 & -9, 4);
-@@ -159,7 +159,7 @@
+@@ -157,7 +157,7 @@
                tz + fd6.offsetZ, sd5, 0.5F, 0.5F, 0.5F))
              break;
          }
@@ -462,7 +462,7 @@
          if (is != null) {
 --- a/com/yogpc/qp/BlockPlainPipe.java
 +++ b/com/yogpc/qp/BlockPlainPipe.java
-@@ -30,6 +30,6 @@
+@@ -29,6 +29,6 @@
  
    @Override
    public int idDropped(final int i, final Random random, final int fortune) {
@@ -472,7 +472,7 @@
  }
 --- a/com/yogpc/qp/BlockPump.java
 +++ b/com/yogpc/qp/BlockPump.java
-@@ -92,7 +92,7 @@
+@@ -90,7 +90,7 @@
        return;
      final int count = quantityDropped(meta, 0, world.rand);
      final int it = idDropped(meta, world.rand, 0);
@@ -483,7 +483,7 @@
          EnchantmentHelper.enchantmentToIS(tile, is);
 --- a/com/yogpc/qp/BlockQuarry.java
 +++ b/com/yogpc/qp/BlockQuarry.java
-@@ -53,7 +53,7 @@
+@@ -51,7 +51,7 @@
        return;
      final int count = quantityDropped(meta, 0, world.rand);
      final int it = idDropped(meta, world.rand, 0);
@@ -494,7 +494,7 @@
          EnchantmentHelper.enchantmentToIS(tile, is);
 --- a/com/yogpc/qp/BlockRefinery.java
 +++ b/com/yogpc/qp/BlockRefinery.java
-@@ -55,7 +55,7 @@
+@@ -53,7 +53,7 @@
        return;
      final int count = quantityDropped(meta, 0, world.rand);
      final int it = idDropped(meta, world.rand, 0);
@@ -503,7 +503,7 @@
        for (int i = 0; i < count; i++) {
          final ItemStack is = new ItemStack(it, 1, damageDropped(meta));
          EnchantmentHelper.enchantmentToIS(tile, is);
-@@ -82,7 +82,7 @@
+@@ -80,7 +80,7 @@
    }
  
    private static void consumeItem(final EntityPlayer ep, final ItemStack stack) {
@@ -514,7 +514,7 @@
        ep.inventory.setInventorySlotContents(ep.inventory.currentItem, stack);
 --- a/com/yogpc/qp/ChunkLoadingHandler.java
 +++ b/com/yogpc/qp/ChunkLoadingHandler.java
-@@ -47,8 +47,8 @@
+@@ -45,8 +45,8 @@
        final int quarryY = ticket.getModData().getInteger("quarryY");
        final int quarryZ = ticket.getModData().getInteger("quarryZ");
  
@@ -558,7 +558,7 @@
  }
 --- a/com/yogpc/qp/ItemTool.java
 +++ b/com/yogpc/qp/ItemTool.java
-@@ -78,7 +78,7 @@
+@@ -76,7 +76,7 @@
              f = true;
          }
        NBTTagCompound c = is.getTagCompound();
@@ -569,7 +569,7 @@
          bd = new BlockData(c.getString("Bname"), c.getInteger("Bmeta"));
 --- a/com/yogpc/qp/QuarryPlus.java
 +++ b/com/yogpc/qp/QuarryPlus.java
-@@ -102,8 +103,22 @@
+@@ -102,8 +102,22 @@
    @Mod.EventHandler
    public void preInit(final FMLPreInitializationEvent event) {
      final Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
@@ -592,7 +592,7 @@
        final Property RD = cfg.get(Configuration.CATEGORY_GENERAL, "RecipeDifficulty", 2);
        RD.comment =
            "0:AsCheatRecipe,1:EasyRecipe,2:NormalRecipe(Default),3:HardRecipe,other:NormalRecipe";
-@@ -115,24 +130,25 @@
+@@ -115,24 +129,25 @@
        cfg.save();
      }
      try {
@@ -633,7 +633,7 @@
    @Mod.EventHandler
 --- a/com/yogpc/qp/TileBasic.java
 +++ b/com/yogpc/qp/TileBasic.java
-@@ -254,8 +254,8 @@
+@@ -266,8 +266,8 @@
  
    protected boolean S_breakBlock(final int x, final int y, final int z) {
      final Collection<ItemStack> dropped = new LinkedList<ItemStack>();
@@ -644,7 +644,7 @@
      if (b == null || b.isAirBlock(this.worldObj, x, y, z))
        return true;
      if (TilePump.isLiquid(b, false, null, 0, 0, 0, 0)) {
-@@ -295,8 +295,7 @@
+@@ -307,8 +307,7 @@
      final int meta = this.worldObj.getBlockMetadata(x, y, z);
      if (b.canSilkHarvest(this.worldObj, null, x, y, z, meta)
          && this.silktouch

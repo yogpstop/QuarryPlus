@@ -1,6 +1,6 @@
 --- a/com/yogpc/ip/ItemArmorElectric.java
 +++ b/com/yogpc/ip/ItemArmorElectric.java
-@@ -26,26 +26,28 @@
+@@ -25,25 +25,27 @@
  import cpw.mods.fml.relauncher.Side;
  import cpw.mods.fml.relauncher.SideOnly;
  
@@ -13,7 +13,6 @@
 -    setBlockName("electric_armor");
 +    setItemName("electric_armor");
      setCreativeTab(CreativeTabs.tabCombat);
-     GameRegistry.registerItem(this, "qpArmor");
      setMaxDamage(100);
      setMaxStackSize(1);
 +    this.iconIndex = 83;
@@ -35,38 +34,14 @@
    }
  
    private static final double maxFallSpeedOnHover = 0.35;
-@@ -53,7 +55,9 @@
-   private void useJetpack(final EntityPlayer p, final ItemStack jetpack, final boolean hover) {
-     final boolean jumping = YogpstopLib.proxy.getKey(p, ProxyCommon.Key.jump);
-     if (jumping || hover && p.motionY < -maxFallSpeedOnHover) {
--      final double charge = ElectricItem.getCharge(jetpack);
-+      double charge = 0;
-+      if (jetpack.hasTagCompound() && jetpack.getTagCompound().hasKey("charge"))
-+        charge = jetpack.getTagCompound().getInteger("charge");
-       if (charge <= 0.0)
-         return;
-       float power = 0.7f;
-@@ -143,14 +147,17 @@
-       final ItemStack armor, final DamageSource source, final double damage, final int slot) {
-     if (source.isUnblockable())
-       return new ISpecialArmor.ArmorProperties(0, 0.0, 0);
--    final int damageLimit =
--        (int) Math.min(Integer.MAX_VALUE, 25.0 * ElectricItem.getCharge(armor) / 5000);
-+    int charge = 0;
-+    if (armor.hasTagCompound() && armor.getTagCompound().hasKey("charge"))
-+      charge = armor.getTagCompound().getInteger("charge");
-+    final int damageLimit = (int) Math.min(Integer.MAX_VALUE, 25.0 * charge / 5000);
-     return new ISpecialArmor.ArmorProperties(0, 0.4 * 0.9, damageLimit);
-   }
+@@ -116,7 +118,6 @@
  
    @Override
-   public int getArmorDisplay(final EntityPlayer player, final ItemStack armor, final int slot) {
--    if (ElectricItem.getCharge(armor) >= 5000)
-+    if (armor.hasTagCompound() && armor.getTagCompound().hasKey("charge")
-+        && armor.getTagCompound().getInteger("charge") >= 5000)
-       return (int) Math.round(20.0 * 0.4 * 0.9);
-     return 0;
-   }
+   public void onArmorTickUpdate(final World world, final EntityPlayer player, final ItemStack is) {
+-    if (ElectricItem != null)
+       ElectricItemManager.charge(is, ElectricItem.discharge(is, Integer.MAX_VALUE,
+           Integer.MAX_VALUE, true, false), getMaxCharge());
+     if (player.inventory.armorInventory[2] != is)
 --- a/com/yogpc/mc_lib/BlockWorkbench.java
 +++ b/com/yogpc/mc_lib/BlockWorkbench.java
 @@ -21,12 +21,13 @@
@@ -732,17 +707,17 @@
          a[i] = i;
 @@ -191,11 +194,6 @@
      int moved = 0, buf;
+     List<Integer> e = new ArrayList<Integer>();
      for (final int i : a) {
-       final ItemStack is2 = iii.getStackInSlot(i);
 -      if (iii instanceof ISidedInventory) {
--        if (!((ISidedInventory) iii).canInsertItem(i, is2, fd.ordinal()))
+-        if (!((ISidedInventory) iii).canInsertItem(i, is1, fd.ordinal()))
 -          continue;
--      } else if (!iii.isStackValidForSlot(i, is2))
+-      } else if (!iii.isStackValidForSlot(i, is1))
 -        continue;
-       if (is2 == null)
-         continue;
-       if (!is2.isItemEqual(is1))
-@@ -426,11 +424,6 @@
+       final ItemStack is2 = iii.getStackInSlot(i);
+       if (is2 == null) {
+         e.add(new Integer(i));
+@@ -440,11 +438,6 @@
    }
  
    @Override
@@ -754,7 +729,7 @@
    public int getInventoryStackLimit() {
      return 0;
    }
-@@ -448,9 +441,4 @@
+@@ -462,9 +455,4 @@
  
    @Override
    public void closeChest() {}

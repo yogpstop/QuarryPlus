@@ -1,6 +1,6 @@
 --- a/com/yogpc/ip/ItemArmorElectric.java
 +++ b/com/yogpc/ip/ItemArmorElectric.java
-@@ -28,21 +28,25 @@
+@@ -26,20 +26,24 @@
  import cpw.mods.fml.relauncher.Side;
  import cpw.mods.fml.relauncher.SideOnly;
  
@@ -13,13 +13,12 @@
      setUnlocalizedName("electric_armor");
      setCreativeTab(CreativeTabs.tabCombat);
 -    setTextureName("yogpstop_qp:elecArmor");
-     GameRegistry.registerItem(this, "qpArmor");
      setMaxDamage(100);
      setMaxStackSize(1);
    }
  
    @Override
--  public String getArmorTexture(ItemStack i, Entity e, int s, String t) {
+-  public String getArmorTexture(final ItemStack i, final Entity e, final int s, final String t) {
 +  @SideOnly(Side.CLIENT)
 +  public void registerIcons(final IconRegister ir) {
 +    this.itemIcon = ir.registerIcon("yogpstop_qp:elecArmor");
@@ -30,10 +29,11 @@
      return "yogpstop_qp:textures/models/armor/elecArmor_layer_1.png";
    }
  
-@@ -189,24 +193,4 @@
+@@ -188,25 +192,4 @@
+   public int getTransferLimit(final ItemStack itemStack) {
      return 2500;
    }
- 
+-
 -  @Override
 -  public int extractEnergy(final ItemStack is, final int am, final boolean sim) {
 -    return 0;
@@ -41,7 +41,7 @@
 -
 -  @Override
 -  public int getEnergyStored(final ItemStack is) {
--    return (int) (ElectricItem.manager.getCharge(is) * 4);
+-    return (int) (ElectricItemManager.getCharge(is) * 4);
 -  }
 -
 -  @Override
@@ -51,13 +51,13 @@
 -
 -  @Override
 -  public int receiveEnergy(final ItemStack is, final int am, final boolean sim) {
--    return (int) (ElectricItem.manager.charge(is, (int) ((double) am / 4), Integer.MAX_VALUE, false, false) * 4);
+-    return (int) (ElectricItemManager.charge(is, Math.min((double) am / 4, getTransferLimit(is)),
+-        getMaxCharge(is)) * 4);
 -  }
--
  }
 --- a/com/yogpc/mc_lib/APowerTile.java
 +++ b/com/yogpc/mc_lib/APowerTile.java
-@@ -1,9 +1,8 @@
+@@ -9,9 +9,8 @@
  import buildcraft.api.power.IPowerReceptor;
  import buildcraft.api.power.IPowerProvider;
  
@@ -144,7 +144,7 @@
    }
 --- a/com/yogpc/mc_lib/BlockWorkbench.java
 +++ b/com/yogpc/mc_lib/BlockWorkbench.java
-@@ -20,7 +23,12 @@
+@@ -22,7 +22,12 @@
      setHardness(3F);
      setCreativeTab(CreativeTabs.tabRedstone);
      setUnlocalizedName("WorkbenchPlus");
@@ -160,17 +160,17 @@
    @Override
 --- a/com/yogpc/mc_lib/YogpstopLib.java
 +++ b/com/yogpc/mc_lib/YogpstopLib.java
-@@ -38,7 +38,7 @@
+@@ -37,7 +37,7 @@
  
    private Block workbench;
  
 -  @Mod.EventHandler
 +  @Mod.Init
    public void init(final FMLInitializationEvent event) {
-     new ItemArmorElectric(21478);// TODO IC2Plus
+     GameRegistry.registerItem(new ItemArmorElectric(21478), "qpArmor");// TODO IC2Plus
      try {
-@@ -53,7 +53,7 @@
-     GameRegistry.registerTileEntity(TileWorkbench.class, "WorkbenchPlus");
+@@ -52,7 +52,7 @@
+         Character.valueOf('I'), Block.blockIron, Character.valueOf('G'), Block.blockGold});
    }
  
 -  private static final Pattern lang = Pattern.compile("assets/(.*)/lang/(.*)\\.lang");
@@ -180,7 +180,7 @@
    public static Properties parseLangFile(final InputStream is) {
 --- a/com/yogpc/qp/BlockFrame.java
 +++ b/com/yogpc/qp/BlockFrame.java
-@@ -22,7 +23,12 @@
+@@ -23,7 +23,12 @@
      setSides(true, true, true, true, true, true);
      setHardness(0.5F);
      setTickRandomly(true);
@@ -196,7 +196,7 @@
    @Override
 --- a/com/yogpc/qp/BlockInfMJSrc.java
 +++ b/com/yogpc/qp/BlockInfMJSrc.java
-@@ -28,7 +31,12 @@
+@@ -31,7 +31,12 @@
      setStepSound(soundStoneFootstep);
      setCreativeTab(QuarryPlus.ct);
      setUnlocalizedName("InfMJSrc");
@@ -212,7 +212,7 @@
    @Override
 --- a/com/yogpc/qp/BlockPlainPipe.java
 +++ b/com/yogpc/qp/BlockPlainPipe.java
-@@ -14,7 +17,12 @@
+@@ -17,7 +17,12 @@
      this.maxX = 0.75;
      this.maxY = 1.0;
      this.maxZ = 0.75;
@@ -228,7 +228,7 @@
    @Override
 --- a/com/yogpc/qp/BlockRefinery.java
 +++ b/com/yogpc/qp/BlockRefinery.java
-@@ -36,7 +39,12 @@
+@@ -38,7 +38,12 @@
      setHardness(5F);
      setCreativeTab(QuarryPlus.ct);
      setUnlocalizedName("RefineryPlus");
@@ -242,7 +242,7 @@
    }
  
    @Override
-@@ -97,7 +105,7 @@
+@@ -99,7 +104,7 @@
    private static boolean fill(final ITankContainer tank, final ForgeDirection side,
        final EntityPlayer player) {
      final ItemStack current = player.getCurrentEquippedItem();
@@ -282,7 +282,7 @@
      GameRegistry.registerBlock(blockQuarry, ItemBlockQuarry.class, "QuarryPlus");
 --- a/com/yogpc/qp/TileBasic.java
 +++ b/com/yogpc/qp/TileBasic.java
-@@ -218,24 +218,24 @@
+@@ -232,24 +232,24 @@
      return moved;
    }
  
@@ -314,7 +314,7 @@
          ppd.add(d.getOpposite());
        }
      }
-@@ -245,7 +245,8 @@
+@@ -259,7 +259,8 @@
      }
      if (pp.size() > 0) {
        final int i = w.rand.nextInt(pp.size());
@@ -326,7 +326,7 @@
    }
 --- a/com/yogpc/qp/TileInfMJSrc.java
 +++ b/com/yogpc/qp/TileInfMJSrc.java
-@@ -65,9 +66,9 @@
+@@ -66,9 +66,9 @@
        } catch (final Exception e) {
        }
        if (te instanceof IPowerReceptor) {
@@ -565,7 +565,7 @@
        final int z) {
 --- a/com/yogpc/qp/client/GuiP_List.java
 +++ b/com/yogpc/qp/client/GuiP_List.java
-@@ -91,9 +90,7 @@
+@@ -90,9 +90,7 @@
          this.mc.displayGuiScreen(new GuiP_SelectSide(this.tile, this, par1.id == -5));
          break;
        case PacketHandler.CtS_REMOVE_MAPPING:
@@ -578,7 +578,7 @@
          break;
 --- a/com/yogpc/qp/client/GuiP_Manual.java
 +++ b/com/yogpc/qp/client/GuiP_Manual.java
-@@ -51,18 +50,14 @@
+@@ -50,18 +50,14 @@
    public void actionPerformed(final GuiButton par1) {
      switch (par1.id) {
        case -1:
@@ -611,7 +611,7 @@
          var3 + 1, 0xFFFFFF);
 --- a/com/yogpc/qp/client/GuiP_SlotList.java
 +++ b/com/yogpc/qp/client/GuiP_SlotList.java
-@@ -59,9 +58,7 @@
+@@ -58,9 +58,7 @@
  
    @Override
    protected void drawSlot(final int var1, final int var2, final int var3, final int var4, final Tessellator var5) {
@@ -624,7 +624,7 @@
              name,
 --- a/com/yogpc/qp/client/RenderEntityLaser.java
 +++ b/com/yogpc/qp/client/RenderEntityLaser.java
-@@ -24,11 +23,6 @@
+@@ -23,11 +23,6 @@
    private RenderEntityLaser() {}
  
    @Override
@@ -636,7 +636,7 @@
    public void doRender(final Entity e, final double i, final double j, final double k,
        final float f, final float f1) {
      if (e.isDead)
-@@ -57,7 +51,7 @@
+@@ -56,7 +51,7 @@
        final double k, final double iSize, final double jSize, final double kSize, final int tex) {
      GL11.glPushMatrix();
      GL11.glTranslated(i, j, k);
@@ -647,7 +647,7 @@
      for (int iBase = 0; iBase < iSize; ++iBase)
 --- a/com/yogpc/qp/client/RenderRefinery.java
 +++ b/com/yogpc/qp/client/RenderRefinery.java
-@@ -42,8 +41,7 @@
+@@ -41,8 +41,7 @@
  @SideOnly(Side.CLIENT)
  public class RenderRefinery extends TileEntitySpecialRenderer implements
      ISimpleBlockRenderingHandler {
@@ -657,7 +657,7 @@
    private static final float pixel = (float) (1.0 / 16.0);
    private static final RenderBlocks renderBlocks = new RenderBlocks();
    public static final RenderRefinery INSTANCE = new RenderRefinery();
-@@ -113,7 +111,7 @@
+@@ -112,7 +111,7 @@
  
      GL11.glRotatef(angle, 0, 1, 0);
  
@@ -666,7 +666,7 @@
  
      GL11.glPushMatrix();
      GL11.glTranslatef(-0.5F, -0.5F, -0.5F);
-@@ -180,8 +178,9 @@
+@@ -179,8 +178,9 @@
            GL11.glPushMatrix();
            GL11.glTranslatef(tx, ty, tz);
          }
@@ -678,7 +678,7 @@
          GL11.glCallList(list[(int) (liquid.amount / buf * 99)]);
          if (tx != 0 || ty != 0 || tz != 0)
            GL11.glPopMatrix();
-@@ -189,25 +188,22 @@
+@@ -188,25 +188,22 @@
      }
    }
  
@@ -711,7 +711,7 @@
      }
      GL11.glDisable(GL11.GL_LIGHTING);
      GL11.glDisable(GL11.GL_BLEND);
-@@ -237,7 +233,7 @@
+@@ -236,7 +233,7 @@
      GL11.glEnable(GL11.GL_CULL_FACE);
      GL11.glEnable(GL11.GL_BLEND);
      GL11.glEnable(GL11.GL_LIGHTING);
