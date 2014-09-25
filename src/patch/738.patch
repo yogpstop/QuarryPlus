@@ -282,13 +282,13 @@
      GameRegistry.registerBlock(blockQuarry, ItemBlockQuarry.class, "QuarryPlus");
 --- a/com/yogpc/qp/TileBasic.java
 +++ b/com/yogpc/qp/TileBasic.java
-@@ -232,24 +232,24 @@
-     return moved;
+@@ -232,24 +232,25 @@
+     return is1.stackSize - rem;
    }
  
 +  private static final Class<?> engcls = ReflectionHelper.getClass("buildcraft.energy.TileEngine");
 +
-   static int injectToNearTile(final World w, final int x, final int y, final int z,
+   static void injectToNearTile(final World w, final int x, final int y, final int z,
        final ItemStack is) {
 -    final List<IPipeTile> pp = new LinkedList<IPipeTile>();
 +    final List<TileEntity> pp = new LinkedList<TileEntity>();
@@ -306,24 +306,30 @@
 -      if (t instanceof IPipeTile) {
 -        final IPipeTile p = (IPipeTile) t;
 -        if (p.getPipeType() != IPipeTile.PipeType.ITEM || !p.isPipeConnected(d.getOpposite()))
--          continue;
--        pp.add(p);
 +      if (t instanceof IPipeEntry && ((IPipeEntry) t).acceptItems()) {
-+        if (t instanceof IPipeConnection && !((IPipeConnection) t).isPipeConnected(d.getOpposite())) continue;
++        if (t instanceof IPipeConnection && !((IPipeConnection) t).isPipeConnected(d.getOpposite()))
+           continue;
+-        pp.add(p);
 +        pp.add(t);
          ppd.add(d.getOpposite());
        }
      }
-@@ -259,7 +259,8 @@
+@@ -258,10 +259,11 @@
+       if (is.stackSize <= 0)
+         return;
      }
-     if (pp.size() > 0) {
-       final int i = w.rand.nextInt(pp.size());
--      return pp.get(i).injectItem(is, true, ppd.get(i));
-+      ((IPipeEntry) pp.get(i)).entityEntering(is, ppd.get(i));
-+      return is.stackSize;
+-    for (int i = 0; i < pp.size(); i++) {
+-      is.stackSize -= pp.get(i).injectItem(is, true, ppd.get(i));
+-      if (is.stackSize <= 0)
+-        return;
++    if (pp.size() > 0) {
++      final int i = w.rand.nextInt(pp.size());
++      ((IPipeEntry) pp.get(i)).entityEntering(is.copy(), ppd.get(i));
++      is.stackSize = 0;
++      return;
      }
-     return 0;
    }
+ 
 --- a/com/yogpc/qp/TileInfMJSrc.java
 +++ b/com/yogpc/qp/TileInfMJSrc.java
 @@ -66,9 +66,9 @@

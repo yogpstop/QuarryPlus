@@ -154,7 +154,7 @@ public abstract class TileBasic extends APowerTile implements IInventory, IEncha
   protected void S_pollItems() {
     ItemStack is;
     while (null != (is = this.cacheItems.poll())) {
-      is.stackSize -= injectToNearTile(this.worldObj, this.xCoord, this.yCoord, this.zCoord, is);
+      injectToNearTile(this.worldObj, this.xCoord, this.yCoord, this.zCoord, is);
       if (is.stackSize > 0) {
         this.cacheItems.add(is);
         break;
@@ -190,8 +190,8 @@ public abstract class TileBasic extends APowerTile implements IInventory, IEncha
       for (int i = 0; i < a.length; i++)
         a[i] = i;
     }
-    int moved = 0, buf;
-    List<Integer> e = new ArrayList<Integer>();
+    int buf, rem = is1.stackSize;
+    final List<Integer> e = new ArrayList<Integer>();
     for (final int i : a) {
       if (iii instanceof ISidedInventory) {
         if (!((ISidedInventory) iii).canInsertItem(i, is1, fd.ordinal()))
@@ -209,32 +209,32 @@ public abstract class TileBasic extends APowerTile implements IInventory, IEncha
         continue;
       buf =
           Math.min(iii.getInventoryStackLimit(),
-              Math.min(is2.stackSize + is1.stackSize, is2.getMaxStackSize()));
+              Math.min(is2.stackSize + rem, is2.getMaxStackSize()));
       if (buf > is2.stackSize) {
-        moved += buf - is2.stackSize;
+        rem -= buf - is2.stackSize;
         if (doAdd)
           is2.stackSize = buf;
-        if (moved >= is1.stackSize)
-          break;
+        if (rem <= 0)
+          return is1.stackSize;
       }
     }
-    for (Integer i : e) {
-      buf = Math.min(iii.getInventoryStackLimit(), Math.min(is1.stackSize, is1.getMaxStackSize()));
+    for (final Integer i : e) {
+      buf = Math.min(iii.getInventoryStackLimit(), Math.min(rem, is1.getMaxStackSize()));
       if (buf > 0) {
-        final ItemStack is2 = is1.copy();
-        moved += is2.stackSize = buf;
-        if (doAdd)
+        rem -= buf;
+        if (doAdd) {
+          final ItemStack is2 = is1.copy();
+          is2.stackSize = buf;
           iii.setInventorySlotContents(i.intValue(), is2);
-        if (moved >= is1.stackSize)
-          break;
+        }
+        if (rem <= 0)
+          return is1.stackSize;
       }
     }
-    if (doAdd)
-      is1.stackSize -= moved;
-    return moved;
+    return is1.stackSize - rem;
   }
 
-  static int injectToNearTile(final World w, final int x, final int y, final int z,
+  static void injectToNearTile(final World w, final int x, final int y, final int z,
       final ItemStack is) {
     final List<IPipeTile> pp = new LinkedList<IPipeTile>();
     final List<ForgeDirection> ppd = new LinkedList<ForgeDirection>();
@@ -255,15 +255,16 @@ public abstract class TileBasic extends APowerTile implements IInventory, IEncha
         ppd.add(d.getOpposite());
       }
     }
-    if (pi.size() > 0) {
-      final int i = w.rand.nextInt(pi.size());
-      return addToIInv(pi.get(i), is, pid.get(i), true);
+    for (int i = 0; i < pi.size(); i++) {
+      is.stackSize -= addToIInv(pi.get(i), is, pid.get(i), true);
+      if (is.stackSize <= 0)
+        return;
     }
-    if (pp.size() > 0) {
-      final int i = w.rand.nextInt(pp.size());
-      return pp.get(i).injectItem(is, true, ppd.get(i));
+    for (int i = 0; i < pp.size(); i++) {
+      is.stackSize -= pp.get(i).injectItem(is, true, ppd.get(i));
+      if (is.stackSize <= 0)
+        return;
     }
-    return 0;
   }
 
   protected boolean S_breakBlock(final int x, final int y, final int z) {
