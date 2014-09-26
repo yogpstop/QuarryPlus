@@ -1,6 +1,5 @@
 package com.yogpc.qp;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import com.yogpc.mc_lib.ReflectionHelper;
@@ -14,22 +13,18 @@ public class ILaserTargetHelper {
       new String[] {"getYCoord"}, new Class<?>[] {});
   private static final Method _getZCoord = ReflectionHelper.getMethod(cls,
       new String[] {"getZCoord"}, new Class<?>[] {});
-  private static final Method _requiresLaserEnergy = ReflectionHelper.getMethod(cls, new String[] {
+  private static final Method _isInvalidTarget = ReflectionHelper.getMethod(cls, new String[] {
       "isInvalidTarget", "isInvalid"}, new Class<?>[] {});
   private static final Method _receiveLaserEnergy = ReflectionHelper.getMethod(cls,
       new String[] {"receiveLaserEnergy"}, new Class<?>[] {double.class},
       new Class<?>[] {float.class});
-  private static final Method _isInvalidTarget = ReflectionHelper.getMethod(cls, new String[] {
+  private static final Method _requiresLaserEnergy = ReflectionHelper.getMethod(cls, new String[] {
       "requiresLaserEnergy", "hasCurrentWork"}, new Class<?>[] {});
 
   private static Object call(final Method m, final Object o, final Object[] a) {
     try {
       return m.invoke(o, a);
-    } catch (final IllegalAccessException e) {
-      e.printStackTrace();
-    } catch (final IllegalArgumentException e) {
-      e.printStackTrace();
-    } catch (final InvocationTargetException e) {
+    } catch (final Exception e) {
       e.printStackTrace();
     }
     return null;

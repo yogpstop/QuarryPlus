@@ -435,7 +435,11 @@ public abstract class TileBasic extends APowerTile implements IInventory, IEncha
   }
 
   @Override
-  public void setInventorySlotContents(final int p_70299_1_, final ItemStack p_70299_2_) {}
+  public void setInventorySlotContents(final int i, final ItemStack is) {
+    if (is != null && is.stackSize > 0)
+      System.err.println("QuarryPlus WARN: call setInventorySlotContents with non null ItemStack.");
+    this.cacheItems.remove(i);
+  }
 
   @Override
   public String getInventoryName() {
