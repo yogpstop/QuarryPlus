@@ -4,7 +4,7 @@
    public BlockController(final int id) {
      super(id, Material.circuits);
      setUnlocalizedName("spawnercontroller");
--    setTextureName("spawnercontroller");
+-    setTextureName("yogpstop_qp:spawnctl");
      setHardness(1.0f);
      setCreativeTab(CreativeTabs.tabRedstone);
    }
@@ -12,7 +12,7 @@
 +  @Override
 +  @SideOnly(Side.CLIENT)
 +  public void registerIcons(final IconRegister ir) {
-+    this.blockIcon = ir.registerIcon("spawnercontroller");
++    this.blockIcon = ir.registerIcon("yogpstop_qp:spawnctl");
 +  }
 +
    private static final MobSpawnerBaseLogic getSpawner(final World w, final int x, final int y,
@@ -81,14 +81,14 @@
    public ItemMirror(final int id) {
      super(id);
      setUnlocalizedName("magicmirror");
--    setTextureName("magicmirror");
+-    setTextureName("yogpstop_qp:mm");
      setCreativeTab(CreativeTabs.tabTools);
    }
  
    @Override
 +  @SideOnly(Side.CLIENT)
 +  public void registerIcons(final IconRegister ir) {
-+    this.itemIcon = ir.registerIcon("magicmirror");
++    this.itemIcon = ir.registerIcon("yogpstop_qp:mm");
 +  }
 +
 +  @Override

@@ -24,7 +24,7 @@ public class BlockController extends Block {
   public BlockController() {
     super(Material.circuits);
     setBlockName("spawnercontroller");
-    setBlockTextureName("spawnercontroller");
+    setBlockTextureName("yogpstop_qp:spawnctl");
     setHardness(1.0f);
     setCreativeTab(CreativeTabs.tabRedstone);
   }

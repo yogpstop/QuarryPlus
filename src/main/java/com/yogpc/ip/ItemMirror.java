@@ -17,7 +17,7 @@ public class ItemMirror extends Item {
   public ItemMirror() {
     super();
     setUnlocalizedName("magicmirror");
-    setTextureName("magicmirror");
+    setTextureName("yogpstop_qp:mm");
     setCreativeTab(CreativeTabs.tabTools);
   }
 

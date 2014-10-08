@@ -10,7 +10,7 @@
    @Override
    @SideOnly(Side.CLIENT)
 -  public void registerIcons(final IconRegister ir) {
--    this.blockIndexInTexture = ir.registerIcon("spawnercontroller");
+-    this.blockIndexInTexture = ir.registerIcon("yogpstop_qp:spawnctl");
 +  public String getTextureFile() {
 +    return "/mods/yogpstop_qp/textures/textures.png";
    }
@@ -127,7 +127,7 @@
    @Override
    @SideOnly(Side.CLIENT)
 -  public void registerIcons(final IconRegister ir) {
--    this.iconIndex = ir.registerIcon("magicmirror");
+-    this.iconIndex = ir.registerIcon("yogpstop_qp:mm");
 +  public String getTextureFile() {
 +    return "/mods/yogpstop_qp/textures/textures.png";
    }
