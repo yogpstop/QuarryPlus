@@ -1,3 +1,73 @@
+--- a/com/yogpc/ip/BlockController.java
++++ b/com/yogpc/ip/BlockController.java
+@@ -26,24 +26,22 @@
+     setBlockName("spawnercontroller");
+     setHardness(1.0f);
+     setCreativeTab(CreativeTabs.tabRedstone);
++    this.blockIndexInTexture = 85;
+   }
+ 
+   @Override
+   @SideOnly(Side.CLIENT)
+-  public void registerIcons(final IconRegister ir) {
+-    this.blockIndexInTexture = ir.registerIcon("spawnercontroller");
++  public String getTextureFile() {
++    return "/mods/yogpstop_qp/textures/textures.png";
+   }
+ 
+-  private static final MobSpawnerBaseLogic getSpawner(final World w, final int x, final int y,
++  private static final TileEntityMobSpawner getSpawner(final World w, final int x, final int y,
+       final int z) {
+     for (final ForgeDirection d : ForgeDirection.VALID_DIRECTIONS) {
+       final TileEntity t = w.getBlockTileEntity(x + d.offsetX, y + d.offsetY, z + d.offsetZ);
+       if (!(t instanceof TileEntityMobSpawner))
+         continue;
+-      final MobSpawnerBaseLogic l = ((TileEntityMobSpawner) t).func_98049_a();
+-      if (l == null)
+-        continue;
+-      return l;
++      return (TileEntityMobSpawner) t;
+     }
+     return null;
+   }
+@@ -53,13 +51,13 @@
+       final EntityPlayer e) {
+     if (w.isRemote)
+       return;
+-    final MobSpawnerBaseLogic l = getSpawner(w, x, y, z);
++    final TileEntityMobSpawner l = getSpawner(w, x, y, z);
+     if (l == null)
+       return;
+     if (this.cur == Integer.MIN_VALUE || e.isSneaking()) {
+       list.clear();
+       list.addAll(EntityList.stringToClassMapping.keySet());
+-      this.cur = list.indexOf(l.getEntityNameToSpawn());
++      this.cur = list.indexOf(l.getMobID());
+       e.addChatMessage(("Initialize Spawner Controller"));
+       e.addChatMessage((list.get(this.cur)));
+     } else {
+@@ -95,15 +93,13 @@
+             || w.isBlockIndirectlyGettingPowered(x, y + 1, z);
+     final int m = w.getBlockMetadata(x, y, z);
+     if (r && m == 0) {
+-      final MobSpawnerBaseLogic l = getSpawner(w, x, y, z);
++      final TileEntityMobSpawner l = getSpawner(w, x, y, z);
+       if (l != null) {
+-        l.spawnDelay = 0;
+-        final EntityPlayer p = CommonProxy.getPlayer(w);
+-        p.setWorld(l.getSpawnerWorld());
+-        p.setPosition(l.getSpawnerX(), l.getSpawnerY(), l.getSpawnerZ());
+-        l.getSpawnerWorld().playerEntities.add(p);
+-        l.updateSpawner();
+-        l.getSpawnerWorld().playerEntities.remove(p);
++        l.delay = 0;
++        final EntityPlayer p = CommonProxy.getPlayer(w,x,y,z);
++        l.worldObj.playerEntities.add(p);
++        l.updateEntity();
++        l.worldObj.playerEntities.remove(p);
+       }
+       w.setBlockMetadataWithNotify(x, y, z, 1);
+     } else if (!r && m == 1)
 --- a/com/yogpc/ip/ItemArmorElectric.java
 +++ b/com/yogpc/ip/ItemArmorElectric.java
 @@ -25,25 +25,27 @@
@@ -42,6 +112,27 @@
        ElectricItemManager.charge(is, ElectricItem.discharge(is, Integer.MAX_VALUE,
            Integer.MAX_VALUE, true, false), getMaxCharge());
      if (player.inventory.armorInventory[2] != is)
+--- a/com/yogpc/ip/ItemMirror.java
++++ b/com/yogpc/ip/ItemMirror.java
+@@ -16,14 +16,15 @@
+ public class ItemMirror extends Item {
+   public ItemMirror(final int id) {
+     super(id);
+-    setBlockName("magicmirror");
++    setItemName("magicmirror");
+     setCreativeTab(CreativeTabs.tabTools);
++    this.iconIndex = 84;
+   }
+ 
+   @Override
+   @SideOnly(Side.CLIENT)
+-  public void registerIcons(final IconRegister ir) {
+-    this.iconIndex = ir.registerIcon("magicmirror");
++  public String getTextureFile() {
++    return "/mods/yogpstop_qp/textures/textures.png";
+   }
+ 
+   @Override
 --- a/com/yogpc/mc_lib/BlockWorkbench.java
 +++ b/com/yogpc/mc_lib/BlockWorkbench.java
 @@ -21,12 +21,13 @@
@@ -706,8 +797,8 @@
        for (int i = 0; i < a.length; i++)
          a[i] = i;
 @@ -191,11 +194,6 @@
-     int moved = 0, buf;
-     List<Integer> e = new ArrayList<Integer>();
+     int buf, rem = is1.stackSize;
+     final List<Integer> e = new ArrayList<Integer>();
      for (final int i : a) {
 -      if (iii instanceof ISidedInventory) {
 -        if (!((ISidedInventory) iii).canInsertItem(i, is1, fd.ordinal()))
@@ -717,7 +808,7 @@
        final ItemStack is2 = iii.getStackInSlot(i);
        if (is2 == null) {
          e.add(new Integer(i));
-@@ -440,11 +438,6 @@
+@@ -446,11 +444,6 @@
    }
  
    @Override
@@ -729,7 +820,7 @@
    public int getInventoryStackLimit() {
      return 0;
    }
-@@ -462,9 +455,4 @@
+@@ -468,9 +461,4 @@
  
    @Override
    public void closeChest() {}

@@ -3,13 +3,20 @@ package com.yogpc.mc_lib;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.WeightedRandomChestContent;
+import net.minecraftforge.common.ChestGenHooks;
+import net.minecraftforge.common.config.Configuration;
 
+import com.yogpc.ip.BlockController;
 import com.yogpc.ip.ItemArmorElectric;
+import com.yogpc.ip.ItemMirror;
 
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
+import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.GameRegistry;
 
@@ -21,23 +28,54 @@ public class YogpstopLib {
       serverSide = "com.yogpc.mc_lib.ProxyCommon")
   public static ProxyCommon proxy;
 
-  private Block workbench;
+  private static Block workbench, controller;
+  private static Item magicmirror, armor;
+
+  @Mod.EventHandler
+  public void preInit(final FMLPreInitializationEvent event) {
+    final Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
+    try {
+      cfg.load();
+    } catch (final Exception e) {
+      e.printStackTrace();
+    } finally {
+      cfg.save();
+    }
+    try {
+      workbench = new BlockWorkbench();
+      controller = new BlockController();
+      magicmirror = new ItemMirror();
+      armor = new ItemArmorElectric();
+    } catch (final Exception e) {
+      e.printStackTrace();
+    }
+  }
 
   @Mod.EventHandler
   public void init(final FMLInitializationEvent event) {
     PacketHandler.channels =
         NetworkRegistry.INSTANCE.newChannel("YogpstopLib", new YogpstopPacketCodec(),
             new PacketHandler());
-    GameRegistry.registerItem(new ItemArmorElectric(), "qpArmor");// TODO IC2Plus
-    try {
-      this.workbench = new BlockWorkbench();
-    } catch (final Exception e) {
-      e.printStackTrace();
-    }
-    GameRegistry.registerBlock(this.workbench, "WorkbenchPlus");
+    GameRegistry.registerBlock(workbench, "WorkbenchPlus");
+    GameRegistry.registerBlock(controller, "yogSC");
+    GameRegistry.registerItem(magicmirror, "magicmirror");
+    GameRegistry.registerItem(armor, "qpArmor");
     GameRegistry.registerTileEntity(TileWorkbench.class, "WorkbenchPlus");
-    GameRegistry.addRecipe(new ItemStack(this.workbench, 1), new Object[] {"III", "GDG", "RRR",
+    GameRegistry.addRecipe(new ItemStack(workbench, 1), new Object[] {"III", "GDG", "RRR",
         Character.valueOf('D'), Blocks.diamond_block, Character.valueOf('R'), Items.redstone,
         Character.valueOf('I'), Blocks.iron_block, Character.valueOf('G'), Blocks.gold_block});
+    GameRegistry.addRecipe(new ItemStack(magicmirror, 1, 1), "###", "#X#", "###",
+        Character.valueOf('#'), new ItemStack(Items.ender_eye, 1, 0), Character.valueOf('X'),
+        new ItemStack(magicmirror, 1, 0));
+    final WeightedRandomChestContent c =
+        new WeightedRandomChestContent(new ItemStack(magicmirror, 1, 0), 1, 1, 9);
+    ChestGenHooks.getInfo(ChestGenHooks.DUNGEON_CHEST).addItem(c);
+    ChestGenHooks.getInfo(ChestGenHooks.MINESHAFT_CORRIDOR).addItem(c);
+    ChestGenHooks.getInfo(ChestGenHooks.PYRAMID_DESERT_CHEST).addItem(c);
+    ChestGenHooks.getInfo(ChestGenHooks.PYRAMID_JUNGLE_CHEST).addItem(c);
+    ChestGenHooks.getInfo(ChestGenHooks.STRONGHOLD_CORRIDOR).addItem(c);
+    ChestGenHooks.getInfo(ChestGenHooks.STRONGHOLD_LIBRARY).addItem(c);
+    ChestGenHooks.getInfo(ChestGenHooks.STRONGHOLD_CROSSING).addItem(c);
+    ChestGenHooks.getInfo(ChestGenHooks.VILLAGE_BLACKSMITH).addItem(c);
   }
 }

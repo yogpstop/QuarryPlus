@@ -2,6 +2,8 @@ F,net.minecraft.client.renderer.texture.
 F,net.minecraft.util.int
 F,net.minecraftforge.common.FakePlayerFactory
 F,net.minecraftforge.client.event.TextureStitchEvent
+F,net.minecraft.tileentity.MobSpawnerBaseLogic
+A,com/yogpc/ip/BlockController,com.yogpc.qp.CommonProxy
 A,com/yogpc/ip/ItemArmorElectric,net.minecraftforge.common.IArmorTextureProvider
 R,com/yogpc/ip/ItemArmorElectric,net.minecraft.entity.Entity
 A,com/yogpc/qp/BlockInfMJSrc,net.minecraft.block.Block
@@ -14,3 +16,4 @@ R,com/yogpc/qp/BlockInfMJSrc,cpw.mods.fml.relauncher.Side,cpw.mods.fml.relaunche
 R,com/yogpc/qp/client/GuiError,net.minecraft.client.Minecraft,net.minecraft.client.gui.GuiErrorScreen
 R,com/yogpc/mc_lib/APowerTile,net.minecraftforge.common.ForgeDirection
 R,com/yogpc/qp/ItemTool,net.minecraftforge.oredict.OreDictionary
+R,com/yogpc/ip/BlockController,net.minecraft.world.WorldServer

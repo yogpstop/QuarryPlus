@@ -1,3 +1,23 @@
+--- a/com/yogpc/ip/BlockController.java
++++ b/com/yogpc/ip/BlockController.java
+@@ -23,11 +26,16 @@
+   public BlockController(final int id) {
+     super(id, Material.circuits);
+     setUnlocalizedName("spawnercontroller");
+-    setTextureName("spawnercontroller");
+     setHardness(1.0f);
+     setCreativeTab(CreativeTabs.tabRedstone);
+   }
+ 
++  @Override
++  @SideOnly(Side.CLIENT)
++  public void registerIcons(final IconRegister ir) {
++    this.blockIcon = ir.registerIcon("spawnercontroller");
++  }
++
+   private static final MobSpawnerBaseLogic getSpawner(final World w, final int x, final int y,
+       final int z) {
+     for (final ForgeDirection d : ForgeDirection.VALID_DIRECTIONS) {
 --- a/com/yogpc/ip/ItemArmorElectric.java
 +++ b/com/yogpc/ip/ItemArmorElectric.java
 @@ -26,20 +26,24 @@
@@ -55,6 +75,26 @@
 -        getMaxCharge(is)) * 4);
 -  }
  }
+--- a/com/yogpc/ip/ItemMirror.java
++++ b/com/yogpc/ip/ItemMirror.java
+@@ -17,11 +18,16 @@
+   public ItemMirror(final int id) {
+     super(id);
+     setUnlocalizedName("magicmirror");
+-    setTextureName("magicmirror");
+     setCreativeTab(CreativeTabs.tabTools);
+   }
+ 
+   @Override
++  @SideOnly(Side.CLIENT)
++  public void registerIcons(final IconRegister ir) {
++    this.itemIcon = ir.registerIcon("magicmirror");
++  }
++
++  @Override
+   public ItemStack onEaten(final ItemStack i, final World w, final EntityPlayer p) {
+     if (p instanceof EntityPlayerMP) {
+       if (i.getItemDamage() != 0) {
 --- a/com/yogpc/mc_lib/APowerTile.java
 +++ b/com/yogpc/mc_lib/APowerTile.java
 @@ -9,9 +9,8 @@
@@ -160,17 +200,17 @@
    @Override
 --- a/com/yogpc/mc_lib/YogpstopLib.java
 +++ b/com/yogpc/mc_lib/YogpstopLib.java
-@@ -37,7 +37,7 @@
- 
-   private Block workbench;
+@@ -44,7 +44,7 @@
+   private static Block workbench, controller;
+   private static Item magicmirror, armor;
  
 -  @Mod.EventHandler
-+  @Mod.Init
-   public void init(final FMLInitializationEvent event) {
-     GameRegistry.registerItem(new ItemArmorElectric(21478), "qpArmor");// TODO IC2Plus
-     try {
-@@ -52,7 +52,7 @@
-         Character.valueOf('I'), Block.blockIron, Character.valueOf('G'), Block.blockGold});
++  @Mod.PreInit
+   public void preInit(final FMLPreInitializationEvent event) {
+     final Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
+     final int[] id = new int[4];
+@@ -69,7 +69,7 @@
+     }
    }
  
 -  private static final Pattern lang = Pattern.compile("assets/(.*)/lang/(.*)\\.lang");
@@ -178,6 +218,15 @@
    private static final Pattern format = Pattern.compile("%(\\d+\\$)?[\\d\\.]*[df]");
  
    public static Properties parseLangFile(final InputStream is) {
+@@ -129,7 +129,7 @@
+     }
+   }
+ 
+-  @Mod.EventHandler
++  @Mod.Init
+   public void init(final FMLInitializationEvent event) {
+     GameRegistry.registerBlock(workbench, "WorkbenchPlus");
+     GameRegistry.registerBlock(controller, "yogSC");
 --- a/com/yogpc/qp/BlockFrame.java
 +++ b/com/yogpc/qp/BlockFrame.java
 @@ -23,7 +23,12 @@

@@ -231,7 +231,7 @@
    }
 --- a/com/yogpc/mc_lib/YogpstopLib.java
 +++ b/com/yogpc/mc_lib/YogpstopLib.java
-@@ -27,6 +27,8 @@
+@@ -33,6 +33,8 @@
  
  @Mod(modid = "YogpstopLib", name = "Yogpstop Library", version = "{version}",
      dependencies = "after:IC2;after:BuildCraft|Core;after:CoFHCore")
@@ -240,26 +240,36 @@
  public class YogpstopLib {
  
    @SidedProxy(clientSide = "com.yogpc.mc_lib.ProxyClient",
-@@ -37,12 +39,9 @@
- 
+@@ -45,28 +47,90 @@
    @Mod.EventHandler
-   public void init(final FMLInitializationEvent event) {
--    PacketHandler.channels =
--        NetworkRegistry.instance().newChannel("YogpstopLib", new YogpstopPacketCodec(),
--            new PacketHandler());
--    GameRegistry.registerItem(new ItemArmorElectric(), "qpArmor");// TODO IC2Plus
-+    GameRegistry.registerItem(new ItemArmorElectric(21478), "qpArmor");// TODO IC2Plus
+   public void preInit(final FMLPreInitializationEvent event) {
+     final Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
++    final int[] id = new int[4];
      try {
--      this.workbench = new BlockWorkbench();
-+      this.workbench = new BlockWorkbench(3333);
+       cfg.load();
++      id[0] = cfg.getBlock("Workbench", 3333).getInt();
++      id[1] = cfg.getBlock("Controller", 3334).getInt();
++      id[2] = cfg.getItem("MagicMirror", 21477).getInt();
++      id[3] = cfg.getItem("ElectricArmor", 21478).getInt();
+     } catch (final Exception e) {
+       e.printStackTrace();
+     } finally {
+       cfg.save();
+     }
+     try {
+-      workbench = new BlockWorkbench();
+-      controller = new BlockController();
+-      magicmirror = new ItemMirror();
+-      armor = new ItemArmorElectric();
++      workbench = new BlockWorkbench(id[0]);
++      controller = new BlockController(id[1]);
++      magicmirror = new ItemMirror(id[2]);
++      armor = new ItemArmorElectric(id[3]);
      } catch (final Exception e) {
        e.printStackTrace();
      }
-@@ -52,4 +51,64 @@
-         Character.valueOf('D'), Block.blockDiamond, Character.valueOf('R'), Item.redstone,
-         Character.valueOf('I'), Block.blockIron, Character.valueOf('G'), Block.blockGold});
    }
-+
+ 
 +  private static final Pattern lang = Pattern.compile("assets/(.*)/lang/(.*)\\.lang");
 +  private static final Pattern format = Pattern.compile("%(\\d+\\$)?[\\d\\.]*[df]");
 +
@@ -319,7 +329,15 @@
 +    } catch (final Exception e) {
 +    }
 +  }
- }
++
+   @Mod.EventHandler
+   public void init(final FMLInitializationEvent event) {
+-    PacketHandler.channels =
+-        NetworkRegistry.instance().newChannel("YogpstopLib", new YogpstopPacketCodec(),
+-            new PacketHandler());
+     GameRegistry.registerBlock(workbench, "WorkbenchPlus");
+     GameRegistry.registerBlock(controller, "yogSC");
+     GameRegistry.registerItem(magicmirror, "magicmirror");
 --- a/com/yogpc/mc_lib/YogpstopPacket.java
 +++ b/com/yogpc/mc_lib/YogpstopPacket.java
 @@ -87,18 +87,22 @@
@@ -633,7 +651,7 @@
    @Mod.EventHandler
 --- a/com/yogpc/qp/TileBasic.java
 +++ b/com/yogpc/qp/TileBasic.java
-@@ -266,8 +266,8 @@
+@@ -267,8 +267,8 @@
  
    protected boolean S_breakBlock(final int x, final int y, final int z) {
      final Collection<ItemStack> dropped = new LinkedList<ItemStack>();
@@ -644,7 +662,7 @@
      if (b == null || b.isAirBlock(this.worldObj, x, y, z))
        return true;
      if (TilePump.isLiquid(b, false, null, 0, 0, 0, 0)) {
-@@ -307,8 +307,7 @@
+@@ -308,8 +308,7 @@
      final int meta = this.worldObj.getBlockMetadata(x, y, z);
      if (b.canSilkHarvest(this.worldObj, null, x, y, z, meta)
          && this.silktouch

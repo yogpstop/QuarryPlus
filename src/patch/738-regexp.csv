@@ -30,9 +30,12 @@ SIMPLE,"onContainerClosed","onCraftGuiClosed"
 SIMPLE,"Item\\.glowstone","Item.lightStoneDust"
 SIMPLE,"isItemValidForSlot","isStackValidForSlot"
 SIMPLE,"getTextureManager\\( *\\)","renderEngine"
+SIMPLE,"getSpawnerLogic","func_98049_a"
 SIMPLE,"(texture\\.|)TextureManager","RenderEngine"
 SIMPLE,"ResourceLocation","String"
 METHOD,double,int,demandedEnergyUnits,demandsEnergy
 METHOD,double,int,injectEnergyUnits,injectEnergy,ForgeDirection,Direction,double,int
 METHOD,boolean,boolean,canInterface,isAddedToEnergyNet,ForgeDirection,@SKIP@
 METHOD,boolean,boolean,acceptsEnergyFrom,acceptsEnergyFrom,TileEntity,TileEntity,ForgeDirection,Direction
+METHOD,ChunkCoordinates,ChunkCoordinates,getBedLocation,getBedLocation,int,@SKIP@
+METHOD,boolean,boolean,isSpawnForced,isSpawnForced,int,@SKIP@

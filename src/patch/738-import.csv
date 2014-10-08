@@ -5,8 +5,8 @@ F,net.minecraft.util.String
 F,cofh.
 F,net.minecraftforge.liquids.Fluid
 A,com/yogpc/mc_lib/APowerTile,ic2.api.Direction,buildcraft.api.power.PowerFramework
-A,com/yogpc/ip/ItemArmorElectric,com/yogpc/qp/BlockFrame,net.minecraft.client.renderer.texture.IconRegister
-A,com/yogpc/mc_lib/BlockWorkbench,com/yogpc/qp/BlockInfMJSrc,com/yogpc/qp/BlockPlainPipe,com/yogpc/qp/BlockRefinery,cpw.mods.fml.relauncher.Side,cpw.mods.fml.relauncher.SideOnly,net.minecraft.client.renderer.texture.IconRegister
+A,com/yogpc/ip/ItemArmorElectric,com/yogpc/ip/ItemMirror,com/yogpc/qp/BlockFrame,net.minecraft.client.renderer.texture.IconRegister
+A,com/yogpc/ip/BlockController,com/yogpc/mc_lib/BlockWorkbench,com/yogpc/qp/BlockInfMJSrc,com/yogpc/qp/BlockPlainPipe,com/yogpc/qp/BlockRefinery,cpw.mods.fml.relauncher.Side,cpw.mods.fml.relauncher.SideOnly,net.minecraft.client.renderer.texture.IconRegister
 A,com/yogpc/qp/TileBasic,buildcraft.api.transport.IPipeConnection,buildcraft.api.transport.IPipeEntry
 R,com/yogpc/qp/TileBasic,buildcraft.api.transport.IPipeTile
 A,com/yogpc/qp/TileInfMJSrc,buildcraft.api.power.IPowerProvider
