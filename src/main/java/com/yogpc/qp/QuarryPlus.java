@@ -111,28 +111,22 @@ public class QuarryPlus {
           "0:AsCheatRecipe,1:EasyRecipe,2:NormalRecipe(Default),3:HardRecipe,other:NormalRecipe";
       RecipeDifficulty = RD.getInt(2);
       PowerManager.loadConfiguration(cfg);
-    } catch (final Exception e) {
-      e.printStackTrace();
     } finally {
       cfg.save();
     }
-    try {
-      blockQuarry = new BlockQuarry();
-      blockMarker = new BlockMarker();
-      blockMover = new BlockMover();
-      blockMiningWell = new BlockMiningWell();
-      blockPump = new BlockPump();
-      blockInfMJSrc = new BlockInfMJSrc();
-      blockRefinery = new BlockRefinery();
-      blockPlacer = new BlockPlacer();
-      blockBreaker = new BlockBreaker();
-      blockLaser = new BlockLaser();
-      blockPlainPipe = new BlockPlainPipe();
-      blockFrame = new BlockFrame();
-      itemTool = new ItemTool();
-    } catch (final Exception e) {
-      e.printStackTrace();
-    }
+    blockQuarry = new BlockQuarry();
+    blockMarker = new BlockMarker();
+    blockMover = new BlockMover();
+    blockMiningWell = new BlockMiningWell();
+    blockPump = new BlockPump();
+    blockInfMJSrc = new BlockInfMJSrc();
+    blockRefinery = new BlockRefinery();
+    blockPlacer = new BlockPlacer();
+    blockBreaker = new BlockBreaker();
+    blockLaser = new BlockLaser();
+    blockPlainPipe = new BlockPlainPipe();
+    blockFrame = new BlockFrame();
+    itemTool = new ItemTool();
     ForgeChunkManager.setForcedChunkLoadingCallback(instance, new ChunkLoadingHandler());
     MinecraftForge.EVENT_BUS.register(this);
   }

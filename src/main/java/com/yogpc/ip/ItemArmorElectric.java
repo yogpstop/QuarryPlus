@@ -91,10 +91,8 @@ public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElec
         if (p instanceof EntityPlayerMP)
           try {
             f.setInt(((EntityPlayerMP) p).playerNetServerHandler, 0);
-          } catch (final IllegalArgumentException e) {
-            e.printStackTrace();
-          } catch (final IllegalAccessException e) {
-            e.printStackTrace();
+          } catch (final Exception e) {
+            throw new RuntimeException(e);
           }
       }
       p.inventoryContainer.detectAndSendChanges();

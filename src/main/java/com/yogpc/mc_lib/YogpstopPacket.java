@@ -26,7 +26,7 @@ public final class YogpstopPacket {
     try {
       this.data = CompressedStreamTools.compress(nbttc);
     } catch (final IOException e) {
-      e.printStackTrace();
+      throw new RuntimeException(e);
     }
     this.header = new byte[] {PacketHandler.NBT};
   }
@@ -52,6 +52,7 @@ public final class YogpstopPacket {
       dos.close();
       bos.close();
     } catch (final IOException e) {
+      throw new RuntimeException(e);
     }
   }
 
@@ -69,6 +70,7 @@ public final class YogpstopPacket {
       dos.close();
       bos.close();
     } catch (final IOException e) {
+      throw new RuntimeException(e);
     }
   }
 

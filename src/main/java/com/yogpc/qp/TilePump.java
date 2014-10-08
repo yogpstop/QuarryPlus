@@ -15,6 +15,7 @@ package com.yogpc.qp;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.LinkedList;
 
@@ -300,8 +301,8 @@ public class TilePump extends APacketTile implements IFluidHandler, IEnchantable
         dos.writeUTF(s);
       PacketHandler.sendPacketToPlayer(new YogpstopPacket(bos.toByteArray(), this,
           PacketHandler.StC_OPENGUI_MAPPING), ep);
-    } catch (final Exception e) {
-      e.printStackTrace();
+    } catch (final IOException e) {
+      throw new RuntimeException(e);
     }
   }
 

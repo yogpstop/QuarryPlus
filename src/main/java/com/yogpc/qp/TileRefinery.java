@@ -15,6 +15,7 @@ package com.yogpc.qp;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
+import java.io.IOException;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
@@ -159,8 +160,8 @@ public class TileRefinery extends APowerTile implements IFluidHandler, IEnchanta
       PacketHandler.sendPacketToAround(new YogpstopPacket(bos.toByteArray(), this,
           PacketHandler.StC_NOW), this.worldObj.provider.dimensionId, this.xCoord, this.yCoord,
           this.zCoord);
-    } catch (final Exception e) {
-      e.printStackTrace();
+    } catch (final IOException e) {
+      throw new RuntimeException(e);
     }
   }
 

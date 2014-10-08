@@ -15,6 +15,7 @@ package com.yogpc.qp;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
@@ -70,8 +71,8 @@ public class TileQuarry extends TileBasic {
           PacketHandler.sendPacketToAround(new YogpstopPacket(bos.toByteArray(), this,
               PacketHandler.StC_HEAD_POS), this.worldObj.provider.dimensionId, this.xCoord,
               this.yCoord, this.zCoord);
-        } catch (final Exception e) {
-          e.printStackTrace();
+        } catch (final IOException e) {
+          throw new RuntimeException(e);
         }
         if (!done)
           break;

@@ -15,6 +15,7 @@ package com.yogpc.qp;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -73,8 +74,8 @@ public abstract class TileBasic extends APowerTile implements IInventory, IEncha
         dos.writeUTF(l.name);
         dos.writeInt(l.meta);
       }
-    } catch (final Exception e) {
-      e.printStackTrace();
+    } catch (final IOException e) {
+      throw new RuntimeException(e);
     }
     PacketHandler.sendPacketToPlayer(new YogpstopPacket(bos.toByteArray(), this, id), ep);
   }
@@ -311,15 +312,10 @@ public abstract class TileBasic extends APowerTile implements IInventory, IEncha
     if (b.canSilkHarvest(this.worldObj, null, x, y, z, meta)
         && this.silktouch
         && this.silktouchList.contains(new BlockData(GameData.getBlockRegistry()
-            .getNameForObject(b), meta)) == this.silktouchInclude)
-      try {
-        list.add((ItemStack) createStackedBlock.invoke(b, new Integer(meta)));
-        return -1;
-      } catch (final Exception e) {
-        e.printStackTrace();
-      } catch (final Error e) {
-        e.printStackTrace();
-      }
+            .getNameForObject(b), meta)) == this.silktouchInclude) {
+      list.add((ItemStack) ReflectionHelper.invoke(createStackedBlock, b, new Integer(meta)));
+      return -1;
+    }
     if (this.fortuneList.contains(new BlockData(GameData.getBlockRegistry().getNameForObject(b),
         meta)) == this.fortuneInclude) {
       list.addAll(b.getDrops(this.worldObj, x, y, z, meta, this.fortune));

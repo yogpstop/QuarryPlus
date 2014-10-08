@@ -15,6 +15,7 @@ package com.yogpc.qp.client;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
+import java.io.IOException;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiTextField;
@@ -71,7 +72,7 @@ public class GuiInfMJSrc extends GuiScreenA {
       case 3:
         try {
           this.tile.power = Float.parseFloat(this.eng.getText());
-        } catch (final Exception e) {
+        } catch (final NumberFormatException e) {
           this.eng.setText(StatCollector.translateToLocal("tof.error"));
           return;
         }
@@ -82,7 +83,7 @@ public class GuiInfMJSrc extends GuiScreenA {
         }
         try {
           this.tile.interval = Integer.parseInt(this.itv.getText());
-        } catch (final Exception e) {
+        } catch (final NumberFormatException e) {
           this.itv.setText(StatCollector.translateToLocal("tof.error"));
           return;
         }
@@ -95,8 +96,8 @@ public class GuiInfMJSrc extends GuiScreenA {
         try {
           dos.writeFloat(this.tile.power);
           dos.writeInt(this.tile.interval);
-        } catch (final Exception e) {
-          e.printStackTrace();
+        } catch (final IOException e) {
+          throw new RuntimeException(e);
         }
         PacketHandler.sendPacketToServer(new YogpstopPacket(bos.toByteArray(), this.tile,
             PacketHandler.CtS_INFMJSRC));

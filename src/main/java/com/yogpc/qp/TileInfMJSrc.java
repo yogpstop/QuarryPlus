@@ -15,6 +15,7 @@ package com.yogpc.qp;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
+import java.io.IOException;
 import java.lang.reflect.Method;
 
 import net.minecraft.entity.player.EntityPlayer;
@@ -57,14 +58,11 @@ public class TileInfMJSrc extends APacketTile {
           this.worldObj.getTileEntity(this.xCoord + d.offsetX, this.yCoord + d.offsetY, this.zCoord
               + d.offsetZ);
       Object o = null;
-      try {
-        if (getMjBattery != null)
-          o = getMjBattery.invoke(null, te);
-        if (o != null && addEnergy != null) {
-          addEnergy.invoke(o, new Float(this.power));
-          continue;
-        }
-      } catch (final Exception e) {
+      if (getMjBattery != null)
+        o = ReflectionHelper.invoke(getMjBattery, null, te);
+      if (o != null && addEnergy != null) {
+        ReflectionHelper.invoke(addEnergy, o, new Float(this.power));
+        continue;
       }
       if (te instanceof IPowerReceptor) {
         final PowerReceiver pr = ((IPowerReceptor) te).getPowerReceiver(d.getOpposite());
@@ -83,8 +81,8 @@ public class TileInfMJSrc extends APacketTile {
       dos.writeInt(this.interval);
       PacketHandler.sendPacketToPlayer(new YogpstopPacket(bos.toByteArray(), this,
           PacketHandler.StC_OPENGUI_INFMJSRC), ep);
-    } catch (final Exception e) {
-      e.printStackTrace();
+    } catch (final IOException e) {
+      throw new RuntimeException(e);
     }
   }
 

@@ -15,6 +15,7 @@ package com.yogpc.qp;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -127,8 +128,8 @@ public class TileMarker extends APacketTile implements IAreaProvider {
           dos.writeInt(this.z);
           PacketHandler.sendPacketToDimension(new YogpstopPacket(bos.toByteArray(),
               TileMarker.class), this.w.provider.dimensionId);
-        } catch (final Exception e) {
-          e.printStackTrace();
+        } catch (final IOException e) {
+          throw new RuntimeException(e);
         }
       for (final EntityLaser eb : this.lasers)
         if (eb != null)
@@ -238,8 +239,8 @@ public class TileMarker extends APacketTile implements IAreaProvider {
           dos.writeInt(this.zn);
           PacketHandler.sendPacketToDimension(new YogpstopPacket(bos.toByteArray(),
               TileMarker.class), this.w.provider.dimensionId);
-        } catch (final Exception e) {
-          e.printStackTrace();
+        } catch (final IOException e) {
+          throw new RuntimeException(e);
         }
       deleteLaser();
       final ArrayList<ItemStack> i = new ArrayList<ItemStack>();
@@ -517,8 +518,8 @@ public class TileMarker extends APacketTile implements IAreaProvider {
         PacketHandler.sendPacketToAround(new YogpstopPacket(bos.toByteArray(), this,
             PacketHandler.StC_LINK_RES), this.worldObj.provider.dimensionId, this.xCoord,
             this.yCoord, this.zCoord);
-      } catch (final Exception e) {
-        e.printStackTrace();
+      } catch (final IOException e) {
+        throw new RuntimeException(e);
       }
     }
     G_updateSignal();
@@ -540,8 +541,8 @@ public class TileMarker extends APacketTile implements IAreaProvider {
             dos.writeInt(this.link.zn);
             PacketHandler.sendPacketToPlayer(new YogpstopPacket(bos.toByteArray(), this,
                 PacketHandler.StC_LINK_RES), ep);
-          } catch (final Exception e) {
-            e.printStackTrace();
+          } catch (final IOException e) {
+            throw new RuntimeException(e);
           }
     }
   }

@@ -73,4 +73,15 @@ public class ReflectionHelper {
       e.printStackTrace();
     return null;
   }
+
+  public static final Object invoke(Method m, Object obj, Object... args) {
+    try {
+      return m.invoke(obj, args);
+    } catch (Exception e) {
+      e.printStackTrace();
+    } catch (Error e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
 }

@@ -10,16 +10,14 @@
    private static final double maxFallSpeedOnHover = 0.35;
  
    private void useJetpack(final EntityPlayer p, final ItemStack jetpack, final boolean hover) {
-@@ -83,13 +80,7 @@
+@@ -83,11 +80,7 @@
          p.fallDistance = 0.0f;
          p.distanceWalkedModified = 0.0f;
          if (p instanceof EntityPlayerMP)
 -          try {
 -            f.setInt(((EntityPlayerMP) p).playerNetServerHandler, 0);
--          } catch (final IllegalArgumentException e) {
--            e.printStackTrace();
--          } catch (final IllegalAccessException e) {
--            e.printStackTrace();
+-          } catch (final Exception e) {
+-            throw new RuntimeException(e);
 -          }
 +          ((EntityPlayerMP) p).playerNetServerHandler.ticksForFloatKick = 0;
        }
@@ -99,7 +97,7 @@
      if (packet.getChannel() == NBT)
        setNBTFromPacket(packet);
      else if (packet.getChannel() == BTN) {
-@@ -122,33 +121,29 @@
+@@ -118,33 +117,29 @@
            | packet.getData()[1] << 16 | packet.getData()[2] << 8 | packet.getData()[3]);
    }
  
@@ -231,7 +229,7 @@
    }
 --- a/com/yogpc/mc_lib/YogpstopLib.java
 +++ b/com/yogpc/mc_lib/YogpstopLib.java
-@@ -33,6 +33,8 @@
+@@ -33,6 +38,8 @@
  
  @Mod(modid = "YogpstopLib", name = "Yogpstop Library", version = "{version}",
      dependencies = "after:IC2;after:BuildCraft|Core;after:CoFHCore")
@@ -240,7 +238,7 @@
  public class YogpstopLib {
  
    @SidedProxy(clientSide = "com.yogpc.mc_lib.ProxyClient",
-@@ -45,28 +47,90 @@
+@@ -45,22 +52,87 @@
    @Mod.EventHandler
    public void preInit(final FMLPreInitializationEvent event) {
      final Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
@@ -251,25 +249,19 @@
 +      id[1] = cfg.getBlock("Controller", 3334).getInt();
 +      id[2] = cfg.getItem("MagicMirror", 21477).getInt();
 +      id[3] = cfg.getItem("ElectricArmor", 21478).getInt();
-     } catch (final Exception e) {
-       e.printStackTrace();
      } finally {
        cfg.save();
      }
-     try {
--      workbench = new BlockWorkbench();
--      controller = new BlockController();
--      magicmirror = new ItemMirror();
--      armor = new ItemArmorElectric();
-+      workbench = new BlockWorkbench(id[0]);
-+      controller = new BlockController(id[1]);
-+      magicmirror = new ItemMirror(id[2]);
-+      armor = new ItemArmorElectric(id[3]);
-     } catch (final Exception e) {
-       e.printStackTrace();
-     }
-   }
- 
+-    workbench = new BlockWorkbench();
+-    controller = new BlockController();
+-    magicmirror = new ItemMirror();
+-    armor = new ItemArmorElectric();
++    workbench = new BlockWorkbench(id[0]);
++    controller = new BlockController(id[1]);
++    magicmirror = new ItemMirror(id[2]);
++    armor = new ItemArmorElectric(id[3]);
++  }
++
 +  private static final Pattern lang = Pattern.compile("assets/(.*)/lang/(.*)\\.lang");
 +  private static final Pattern format = Pattern.compile("%(\\d+\\$)?[\\d\\.]*[df]");
 +
@@ -287,7 +279,8 @@
 +        }
 +      br.close();
 +      r.close();
-+    } catch (final Exception e) {
++    } catch (final IOException e) {
++      throw new RuntimeException(e);
 +    }
 +    return table;
 +  }
@@ -302,7 +295,8 @@
 +        final InputStream is = new FileInputStream(f);
 +        LanguageRegistry.instance().addStringLocalization(parseLangFile(is), m.group(2));
 +        is.close();
-+      } catch (final Exception e) {
++      } catch (final IOException e) {
++        throw new RuntimeException(e);
 +      }
 +    if (f.isDirectory())
 +      for (final File e : f.listFiles())
@@ -326,10 +320,11 @@
 +      }
 +      zis.close();
 +      is.close();
-+    } catch (final Exception e) {
++    } catch (final IOException e) {
++      throw new RuntimeException(e);
 +    }
-+  }
-+
+   }
+ 
    @Mod.EventHandler
    public void init(final FMLInitializationEvent event) {
 -    PacketHandler.channels =
@@ -340,7 +335,7 @@
      GameRegistry.registerItem(magicmirror, "magicmirror");
 --- a/com/yogpc/mc_lib/YogpstopPacket.java
 +++ b/com/yogpc/mc_lib/YogpstopPacket.java
-@@ -87,18 +87,22 @@
+@@ -89,18 +89,22 @@
      return this.data;
    }
  
@@ -376,7 +371,7 @@
  }
 --- a/com/yogpc/qp/BlockBreaker.java
 +++ b/com/yogpc/qp/BlockBreaker.java
-@@ -105,7 +105,7 @@
+@@ -106,7 +106,7 @@
          w.getBlockMetadata(tx, ty, tz);
      if (ty < 1)
        return;
@@ -385,7 +380,7 @@
      if (b == null || b.isAirBlock(w, x, y, z))
        return;
      final EntityPlayer player = FakePlayerFactory.getMinecraft(w);
-@@ -155,22 +155,22 @@
+@@ -149,22 +149,22 @@
  
    static void setDispenserDefaultDirection(final World w, final int x, final int y, final int z) {
      if (!w.isRemote) {
@@ -416,7 +411,7 @@
          b0 = 4;
        w.setBlockMetadataWithNotify(x, y, z, b0, 2);
      }
-@@ -186,7 +186,7 @@
+@@ -180,7 +180,7 @@
      ItemStack is;
      for (int i = 0; i < count; i++) {
        final int id1 = idDropped(meta, world.rand, 0);
@@ -610,39 +605,36 @@
        final Property RD = cfg.get(Configuration.CATEGORY_GENERAL, "RecipeDifficulty", 2);
        RD.comment =
            "0:AsCheatRecipe,1:EasyRecipe,2:NormalRecipe(Default),3:HardRecipe,other:NormalRecipe";
-@@ -115,24 +129,25 @@
+@@ -112,21 +126,22 @@
+     } finally {
        cfg.save();
      }
-     try {
--      blockQuarry = new BlockQuarry();
--      blockMarker = new BlockMarker();
--      blockMover = new BlockMover();
--      blockMiningWell = new BlockMiningWell();
--      blockPump = new BlockPump();
--      blockInfMJSrc = new BlockInfMJSrc();
--      blockRefinery = new BlockRefinery();
--      blockPlacer = new BlockPlacer();
--      blockBreaker = new BlockBreaker();
--      blockLaser = new BlockLaser();
--      blockPlainPipe = new BlockPlainPipe();
--      blockFrame = new BlockFrame();
--      itemTool = new ItemTool();
-+      blockQuarry = new BlockQuarry(id[0]);
-+      blockMarker = new BlockMarker(id[1]);
-+      blockMover = new BlockMover(id[2]);
-+      blockMiningWell = new BlockMiningWell(id[3]);
-+      blockPump = new BlockPump(id[4]);
-+      blockInfMJSrc = new BlockInfMJSrc(id[5]);
-+      blockRefinery = new BlockRefinery(id[6]);
-+      blockPlacer = new BlockPlacer(id[7]);
-+      blockBreaker = new BlockBreaker(id[8]);
-+      blockLaser = new BlockLaser(id[9]);
-+      blockPlainPipe = new BlockPlainPipe(id[10]);
-+      blockFrame = new BlockFrame(id[11]);
-+      itemTool = new ItemTool(id[12]);
-     } catch (final Exception e) {
-       e.printStackTrace();
-     }
+-    blockQuarry = new BlockQuarry();
+-    blockMarker = new BlockMarker();
+-    blockMover = new BlockMover();
+-    blockMiningWell = new BlockMiningWell();
+-    blockPump = new BlockPump();
+-    blockInfMJSrc = new BlockInfMJSrc();
+-    blockRefinery = new BlockRefinery();
+-    blockPlacer = new BlockPlacer();
+-    blockBreaker = new BlockBreaker();
+-    blockLaser = new BlockLaser();
+-    blockPlainPipe = new BlockPlainPipe();
+-    blockFrame = new BlockFrame();
+-    itemTool = new ItemTool();
++    blockQuarry = new BlockQuarry(id[0]);
++    blockMarker = new BlockMarker(id[1]);
++    blockMover = new BlockMover(id[2]);
++    blockMiningWell = new BlockMiningWell(id[3]);
++    blockPump = new BlockPump(id[4]);
++    blockInfMJSrc = new BlockInfMJSrc(id[5]);
++    blockRefinery = new BlockRefinery(id[6]);
++    blockPlacer = new BlockPlacer(id[7]);
++    blockBreaker = new BlockBreaker(id[8]);
++    blockLaser = new BlockLaser(id[9]);
++    blockPlainPipe = new BlockPlainPipe(id[10]);
++    blockFrame = new BlockFrame(id[11]);
++    itemTool = new ItemTool(id[12]);
      ForgeChunkManager.setForcedChunkLoadingCallback(instance, new ChunkLoadingHandler());
      MinecraftForge.EVENT_BUS.register(this);
 +    YogpstopLib.loadLangs(event.getSourceFile());
@@ -651,7 +643,7 @@
    @Mod.EventHandler
 --- a/com/yogpc/qp/TileBasic.java
 +++ b/com/yogpc/qp/TileBasic.java
-@@ -267,8 +267,8 @@
+@@ -268,8 +268,8 @@
  
    protected boolean S_breakBlock(final int x, final int y, final int z) {
      final Collection<ItemStack> dropped = new LinkedList<ItemStack>();
@@ -662,19 +654,19 @@
      if (b == null || b.isAirBlock(this.worldObj, x, y, z))
        return true;
      if (TilePump.isLiquid(b, false, null, 0, 0, 0, 0)) {
-@@ -308,8 +308,7 @@
+@@ -309,8 +309,7 @@
      final int meta = this.worldObj.getBlockMetadata(x, y, z);
      if (b.canSilkHarvest(this.worldObj, null, x, y, z, meta)
          && this.silktouch
 -        && this.silktouchList.contains(new BlockData(GameData.getBlockRegistry()
--            .getNameForObject(b), meta)) == this.silktouchInclude)
-+        && this.silktouchList.contains(new BlockData(Integer.toString(b.blockID), meta)) == this.silktouchInclude)
-       try {
-         list.add((ItemStack) createStackedBlock.invoke(b, new Integer(meta)));
-         return -1;
+-            .getNameForObject(b), meta)) == this.silktouchInclude) {
++        && this.silktouchList.contains(new BlockData(Integer.toString(b.blockID), meta)) == this.silktouchInclude) {
+       list.add((ItemStack) ReflectionHelper.invoke(createStackedBlock, b, new Integer(meta)));
+       return -1;
+     }
 --- a/com/yogpc/qp/TileMarker.java
 +++ b/com/yogpc/qp/TileMarker.java
-@@ -196,7 +196,7 @@
+@@ -197,7 +197,7 @@
          final boolean bb) {
        final ArrayList<ItemStack> ret = new ArrayList<ItemStack>();
        final TileEntity te = this.w.getBlockTileEntity(x, y, z);
@@ -683,7 +675,7 @@
        if (b instanceof BlockMarker) {
          if (te instanceof TileMarker)
            ((TileMarker) te).link = null;
-@@ -412,16 +412,16 @@
+@@ -413,16 +413,16 @@
    private static void S_renewConnection(final Link l, final World w, final int x, final int y,
        final int z) {
      int tx = 0, ty = 0, tz = 0;
@@ -705,7 +697,7 @@
            tx = -tx;
            l.xn = x + tx;
            break;
-@@ -432,13 +432,13 @@
+@@ -433,13 +433,13 @@
      }
      if (l.yx == l.yn) {
        for (ty = 1; ty <= MAX_SIZE; ty++) {
@@ -723,7 +715,7 @@
            ty = -ty;
            l.yn = y + ty;
            break;
-@@ -449,13 +449,13 @@
+@@ -450,13 +450,13 @@
      }
      if (l.zx == l.zn) {
        for (tz = 1; tz <= MAX_SIZE; tz++) {
@@ -741,7 +733,7 @@
            tz = -tz;
            l.zn = z + tz;
            break;
-@@ -626,7 +626,7 @@
+@@ -627,7 +627,7 @@
    @Override
    public void invalidate() {
      super.invalidate();
@@ -791,7 +783,7 @@
      }
 --- a/com/yogpc/qp/TilePump.java
 +++ b/com/yogpc/qp/TilePump.java
-@@ -83,7 +83,7 @@
+@@ -84,7 +84,7 @@
      if (nbttc.getTag("mapping0") instanceof NBTTagList)
        for (int i = 0; i < this.mapping.length; i++)
          readStringCollection(
@@ -800,7 +792,7 @@
              this.mapping[i]);
      this.range = nbttc.getByte("range");
      this.quarryRange = nbttc.getBoolean("quarryRange");
-@@ -405,7 +405,7 @@
+@@ -406,7 +406,7 @@
      while (cp != cg) {
        ebs_c = this.ebses[xb[cg] >> 4][zb[cg] >> 4][yb[cg] >> 4];
        if (ebs_c != null) {
@@ -809,7 +801,7 @@
          if (this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] == 0
              && isLiquid(b_c, false, null, 0, 0, 0, 0)) {
            this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] = 0x3F;
-@@ -466,8 +466,7 @@
+@@ -467,8 +467,7 @@
              for (bz = 0; bz < this.block_side_z; bz++)
                if ((this.blocks[this.py - this.yOffset][bx][bz] & 0x40) != 0) {
                  bb =
@@ -819,7 +811,7 @@
                  if (isLiquid(bb, false, null, 0, 0, 0, 0))
                    count++;
                }
-@@ -475,8 +474,7 @@
+@@ -476,8 +475,7 @@
            for (bz = 0; bz < this.block_side_z; bz++)
              if (this.blocks[this.py - this.yOffset][this.px][bz] != 0) {
                bb =
@@ -829,7 +821,7 @@
                meta =
                    this.ebses[this.px >> 4][bz >> 4][this.py >> 4].getExtBlockMetadata(
                        this.px & 0xF, this.py & 0xF, bz & 0xF);
-@@ -498,11 +496,11 @@
+@@ -499,11 +497,11 @@
          for (bx = 0; bx < this.block_side_x; bx++)
            for (bz = 0; bz < this.block_side_z; bz++)
              if ((this.blocks[this.py - this.yOffset][bx][bz] & 0x40) != 0)
@@ -843,7 +835,7 @@
      S_sendNowPacket();
      return this.py < this.cy;
    }
-@@ -657,10 +655,9 @@
+@@ -658,10 +656,9 @@
      return false;
    }
  
@@ -858,7 +850,7 @@
              bz & 0xF);
 --- a/com/yogpc/qp/TileQuarry.java
 +++ b/com/yogpc/qp/TileQuarry.java
-@@ -90,9 +90,9 @@
+@@ -91,9 +91,9 @@
    private boolean S_checkTarget() {
      if (this.targetY > this.yMax)
        this.targetY = this.yMax;
@@ -870,7 +862,7 @@
      final float h =
          b == null ? -1 : b
              .getBlockHardness(this.worldObj, this.targetX, this.targetY, this.targetZ);
-@@ -151,7 +151,7 @@
+@@ -152,7 +152,7 @@
            return S_checkTarget();
          }
          if (b != null
@@ -879,7 +871,7 @@
              && !(b == QuarryPlus.blockFrame && this.worldObj.getBlockMetadata(this.targetX,
                  this.targetY, this.targetZ) == 0)) {
            this.now = NOTNEEDBREAK;
-@@ -274,7 +274,7 @@
+@@ -275,7 +275,7 @@
      this.digged = true;
      if (!PowerManager.useEnergyF(this, this.unbreaking))
        return false;
@@ -888,7 +880,7 @@
      S_setNextTarget();
      return true;
    }
-@@ -428,7 +428,7 @@
+@@ -429,7 +429,7 @@
    }
  
    private void S_setBreakableFrame(final int x, final int y, final int z) {

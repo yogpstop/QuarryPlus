@@ -21,22 +21,13 @@ public class ILaserTargetHelper {
   private static final Method _requiresLaserEnergy = ReflectionHelper.getMethod(cls, new String[] {
       "requiresLaserEnergy", "hasCurrentWork"}, new Class<?>[] {});
 
-  private static Object call(final Method m, final Object o, final Object[] a) {
-    try {
-      return m.invoke(o, a);
-    } catch (final Exception e) {
-      e.printStackTrace();
-    }
-    return null;
-  }
-
   private static int call_int(final Method m, final Object o, final Object[] a, final int d) {
-    final Integer r = (Integer) call(m, o, a);
+    final Integer r = (Integer) ReflectionHelper.invoke(m, o, a);
     return r == null ? d : r.intValue();
   }
 
   private static boolean call_bool(final Method m, final Object o, final Object[] a, final boolean d) {
-    final Boolean r = (Boolean) call(m, o, a);
+    final Boolean r = (Boolean) ReflectionHelper.invoke(m, o, a);
     return r == null ? d : r.booleanValue();
   }
 
@@ -61,7 +52,7 @@ public class ILaserTargetHelper {
   }
 
   static void receiveLaserEnergy(final Object o, final float f) {
-    call(_receiveLaserEnergy, o, new Object[] {new Float(f)});
+    ReflectionHelper.invoke(_receiveLaserEnergy, o, new Object[] {new Float(f)});
   }
 
   static boolean isValid(final Object o) {

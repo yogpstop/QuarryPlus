@@ -15,6 +15,7 @@ package com.yogpc.qp.client;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
+import java.io.IOException;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.util.StatCollector;
@@ -71,8 +72,8 @@ public class GuiP_SelectSide extends GuiScreenA {
         dos.writeByte(par1.id);
       }
       PacketHandler.sendPacketToServer(new YogpstopPacket(bos.toByteArray(), this.tile, c));
-    } catch (final Exception e) {
-      e.printStackTrace();
+    } catch (final IOException e) {
+      throw new RuntimeException(e);
     }
   }
 

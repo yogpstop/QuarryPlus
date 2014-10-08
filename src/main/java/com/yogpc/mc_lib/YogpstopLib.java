@@ -36,19 +36,13 @@ public class YogpstopLib {
     final Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
     try {
       cfg.load();
-    } catch (final Exception e) {
-      e.printStackTrace();
     } finally {
       cfg.save();
     }
-    try {
-      workbench = new BlockWorkbench();
-      controller = new BlockController();
-      magicmirror = new ItemMirror();
-      armor = new ItemArmorElectric();
-    } catch (final Exception e) {
-      e.printStackTrace();
-    }
+    workbench = new BlockWorkbench();
+    controller = new BlockController();
+    magicmirror = new ItemMirror();
+    armor = new ItemArmorElectric();
   }
 
   @Mod.EventHandler

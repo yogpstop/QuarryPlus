@@ -15,6 +15,7 @@ package com.yogpc.qp.client;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
+import java.io.IOException;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiYesNoCallback;
@@ -105,8 +106,8 @@ public class GuiQ_List extends GuiScreenA implements GuiYesNoCallback {
       try {
         dos.writeUTF(bd.name);
         dos.writeInt(bd.meta);
-      } catch (final Exception e) {
-        e.printStackTrace();
+      } catch (final IOException e) {
+        throw new RuntimeException(e);
       }
       PacketHandler
           .sendPacketToServer(new YogpstopPacket(bos.toByteArray(), this.tile, (byte) par2));

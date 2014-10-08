@@ -119,11 +119,7 @@ public class PacketHandler extends SimpleChannelInboundHandler<YogpstopPacket> {
       }
     } else if (packet.getChannel() == STATIC) {
       final ByteArrayDataInput hdr = ByteStreams.newDataInput(packet.getHeader());
-      try {
-        registeredStaticHandlers.get(hdr.readUTF()).invoke(null, packet.getData());
-      } catch (final Exception e) {
-        e.printStackTrace();
-      }
+      ReflectionHelper.invoke(registeredStaticHandlers.get(hdr.readUTF()), null, packet.getData());
     } else if (packet.getChannel() == KEY)
       YogpstopLib.proxy.setKeys(packet.getPlayer(), packet.getData()[0] << 24
           | packet.getData()[1] << 16 | packet.getData()[2] << 8 | packet.getData()[3]);
@@ -168,7 +164,7 @@ public class PacketHandler extends SimpleChannelInboundHandler<YogpstopPacket> {
       if (te != null)
         te.readFromNBT(cache);
     } catch (final IOException e) {
-      e.printStackTrace();
+      throw new RuntimeException(e);
     }
   }
 
@@ -179,8 +175,8 @@ public class PacketHandler extends SimpleChannelInboundHandler<YogpstopPacket> {
     try {
       dos.writeByte(pos);
       dos.writeUTF(data);
-    } catch (final Exception e) {
-      e.printStackTrace();
+    } catch (final IOException e) {
+      throw new RuntimeException(e);
     }
     sendPacketToServer(new YogpstopPacket(bos.toByteArray(), te, id));
   }

@@ -13,9 +13,10 @@
 
 package com.yogpc.qp;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Random;
+
+import com.yogpc.mc_lib.ReflectionHelper;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockContainer;
@@ -122,17 +123,10 @@ public class BlockBreaker extends BlockContainer {
     ArrayList<ItemStack> alis;
     if (b.canSilkHarvest(w, player, tx, ty, tz, meta) && tile.silktouch) {
       alis = new ArrayList<ItemStack>();
-      try {
-        final ItemStack is = (ItemStack) TileBasic.createStackedBlock.invoke(b, new Integer(meta));
-        if (is != null)
-          alis.add(is);
-      } catch (final IllegalAccessException e) {
-        e.printStackTrace();
-      } catch (final IllegalArgumentException e) {
-        e.printStackTrace();
-      } catch (final InvocationTargetException e) {
-        e.printStackTrace();
-      }
+      final ItemStack is =
+          (ItemStack) ReflectionHelper.invoke(TileBasic.createStackedBlock, b, new Integer(meta));
+      if (is != null)
+        alis.add(is);
     } else
       alis = b.getDrops(w, tx, ty, tz, meta, tile.fortune);
     for (final ItemStack is : alis) {
