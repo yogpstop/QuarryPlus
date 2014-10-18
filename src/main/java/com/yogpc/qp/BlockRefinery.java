@@ -31,6 +31,8 @@ import net.minecraftforge.fluids.FluidContainerRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.IFluidHandler;
 
+import com.yogpc.mc_lib.InvUtils;
+
 public class BlockRefinery extends BlockContainer {
 
   public BlockRefinery() {
@@ -91,7 +93,7 @@ public class BlockRefinery extends BlockContainer {
     else
       ep.inventory.setInventorySlotContents(ep.inventory.currentItem, null);
     if (container != null) {
-      TileBasic.addToIInv(ep.inventory, container, ForgeDirection.UNKNOWN, true);
+      InvUtils.addToIInv(ep.inventory, container, ForgeDirection.UNKNOWN, true);
       if (container.stackSize > 0)
         ep.dropPlayerItemWithRandomChoice(container, false);
     }

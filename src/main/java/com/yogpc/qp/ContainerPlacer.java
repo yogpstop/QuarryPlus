@@ -24,19 +24,20 @@ public class ContainerPlacer extends Container {
 
   public ContainerPlacer(final IInventory par1IInventory, final TilePlacer par2TileEntityDispenser) {
     this.tile = par2TileEntityDispenser;
-    int i;
-    int j;
+    int row;
+    int col;
 
-    for (i = 0; i < 3; ++i)
-      for (j = 0; j < 3; ++j)
-        addSlotToContainer(new Slot(par2TileEntityDispenser, j + i * 3, 62 + j * 18, 17 + i * 18));
+    for (row = 0; row < 3; ++row)
+      for (col = 0; col < 3; ++col)
+        addSlotToContainer(new Slot(par2TileEntityDispenser, col + row * 3, 62 + col * 18,
+            17 + row * 18));
 
-    for (i = 0; i < 3; ++i)
-      for (j = 0; j < 9; ++j)
-        addSlotToContainer(new Slot(par1IInventory, j + i * 9 + 9, 8 + j * 18, 84 + i * 18));
+    for (row = 0; row < 3; ++row)
+      for (col = 0; col < 9; ++col)
+        addSlotToContainer(new Slot(par1IInventory, col + row * 9 + 9, 8 + col * 18, 84 + row * 18));
 
-    for (i = 0; i < 9; ++i)
-      addSlotToContainer(new Slot(par1IInventory, i, 8 + i * 18, 142));
+    for (col = 0; col < 9; ++col)
+      addSlotToContainer(new Slot(par1IInventory, col, 8 + col * 18, 142));
   }
 
   @Override

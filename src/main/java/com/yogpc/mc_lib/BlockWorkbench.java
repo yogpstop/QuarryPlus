@@ -29,7 +29,8 @@ public class BlockWorkbench extends BlockContainer {
       final int m) {
     final TileWorkbench t = (TileWorkbench) w.getTileEntity(x, y, z);
     if (t != null) {
-      for (final ItemStack is : t.buffer)
+      for (int i = 0; i < 27; i++) {
+        final ItemStack is = t.inv[i];
         if (is != null) {
           final float f = this.random.nextFloat() * 0.8F + 0.1F;
           final float f1 = this.random.nextFloat() * 0.8F + 0.1F;
@@ -51,6 +52,7 @@ public class BlockWorkbench extends BlockContainer {
             w.spawnEntityInWorld(e);
           }
         }
+      }
       w.func_147453_f(x, y, z, b);
     }
     super.breakBlock(w, x, y, z, b, m);
@@ -62,19 +64,10 @@ public class BlockWorkbench extends BlockContainer {
   }
 
   @Override
-  public void onBlockClicked(final World w, final int x, final int y, final int z,
-      final EntityPlayer e) {
-    if (w.isRemote)
-      return;
-    ((TileWorkbench) w.getTileEntity(x, y, z)).clicked(e);
-  }
-
-  @Override
   public boolean onBlockActivated(final World w, final int x, final int y, final int z,
       final EntityPlayer e, final int par6, final float par7, final float par8, final float par9) {
-    if (w.isRemote)
-      return true;
-    ((TileWorkbench) w.getTileEntity(x, y, z)).add(e);
+    if (!w.isRemote)
+      e.openGui(YogpstopLib.instance, YogpstopLib.guiIdWorkbench, w, x, y, z);
     return true;
   }
 }

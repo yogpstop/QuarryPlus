@@ -64,7 +64,7 @@ public class PacketHandler extends SimpleChannelInboundHandler<YogpstopPacket> {
   public static EnumMap<Side, FMLEmbeddedChannel> channels;
   static final byte Tile = 0;
   static final byte NBT = 1;
-  static final byte BTN = 2;
+  static final byte WINPROP = 2;
   static final byte STATIC = 3;
   static final byte KEY = 4;
 
@@ -102,9 +102,9 @@ public class PacketHandler extends SimpleChannelInboundHandler<YogpstopPacket> {
       throws Exception {
     if (packet.getChannel() == NBT)
       setNBTFromPacket(packet);
-    else if (packet.getChannel() == BTN) {
+    else if (packet.getChannel() == WINPROP) {
       final Container container = packet.getPlayer().openContainer;
-      if (container instanceof IPacketContainer)
+      if (container instanceof IPacketContainer && container.windowId == packet.getHeader()[0])
         ((IPacketContainer) container).receivePacket(packet.getData());
     } else if (packet.getChannel() == Tile) {
       final ByteArrayDataInput hdr = ByteStreams.newDataInput(packet.getHeader());

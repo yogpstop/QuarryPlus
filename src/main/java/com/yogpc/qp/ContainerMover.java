@@ -31,32 +31,30 @@ public class ContainerMover extends Container implements IPacketContainer {
   public IInventory craftMatrix = new InventoryBasic("Matrix", false, 2);
   private final World worldObj;
   private final GuiMover gui;
-  private final int posX;
-  private final int posY;
-  private final int posZ;
+  private final int posX, posY, posZ;
   private final EntityPlayer ep;
 
-  public ContainerMover(final EntityPlayer player, final World par2World, final int par3,
-      final int par4, final int par5, final GuiMover gm) {
+  public ContainerMover(final EntityPlayer player, final World w, final int x, final int y,
+      final int z, final GuiMover gm) {
     this.gui = gm;
-    this.worldObj = par2World;
-    this.posX = par3;
-    this.posY = par4;
-    this.posZ = par5;
+    this.worldObj = w;
+    this.posX = x;
+    this.posY = y;
+    this.posZ = z;
     this.ep = player;
-    int var6;
-    int var7;
+    int row;
+    int col;
 
-    for (var6 = 0; var6 < 2; ++var6)
-      addSlotToContainer(new SlotMover(this.craftMatrix, var6, 8 + var6 * 144, 35, this));
+    for (col = 0; col < 2; ++col)
+      addSlotToContainer(new SlotMover(this.craftMatrix, col, 8 + col * 144, 35, this));
 
-    for (var6 = 0; var6 < 3; ++var6)
-      for (var7 = 0; var7 < 9; ++var7)
-        addSlotToContainer(new Slot(player.inventory, var7 + var6 * 9 + 9, 8 + var7 * 18,
-            84 + var6 * 18));
+    for (row = 0; row < 3; ++row)
+      for (col = 0; col < 9; ++col)
+        addSlotToContainer(new Slot(player.inventory, col + row * 9 + 9, 8 + col * 18,
+            84 + row * 18));
 
-    for (var6 = 0; var6 < 9; ++var6)
-      addSlotToContainer(new Slot(player.inventory, var6, 8 + var6 * 18, 142));
+    for (col = 0; col < 9; ++col)
+      addSlotToContainer(new Slot(player.inventory, col, 8 + col * 18, 142));
   }
 
   @Override
@@ -86,7 +84,7 @@ public class ContainerMover extends Container implements IPacketContainer {
 
   @Override
   public ItemStack transferStackInSlot(final EntityPlayer pl, final int i) {
-    return null;
+    return null;// TODO
   }
 
   private void moveEnchant(final short eid) {

@@ -1,11 +1,13 @@
 package com.yogpc.mc_lib;
 
 import net.minecraft.block.Block;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.WeightedRandomChestContent;
+import net.minecraft.world.World;
 import net.minecraftforge.common.ChestGenHooks;
 import net.minecraftforge.common.config.Configuration;
 
@@ -17,19 +19,23 @@ import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.common.network.IGuiHandler;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.GameRegistry;
 
 @Mod(modid = "YogpstopLib", name = "Yogpstop Library", version = "{version}",
     dependencies = "after:IC2;after:BuildCraft|Core;after:CoFHCore")
-public class YogpstopLib {
+public class YogpstopLib implements IGuiHandler {
 
   @SidedProxy(clientSide = "com.yogpc.mc_lib.ProxyClient",
       serverSide = "com.yogpc.mc_lib.ProxyCommon")
   public static ProxyCommon proxy;
+  @Mod.Instance("YogpstopLib")
+  public static YogpstopLib instance;
 
   private static Block workbench, controller;
   private static Item magicmirror, armor;
+  public static final int guiIdWorkbench = 1;
 
   @Mod.EventHandler
   public void preInit(final FMLPreInitializationEvent event) {
@@ -71,5 +77,26 @@ public class YogpstopLib {
     ChestGenHooks.getInfo(ChestGenHooks.STRONGHOLD_LIBRARY).addItem(c);
     ChestGenHooks.getInfo(ChestGenHooks.STRONGHOLD_CROSSING).addItem(c);
     ChestGenHooks.getInfo(ChestGenHooks.VILLAGE_BLACKSMITH).addItem(c);
+    NetworkRegistry.INSTANCE.registerGuiHandler(this, this);
+  }
+
+  @Override
+  public Object getServerGuiElement(final int ID, final EntityPlayer p, final World w, final int x,
+      final int y, final int z) {
+    switch (ID) {
+      case guiIdWorkbench:
+        return new ContainerWorkbench(p.inventory, (TileWorkbench) w.getTileEntity(x, y, z));
+    }
+    return null;
+  }
+
+  @Override
+  public Object getClientGuiElement(final int ID, final EntityPlayer p, final World w, final int x,
+      final int y, final int z) {
+    switch (ID) {
+      case guiIdWorkbench:
+        return new GuiWorkbench(p.inventory, (TileWorkbench) w.getTileEntity(x, y, z));
+    }
+    return null;
   }
 }

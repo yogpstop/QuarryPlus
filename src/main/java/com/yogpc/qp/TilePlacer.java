@@ -57,12 +57,9 @@ public class TilePlacer extends TileEntity implements IInventory {
 
   @Override
   public ItemStack getStackInSlotOnClosing(final int pos) {
-    if (this.stack[pos] != null) {
-      final ItemStack itemstack = this.stack[pos];
-      this.stack[pos] = null;
-      return itemstack;
-    }
-    return null;
+    final ItemStack is = this.stack[pos];
+    this.stack[pos] = null;
+    return is;
   }
 
   @Override

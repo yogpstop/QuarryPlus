@@ -55,11 +55,10 @@ public class BlockMover extends Block {
   }
 
   @Override
-  public boolean onBlockActivated(final World world, final int x, final int y, final int z,
-      final EntityPlayer ep, final int par6, final float par7, final float par8, final float par9) {
-    if (world.isRemote)
-      return true;
-    ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdMover, world, x, y, z);
+  public boolean onBlockActivated(final World w, final int x, final int y, final int z,
+      final EntityPlayer e, final int par6, final float par7, final float par8, final float par9) {
+    if (!w.isRemote)
+      e.openGui(QuarryPlus.instance, QuarryPlus.guiIdMover, w, x, y, z);
     return true;
   }
 }

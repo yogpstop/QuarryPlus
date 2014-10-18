@@ -26,40 +26,40 @@ import cpw.mods.fml.common.network.IGuiHandler;
 
 public class GuiHandler implements IGuiHandler {
   @Override
-  public Object getClientGuiElement(final int ID, final EntityPlayer player, final World world,
-      final int x, final int y, final int z) {
+  public Object getClientGuiElement(final int ID, final EntityPlayer p, final World w, final int x,
+      final int y, final int z) {
     switch (ID) {
       case QuarryPlus.guiIdMover:
-        return new GuiMover(player, world, x, y, z);
+        return new GuiMover(p, w, x, y, z);
       case QuarryPlus.guiIdFList:
-        return new GuiQ_List((byte) 0, (TileBasic) world.getTileEntity(x, y, z));
+        return new GuiQ_List((byte) 0, (TileBasic) w.getTileEntity(x, y, z));
       case QuarryPlus.guiIdSList:
-        return new GuiQ_List((byte) 1, (TileBasic) world.getTileEntity(x, y, z));
+        return new GuiQ_List((byte) 1, (TileBasic) w.getTileEntity(x, y, z));
       case QuarryPlus.guiIdInfMJSrc:
-        return new GuiInfMJSrc((TileInfMJSrc) world.getTileEntity(x, y, z));
+        return new GuiInfMJSrc((TileInfMJSrc) w.getTileEntity(x, y, z));
       case QuarryPlus.guiIdPlacer:
-        return new GuiPlacer(player.inventory, (TilePlacer) world.getTileEntity(x, y, z));
+        return new GuiPlacer(p.inventory, (TilePlacer) w.getTileEntity(x, y, z));
       case QuarryPlus.guiIdPump:
       case QuarryPlus.guiIdPump + 1:
       case QuarryPlus.guiIdPump + 2:
       case QuarryPlus.guiIdPump + 3:
       case QuarryPlus.guiIdPump + 4:
       case QuarryPlus.guiIdPump + 5:
-        return new GuiP_List((byte) (ID - QuarryPlus.guiIdPump), (TilePump) world.getTileEntity(x,
-            y, z));
+        return new GuiP_List((byte) (ID - QuarryPlus.guiIdPump),
+            (TilePump) w.getTileEntity(x, y, z));
     }
 
     return null;
   }
 
   @Override
-  public Object getServerGuiElement(final int ID, final EntityPlayer player, final World world,
-      final int x, final int y, final int z) {
+  public Object getServerGuiElement(final int ID, final EntityPlayer p, final World w, final int x,
+      final int y, final int z) {
     switch (ID) {
       case QuarryPlus.guiIdMover:
-        return new ContainerMover(player, world, x, y, z, null);
+        return new ContainerMover(p, w, x, y, z, null);
       case QuarryPlus.guiIdPlacer:
-        return new ContainerPlacer(player.inventory, (TilePlacer) world.getTileEntity(x, y, z));
+        return new ContainerPlacer(p.inventory, (TilePlacer) w.getTileEntity(x, y, z));
     }
     return null;
   }

@@ -8,6 +8,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.Container;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
@@ -36,9 +37,9 @@ public final class YogpstopPacket {
     this.header = new byte[] {PacketHandler.KEY};
   }
 
-  public YogpstopPacket(final byte d) {
-    this.data = new byte[] {d};
-    this.header = new byte[] {PacketHandler.BTN};
+  public YogpstopPacket(final Container c, final byte[] d) {
+    this.data = d;
+    this.header = new byte[] {PacketHandler.WINPROP, (byte) c.windowId};
   }
 
   public YogpstopPacket(final byte[] d, final Class<?> o) {

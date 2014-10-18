@@ -16,8 +16,6 @@ package com.yogpc.qp;
 import java.util.ArrayList;
 import java.util.Random;
 
-import com.yogpc.mc_lib.ReflectionHelper;
-
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.BlockPistonBase;
@@ -36,6 +34,10 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.util.FakePlayerFactory;
 import net.minecraftforge.common.util.ForgeDirection;
+
+import com.yogpc.mc_lib.InvUtils;
+import com.yogpc.mc_lib.ReflectionHelper;
+
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
@@ -130,7 +132,7 @@ public class BlockBreaker extends BlockContainer {
     } else
       alis = b.getDrops(w, tx, ty, tz, meta, tile.fortune);
     for (final ItemStack is : alis) {
-      TileBasic.injectToNearTile(w, x, y, z, is);
+      InvUtils.injectToNearTile(w, x, y, z, is);
       if (is.stackSize > 0) {
         final float f = 0.7F;
         final double d0 = w.rand.nextFloat() * f + (1.0F - f) * 0.5D;

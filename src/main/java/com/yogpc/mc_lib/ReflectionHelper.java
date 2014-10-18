@@ -74,12 +74,12 @@ public class ReflectionHelper {
     return null;
   }
 
-  public static final Object invoke(Method m, Object obj, Object... args) {
+  public static final Object invoke(final Method m, final Object obj, final Object... args) {
     try {
       return m.invoke(obj, args);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       e.printStackTrace();
-    } catch (Error e) {
+    } catch (final Error e) {
       e.printStackTrace();
     }
     return null;
