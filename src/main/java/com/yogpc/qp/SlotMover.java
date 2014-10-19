@@ -14,19 +14,13 @@
 package com.yogpc.qp;
 
 import net.minecraft.init.Items;
-import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 
 public class SlotMover extends Slot {
-  Container parentsC;
-
-  public SlotMover(final IInventory par1iInventory, final int par2, final int par3, final int par4,
-      final Container c) {
+  public SlotMover(final IInventory par1iInventory, final int par2, final int par3, final int par4) {
     super(par1iInventory, par2, par3, par4);
-    this.parentsC = c;
-
   }
 
   @Override
@@ -42,12 +36,6 @@ public class SlotMover extends Slot {
           return true;
     }
     return false;
-  }
-
-  @Override
-  public void onSlotChanged() {
-    this.parentsC.onCraftMatrixChanged(this.inventory);
-    super.onSlotChanged();
   }
 
   @Override

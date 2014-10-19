@@ -155,7 +155,7 @@ public class QuarryPlus {
     GameRegistry.registerTileEntity(TilePlacer.class, "PlacerPlus");
     GameRegistry.registerTileEntity(TileBreaker.class, "BreakerPlus");
     GameRegistry.registerTileEntity(TileLaser.class, "LaserPlus");
-    // RECIPE TODO
+    // TODO RECIPE
     WorkbenchRecipe.addRecipe(new ItemStack(blockMarker), 20000, new ItemStack(Items.redstone, 6),
         new ItemStack(Items.dye, 6, 4), new ItemStack(Items.gold_ingot, 3), new ItemStack(
             Items.iron_ingot, 3), new ItemStack(Items.glowstone_dust));

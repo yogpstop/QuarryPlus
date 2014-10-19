@@ -57,7 +57,7 @@ public class GuiHandler implements IGuiHandler {
       final int y, final int z) {
     switch (ID) {
       case QuarryPlus.guiIdMover:
-        return new ContainerMover(p, w, x, y, z, null);
+        return new ContainerMover(p.inventory, w, x, y, z);
       case QuarryPlus.guiIdPlacer:
         return new ContainerPlacer(p.inventory, (TilePlacer) w.getTileEntity(x, y, z));
     }

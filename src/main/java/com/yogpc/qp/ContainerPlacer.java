@@ -46,31 +46,25 @@ public class ContainerPlacer extends Container {
   }
 
   @Override
-  public ItemStack transferStackInSlot(final EntityPlayer par1EntityPlayer, final int par2) {
-    ItemStack itemstack = null;
-    final Slot slot = (Slot) this.inventorySlots.get(par2);
-
+  public ItemStack transferStackInSlot(final EntityPlayer ep, final int i) {
+    ItemStack src = null;
+    final Slot slot = (Slot) this.inventorySlots.get(i);
     if (slot != null && slot.getHasStack()) {
-      final ItemStack itemstack1 = slot.getStack();
-      itemstack = itemstack1.copy();
-
-      if (par2 < 9) {
-        if (!mergeItemStack(itemstack1, 9, 45, true))
+      final ItemStack remain = slot.getStack();
+      src = remain.copy();
+      if (i < 9) {
+        if (!mergeItemStack(remain, 9, 45, true))
           return null;
-      } else if (!mergeItemStack(itemstack1, 0, 9, false))
+      } else if (!mergeItemStack(remain, 0, 9, false))
         return null;
-
-      if (itemstack1.stackSize == 0)
+      if (remain.stackSize == 0)
         slot.putStack((ItemStack) null);
       else
         slot.onSlotChanged();
-
-      if (itemstack1.stackSize == itemstack.stackSize)
+      if (remain.stackSize == src.stackSize)
         return null;
-
-      slot.onPickupFromSlot(par1EntityPlayer, itemstack1);
+      slot.onPickupFromSlot(ep, remain);
     }
-
-    return itemstack;
+    return src;
   }
 }

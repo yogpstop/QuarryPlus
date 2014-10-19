@@ -16,6 +16,7 @@ package com.yogpc.qp;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
+import net.minecraft.inventory.ICrafting;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.InventoryBasic;
 import net.minecraft.inventory.Slot;
@@ -25,48 +26,48 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.world.World;
 
 import com.yogpc.mc_lib.IPacketContainer;
-import com.yogpc.qp.client.GuiMover;
+
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 public class ContainerMover extends Container implements IPacketContainer {
-  public IInventory craftMatrix = new InventoryBasic("Matrix", false, 2);
+  public IInventory craftMatrix = new InventoryBasic("Matrix", false, 2) {
+    @Override
+    public void markDirty() {
+      super.markDirty();
+      detectAndSendChanges();
+    }
+  };
   private final World worldObj;
-  private final GuiMover gui;
   private final int posX, posY, posZ;
-  private final EntityPlayer ep;
 
-  public ContainerMover(final EntityPlayer player, final World w, final int x, final int y,
-      final int z, final GuiMover gm) {
-    this.gui = gm;
+  public ContainerMover(final IInventory player, final World w, final int x, final int y,
+      final int z) {
     this.worldObj = w;
     this.posX = x;
     this.posY = y;
     this.posZ = z;
-    this.ep = player;
     int row;
     int col;
-
     for (col = 0; col < 2; ++col)
-      addSlotToContainer(new SlotMover(this.craftMatrix, col, 8 + col * 144, 35, this));
-
+      addSlotToContainer(new SlotMover(this.craftMatrix, col, 8 + col * 144, 35));
     for (row = 0; row < 3; ++row)
       for (col = 0; col < 9; ++col)
-        addSlotToContainer(new Slot(player.inventory, col + row * 9 + 9, 8 + col * 18,
-            84 + row * 18));
-
+        addSlotToContainer(new Slot(player, col + row * 9 + 9, 8 + col * 18, 84 + row * 18));
     for (col = 0; col < 9; ++col)
-      addSlotToContainer(new Slot(player.inventory, col, 8 + col * 18, 142));
+      addSlotToContainer(new Slot(player, col, 8 + col * 18, 142));
   }
 
   @Override
-  public void onContainerClosed(final EntityPlayer par1EntityPlayer) {
-    super.onContainerClosed(par1EntityPlayer);
-
-    if (!this.worldObj.isRemote)
-      for (int var2 = 0; var2 < 2; ++var2) {
-        final ItemStack var3 = this.craftMatrix.getStackInSlotOnClosing(var2);
-        if (var3 != null)
-          par1EntityPlayer.dropPlayerItemWithRandomChoice(var3, false);
-      }
+  public void onContainerClosed(final EntityPlayer ep) {
+    super.onContainerClosed(ep);
+    if (this.worldObj.isRemote)
+      return;
+    for (int var2 = 0; var2 < 2; ++var2) {
+      final ItemStack var3 = this.craftMatrix.getStackInSlotOnClosing(var2);
+      if (var3 != null)
+        ep.dropPlayerItemWithRandomChoice(var3, false);
+    }
   }
 
   @Override
@@ -75,16 +76,59 @@ public class ContainerMover extends Container implements IPacketContainer {
         : var1.getDistanceSq(this.posX + 0.5D, this.posY + 0.5D, this.posZ + 0.5D) <= 64.0D;
   }
 
+  public byte avail;
+
   @Override
   public void detectAndSendChanges() {
     super.detectAndSendChanges();
-    if (this.gui != null)
-      checkInventory();
+    final byte n = checkInventory();
+    if (this.avail != n) {
+      this.avail = n;
+      for (int j = 0; j < this.crafters.size(); ++j)
+        ((ICrafting) this.crafters.get(j)).sendProgressBarUpdate(this, 0, this.avail);
+    }
   }
 
   @Override
-  public ItemStack transferStackInSlot(final EntityPlayer pl, final int i) {
-    return null;// TODO
+  public void addCraftingToCrafters(final ICrafting p) {
+    super.addCraftingToCrafters(p);
+    p.sendProgressBarUpdate(this, 0, checkInventory());
+  }
+
+  @Override
+  @SideOnly(Side.CLIENT)
+  public void updateProgressBar(final int i, final int j) {
+    this.avail = (byte) j;
+  }
+
+  @Override
+  public ItemStack transferStackInSlot(final EntityPlayer ep, final int i) {
+    ItemStack src = null;
+    final Slot slot = (Slot) this.inventorySlots.get(i);
+    if (slot != null && slot.getHasStack()) {
+      final ItemStack remain = slot.getStack();
+      src = remain.copy();
+      if (i < 2) {
+        if (!mergeItemStack(remain, 2, 38, true))
+          return null;
+      } else {
+        boolean changed = false;
+        if (!changed && ((Slot) this.inventorySlots.get(0)).isItemValid(remain))
+          changed |= mergeItemStack(remain, 0, 1, false);
+        if (!changed && ((Slot) this.inventorySlots.get(1)).isItemValid(remain))
+          changed |= mergeItemStack(remain, 1, 2, false);
+        if (!changed)
+          return null;
+      }
+      if (remain.stackSize == 0)
+        slot.putStack((ItemStack) null);
+      else
+        slot.onSlotChanged();
+      if (remain.stackSize == src.stackSize)
+        return null;
+      slot.onPickupFromSlot(ep, remain);
+    }
+    return src;
   }
 
   private void moveEnchant(final short eid) {
@@ -92,34 +136,32 @@ public class ContainerMover extends Container implements IPacketContainer {
       return;
     ItemStack is;
     NBTTagList list;
-    if (!this.ep.capabilities.isCreativeMode) {
-      is = this.craftMatrix.getStackInSlot(0);
-      list = is.getEnchantmentTagList();
-      if (list == null)
-        return;
-      for (int i = 0; i < list.tagCount(); i++) {
-        short lvl = list.getCompoundTagAt(i).getShort("lvl");
-        if (lvl < 1)
-          continue;
-        if (list.getCompoundTagAt(i).getShort("id") == eid) {
-          if (lvl > 1)
-            list.getCompoundTagAt(i).setShort("lvl", --lvl);
-          else {
-            {
-              final NBTTagList nlist = new NBTTagList();
-              for (int j = 0; j < list.tagCount(); j++)
-                if (list.getCompoundTagAt(j).getShort("id") != eid)
-                  nlist.appendTag(list.getCompoundTagAt(j));
-              list = nlist;
-            }
-            is.getTagCompound().removeTag("ench");
-            if (list.tagCount() > 0)
-              is.getTagCompound().setTag("ench", list);
-            if (is.getTagCompound().hasNoTags())
-              is.setTagCompound(null);
+    is = this.craftMatrix.getStackInSlot(0);
+    list = is.getEnchantmentTagList();
+    if (list == null)
+      return;
+    for (int i = 0; i < list.tagCount(); i++) {
+      short lvl = list.getCompoundTagAt(i).getShort("lvl");
+      if (lvl < 1)
+        continue;
+      if (list.getCompoundTagAt(i).getShort("id") == eid) {
+        if (lvl > 1)
+          list.getCompoundTagAt(i).setShort("lvl", --lvl);
+        else {
+          {
+            final NBTTagList nlist = new NBTTagList();
+            for (int j = 0; j < list.tagCount(); j++)
+              if (list.getCompoundTagAt(j).getShort("id") != eid)
+                nlist.appendTag(list.getCompoundTagAt(j));
+            list = nlist;
           }
-          break;
+          is.getTagCompound().removeTag("ench");
+          if (list.tagCount() > 0)
+            is.getTagCompound().setTag("ench", list);
+          if (is.getTagCompound().hasNoTags())
+            is.setTagCompound(null);
         }
+        break;
       }
     }
     is = this.craftMatrix.getStackInSlot(1);
@@ -151,11 +193,10 @@ public class ContainerMover extends Container implements IPacketContainer {
     }
   }
 
-  private void checkInventory() {
-    this.gui.b32.enabled =
-        this.gui.b33.enabled = this.gui.b34.enabled = this.gui.b35.enabled = false;
+  private byte checkInventory() {
+    byte ret = 0;
     if (this.craftMatrix.getStackInSlot(1) == null)
-      return;
+      return 0;
     final ItemStack pickaxeIs = this.craftMatrix.getStackInSlot(0);
     if (pickaxeIs != null) {
       final NBTTagList pickaxeE = pickaxeIs.getEnchantmentTagList();
@@ -169,30 +210,22 @@ public class ContainerMover extends Container implements IPacketContainer {
             continue;
           switch (id) {
             case 32:
-              this.gui.b32.enabled = true;
+              ret |= 1 << 0;
               break;
             case 33:
-              this.gui.b33.enabled = true;
+              ret |= 1 << 1;
               break;
             case 34:
-              this.gui.b34.enabled = true;
+              ret |= 1 << 2;
               break;
             case 35:
-              this.gui.b35.enabled = true;
+              ret |= 1 << 3;
               break;
           }
 
         }
-    } else if (this.ep.capabilities.isCreativeMode) {
-      if (checkTo((short) 32))
-        this.gui.b32.enabled = true;
-      if (checkTo((short) 33))
-        this.gui.b33.enabled = true;
-      if (checkTo((short) 34))
-        this.gui.b34.enabled = true;
-      if (checkTo((short) 35))
-        this.gui.b35.enabled = true;
     }
+    return ret;
   }
 
   private boolean checkTo(final short id) {

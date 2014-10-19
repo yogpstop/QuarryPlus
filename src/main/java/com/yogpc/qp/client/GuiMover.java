@@ -31,14 +31,12 @@ import cpw.mods.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
 public class GuiMover extends GuiContainer {
-  public GuiButton b32, b33, b34, b35;
   private static final ResourceLocation gui = new ResourceLocation("yogpstop_qp",
       "textures/gui/mover.png");
 
   public GuiMover(final EntityPlayer player, final World world, final int x, final int y,
       final int z) {
-    super(null);
-    this.inventorySlots = new ContainerMover(player, world, x, y, z, this);
+    super(new ContainerMover(player.inventory, world, x, y, z));
   }
 
   @Override
@@ -46,18 +44,14 @@ public class GuiMover extends GuiContainer {
     super.initGui();
     final int i = this.width - this.xSize >> 1;
     final int j = this.height - this.ySize >> 1;
-    this.buttonList.add(this.b32 =
-        new GuiButton(32, i + 27, j + 20, 60, 20, StatCollector
-            .translateToLocal("enchantment.digging") + ">"));
-    this.buttonList.add(this.b33 =
-        new GuiButton(33, i + 27, j + 50, 60, 20, StatCollector
-            .translateToLocal("enchantment.untouching") + ">"));
-    this.buttonList.add(this.b34 =
-        new GuiButton(34, i + 89, j + 20, 60, 20, StatCollector
-            .translateToLocal("enchantment.durability") + ">"));
-    this.buttonList.add(this.b35 =
-        new GuiButton(35, i + 89, j + 50, 60, 20, StatCollector
-            .translateToLocal("enchantment.lootBonusDigger") + ">"));
+    this.buttonList.add(new GuiButton(32, i + 27, j + 20, 60, 20, StatCollector
+        .translateToLocal("enchantment.digging") + ">"));
+    this.buttonList.add(new GuiButton(33, i + 27, j + 50, 60, 20, StatCollector
+        .translateToLocal("enchantment.untouching") + ">"));
+    this.buttonList.add(new GuiButton(34, i + 89, j + 20, 60, 20, StatCollector
+        .translateToLocal("enchantment.durability") + ">"));
+    this.buttonList.add(new GuiButton(35, i + 89, j + 50, 60, 20, StatCollector
+        .translateToLocal("enchantment.lootBonusDigger") + ">"));
   }
 
   @Override
@@ -78,6 +72,20 @@ public class GuiMover extends GuiContainer {
   protected void actionPerformed(final GuiButton par1GuiButton) {
     if (!par1GuiButton.enabled)
       return;
-    PacketHandler.sendPacketToServer(new YogpstopPacket((byte) par1GuiButton.id));
+    PacketHandler.sendPacketToServer(new YogpstopPacket(this.inventorySlots,
+        new byte[] {(byte) par1GuiButton.id}));
+  }
+
+  @Override
+  public void updateScreen() {
+    super.updateScreen();
+    ((GuiButton) this.buttonList.get(0)).enabled =
+        (((ContainerMover) this.inventorySlots).avail & 1 << 0) != 0;
+    ((GuiButton) this.buttonList.get(1)).enabled =
+        (((ContainerMover) this.inventorySlots).avail & 1 << 1) != 0;
+    ((GuiButton) this.buttonList.get(2)).enabled =
+        (((ContainerMover) this.inventorySlots).avail & 1 << 2) != 0;
+    ((GuiButton) this.buttonList.get(3)).enabled =
+        (((ContainerMover) this.inventorySlots).avail & 1 << 3) != 0;
   }
 }
