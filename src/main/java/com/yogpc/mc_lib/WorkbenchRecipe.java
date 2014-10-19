@@ -8,9 +8,9 @@ import net.minecraft.item.ItemStack;
 
 public class WorkbenchRecipe {
   private static final List<WorkbenchRecipe> recipes = new ArrayList<WorkbenchRecipe>();
-  private final ItemStack[] input;
-  private final ItemStack output;
-  final double power;
+  public final ItemStack[] input;
+  public final ItemStack output;
+  public final double power;
 
   private WorkbenchRecipe(final ItemStack out, final double p, final ItemStack... in) {
     this.input = in;
@@ -20,6 +20,10 @@ public class WorkbenchRecipe {
 
   public static void addRecipe(final ItemStack out, final double p, final ItemStack... in) {
     recipes.add(new WorkbenchRecipe(out, p, in));
+  }
+
+  public static List<WorkbenchRecipe> getRecipes() {
+    return recipes;
   }
 
   boolean check(final ItemStack[] sinv) {
