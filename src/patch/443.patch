@@ -1,6 +1,6 @@
 --- a/com/yogpc/ip/ItemArmorElectric.java
 +++ b/com/yogpc/ip/ItemArmorElectric.java
-@@ -29,7 +29,7 @@
+@@ -30,7 +30,7 @@
  import cpw.mods.fml.common.asm.SideOnly;
  
  public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElectricItem,
@@ -9,7 +9,7 @@
    public ItemArmorElectric(final int id) {
      super(id, EnumHelper.addArmorMaterial("ELECTRIC", 33, new int[] {3, 8, 6, 3}, 0), YogpstopLib.proxy
          .addNewArmourRendererPrefix("electric"), 1);
-@@ -38,6 +38,8 @@
+@@ -39,6 +39,8 @@
      setMaxDamage(100);
      setMaxStackSize(1);
      this.iconIndex = 83;
@@ -18,7 +18,7 @@
    }
  
    @Override
-@@ -120,15 +122,30 @@
+@@ -121,15 +123,30 @@
    }
  
    @Override
@@ -74,6 +74,28 @@
    public boolean isAddedToEnergyNet() {
      return true;
    }
+--- a/com/yogpc/mc_lib/ContainerWorkbench.java
++++ b/com/yogpc/mc_lib/ContainerWorkbench.java
+@@ -42,7 +42,7 @@
+       bb.writeShort((short) -1);
+       return;
+     }
+-    bb.writeShort((short) is.shiftedIndex);
++    bb.writeShort((short) is.itemID);
+     bb.writeInt(is.stackSize);
+     bb.writeShort((short) is.getItemDamage());
+     NBTTagCompound nbttagcompound = null;
+--- a/com/yogpc/mc_lib/TileWorkbench.java
++++ b/com/yogpc/mc_lib/TileWorkbench.java
+@@ -22,7 +22,7 @@
+   }
+ 
+   private static final void writeItemStackToNBT(final ItemStack is, final NBTTagCompound nbt) {
+-    nbt.setShort("id", (short) is.shiftedIndex);
++    nbt.setShort("id", (short) is.itemID);
+     nbt.setInteger("Count", is.stackSize);
+     nbt.setShort("Damage", (short) is.getItemDamage());
+ 
 --- a/com/yogpc/qp/client/RenderRefinery.java
 +++ b/com/yogpc/qp/client/RenderRefinery.java
 @@ -177,7 +177,7 @@

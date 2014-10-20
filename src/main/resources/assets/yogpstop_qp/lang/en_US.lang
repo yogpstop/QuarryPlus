@@ -73,7 +73,6 @@ yog.armor.hover.off=Hover Mode disabled.
 container.yog.basic=Machine Buffer
 key.yoglib=YogpstopLib
 key.hover=Mode Switch Key
-nei.plugin.qp=QuarryPlus NEI Plugin
 nei.handler.qpusage=QuarryPlus Machine Usage
 chat.indent=-    %s%s
 yog.pump.liquid=-    %s: %smB

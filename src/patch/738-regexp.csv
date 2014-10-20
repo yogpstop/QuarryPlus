@@ -31,11 +31,15 @@ SIMPLE,"Item\\.glowstone","Item.lightStoneDust"
 SIMPLE,"isItemValidForSlot","isStackValidForSlot"
 SIMPLE,"getTextureManager\\( *\\)","renderEngine"
 SIMPLE,"getSpawnerLogic","func_98049_a"
+SIMPLE,"canDragIntoSlot","func_94531_b"
 SIMPLE,"(texture\\.|)TextureManager","RenderEngine"
 SIMPLE,"ResourceLocation","String"
+SIMPLE,"drawProgressBar\\(","drawProgressBar(gui, "
+SIMPLE,"drawExtras\\(final int recipeIndex\\)","drawExtras(final GuiContainerManager gui, final int recipeIndex)"
 METHOD,double,int,demandedEnergyUnits,demandsEnergy
 METHOD,double,int,injectEnergyUnits,injectEnergy,ForgeDirection,Direction,double,int
 METHOD,boolean,boolean,canInterface,isAddedToEnergyNet,ForgeDirection,@SKIP@
 METHOD,boolean,boolean,acceptsEnergyFrom,acceptsEnergyFrom,TileEntity,TileEntity,ForgeDirection,Direction
 METHOD,ChunkCoordinates,ChunkCoordinates,getBedLocation,getBedLocation,int,@SKIP@
 METHOD,boolean,boolean,isSpawnForced,isSpawnForced,int,@SKIP@
+METHOD,List<PositionedStack>,ArrayList<PositionedStack>,getIngredients,getIngredients

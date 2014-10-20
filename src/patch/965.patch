@@ -1,6 +1,6 @@
 --- a/com/yogpc/ip/ItemArmorElectric.java
 +++ b/com/yogpc/ip/ItemArmorElectric.java
-@@ -43,9 +43,6 @@
+@@ -44,9 +44,6 @@
      return "yogpstop_qp:textures/models/armor/elecArmor_layer_1.png";
    }
  
@@ -10,7 +10,7 @@
    private static final double maxFallSpeedOnHover = 0.35;
  
    private void useJetpack(final EntityPlayer p, final ItemStack jetpack, final boolean hover) {
-@@ -83,11 +80,7 @@
+@@ -84,11 +81,7 @@
          p.fallDistance = 0.0f;
          p.distanceWalkedModified = 0.0f;
          if (p instanceof EntityPlayerMP)
@@ -65,6 +65,26 @@
    }
  
    @Override
+--- a/com/yogpc/mc_lib/ContainerWorkbench.java
++++ b/com/yogpc/mc_lib/ContainerWorkbench.java
+@@ -26,7 +26,7 @@
+     final short id = bb.readShort();
+     if (id < 0)
+       return null;
+-    final ItemStack is = new ItemStack(Item.getItemById(id), bb.readInt(), bb.readShort());
++    final ItemStack is = new ItemStack(id, bb.readInt(), bb.readShort());
+     final short nbtlen = bb.readShort();
+     if (nbtlen >= 0) {
+       final byte[] ba = new byte[nbtlen];
+@@ -42,7 +42,7 @@
+       bb.writeShort((short) -1);
+       return;
+     }
+-    bb.writeShort((short) Item.getIdFromItem(is.getItem()));
++    bb.writeShort((short) is.itemID);
+     bb.writeInt(is.stackSize);
+     bb.writeShort((short) is.getItemDamage());
+     NBTTagCompound nbttagcompound = null;
 --- a/com/yogpc/mc_lib/PacketHandler.java
 +++ b/com/yogpc/mc_lib/PacketHandler.java
 @@ -39,8 +39,7 @@
@@ -84,8 +104,8 @@
 -  public static EnumMap<Side, FMLEmbeddedChannel> channels;
    static final byte Tile = 0;
    static final byte NBT = 1;
-   static final byte BTN = 2;
-@@ -91,8 +89,9 @@
+   static final byte WINPROP = 2;
+@@ -86,14 +84,19 @@
    public static final byte remove_laser = 1;
  
    @Override
@@ -96,8 +116,19 @@
 +    packet.readData(_packet.data, player);
      if (packet.getChannel() == NBT)
        setNBTFromPacket(packet);
-     else if (packet.getChannel() == BTN) {
-@@ -118,33 +117,29 @@
+     else if (packet.getChannel() == WINPROP) {
+       final Container container = packet.getPlayer().openContainer;
+       if (container instanceof IPacketContainer && container.windowId == packet.getHeader()[0])
+-        ((IPacketContainer) container).receivePacket(packet.getData());
++        try {
++          ((IPacketContainer) container).receivePacket(packet.getData());
++        } catch (IOException e) {
++          throw new RuntimeException(e);
++        }
+     } else if (packet.getChannel() == Tile) {
+       final ByteArrayDataInput hdr = ByteStreams.newDataInput(packet.getHeader());
+       final TileEntity t =
+@@ -113,33 +116,29 @@
            | packet.getData()[1] << 16 | packet.getData()[2] << 8 | packet.getData()[3]);
    }
  
@@ -145,7 +176,7 @@
    private static void setNBTFromPacket(final YogpstopPacket p) {
 --- a/com/yogpc/mc_lib/ProxyClient.java
 +++ b/com/yogpc/mc_lib/ProxyClient.java
-@@ -18,25 +18,44 @@
+@@ -20,25 +20,44 @@
  import cpw.mods.fml.relauncher.SideOnly;
  
  @SideOnly(Side.CLIENT)
@@ -157,7 +188,7 @@
 +    final List<KeyBinding> bs = new ArrayList<KeyBinding>();
      for (final Key k : Key.values())
        if (k.name != null) {
--        k.binding = new KeyBinding(k.name, k.id, "YogpstopLib");
+-        k.binding = new KeyBinding(k.name, k.id, "key.yoglib");
 -        ClientRegistry.registerKeyBinding((KeyBinding) k.binding);
 +        k.binding = new KeyBinding(k.name, k.id);
 +        bs.add((KeyBinding) k.binding);
@@ -198,7 +229,7 @@
      final int prev = this.key;
      this.key = 0;
      final GuiScreen currentScreen = Minecraft.getMinecraft().currentScreen;
-@@ -65,13 +84,6 @@
+@@ -67,13 +86,6 @@
    }
  
    @Override
@@ -214,7 +245,7 @@
    }
 --- a/com/yogpc/mc_lib/ProxyCommon.java
 +++ b/com/yogpc/mc_lib/ProxyCommon.java
-@@ -40,12 +40,6 @@
+@@ -41,12 +41,6 @@
      }
    }
  
@@ -227,18 +258,45 @@
    public int addNewArmourRendererPrefix(final String s) {
      return 0;
    }
+--- a/com/yogpc/mc_lib/TileWorkbench.java
++++ b/com/yogpc/mc_lib/TileWorkbench.java
+@@ -10,21 +10,19 @@
+ 
+ public class TileWorkbench extends APowerTile implements IInventory {
+   private static final ItemStack loadItemStackFromNBT(final NBTTagCompound nbt) {
+-    final Item i = Item.getItemById(nbt.getShort("id"));
+-    if (i == null)
+-      return null;
++    final int i = nbt.getShort("id");
+     final int a = nbt.getInteger("Count");
+     int d = nbt.getShort("Damage");
+     if (d < 0)
+       d = 0;
+     final ItemStack r = new ItemStack(i, a, d);
+-    if (nbt.hasKey("tag", 10))
++    if (nbt.hasKey("tag"))
+       r.setTagCompound(nbt.getCompoundTag("tag"));
+     return r;
+   }
+ 
+   private static final void writeItemStackToNBT(final ItemStack is, final NBTTagCompound nbt) {
+-    nbt.setShort("id", (short) Item.getIdFromItem(is.getItem()));
++    nbt.setShort("id", (short) is.itemID);
+     nbt.setInteger("Count", is.stackSize);
+     nbt.setShort("Damage", (short) is.getItemDamage());
+ 
 --- a/com/yogpc/mc_lib/YogpstopLib.java
 +++ b/com/yogpc/mc_lib/YogpstopLib.java
-@@ -33,6 +38,8 @@
+@@ -38,6 +38,8 @@
  
  @Mod(modid = "YogpstopLib", name = "Yogpstop Library", version = "{version}",
      dependencies = "after:IC2;after:BuildCraft|Core;after:CoFHCore")
 +@NetworkMod(clientSideRequired = true, serverSideRequired = false, channels = {"YogpstopLib"},
 +    packetHandler = PacketHandler.class)
- public class YogpstopLib {
+ public class YogpstopLib implements IGuiHandler {
  
    @SidedProxy(clientSide = "com.yogpc.mc_lib.ProxyClient",
-@@ -45,22 +52,87 @@
+@@ -53,22 +55,87 @@
    @Mod.EventHandler
    public void preInit(final FMLPreInitializationEvent event) {
      final Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
@@ -335,7 +393,7 @@
      GameRegistry.registerItem(magicmirror, "magicmirror");
 --- a/com/yogpc/mc_lib/YogpstopPacket.java
 +++ b/com/yogpc/mc_lib/YogpstopPacket.java
-@@ -89,18 +89,22 @@
+@@ -90,18 +90,22 @@
      return this.data;
    }
  
@@ -369,9 +427,31 @@
 +    return d;
    }
  }
+--- a/com/yogpc/nei/QuarryPlusUsageHandler.java
++++ b/com/yogpc/nei/QuarryPlusUsageHandler.java
+@@ -18,7 +18,7 @@
+     }
+ 
+     @Override
+-    public PositionedStack result {
++    public PositionedStack getResult() {
+       return this.output;
+     }
+   }
+--- a/com/yogpc/nei/WBPRecipeHandler.java
++++ b/com/yogpc/nei/WBPRecipeHandler.java
+@@ -43,7 +43,7 @@
+     }
+ 
+     @Override
+-    public PositionedStack result {
++    public PositionedStack getResult() {
+       return this.output;
+     }
+ 
 --- a/com/yogpc/qp/BlockBreaker.java
 +++ b/com/yogpc/qp/BlockBreaker.java
-@@ -106,7 +106,7 @@
+@@ -108,7 +108,7 @@
          w.getBlockMetadata(tx, ty, tz);
      if (ty < 1)
        return;
@@ -380,7 +460,7 @@
      if (b == null || b.isAirBlock(w, x, y, z))
        return;
      final EntityPlayer player = FakePlayerFactory.getMinecraft(w);
-@@ -149,22 +149,22 @@
+@@ -151,22 +151,22 @@
  
    static void setDispenserDefaultDirection(final World w, final int x, final int y, final int z) {
      if (!w.isRemote) {
@@ -411,7 +491,7 @@
          b0 = 4;
        w.setBlockMetadataWithNotify(x, y, z, b0, 2);
      }
-@@ -180,7 +180,7 @@
+@@ -182,7 +182,7 @@
      ItemStack is;
      for (int i = 0; i < count; i++) {
        final int id1 = idDropped(meta, world.rand, 0);
@@ -422,7 +502,7 @@
          this.drop.add(is);
 --- a/com/yogpc/qp/BlockFrame.java
 +++ b/com/yogpc/qp/BlockFrame.java
-@@ -64,7 +64,7 @@
+@@ -65,7 +65,7 @@
  
    @Override
    public int idDropped(final int i, final Random random, final int j) {
@@ -475,7 +555,7 @@
          if (is != null) {
 --- a/com/yogpc/qp/BlockPlainPipe.java
 +++ b/com/yogpc/qp/BlockPlainPipe.java
-@@ -29,6 +29,6 @@
+@@ -30,6 +30,6 @@
  
    @Override
    public int idDropped(final int i, final Random random, final int fortune) {
@@ -507,7 +587,7 @@
          EnchantmentHelper.enchantmentToIS(tile, is);
 --- a/com/yogpc/qp/BlockRefinery.java
 +++ b/com/yogpc/qp/BlockRefinery.java
-@@ -53,7 +53,7 @@
+@@ -55,7 +55,7 @@
        return;
      final int count = quantityDropped(meta, 0, world.rand);
      final int it = idDropped(meta, world.rand, 0);
@@ -516,7 +596,7 @@
        for (int i = 0; i < count; i++) {
          final ItemStack is = new ItemStack(it, 1, damageDropped(meta));
          EnchantmentHelper.enchantmentToIS(tile, is);
-@@ -80,7 +80,7 @@
+@@ -82,7 +82,7 @@
    }
  
    private static void consumeItem(final EntityPlayer ep, final ItemStack stack) {
@@ -540,7 +620,7 @@
      return validTickets;
 --- a/com/yogpc/qp/ContainerMover.java
 +++ b/com/yogpc/qp/ContainerMover.java
-@@ -73,7 +73,7 @@
+@@ -72,7 +72,7 @@
  
    @Override
    public boolean canInteractWith(final EntityPlayer var1) {
@@ -549,15 +629,15 @@
          : var1.getDistanceSq(this.posX + 0.5D, this.posY + 0.5D, this.posZ + 0.5D) <= 64.0D;
    }
  
-@@ -111,7 +111,7 @@
-               final NBTTagList nlist = new NBTTagList();
-               for (int j = 0; j < list.tagCount(); j++)
-                 if (((NBTTagCompound)list.tagAt(j)).getShort("id") != eid)
--                  nlist.appendTag(((NBTTagCompound)list.tagAt(j)));
-+                  nlist.appendTag((list.tagAt(j)));
-               list = nlist;
-             }
-             is.getTagCompound().removeTag("ench");
+@@ -163,7 +163,7 @@
+             final NBTTagList nlist = new NBTTagList();
+             for (int j = 0; j < list.tagCount(); j++)
+               if (((NBTTagCompound)list.tagAt(j)).getShort("id") != eid)
+-                nlist.appendTag(((NBTTagCompound)list.tagAt(j)));
++                nlist.appendTag((list.tagAt(j)));
+             list = nlist;
+           }
+           is.getTagCompound().removeTag("ench");
 --- a/com/yogpc/qp/CreativeTabQuarryPlus.java
 +++ b/com/yogpc/qp/CreativeTabQuarryPlus.java
 @@ -11,7 +11,7 @@
@@ -569,9 +649,20 @@
    }
  
  }
+--- a/com/yogpc/qp/EnchantmentHelper.java
++++ b/com/yogpc/qp/EnchantmentHelper.java
+@@ -44,7 +44,7 @@
+   }
+ 
+   private static String getEnchChat(final int id, final int l) {
+-    return StatCollector.translateToLocal("chat.indent", StatCollector.translateToLocal(
++    return StatCollector.translateToLocalFormatted("chat.indent", StatCollector.translateToLocal(
+         Enchantment.enchantmentsList[id].getName()), StatCollector.translateToLocal(
+         "enchnatment.level." + Integer.toString(l)));
+   }
 --- a/com/yogpc/qp/ItemTool.java
 +++ b/com/yogpc/qp/ItemTool.java
-@@ -76,7 +76,7 @@
+@@ -75,7 +75,7 @@
              f = true;
          }
        NBTTagCompound c = is.getTagCompound();
@@ -582,7 +673,7 @@
          bd = new BlockData(c.getString("Bname"), c.getInteger("Bmeta"));
 --- a/com/yogpc/qp/QuarryPlus.java
 +++ b/com/yogpc/qp/QuarryPlus.java
-@@ -102,8 +102,22 @@
+@@ -101,8 +101,22 @@
    @Mod.EventHandler
    public void preInit(final FMLPreInitializationEvent event) {
      final Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
@@ -603,9 +694,9 @@
 +      id[11] = cfg.getBlock("Frame", 1981).getInt();
 +      id[12] = cfg.getItem("Tools", 18463).getInt();
        final Property RD = cfg.get(Configuration.CATEGORY_GENERAL, "RecipeDifficulty", 2);
-       RD.comment =
-           "0:AsCheatRecipe,1:EasyRecipe,2:NormalRecipe(Default),3:HardRecipe,other:NormalRecipe";
-@@ -112,21 +126,22 @@
+       RD.comment = "Default is 2.0";
+       WorkbenchRecipe.difficulty = RD.getDouble(2.0);
+@@ -110,21 +124,22 @@
      } finally {
        cfg.save();
      }
@@ -643,7 +734,7 @@
    @Mod.EventHandler
 --- a/com/yogpc/qp/TileBasic.java
 +++ b/com/yogpc/qp/TileBasic.java
-@@ -268,8 +268,8 @@
+@@ -101,8 +101,8 @@
  
    protected boolean S_breakBlock(final int x, final int y, final int z) {
      final Collection<ItemStack> dropped = new LinkedList<ItemStack>();
@@ -654,7 +745,7 @@
      if (b == null || b.isAirBlock(this.worldObj, x, y, z))
        return true;
      if (TilePump.isLiquid(b, false, null, 0, 0, 0, 0)) {
-@@ -309,8 +309,7 @@
+@@ -142,8 +142,7 @@
      final int meta = this.worldObj.getBlockMetadata(x, y, z);
      if (b.canSilkHarvest(this.worldObj, null, x, y, z, meta)
          && this.silktouch
@@ -792,7 +883,16 @@
              this.mapping[i]);
      this.range = nbttc.getByte("range");
      this.quarryRange = nbttc.getBoolean("quarryRange");
-@@ -406,7 +406,7 @@
+@@ -336,7 +336,7 @@
+     if (this.quarryRange)
+       ep.addChatMessage(StatCollector.translateToLocal("chat.pump_rtoggle.quarry"));
+     else
+-      ep.addChatMessage(StatCollector.translateToLocal("chat.pump_rtoggle.num", Integer
++      ep.addChatMessage(StatCollector.translateToLocalFormatted("chat.pump_rtoggle.num", Integer
+           .toString(this.range * 2 + 1)));
+     this.fwt = 0;
+   }
+@@ -409,7 +409,7 @@
      while (cp != cg) {
        ebs_c = this.ebses[xb[cg] >> 4][zb[cg] >> 4][yb[cg] >> 4];
        if (ebs_c != null) {
@@ -801,7 +901,7 @@
          if (this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] == 0
              && isLiquid(b_c, false, null, 0, 0, 0, 0)) {
            this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] = 0x3F;
-@@ -467,8 +467,7 @@
+@@ -470,8 +470,7 @@
              for (bz = 0; bz < this.block_side_z; bz++)
                if ((this.blocks[this.py - this.yOffset][bx][bz] & 0x40) != 0) {
                  bb =
@@ -811,7 +911,7 @@
                  if (isLiquid(bb, false, null, 0, 0, 0, 0))
                    count++;
                }
-@@ -476,8 +475,7 @@
+@@ -479,8 +478,7 @@
            for (bz = 0; bz < this.block_side_z; bz++)
              if (this.blocks[this.py - this.yOffset][this.px][bz] != 0) {
                bb =
@@ -821,7 +921,7 @@
                meta =
                    this.ebses[this.px >> 4][bz >> 4][this.py >> 4].getExtBlockMetadata(
                        this.px & 0xF, this.py & 0xF, bz & 0xF);
-@@ -499,11 +497,11 @@
+@@ -502,11 +500,11 @@
          for (bx = 0; bx < this.block_side_x; bx++)
            for (bz = 0; bz < this.block_side_z; bz++)
              if ((this.blocks[this.py - this.yOffset][bx][bz] & 0x40) != 0)
@@ -835,7 +935,16 @@
      S_sendNowPacket();
      return this.py < this.cy;
    }
-@@ -658,10 +656,9 @@
+@@ -528,7 +526,7 @@
+       for (int i = 0; i < this.liquids.size(); i++) {
+         final FluidStack s = this.liquids.get(i);
+         ret[i + 1] =
+-            StatCollector.translateToLocal("yog.pump.liquid", StatCollector.translateToLocal(s
++            StatCollector.translateToLocalFormatted("yog.pump.liquid", StatCollector.translateToLocal(s
+                 .getFluid().getUnlocalizedName()), Integer.toString(s.amount));
+       }
+     } else
+@@ -643,10 +641,9 @@
      return false;
    }
  

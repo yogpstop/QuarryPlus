@@ -1,6 +1,6 @@
 --- a/com/yogpc/ip/BlockController.java
 +++ b/com/yogpc/ip/BlockController.java
-@@ -26,24 +26,22 @@
+@@ -37,24 +37,22 @@
      setBlockName("spawnercontroller");
      setHardness(1.0f);
      setCreativeTab(CreativeTabs.tabRedstone);
@@ -30,23 +30,26 @@
      }
      return null;
    }
-@@ -53,13 +51,13 @@
-       final EntityPlayer e) {
-     if (w.isRemote)
-       return;
--    final MobSpawnerBaseLogic l = getSpawner(w, x, y, z);
-+    final TileEntityMobSpawner l = getSpawner(w, x, y, z);
-     if (l == null)
-       return;
-     if (this.cur == Integer.MIN_VALUE || e.isSneaking()) {
-       list.clear();
-       list.addAll(EntityList.stringToClassMapping.keySet());
--      this.cur = list.indexOf(l.getEntityNameToSpawn());
-+      this.cur = list.indexOf(l.getMobID());
-       e.addChatMessage(("Initialize Spawner Controller"));
-       e.addChatMessage((list.get(this.cur)));
-     } else {
-@@ -95,15 +93,13 @@
+@@ -93,15 +91,15 @@
+     final ByteArrayDataInput data = ByteStreams.newDataInput(ba);
+     switch (data.readByte()) {
+       case 0:
+-        final MobSpawnerBaseLogic l =
++        final TileEntityMobSpawner l =
+             getSpawner(DimensionManager.getWorld(data.readInt()), data.readInt(), data.readInt(),
+                 data.readInt());
+         if (l == null)
+           return;
+         l.setMobID(data.readUTF());
+-        l.getSpawnerWorld().getBlockTileEntity(l.getSpawnerX(), l.getSpawnerY(), l.getSpawnerZ())
++        l.worldObj.getBlockTileEntity(l.xCoord, l.yCoord, l.zCoord)
+             .onInventoryChanged();
+-        l.getSpawnerWorld().markBlockForUpdate(l.getSpawnerX(), l.getSpawnerY(), l.getSpawnerZ());
++        l.worldObj.markBlockForUpdate(l.xCoord, l.yCoord, l.zCoord);
+         return;
+       case 1:
+         final List<String> s = new ArrayList<String>();
+@@ -122,15 +120,13 @@
              || w.isBlockIndirectlyGettingPowered(x, y + 1, z);
      final int m = w.getBlockMetadata(x, y, z);
      if (r && m == 0) {
@@ -70,7 +73,7 @@
      } else if (!r && m == 1)
 --- a/com/yogpc/ip/ItemArmorElectric.java
 +++ b/com/yogpc/ip/ItemArmorElectric.java
-@@ -25,25 +25,27 @@
+@@ -26,25 +26,27 @@
  import cpw.mods.fml.relauncher.Side;
  import cpw.mods.fml.relauncher.SideOnly;
  
@@ -104,7 +107,7 @@
    }
  
    private static final double maxFallSpeedOnHover = 0.35;
-@@ -116,7 +118,6 @@
+@@ -117,7 +119,6 @@
  
    @Override
    public void onArmorTickUpdate(final World world, final EntityPlayer player, final ItemStack is) {
@@ -151,17 +154,183 @@
    }
  
    @Override
-@@ -55,7 +56,6 @@
-             w.spawnEntityInWorld(e);
+@@ -57,7 +58,6 @@
            }
          }
+       }
 -      w.func_96440_m(x, y, z, b);
      }
      super.breakBlock(w, x, y, z, b, m);
    }
+--- a/com/yogpc/mc_lib/ContainerWorkbench.java
++++ b/com/yogpc/mc_lib/ContainerWorkbench.java
+@@ -187,19 +187,6 @@
+     return;
+   }
+ 
+-  private int field_94535_f = -1;
+-  /*
+-   * drag_state 0 start 1 content 2 end
+-   */
+-  private int drag_state;
+-  private final Set<Slot> dragged = new HashSet<Slot>();
+-
+-  @Override
+-  protected void func_94533_d() {
+-    this.drag_state = 0;
+-    this.dragged.clear();
+-  }
+-
+   public static boolean canDrag(final Slot slot, final ItemStack is, final boolean always_true) {
+     boolean can = slot == null || !slot.getHasStack();
+     if (slot != null && slot.getHasStack() && is != null && is.isItemEqual(slot.getStack())
+@@ -219,60 +206,7 @@
+   public ItemStack slotClick(final int i, final int param, final int type, final EntityPlayer ep) {
+     ItemStack ret = null;
+     final InventoryPlayer player_inv = ep.inventory;
+-    if (type == 5) {
+-      final int prev_drag_state = this.drag_state;
+-      this.drag_state = func_94532_c(param);
+-      if ((prev_drag_state != 1 || this.drag_state != 2) && prev_drag_state != this.drag_state)
+-        func_94533_d();
+-      else if (player_inv.getItemStack() == null)
+-        func_94533_d();
+-      else if (this.drag_state == 0) {
+-        this.field_94535_f = func_94529_b(param);
+-        if (func_94528_d(this.field_94535_f)) {
+-          this.drag_state = 1;
+-          this.dragged.clear();
+-        } else
+-          func_94533_d();
+-      } else if (this.drag_state == 1) {
+-        final Slot slot = (Slot) this.inventorySlots.get(i);
+-        if (slot != null && canDrag(slot, player_inv.getItemStack(), true)
+-            && slot.isItemValid(player_inv.getItemStack())
+-            && player_inv.getItemStack().stackSize > this.dragged.size() && func_94531_b(slot))
+-          this.dragged.add(slot);
+-      } else if (this.drag_state == 2) {
+-        if (!this.dragged.isEmpty()) {
+-          ItemStack player_stack = player_inv.getItemStack().copy();
+-          int i1 = player_inv.getItemStack().stackSize;
+-          final Iterator<Slot> iterator = this.dragged.iterator();
+-          while (iterator.hasNext()) {
+-            final Slot slot = iterator.next();
+-            if (slot != null && canDrag(slot, player_inv.getItemStack(), true)
+-                && slot.isItemValid(player_inv.getItemStack())
+-                && player_inv.getItemStack().stackSize >= this.dragged.size()
+-                && func_94531_b(slot)) {
+-              final ItemStack slot_stack = player_stack.copy();
+-              final int j1 = slot.getHasStack() ? slot.getStack().stackSize : 0;
+-              func_94525_a(this.dragged, this.field_94535_f, slot_stack, j1);
+-              if (!(slot instanceof SlotUnlimited)
+-                  && slot_stack.stackSize > slot_stack.getMaxStackSize())
+-                slot_stack.stackSize = slot_stack.getMaxStackSize();
+-              if (slot_stack.stackSize > slot.getSlotStackLimit())
+-                slot_stack.stackSize = slot.getSlotStackLimit();
+-              i1 -= slot_stack.stackSize - j1;
+-              slot.putStack(slot_stack);
+-            }
+-          }
+-          player_stack.stackSize = i1;
+-          if (player_stack.stackSize <= 0)
+-            player_stack = null;
+-          player_inv.setItemStack(player_stack);
+-        }
+-        func_94533_d();
+-      } else
+-        func_94533_d();
+-    } else if (this.drag_state != 0)
+-      func_94533_d();
+-    else if ((type == 0 || type == 1) && (param == 0 || param == 1)) {
++    if ((type == 0 || type == 1) && (param == 0 || param == 1)) {
+       if (i == -999) {
+         if (player_inv.getItemStack() != null && i == -999) {
+           if (param == 0) {
+@@ -407,31 +341,6 @@
+         slot.onPickupFromSlot(ep, drop_stack);
+         ep.dropPlayerItemWithRandomChoice(drop_stack, true);
+       }
+-    } else if (type == 6 && i >= 0) {
+-      final Slot slot = (Slot) this.inventorySlots.get(i);
+-      final ItemStack player_stack = player_inv.getItemStack();
+-      if (player_stack != null && (slot == null || !slot.getHasStack() || !slot.canTakeStack(ep))) {
+-        final int i1 = param == 0 ? 0 : this.inventorySlots.size() - 1;
+-        final int l1 = param == 0 ? 1 : -1;
+-        for (int i2 = 0; i2 < 2; ++i2)
+-          for (int j2 = i1; j2 >= 0 && j2 < this.inventorySlots.size()
+-              && player_stack.stackSize < player_stack.getMaxStackSize(); j2 += l1) {
+-            final Slot slot3 = (Slot) this.inventorySlots.get(j2);
+-            if (slot3.getHasStack() && canDrag(slot3, player_stack, true) && slot3.canTakeStack(ep)
+-                && func_94530_a(player_stack, slot3)
+-                && (i2 != 0 || slot3.getStack().stackSize != slot3.getStack().getMaxStackSize())) {
+-              final int k1 =
+-                  Math.min(player_stack.getMaxStackSize() - player_stack.stackSize,
+-                      slot3.getStack().stackSize);
+-              final ItemStack itemstack2 = slot3.decrStackSize(k1);
+-              player_stack.stackSize += k1;
+-              if (itemstack2.stackSize <= 0)
+-                slot3.putStack(null);
+-              slot3.onPickupFromSlot(ep, itemstack2);
+-            }
+-          }
+-      }
+-      detectAndSendChanges();
+     }
+     return ret;
+   }
+--- a/com/yogpc/mc_lib/GuiWorkbench.java
++++ b/com/yogpc/mc_lib/GuiWorkbench.java
+@@ -24,7 +24,7 @@
+   @Override
+   protected void drawGuiContainerForegroundLayer(final int p_146979_1_, final int p_146979_2_) {
+     this.fontRenderer.drawString(
+-        this.tile.isInvNameLocalized() ? this.tile.getInvName() : StatCollector
++        StatCollector
+             .translateToLocal(this.tile.getInvName()), 8, 6, 0x404040);
+     this.fontRenderer.drawString(StatCollector.translateToLocal("container.inventory"), 8,
+         this.ySize - 96 + 2, 0x404040);
+@@ -34,7 +34,7 @@
+   protected void drawGuiContainerBackgroundLayer(final float p_146976_1_, final int p_146976_2_,
+       final int p_146976_3_) {
+     GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+-    this.mc.renderEngine.bindTexture(gui);
++    this.mc.renderEngine.bindTexture(this.mc.renderEngine.getTexture(gui));
+     final int xf = this.width - this.xSize >> 1;
+     final int yf = this.height - this.ySize >> 1;
+     drawTexturedModalRect(xf, yf, 0, 0, this.xSize, this.ySize);
+--- a/com/yogpc/mc_lib/InvUtils.java
++++ b/com/yogpc/mc_lib/InvUtils.java
+@@ -37,9 +37,12 @@
+         iii = ii;
+     } else
+       iii = ii;
+-    if (iii instanceof ISidedInventory)
+-      a = ((ISidedInventory) iii).getAccessibleSlotsFromSide(fd.ordinal());
+-    else {
++    if (iii instanceof ISidedInventory) {
++      a = new int[((ISidedInventory) iii).getSizeInventorySide(fd)];
++      final int from = ((ISidedInventory) iii).getStartInventorySide(fd);
++      for (int i = 0; i < a.length; i++)
++        a[i] = from + i;
++    } else {
+       a = new int[iii.getSizeInventory()];
+       for (int i = 0; i < a.length; i++)
+         a[i] = i;
+@@ -47,11 +50,6 @@
+     int buf, rem = is1.stackSize;
+     final List<Integer> e = new ArrayList<Integer>();
+     for (final int i : a) {
+-      if (iii instanceof ISidedInventory) {
+-        if (!((ISidedInventory) iii).canInsertItem(i, is1, fd.ordinal()))
+-          continue;
+-      } else if (!iii.isStackValidForSlot(i, is1))
+-        continue;
+       final ItemStack is2 = iii.getStackInSlot(i);
+       if (is2 == null) {
+         e.add(new Integer(i));
 --- a/com/yogpc/mc_lib/ProxyClient.java
 +++ b/com/yogpc/mc_lib/ProxyClient.java
-@@ -62,16 +62,16 @@
+@@ -64,16 +64,16 @@
      if (currentScreen == null || currentScreen.allowUserInput)
        for (final Key k : Key.values())
          if (k.binding instanceof KeyBinding) {
@@ -181,9 +350,44 @@
                  this.key |= 1 << k.ordinal();
                break;
              default:
+--- a/com/yogpc/mc_lib/TileWorkbench.java
++++ b/com/yogpc/mc_lib/TileWorkbench.java
+@@ -170,21 +170,11 @@
+   }
+ 
+   @Override
+-  public boolean isStackValidForSlot(final int p_94041_1_, final ItemStack p_94041_2_) {
+-    return true;
+-  }
+-
+-  @Override
+   public String getInvName() {
+     return "tile.WorkbenchPlus.name";
+   }
+ 
+   @Override
+-  public boolean isInvNameLocalized() {
+-    return false;
+-  }
+-
+-  @Override
+   public int getInventoryStackLimit() {
+     return Integer.MAX_VALUE;
+   }
+--- a/com/yogpc/nei/WBPRecipeHandler.java
++++ b/com/yogpc/nei/WBPRecipeHandler.java
+@@ -75,7 +75,7 @@
+   @Override
+   public void drawBackground(final GuiContainerManager gui, final int recipe) {
+     GL11.glColor4f(1, 1, 1, 1);
+-    gui.bindTexture(getGuiTexture());
++    gui.bindTextureByName(getGuiTexture());
+     gui.drawTexturedModalRect(0, 0, 5, 11, 166, 121);
+   }
+ 
 --- a/com/yogpc/qp/BlockBreaker.java
 +++ b/com/yogpc/qp/BlockBreaker.java
-@@ -46,6 +46,10 @@
+@@ -49,6 +49,10 @@
      setHardness(3.5F);
      setStepSound(soundStoneFootstep);
      setBlockName("BreakerPlus");
@@ -194,7 +398,7 @@
    }
  
    @Override
-@@ -71,11 +75,8 @@
+@@ -74,11 +78,8 @@
  
    @Override
    @SideOnly(Side.CLIENT)
@@ -208,7 +412,7 @@
    }
  
    @Override
-@@ -105,7 +106,7 @@
+@@ -108,7 +109,7 @@
      final Block b = Block.blocksList[w.getBlockId(tx, ty, tz)];
      if (b == null || b.isAirBlock(w, x, y, z))
        return;
@@ -217,7 +421,7 @@
      b.onBlockHarvested(w, tx, ty, tz, meta, player);
      if (b.removeBlockByPlayer(w, player, tx, ty, tz))
        b.onBlockDestroyedByPlayer(w, tx, ty, tz, meta);
-@@ -143,10 +144,10 @@
+@@ -139,10 +140,10 @@
  
    @Override
    public void onBlockPlacedBy(final World world, final int x, final int y, final int z, final EntityLiving ent) {
@@ -233,10 +437,10 @@
    static void setDispenserDefaultDirection(final World w, final int x, final int y, final int z) {
 --- a/com/yogpc/qp/BlockFrame.java
 +++ b/com/yogpc/qp/BlockFrame.java
-@@ -22,12 +22,13 @@
-     setSides(true, true, true, true, true, true);
+@@ -23,12 +23,13 @@
      setHardness(0.5F);
      setTickRandomly(true);
+     setBlockName("qpFrame");
 +    this.blockIndexInTexture = 35;
    }
  
@@ -490,10 +694,10 @@
      super.breakBlock(world, x, y, z, b, meta);
 --- a/com/yogpc/qp/BlockPlainPipe.java
 +++ b/com/yogpc/qp/BlockPlainPipe.java
-@@ -16,12 +16,13 @@
-     this.maxX = 0.75;
+@@ -17,12 +17,13 @@
      this.maxY = 1.0;
      this.maxZ = 0.75;
+     setBlockName("qpPlainPipe");
 +    this.blockIndexInTexture = 36;
    }
  
@@ -597,7 +801,7 @@
    private static ForgeDirection get2dOrientation(final double x1, final double z1, final double x2,
 --- a/com/yogpc/qp/BlockRefinery.java
 +++ b/com/yogpc/qp/BlockRefinery.java
-@@ -37,12 +37,13 @@
+@@ -39,12 +39,13 @@
      setHardness(5F);
      setCreativeTab(QuarryPlus.ct);
      setBlockName("RefineryPlus");
@@ -613,7 +817,7 @@
    }
  
    @Override
-@@ -78,11 +79,11 @@
+@@ -80,11 +81,11 @@
    @Override
    public void onBlockPlacedBy(final World w, final int x, final int y, final int z, final EntityLiving el) {
      super.onBlockPlacedBy(w, x, y, z, el);
@@ -627,7 +831,7 @@
    }
  
    private static void consumeItem(final EntityPlayer ep, final ItemStack stack) {
-@@ -127,17 +128,17 @@
+@@ -129,17 +130,17 @@
        final int meta = world.getBlockMetadata(x, y, z);
        switch (ForgeDirection.values()[meta]) {
          case WEST:
@@ -709,7 +913,7 @@
    public final int texture;
 --- a/com/yogpc/qp/ItemTool.java
 +++ b/com/yogpc/qp/ItemTool.java
-@@ -38,6 +38,9 @@
+@@ -37,6 +37,9 @@
      setHasSubtypes(true);
      setMaxDamage(0);
      setCreativeTab(QuarryPlus.ct);
@@ -719,7 +923,7 @@
    }
  
    @Override
-@@ -148,10 +151,8 @@
+@@ -147,10 +150,8 @@
  
    @Override
    @SideOnly(Side.CLIENT)
@@ -745,7 +949,7 @@
        return prop.getDouble(def);
 --- a/com/yogpc/qp/QuarryPlus.java
 +++ b/com/yogpc/qp/QuarryPlus.java
-@@ -75,23 +75,6 @@
+@@ -74,23 +74,6 @@
          l.destructor();
    }
  
@@ -769,7 +973,7 @@
    @Mod.PreInit
    public void preInit(final FMLPreInitializationEvent event) {
      final Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
-@@ -215,6 +198,8 @@
+@@ -210,6 +193,8 @@
      proxy.registerTextures();
      PacketHandler.registerStaticHandler(TileMarker.class);
    }
@@ -780,35 +984,7 @@
      public final String name;
 --- a/com/yogpc/qp/TileBasic.java
 +++ b/com/yogpc/qp/TileBasic.java
-@@ -181,9 +181,12 @@
-         iii = ii;
-     } else
-       iii = ii;
--    if (iii instanceof ISidedInventory)
--      a = ((ISidedInventory) iii).getAccessibleSlotsFromSide(fd.ordinal());
--    else {
-+    if (iii instanceof ISidedInventory) {
-+      a = new int[((ISidedInventory) iii).getSizeInventorySide(fd)];
-+      final int from = ((ISidedInventory) iii).getStartInventorySide(fd);
-+      for (int i = 0; i < a.length; i++)
-+        a[i] = from + i;
-+    } else {
-       a = new int[iii.getSizeInventory()];
-       for (int i = 0; i < a.length; i++)
-         a[i] = i;
-@@ -191,11 +194,6 @@
-     int buf, rem = is1.stackSize;
-     final List<Integer> e = new ArrayList<Integer>();
-     for (final int i : a) {
--      if (iii instanceof ISidedInventory) {
--        if (!((ISidedInventory) iii).canInsertItem(i, is1, fd.ordinal()))
--          continue;
--      } else if (!iii.isStackValidForSlot(i, is1))
--        continue;
-       final ItemStack is2 = iii.getStackInSlot(i);
-       if (is2 == null) {
-         e.add(new Integer(i));
-@@ -446,11 +444,6 @@
+@@ -273,11 +273,6 @@
    }
  
    @Override
@@ -820,7 +996,7 @@
    public int getInventoryStackLimit() {
      return 0;
    }
-@@ -468,9 +461,4 @@
+@@ -295,9 +290,4 @@
  
    @Override
    public void closeChest() {}
@@ -856,7 +1032,7 @@
  }
 --- a/com/yogpc/qp/TilePlacer.java
 +++ b/com/yogpc/qp/TilePlacer.java
-@@ -79,11 +79,6 @@
+@@ -76,11 +76,6 @@
    }
  
    @Override
@@ -868,7 +1044,7 @@
    public int getInventoryStackLimit() {
      return 64;
    }
-@@ -101,11 +96,6 @@
+@@ -98,11 +93,6 @@
    public void closeChest() {}
  
    @Override
@@ -882,7 +1058,7 @@
      final NBTTagList nbttaglist = par1NBTTagCompound.getTagList("Items");
 --- a/com/yogpc/qp/TilePump.java
 +++ b/com/yogpc/qp/TilePump.java
-@@ -141,7 +141,7 @@
+@@ -142,7 +142,7 @@
                this.zCoord + fd.offsetZ);
        if (te instanceof ITankContainer)
          for (final String s : this.mapping[fd.ordinal()]) {
@@ -891,16 +1067,16 @@
            if (pZ == -1)
              continue;
            fs = this.liquids.get(pZ);
-@@ -522,7 +522,7 @@
-       for (int i = 0; i < this.liquids.size(); i++)
+@@ -526,7 +526,7 @@
+       for (int i = 0; i < this.liquids.size(); i++) {
+         final LiquidStack s = this.liquids.get(i);
          ret[i + 1] =
-             new StringBuilder().append("    ")
--                .append(LiquidDictionary.findLiquidName(this.liquids.get(i))).append(": ")
-+                .append(findLiquidName(this.liquids.get(i))).append(": ")
-                 .append(this.liquids.get(i).amount).append("mB").toString();
+-            StatCollector.translateToLocalFormatted("yog.pump.liquid", LiquidDictionary.findLiquidName(s)
++            StatCollector.translateToLocalFormatted("yog.pump.liquid", findLiquidName(s)
+                 , Integer.toString(s.amount));
+       }
      } else
-       ret[0] = StatCollector.translateToLocal("chat.pumpcontainno");
-@@ -561,7 +561,7 @@
+@@ -547,7 +547,7 @@
    public LiquidStack drain(final ForgeDirection fd, final LiquidStack resource, final boolean doDrain) {
      if (resource == null)
        return null;
@@ -909,7 +1085,7 @@
      if (index == -1)
        return null;
      final LiquidStack fs = this.liquids.get(index);
-@@ -599,10 +599,10 @@
+@@ -585,10 +585,10 @@
        int index;
        LiquidStack fs;
        for (final String s : this.mapping[fd.ordinal()]) {
@@ -922,7 +1098,7 @@
          if (index != -1)
            ret.add(new LiquidTank(this.liquids.get(index), Integer.MAX_VALUE));
          else
-@@ -637,7 +637,7 @@
+@@ -623,7 +623,7 @@
        fs = LiquidDictionary.getLiquid(s, maxDrain);
        if (fs == null)
          continue;
@@ -931,7 +1107,7 @@
        if (index == -1)
          continue;
        return drain(fd, this.liquids.get(index), doDrain);
-@@ -680,7 +680,7 @@
+@@ -666,7 +666,7 @@
        else if ((b == Block.lavaStill || b == Block.lavaMoving) && meta == 0)
          fs = new LiquidStack(Block.lavaStill, LiquidContainerRegistry.BUCKET_VOLUME);
        if (fs != null) {
@@ -940,7 +1116,7 @@
          if (index != -1)
            this.liquids.get(index).amount += fs.amount;
          else
-@@ -738,4 +738,16 @@
+@@ -724,4 +724,16 @@
      final TileBasic tb = G_connected();
      return tb == null ? 0 : tb.powerRequest();
    }
@@ -1013,40 +1189,38 @@
  }
 --- a/com/yogpc/qp/client/GuiInfMJSrc.java
 +++ b/com/yogpc/qp/client/GuiInfMJSrc.java
-@@ -106,7 +106,7 @@
-   public void drawScreen(final int i, final int j, final float k) {
-     drawDefaultBackground();
-     GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
--    this.mc.renderEngine.bindTexture(gui);
-+    this.mc.renderEngine.bindTexture(this.mc.renderEngine.getTexture(gui));
-     final int xb = this.width - 176 >> 1;
-     final int yb = this.height - 214 >> 1;
-     drawTexturedModalRect(xb, yb, 0, 0, 176, 214);
---- a/com/yogpc/qp/client/GuiMover.java
-+++ b/com/yogpc/qp/client/GuiMover.java
-@@ -67,7 +67,7 @@
+@@ -129,7 +129,7 @@
    @Override
    protected void drawGuiContainerBackgroundLayer(final float f, final int i, final int j) {
      GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
 -    this.mc.renderEngine.bindTexture(gui);
 +    this.mc.renderEngine.bindTexture(this.mc.renderEngine.getTexture(gui));
-     final int l = this.width - this.xSize >> 1;
-     final int i1 = this.height - this.ySize >> 1;
-     drawTexturedModalRect(l, i1, 0, 0, this.xSize, this.ySize);
+     drawTexturedModalRect(this.width - 176 >> 1, this.height - 214 >> 1, 0, 0, this.xSize,
+         this.ySize);
+     this.eng.drawTextBox();
+--- a/com/yogpc/qp/client/GuiMover.java
++++ b/com/yogpc/qp/client/GuiMover.java
+@@ -63,7 +63,7 @@
+   @Override
+   protected void drawGuiContainerBackgroundLayer(final float f, final int i, final int j) {
+     GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+-    this.mc.renderEngine.bindTexture(gui);
++    this.mc.renderEngine.bindTexture(this.mc.renderEngine.getTexture(gui));
+     drawTexturedModalRect(this.width - this.xSize >> 1, this.height - this.ySize >> 1, 0, 0,
+         this.xSize, this.ySize);
+   }
 --- a/com/yogpc/qp/client/GuiPlacer.java
 +++ b/com/yogpc/qp/client/GuiPlacer.java
-@@ -39,9 +39,7 @@
- 
+@@ -40,7 +40,7 @@
    @Override
    protected void drawGuiContainerForegroundLayer(final int par1, final int par2) {
--    final String s =
--        this.tile.isInvNameLocalized() ? this.tile.getInvName() : StatCollector.translateToLocal(this.tile
--            .getInvName());
-+    final String s = StatCollector.translateToLocal(this.tile.getInvName());
+     final String s =
+-        this.tile.isInvNameLocalized() ? this.tile.getInvName() : StatCollector
++        StatCollector
+             .translateToLocal(this.tile.getInvName());
      this.fontRenderer.drawString(s, this.xSize / 2 - this.fontRenderer.getStringWidth(s) / 2,
          6, 4210752);
-     this.fontRenderer.drawString(StatCollector.translateToLocal("container.inventory"), 8, this.ySize - 96 + 2,
-@@ -51,7 +49,7 @@
+@@ -51,7 +51,7 @@
    @Override
    protected void drawGuiContainerBackgroundLayer(final float par1, final int par2, final int par3) {
      GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);

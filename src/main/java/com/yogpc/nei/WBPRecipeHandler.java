@@ -7,6 +7,7 @@ import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.StatCollector;
 
 import org.lwjgl.opengl.GL11;
 
@@ -21,7 +22,7 @@ import com.yogpc.mc_lib.WorkbenchRecipe;
 public class WBPRecipeHandler extends TemplateRecipeHandler {
   // All offset is (x, y) = (5, 11)
   private class WBPRecipe extends TemplateRecipeHandler.CachedRecipe {
-    final List<PositionedStack> input = new ArrayList<PositionedStack>();
+    final ArrayList<PositionedStack> input = new ArrayList<PositionedStack>();
     private final PositionedStack output;
     final double energy;
 
@@ -55,7 +56,7 @@ public class WBPRecipeHandler extends TemplateRecipeHandler {
 
   @Override
   public String getRecipeName() {
-    return "tile.WorkbenchPlus.name";
+    return StatCollector.translateToLocal("tile.WorkbenchPlus.name");
   }
 
   @Override

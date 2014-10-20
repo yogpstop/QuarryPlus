@@ -1,6 +1,6 @@
 --- a/com/yogpc/ip/BlockController.java
 +++ b/com/yogpc/ip/BlockController.java
-@@ -23,11 +26,16 @@
+@@ -38,11 +38,16 @@
    public BlockController(final int id) {
      super(id, Material.circuits);
      setUnlocalizedName("spawnercontroller");
@@ -20,7 +20,7 @@
      for (final ForgeDirection d : ForgeDirection.VALID_DIRECTIONS) {
 --- a/com/yogpc/ip/ItemArmorElectric.java
 +++ b/com/yogpc/ip/ItemArmorElectric.java
-@@ -26,20 +26,24 @@
+@@ -27,20 +27,24 @@
  import cpw.mods.fml.relauncher.Side;
  import cpw.mods.fml.relauncher.SideOnly;
  
@@ -49,7 +49,7 @@
      return "yogpstop_qp:textures/models/armor/elecArmor_layer_1.png";
    }
  
-@@ -188,25 +192,4 @@
+@@ -189,25 +193,4 @@
    public int getTransferLimit(final ItemStack itemStack) {
      return 2500;
    }
@@ -66,7 +66,7 @@
 -
 -  @Override
 -  public int getMaxEnergyStored(final ItemStack is) {
--    return (int) (getMaxCharge(is) * 4);
+-    return getMaxCharge(is) * 4;
 -  }
 -
 -  @Override
@@ -77,7 +77,7 @@
  }
 --- a/com/yogpc/ip/ItemMirror.java
 +++ b/com/yogpc/ip/ItemMirror.java
-@@ -17,11 +18,16 @@
+@@ -18,11 +18,16 @@
    public ItemMirror(final int id) {
      super(id);
      setUnlocalizedName("magicmirror");
@@ -198,19 +198,82 @@
    }
  
    @Override
+--- a/com/yogpc/mc_lib/GuiWorkbench.java
++++ b/com/yogpc/mc_lib/GuiWorkbench.java
+@@ -11,8 +11,7 @@
+ 
+ @SideOnly(Side.CLIENT)
+ public class GuiWorkbench extends GuiContainer {
+-  private static final String gui = new String("yogpstop_qp",
+-      "textures/gui/workbench.png");
++  private static final String gui = "/mods/yogpstop_qp/textures/gui/workbench.png";
+   private final TileWorkbench tile;
+ 
+   public GuiWorkbench(final IInventory pi, final TileWorkbench tw) {
+--- a/com/yogpc/mc_lib/InvUtils.java
++++ b/com/yogpc/mc_lib/InvUtils.java
+@@ -87,25 +87,26 @@
+     }
+     return is1.stackSize - rem;
+   }
++  
++  private static final Class<?> engcls = ReflectionHelper.getClass("buildcraft.energy.TileEngine");
+ 
+   public static void injectToNearTile(final World w, final int x, final int y, final int z,
+       final ItemStack is) {
+-    final List<IPipeTile> pp = new LinkedList<IPipeTile>();
++    final List<TileEntity> pp = new LinkedList<TileEntity>();
+     final List<ForgeDirection> ppd = new LinkedList<ForgeDirection>();
+     final List<IInventory> pi = new LinkedList<IInventory>();
+     final List<ForgeDirection> pid = new LinkedList<ForgeDirection>();
+     for (final ForgeDirection d : ForgeDirection.VALID_DIRECTIONS) {
+       final TileEntity t = w.getBlockTileEntity(x + d.offsetX, y + d.offsetY, z + d.offsetZ);
+-      if (t instanceof IInventory && !(t instanceof IPowerEmitter)
++      if ((t instanceof IInventory) && (engcls == null || !engcls.isInstance(t))
+           && addToIInv((IInventory) t, is, d.getOpposite(), false) > 0) {
+         pi.add((IInventory) t);
+         pid.add(d.getOpposite());
+       }
+-      if (t instanceof IPipeTile) {
+-        final IPipeTile p = (IPipeTile) t;
+-        if (p.getPipeType() != IPipeTile.PipeType.ITEM || !p.isPipeConnected(d.getOpposite()))
++      if (t instanceof IPipeEntry && ((IPipeEntry) t).acceptItems()) {
++        if (t instanceof IPipeConnection && !((IPipeConnection) t).isPipeConnected(d.getOpposite()))
+           continue;
+-        pp.add(p);
++        pp.add(t);
+         ppd.add(d.getOpposite());
+       }
+     }
+@@ -114,10 +115,11 @@
+       if (is.stackSize <= 0)
+         return;
+     }
+-    for (int i = 0; i < pp.size(); i++) {
+-      is.stackSize -= pp.get(i).injectItem(is, true, ppd.get(i));
+-      if (is.stackSize <= 0)
+-        return;
++    if (pp.size() > 0) {
++      final int i = w.rand.nextInt(pp.size());
++      ((IPipeEntry) pp.get(i)).entityEntering(is.copy(), ppd.get(i));
++      is.stackSize = 0;
++      return;
+     }
+   }
+ }
 --- a/com/yogpc/mc_lib/YogpstopLib.java
 +++ b/com/yogpc/mc_lib/YogpstopLib.java
-@@ -44,7 +44,7 @@
-   private static Block workbench, controller;
-   private static Item magicmirror, armor;
+@@ -52,7 +52,7 @@
+   public static Item magicmirror, armor;
+   public static final int guiIdWorkbench = 1;
  
 -  @Mod.EventHandler
 +  @Mod.PreInit
    public void preInit(final FMLPreInitializationEvent event) {
      final Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
      final int[] id = new int[4];
-@@ -69,7 +69,7 @@
-     }
+@@ -71,7 +71,7 @@
+     armor = new ItemArmorElectric(id[3]);
    }
  
 -  private static final Pattern lang = Pattern.compile("assets/(.*)/lang/(.*)\\.lang");
@@ -218,7 +281,7 @@
    private static final Pattern format = Pattern.compile("%(\\d+\\$)?[\\d\\.]*[df]");
  
    public static Properties parseLangFile(final InputStream is) {
-@@ -129,7 +129,7 @@
+@@ -134,7 +134,7 @@
      }
    }
  
@@ -227,12 +290,48 @@
    public void init(final FMLInitializationEvent event) {
      GameRegistry.registerBlock(workbench, "WorkbenchPlus");
      GameRegistry.registerBlock(controller, "yogSC");
+--- a/com/yogpc/nei/QuarryPlusUsageHandler.java
++++ b/com/yogpc/nei/QuarryPlusUsageHandler.java
+@@ -31,7 +31,7 @@
+ 
+   @Override
+   public String getGuiTexture() {
+-    return "nei:textures/gui/recipebg.png";
++    return "/codechicken/nei/recipebg.png";
+   }
+ 
+   @Override
+--- a/com/yogpc/nei/WBPRecipeHandler.java
++++ b/com/yogpc/nei/WBPRecipeHandler.java
+@@ -59,7 +59,7 @@
+ 
+   @Override
+   public String getGuiTexture() {
+-    return "yogpstop_qp:textures/gui/workbench.png";
++    return "/mods/yogpstop_qp/textures/gui/workbench.png";
+   }
+ 
+   @Override
+@@ -73,10 +73,10 @@
+   }
+ 
+   @Override
+-  public void drawBackground(final int recipe) {
++  public void drawBackground(final GuiContainerManager gui, final int recipe) {
+     GL11.glColor4f(1, 1, 1, 1);
+-    GuiDraw.changeTexture(getGuiTexture());
+-    GuiDraw.drawTexturedModalRect(0, 0, 5, 11, 166, 121);
++    gui.bindTexture(getGuiTexture());
++    gui.drawTexturedModalRect(0, 0, 5, 11, 166, 121);
+   }
+ 
+   @Override
 --- a/com/yogpc/qp/BlockFrame.java
 +++ b/com/yogpc/qp/BlockFrame.java
-@@ -23,7 +23,12 @@
-     setSides(true, true, true, true, true, true);
+@@ -24,7 +24,12 @@
      setHardness(0.5F);
      setTickRandomly(true);
+     setUnlocalizedName("qpFrame");
 -    setTextureName("yogpstop_qp:blockFrame");
 +  }
 +
@@ -261,10 +360,10 @@
    @Override
 --- a/com/yogpc/qp/BlockPlainPipe.java
 +++ b/com/yogpc/qp/BlockPlainPipe.java
-@@ -17,7 +17,12 @@
-     this.maxX = 0.75;
+@@ -18,7 +18,12 @@
      this.maxY = 1.0;
      this.maxZ = 0.75;
+     setUnlocalizedName("qpPlainPipe");
 -    setTextureName("yogpstop_qp:blockPlainPipe");
 +  }
 +
@@ -277,7 +376,7 @@
    @Override
 --- a/com/yogpc/qp/BlockRefinery.java
 +++ b/com/yogpc/qp/BlockRefinery.java
-@@ -38,7 +38,12 @@
+@@ -40,7 +40,12 @@
      setHardness(5F);
      setCreativeTab(QuarryPlus.ct);
      setUnlocalizedName("RefineryPlus");
@@ -291,7 +390,7 @@
    }
  
    @Override
-@@ -99,7 +104,7 @@
+@@ -101,7 +106,7 @@
    private static boolean fill(final ITankContainer tank, final ForgeDirection side,
        final EntityPlayer player) {
      final ItemStack current = player.getCurrentEquippedItem();
@@ -302,7 +401,7 @@
        if (used > 0) {
 --- a/com/yogpc/qp/QuarryPlus.java
 +++ b/com/yogpc/qp/QuarryPlus.java
-@@ -85,7 +85,7 @@
+@@ -84,7 +84,7 @@
    @ForgeSubscribe
    @SideOnly(Side.CLIENT)
    public void loadTextures(final TextureStitchEvent.Pre evt) {
@@ -311,7 +410,7 @@
        final TextureMap map = evt.map;
        RenderEntityLaser.icons = new Icon[4];
        RenderEntityLaser.icons[EntityLaser.DRILL] =
-@@ -99,7 +99,7 @@
+@@ -98,7 +98,7 @@
      }
    }
  
@@ -320,7 +419,7 @@
    public void preInit(final FMLPreInitializationEvent event) {
      final Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
      final int[] id = new int[13];
-@@ -150,7 +150,7 @@
+@@ -142,7 +142,7 @@
      YogpstopLib.loadLangs(event.getSourceFile());
    }
  
@@ -329,60 +428,10 @@
    public void init(final FMLInitializationEvent event) {
      GameRegistry.registerItem(itemTool, "qpTool");
      GameRegistry.registerBlock(blockQuarry, ItemBlockQuarry.class, "QuarryPlus");
---- a/com/yogpc/qp/TileBasic.java
-+++ b/com/yogpc/qp/TileBasic.java
-@@ -232,24 +232,25 @@
-     return is1.stackSize - rem;
-   }
- 
-+  private static final Class<?> engcls = ReflectionHelper.getClass("buildcraft.energy.TileEngine");
-+
-   static void injectToNearTile(final World w, final int x, final int y, final int z,
-       final ItemStack is) {
--    final List<IPipeTile> pp = new LinkedList<IPipeTile>();
-+    final List<TileEntity> pp = new LinkedList<TileEntity>();
-     final List<ForgeDirection> ppd = new LinkedList<ForgeDirection>();
-     final List<IInventory> pi = new LinkedList<IInventory>();
-     final List<ForgeDirection> pid = new LinkedList<ForgeDirection>();
-     for (final ForgeDirection d : ForgeDirection.VALID_DIRECTIONS) {
-       final TileEntity t = w.getBlockTileEntity(x + d.offsetX, y + d.offsetY, z + d.offsetZ);
--      if (t instanceof IInventory && !(t instanceof IPowerEmitter)
-+      if ((t instanceof IInventory) && (engcls == null || !engcls.isInstance(t))
-           && addToIInv((IInventory) t, is, d.getOpposite(), false) > 0) {
-         pi.add((IInventory) t);
-         pid.add(d.getOpposite());
-       }
--      if (t instanceof IPipeTile) {
--        final IPipeTile p = (IPipeTile) t;
--        if (p.getPipeType() != IPipeTile.PipeType.ITEM || !p.isPipeConnected(d.getOpposite()))
-+      if (t instanceof IPipeEntry && ((IPipeEntry) t).acceptItems()) {
-+        if (t instanceof IPipeConnection && !((IPipeConnection) t).isPipeConnected(d.getOpposite()))
-           continue;
--        pp.add(p);
-+        pp.add(t);
-         ppd.add(d.getOpposite());
-       }
-     }
-@@ -258,10 +259,11 @@
-       if (is.stackSize <= 0)
-         return;
-     }
--    for (int i = 0; i < pp.size(); i++) {
--      is.stackSize -= pp.get(i).injectItem(is, true, ppd.get(i));
--      if (is.stackSize <= 0)
--        return;
-+    if (pp.size() > 0) {
-+      final int i = w.rand.nextInt(pp.size());
-+      ((IPipeEntry) pp.get(i)).entityEntering(is.copy(), ppd.get(i));
-+      is.stackSize = 0;
-+      return;
-     }
-   }
- 
 --- a/com/yogpc/qp/TileInfMJSrc.java
 +++ b/com/yogpc/qp/TileInfMJSrc.java
-@@ -66,9 +66,9 @@
-       } catch (final Exception e) {
+@@ -60,9 +60,9 @@
+         continue;
        }
        if (te instanceof IPowerReceptor) {
 -        final IPowerProvider pr = ((IPowerReceptor) te).getPowerProvider(d.getOpposite());
@@ -414,7 +463,7 @@
      final double avg = this.pa / 100;
 --- a/com/yogpc/qp/TilePump.java
 +++ b/com/yogpc/qp/TilePump.java
-@@ -140,7 +140,7 @@
+@@ -141,7 +141,7 @@
                this.zCoord + fd.offsetZ);
        if (te instanceof ITankContainer)
          for (final String s : this.mapping[fd.ordinal()]) {
@@ -423,16 +472,18 @@
            if (pZ == -1)
              continue;
            fs = this.liquids.get(pZ);
-@@ -521,7 +521,7 @@
-       for (int i = 0; i < this.liquids.size(); i++)
+@@ -525,8 +525,8 @@
+       for (int i = 0; i < this.liquids.size(); i++) {
+         final LiquidStack s = this.liquids.get(i);
          ret[i + 1] =
-             new StringBuilder().append("    ")
--                .append(this.liquids.get(i).getFluid().getLocalizedName()).append(": ")
-+                .append(LiquidDictionary.findLiquidName(this.liquids.get(i))).append(": ")
-                 .append(this.liquids.get(i).amount).append("mB").toString();
+-            StatCollector.translateToLocalFormatted("yog.pump.liquid", StatCollector.translateToLocal(s
+-                .getFluid().getUnlocalizedName()), Integer.toString(s.amount));
++            StatCollector.translateToLocalFormatted("yog.pump.liquid", LiquidDictionary.findLiquidName(s)
++                , Integer.toString(s.amount));
+       }
      } else
        ret[0] = StatCollector.translateToLocal("chat.pumpcontainno");
-@@ -553,6 +553,10 @@
+@@ -539,6 +539,10 @@
    }
  
    @Override
@@ -443,7 +494,7 @@
    public LiquidStack drain(final ForgeDirection fd, final LiquidStack resource, final boolean doDrain) {
      if (resource == null)
        return null;
-@@ -574,13 +578,8 @@
+@@ -560,13 +564,8 @@
    }
  
    @Override
@@ -459,7 +510,7 @@
    }
  
    @Override
-@@ -590,8 +589,8 @@
+@@ -576,8 +575,8 @@
      final LinkedList<LiquidTank> ret = new LinkedList<LiquidTank>();
      if (this.mapping[fd.ordinal()].size() <= 0) {
        if (this.liquids.size() <= 0)
@@ -470,7 +521,7 @@
        else
          for (final LiquidStack fs : this.liquids)
            ret.add(new LiquidTank(fs, Integer.MAX_VALUE));
-@@ -599,7 +598,7 @@
+@@ -585,7 +584,7 @@
        int index;
        LiquidStack fs;
        for (final String s : this.mapping[fd.ordinal()]) {
@@ -479,7 +530,7 @@
          if (fs == null)
            continue;
          index = this.liquids.indexOf(fs);
-@@ -613,6 +612,16 @@
+@@ -599,6 +598,16 @@
    }
  
    @Override
@@ -496,7 +547,7 @@
    public LiquidStack drain(final ForgeDirection fd, final int maxDrain, final boolean doDrain) {
      if (fd.ordinal() < 0 || fd.ordinal() >= this.mapping.length)
        return drain(ForgeDirection.UP, maxDrain, doDrain);
-@@ -624,7 +633,7 @@
+@@ -610,7 +619,7 @@
      int index;
      LiquidStack fs;
      for (final String s : this.mapping[fd.ordinal()]) {
@@ -505,7 +556,7 @@
        if (fs == null)
          continue;
        index = this.liquids.indexOf(fs);
-@@ -647,7 +656,7 @@
+@@ -633,7 +642,7 @@
    static final boolean isLiquid(final Block b, final boolean s, final World w, final int x,
        final int y, final int z, final int m) {
      if (b instanceof ILiquid)
@@ -514,7 +565,7 @@
      if (b == Block.waterStill || b == Block.waterMoving || b == Block.lavaStill
          || b == Block.lavaMoving)
        return !s || m == 0;
-@@ -663,15 +672,12 @@
+@@ -649,15 +658,12 @@
      if (isLiquid(b, false, null, 0, 0, 0, 0)) {
        LiquidStack fs = null;
        if (b instanceof ILiquid
@@ -534,7 +585,7 @@
        if (fs != null) {
          final int index = this.liquids.indexOf(fs);
          if (index != -1)
-@@ -722,7 +728,13 @@
+@@ -708,7 +714,13 @@
    public void doWork() {}
  
    @Override
@@ -552,7 +603,7 @@
  }
 --- a/com/yogpc/qp/TileRefinery.java
 +++ b/com/yogpc/qp/TileRefinery.java
-@@ -238,7 +238,6 @@
+@@ -239,7 +239,6 @@
      return 0;
    }
  
@@ -560,7 +611,7 @@
    public LiquidStack drain(final ForgeDirection from, final LiquidStack resource,
        final boolean doDrain) {
      // if (resource == null) return null;
-@@ -282,13 +281,13 @@
+@@ -283,13 +282,13 @@
    }
  
    @Override
@@ -578,7 +629,7 @@
    }
  
    @Override
-@@ -298,6 +297,15 @@
+@@ -299,6 +298,15 @@
    }
  
    @Override
@@ -596,10 +647,10 @@
    }
 --- a/com/yogpc/qp/client/GuiInfMJSrc.java
 +++ b/com/yogpc/qp/client/GuiInfMJSrc.java
-@@ -31,8 +31,7 @@
+@@ -34,8 +34,7 @@
  
  @SideOnly(Side.CLIENT)
- public class GuiInfMJSrc extends GuiScreenA {
+ public class GuiInfMJSrc extends GuiContainer {
 -  private static final String gui = new String("yogpstop_qp",
 -      "textures/gui/infmjsrc.png");
 +  private static final String gui = "/mods/yogpstop_qp/textures/gui/infmjsrc.png";
@@ -608,10 +659,10 @@
    private GuiTextField itv;
 --- a/com/yogpc/qp/client/GuiMover.java
 +++ b/com/yogpc/qp/client/GuiMover.java
-@@ -31,8 +31,7 @@
+@@ -30,8 +30,7 @@
+ 
  @SideOnly(Side.CLIENT)
  public class GuiMover extends GuiContainer {
-   public GuiButton b32, b33, b34, b35;
 -  private static final String gui = new String("yogpstop_qp",
 -      "textures/gui/mover.png");
 +  private static final String gui = "/mods/yogpstop_qp/textures/gui/mover.png";
@@ -620,7 +671,7 @@
        final int z) {
 --- a/com/yogpc/qp/client/GuiP_List.java
 +++ b/com/yogpc/qp/client/GuiP_List.java
-@@ -90,9 +90,7 @@
+@@ -91,9 +91,7 @@
          this.mc.displayGuiScreen(new GuiP_SelectSide(this.tile, this, par1.id == -5));
          break;
        case PacketHandler.CtS_REMOVE_MAPPING:
@@ -633,7 +684,7 @@
          break;
 --- a/com/yogpc/qp/client/GuiP_Manual.java
 +++ b/com/yogpc/qp/client/GuiP_Manual.java
-@@ -50,18 +50,14 @@
+@@ -51,18 +51,14 @@
    public void actionPerformed(final GuiButton par1) {
      switch (par1.id) {
        case -1:
@@ -655,25 +706,25 @@
          break;
 --- a/com/yogpc/qp/client/GuiP_SlotBlockList.java
 +++ b/com/yogpc/qp/client/GuiP_SlotBlockList.java
-@@ -74,7 +74,7 @@
+@@ -73,7 +73,7 @@
  
    @Override
-   protected void drawSlot(final int var1, final int var2, final int var3, final int var4, final Tessellator var5) {
--    final String name = LiquidDictionary.getFluid(this.blocklist.get(var1)).getLocalizedName();
-+    final String name = this.blocklist.get(var1);
+   protected void drawSlot(final int i, final int v2, final int v3, final int v4, final Tessellator t) {
+-    final String name = LiquidDictionary.getFluid(this.blocklist.get(i)).getLocalizedName();
++    final String name = this.blocklist.get(i);
      Minecraft.getMinecraft().fontRenderer.drawStringWithShadow(name,
          (this.parent.width - Minecraft.getMinecraft().fontRenderer.getStringWidth(name)) / 2,
-         var3 + 1, 0xFFFFFF);
+         v3 + 2, 0xFFFFFF);
 --- a/com/yogpc/qp/client/GuiP_SlotList.java
 +++ b/com/yogpc/qp/client/GuiP_SlotList.java
-@@ -58,9 +58,7 @@
+@@ -57,9 +57,7 @@
  
    @Override
-   protected void drawSlot(final int var1, final int var2, final int var3, final int var4, final Tessellator var5) {
--    String name = this.target.get(var1);
+   protected void drawSlot(final int i, final int v2, final int v3, final int v4, final Tessellator t) {
+-    String name = this.target.get(i);
 -    if (LiquidDictionary.isFluidRegistered(name))
 -      name = LiquidDictionary.getFluid(name).getLocalizedName();
-+    final String name = this.target.get(var1);
++    final String name = this.target.get(i);
      Minecraft.getMinecraft().fontRenderer
          .drawStringWithShadow(
              name,

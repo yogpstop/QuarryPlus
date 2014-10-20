@@ -1,6 +1,6 @@
 --- a/com/yogpc/ip/ItemArmorElectric.java
 +++ b/com/yogpc/ip/ItemArmorElectric.java
-@@ -129,8 +129,8 @@
+@@ -127,8 +127,8 @@
    @Override
    public void onArmorTick(final World world, final EntityPlayer player, final ItemStack is) {
      if (ElectricItem.manager != null)
@@ -11,9 +11,29 @@
      if (player.inventory.armorInventory[2] != is)
        return;
      useJetpack(player, is, toggleHover(player, is));
+@@ -214,7 +214,7 @@
+ 
+   @Override
+   public int getMaxEnergyStored(final ItemStack is) {
+-    return (int) (getMaxCharge(is) * 4);
++    return getMaxCharge(is) * 4;
+   }
+ 
+   @Override
+--- a/com/yogpc/mc_lib/ContainerWorkbench.java
++++ b/com/yogpc/mc_lib/ContainerWorkbench.java
+@@ -31,7 +31,7 @@
+     if (nbtlen >= 0) {
+       final byte[] ba = new byte[nbtlen];
+       bb.readFully(ba);
+-      is.setTagCompound(CompressedStreamTools.func_152457_a(ba, NBTSizeTracker.field_152451_a));
++      is.setTagCompound(CompressedStreamTools.decompress(ba));
+     }
+     return is;
+   }
 --- a/com/yogpc/mc_lib/PacketHandler.java
 +++ b/com/yogpc/mc_lib/PacketHandler.java
-@@ -159,8 +159,7 @@
+@@ -150,8 +150,7 @@
  
    private static void setNBTFromPacket(final YogpstopPacket p) {
      try {
@@ -25,17 +45,26 @@
                cache.getInteger("z"));
 --- a/com/yogpc/qp/TilePump.java
 +++ b/com/yogpc/qp/TilePump.java
-@@ -526,8 +526,8 @@
-       for (int i = 0; i < this.liquids.size(); i++)
+@@ -531,7 +531,7 @@
+         final FluidStack s = this.liquids.get(i);
          ret[i + 1] =
-             new StringBuilder().append("    ")
--                .append(this.liquids.get(i).getFluid().getLocalizedName(this.liquids.get(i)))
--                .append(": ").append(this.liquids.get(i).amount).append("mB").toString();
-+                .append(this.liquids.get(i).getFluid().getLocalizedName()).append(": ")
-+                .append(this.liquids.get(i).amount).append("mB").toString();
+             new ChatComponentTranslation("yog.pump.liquid", new ChatComponentTranslation(s
+-                .getFluid().getUnlocalizedName(s)), Integer.toString(s.amount));
++                .getFluid().getUnlocalizedName()), Integer.toString(s.amount));
+       }
      } else
-       ret[0] = StatCollector.translateToLocal("chat.pumpcontainno");
-     return ret;
+       ret[0] = new ChatComponentTranslation("chat.pumpcontainno");
+--- a/com/yogpc/qp/client/GuiEnchList.java
++++ b/com/yogpc/qp/client/GuiEnchList.java
+@@ -32,7 +32,7 @@
+ import cpw.mods.fml.relauncher.SideOnly;
+ 
+ @SideOnly(Side.CLIENT)
+-public class GuiEnchList extends GuiContainer implements GuiYesNoCallback {
++public class GuiEnchList extends GuiContainer {
+   private GuiSlotEnchList slot;
+   private final TileBasic tile;
+   private final byte targetid;
 --- a/com/yogpc/qp/client/GuiP_List.java
 +++ b/com/yogpc/qp/client/GuiP_List.java
 @@ -25,7 +25,7 @@
@@ -47,7 +76,7 @@
    private GuiP_SlotList oreslot;
    private GuiButton delete, top, up, down, bottom;
    private final TilePump tile;
-@@ -93,8 +93,7 @@
+@@ -94,8 +94,7 @@
        case PacketHandler.CtS_REMOVE_MAPPING:
          String name = this.tile.mapping[this.dir].get(this.oreslot.currentore);
          if (FluidRegistry.isFluidRegistered(name))
@@ -68,7 +97,7 @@
    private GuiTextField blockid;
    private final byte targetid;
    private final TilePump tile;
-@@ -56,15 +56,13 @@
+@@ -57,15 +57,13 @@
            return;
          if (this.tile.mapping[this.targetid].contains(name)) {
            if (FluidRegistry.isFluidRegistered(name))
@@ -88,39 +117,28 @@
          break;
 --- a/com/yogpc/qp/client/GuiP_SlotBlockList.java
 +++ b/com/yogpc/qp/client/GuiP_SlotBlockList.java
-@@ -75,9 +75,7 @@
+@@ -74,9 +74,7 @@
    @Override
-   protected void drawSlot(final int var1, final int var2, final int var3, final int var4,
-       final Tessellator var5, final int var6, final int var7) {
+   protected void drawSlot(final int i, final int v2, final int v3, final int v4,
+       final Tessellator t, final int v6, final int v7) {
 -    final String name =
--        FluidRegistry.getFluid(this.blocklist.get(var1)).getLocalizedName(
--            FluidRegistry.getFluidStack(this.blocklist.get(var1), 0));
-+    final String name = FluidRegistry.getFluid(this.blocklist.get(var1)).getLocalizedName();
+-        FluidRegistry.getFluid(this.blocklist.get(i)).getLocalizedName(
+-            FluidRegistry.getFluidStack(this.blocklist.get(i), 0));
++    final String name = FluidRegistry.getFluid(this.blocklist.get(i)).getLocalizedName();
      Minecraft.getMinecraft().fontRenderer.drawStringWithShadow(name,
          (this.parent.width - Minecraft.getMinecraft().fontRenderer.getStringWidth(name)) / 2,
-         var3 + 1, 0xFFFFFF);
+         v3 + 2, 0xFFFFFF);
 --- a/com/yogpc/qp/client/GuiP_SlotList.java
 +++ b/com/yogpc/qp/client/GuiP_SlotList.java
-@@ -62,7 +62,7 @@
-       final Tessellator var5, final int var6, final int var7) {
-     String name = this.target.get(var1);
+@@ -61,7 +61,7 @@
+       final Tessellator t, final int v6, final int v7) {
+     String name = this.target.get(i);
      if (FluidRegistry.isFluidRegistered(name))
 -      name = FluidRegistry.getFluid(name).getLocalizedName(FluidRegistry.getFluidStack(name, 0));
 +      name = FluidRegistry.getFluid(name).getLocalizedName();
      Minecraft.getMinecraft().fontRenderer
          .drawStringWithShadow(
              name,
---- a/com/yogpc/qp/client/GuiQ_List.java
-+++ b/com/yogpc/qp/client/GuiQ_List.java
-@@ -29,7 +29,7 @@
- import cpw.mods.fml.relauncher.SideOnly;
- 
- @SideOnly(Side.CLIENT)
--public class GuiQ_List extends GuiScreenA implements GuiYesNoCallback {
-+public class GuiQ_List extends GuiScreenA {
-   private GuiQ_SlotList oreslot;
-   private GuiButton delete;
-   private final TileBasic tile;
 --- a/com/yogpc/qp/client/GuiYesNo.java
 +++ b/com/yogpc/qp/client/GuiYesNo.java
 @@ -19,12 +19,12 @@

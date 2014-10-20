@@ -11,9 +11,10 @@ A,com/yogpc/qp/CommonProxy,net.minecraft.entity.player.EntityPlayer,net.minecraf
 A,com/yogpc/qp/TilePump,java.util.Map
 A,com/yogpc/qp/client/ClientProxy,net.minecraftforge.client.MinecraftForgeClient
 A,com/yogpc/qp/client/GuiError,net.minecraft.client.gui.GuiSmallButton,net.minecraft.util.StatCollector
-R,com/yogpc/qp/QuarryPlus,net.minecraftforge.oredict.OreDictionary,com.yogpc.qp.client.RenderEntityLaser,cpw.mods.fml.relauncher.Side,cpw.mods.fml.relauncher.SideOnly
+R,com/yogpc/qp/QuarryPlus,net.minecraftforge.oredict.OreDictionary,com.yogpc.qp.client.RenderEntityLaser
 R,com/yogpc/qp/BlockInfMJSrc,cpw.mods.fml.relauncher.Side,cpw.mods.fml.relauncher.SideOnly
 R,com/yogpc/qp/client/GuiError,net.minecraft.client.Minecraft,net.minecraft.client.gui.GuiErrorScreen
 R,com/yogpc/mc_lib/APowerTile,net.minecraftforge.common.ForgeDirection
 R,com/yogpc/qp/ItemTool,net.minecraftforge.oredict.OreDictionary
 R,com/yogpc/ip/BlockController,net.minecraft.world.WorldServer
+R,com/yogpc/mc_lib/ContainerWorkbench,java.util.HashSet,java.util.Iterator,java.util.Set

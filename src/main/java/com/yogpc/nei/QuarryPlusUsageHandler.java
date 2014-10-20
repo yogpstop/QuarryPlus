@@ -4,6 +4,7 @@ import java.util.Map;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.StatCollector;
 import codechicken.nei.PositionedStack;
 import codechicken.nei.recipe.TemplateRecipeHandler;
 
@@ -25,7 +26,7 @@ public final class QuarryPlusUsageHandler extends TemplateRecipeHandler {
 
   @Override
   public String getRecipeName() {
-    return "nei.handler.qpusage";
+    return StatCollector.translateToLocal("nei.handler.qpusage");
   }
 
   @Override
