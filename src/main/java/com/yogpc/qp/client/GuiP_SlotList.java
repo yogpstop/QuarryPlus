@@ -30,9 +30,8 @@ public class GuiP_SlotList extends GuiSlot {
   protected List<String> target;
 
   public GuiP_SlotList(final Minecraft par1Minecraft, final int par2, final int par3,
-      final int par4, final int par5, final int par6, final GuiScreen parents,
-      final List<String> ali) {
-    super(par1Minecraft, par2, par3, par4, par5, par6);
+      final int par4, final int par5, final GuiScreen parents, final List<String> ali) {
+    super(par1Minecraft, par2, par3, par4, par5, 18);
     this.parent = parents;
     this.target = ali;
   }
@@ -58,15 +57,15 @@ public class GuiP_SlotList extends GuiSlot {
   }
 
   @Override
-  protected void drawSlot(final int var1, final int var2, final int var3, final int var4,
-      final Tessellator var5, final int var6, final int var7) {
-    String name = this.target.get(var1);
+  protected void drawSlot(final int i, final int v2, final int v3, final int v4,
+      final Tessellator t, final int v6, final int v7) {
+    String name = this.target.get(i);
     if (FluidRegistry.isFluidRegistered(name))
       name = FluidRegistry.getFluid(name).getLocalizedName(FluidRegistry.getFluidStack(name, 0));
     Minecraft.getMinecraft().fontRenderer
         .drawStringWithShadow(
             name,
             (this.parent.width * 3 / 5 - Minecraft.getMinecraft().fontRenderer.getStringWidth(name)) / 2,
-            var3 + 1, 0xFFFFFF);
+            v3 + 2, 0xFFFFFF);
   }
 }

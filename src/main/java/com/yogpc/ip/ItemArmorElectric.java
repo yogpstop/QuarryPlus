@@ -17,7 +17,7 @@ import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetHandlerPlayServer;
-import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ISpecialArmor;
@@ -112,9 +112,9 @@ public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElec
       if (!FMLCommonHandler.instance().getEffectiveSide().isClient()) {
         nbtData.setBoolean("hoverMode", hoverMode);
         if (hoverMode)
-          p.addChatMessage(new ChatComponentText("Hover Mode enabled."));
+          p.addChatMessage(new ChatComponentTranslation("yog.armor.hover.on"));
         else
-          p.addChatMessage(new ChatComponentText("Hover Mode disabled."));
+          p.addChatMessage(new ChatComponentTranslation("yog.armor.hover.off"));
       }
     }
     if (!FMLCommonHandler.instance().getEffectiveSide().isClient() && toggleTimer > 0) {

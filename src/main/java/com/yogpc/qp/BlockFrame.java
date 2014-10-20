@@ -23,6 +23,7 @@ public class BlockFrame extends Block {
     setSides(true, true, true, true, true, true);
     setHardness(0.5F);
     setTickRandomly(true);
+    setBlockName("qpFrame");
     setBlockTextureName("yogpstop_qp:blockFrame");
   }
 

@@ -13,9 +13,6 @@
 
 package com.yogpc.qp;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
 import java.lang.reflect.Method;
 
 import net.minecraft.entity.player.EntityPlayer;
@@ -31,7 +28,6 @@ import com.google.common.io.ByteStreams;
 import com.yogpc.mc_lib.APacketTile;
 import com.yogpc.mc_lib.PacketHandler;
 import com.yogpc.mc_lib.ReflectionHelper;
-import com.yogpc.mc_lib.YogpstopPacket;
 
 public class TileInfMJSrc extends APacketTile {
   public float power = 10;
@@ -73,19 +69,6 @@ public class TileInfMJSrc extends APacketTile {
     this.cInterval = this.interval;
   }
 
-  void S_openGUI(final EntityPlayer ep) {
-    try {
-      final ByteArrayOutputStream bos = new ByteArrayOutputStream();
-      final DataOutputStream dos = new DataOutputStream(bos);
-      dos.writeFloat(this.power);
-      dos.writeInt(this.interval);
-      PacketHandler.sendPacketToPlayer(new YogpstopPacket(bos.toByteArray(), this,
-          PacketHandler.StC_OPENGUI_INFMJSRC), ep);
-    } catch (final IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
   @Override
   protected void S_recievePacket(final byte id, final byte[] data, final EntityPlayer ep) {
     final ByteArrayDataInput badi = ByteStreams.newDataInput(data);
@@ -93,23 +76,12 @@ public class TileInfMJSrc extends APacketTile {
       case PacketHandler.CtS_INFMJSRC:
         this.power = badi.readFloat();
         this.interval = badi.readInt();
-        S_openGUI(ep);
         break;
     }
   }
 
   @Override
-  protected void C_recievePacket(final byte id, final byte[] data, final EntityPlayer ep) {
-    final ByteArrayDataInput badi = ByteStreams.newDataInput(data);
-    switch (id) {
-      case PacketHandler.StC_OPENGUI_INFMJSRC:
-        this.power = badi.readFloat();
-        this.interval = badi.readInt();
-        ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdInfMJSrc, this.worldObj, this.xCoord,
-            this.yCoord, this.zCoord);
-        break;
-    }
-  }
+  protected void C_recievePacket(final byte id, final byte[] data, final EntityPlayer ep) {}
 
   @Override
   public void readFromNBT(final NBTTagCompound nbttc) {

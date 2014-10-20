@@ -19,7 +19,8 @@ import java.util.Collection;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.util.StatCollector;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.IChatComponent;
 
 public final class EnchantmentHelper {
   static final void init(final IEnchantableTile te, final NBTTagList nbttl) {
@@ -42,27 +43,26 @@ public final class EnchantmentHelper {
     te.G_reinit();
   }
 
-  public static Collection<String> getEnchantmentsChat(final IEnchantableTile te) {
-    final ArrayList<String> als = new ArrayList<String>();
+  private static IChatComponent getEnchChat(final int id, final int l) {
+    return new ChatComponentTranslation("chat.indent", Enchantment.enchantmentsList[id].getName(),
+        "enchnatment.level." + Integer.toString(l));
+  }
+
+  public static Collection<IChatComponent> getEnchantmentsChat(final IEnchantableTile te) {
+    final ArrayList<IChatComponent> als = new ArrayList<IChatComponent>();
     if (te.getEfficiency() <= 0 && !te.getSilktouch() && te.getUnbreaking() <= 0
         && te.getFortune() <= 0)
-      als.add(StatCollector.translateToLocal("chat.plusenchantno"));
+      als.add(new ChatComponentTranslation("chat.plusenchantno"));
     else
-      als.add(StatCollector.translateToLocal("chat.plusenchant"));
+      als.add(new ChatComponentTranslation("chat.plusenchant"));
     if (te.getEfficiency() > 0)
-      als.add(new StringBuilder().append("    ")
-          .append(Enchantment.enchantmentsList[32].getTranslatedName(te.getEfficiency()))
-          .toString());
+      als.add(getEnchChat(32, te.getEfficiency()));
     if (te.getSilktouch())
-      als.add(new StringBuilder().append("    ")
-          .append(Enchantment.enchantmentsList[33].getTranslatedName(1)).toString());
+      als.add(getEnchChat(33, 1));
     if (te.getUnbreaking() > 0)
-      als.add(new StringBuilder().append("    ")
-          .append(Enchantment.enchantmentsList[34].getTranslatedName(te.getUnbreaking()))
-          .toString());
+      als.add(getEnchChat(34, te.getUnbreaking()));
     if (te.getFortune() > 0)
-      als.add(new StringBuilder().append("    ")
-          .append(Enchantment.enchantmentsList[35].getTranslatedName(te.getFortune())).toString());
+      als.add(getEnchChat(35, te.getFortune()));
     return als;
   }
 

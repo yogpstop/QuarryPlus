@@ -92,7 +92,7 @@ public class TileBreaker extends TileEntity implements IEnchantableTile, IInvent
 
   @Override
   public String getInventoryName() {
-    return null;
+    return "tile.BreakerPlus.name";
   }
 
   @Override

@@ -7,7 +7,7 @@ public class NEIQuarryPlusConfig implements IConfigureNEI {
 
   @Override
   public String getName() {
-    return "QuarryPlus NEI Plugin";
+    return "nei.plugin.qp";
   }
 
   @Override

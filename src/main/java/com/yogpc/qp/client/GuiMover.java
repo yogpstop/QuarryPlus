@@ -56,6 +56,8 @@ public class GuiMover extends GuiContainer {
 
   @Override
   protected void drawGuiContainerForegroundLayer(final int par1, final int par2) {
+    this.fontRendererObj.drawString(StatCollector.translateToLocal("tile.EnchantMover.name"), 8, 6,
+        0x404040);
     this.fontRendererObj.drawString(StatCollector.translateToLocal("container.inventory"), 8, 72,
         0x404040);
   }

@@ -40,6 +40,7 @@ public class GuiP_Manual extends GuiScreenA implements GuiYesNoCallback {
 
   @Override
   public void initGui() {
+    super.initGui();
     this.buttonList.add(new GuiButton(-1, this.width / 2 - 150, this.height - 26, 140, 20,
         StatCollector.translateToLocal("gui.done")));
     this.buttonList.add(new GuiButton(-2, this.width / 2 + 10, this.height - 26, 140, 20,

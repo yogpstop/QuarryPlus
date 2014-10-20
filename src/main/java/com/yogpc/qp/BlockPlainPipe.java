@@ -15,6 +15,7 @@ public class BlockPlainPipe extends Block {
     this.maxX = 0.75;
     this.maxY = 1.0;
     this.maxZ = 0.75;
+    setBlockName("qpPlainPipe");
     setBlockTextureName("yogpstop_qp:blockPlainPipe");
   }
 

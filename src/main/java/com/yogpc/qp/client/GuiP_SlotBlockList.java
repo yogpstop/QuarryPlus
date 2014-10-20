@@ -37,9 +37,8 @@ public class GuiP_SlotBlockList extends GuiSlot {
   }
 
   public GuiP_SlotBlockList(final Minecraft par1Minecraft, final int par2, final int par3,
-      final int par4, final int par5, final int par6, final GuiScreen parents,
-      final List<String> list) {
-    super(par1Minecraft, par2, par3, par4, par5, par6);
+      final int par4, final int par5, final GuiScreen parents, final List<String> list) {
+    super(par1Minecraft, par2, par3, par4, par5, 18);
     for (int i = 0; i < this.blocklist.size(); i++)
       for (int j = 0; j < list.size(); j++)
         if (list.get(j).equals(this.blocklist.get(i))) {
@@ -73,13 +72,13 @@ public class GuiP_SlotBlockList extends GuiSlot {
   }
 
   @Override
-  protected void drawSlot(final int var1, final int var2, final int var3, final int var4,
-      final Tessellator var5, final int var6, final int var7) {
+  protected void drawSlot(final int i, final int v2, final int v3, final int v4,
+      final Tessellator t, final int v6, final int v7) {
     final String name =
-        FluidRegistry.getFluid(this.blocklist.get(var1)).getLocalizedName(
-            FluidRegistry.getFluidStack(this.blocklist.get(var1), 0));
+        FluidRegistry.getFluid(this.blocklist.get(i)).getLocalizedName(
+            FluidRegistry.getFluidStack(this.blocklist.get(i), 0));
     Minecraft.getMinecraft().fontRenderer.drawStringWithShadow(name,
         (this.parent.width - Minecraft.getMinecraft().fontRenderer.getStringWidth(name)) / 2,
-        var3 + 1, 0xFFFFFF);
+        v3 + 2, 0xFFFFFF);
   }
 }

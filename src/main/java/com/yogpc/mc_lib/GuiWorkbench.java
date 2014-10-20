@@ -3,6 +3,7 @@ package com.yogpc.mc_lib;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.StatCollector;
 
 import org.lwjgl.opengl.GL11;
 
@@ -24,8 +25,11 @@ public class GuiWorkbench extends GuiContainer {
 
   @Override
   protected void drawGuiContainerForegroundLayer(final int p_146979_1_, final int p_146979_2_) {
-    this.fontRendererObj.drawString("Workbench Plus", 8, 6, 0x404040);
-    this.fontRendererObj.drawString("TODO", 8, this.ySize - 96 + 2, 0x404040);
+    this.fontRendererObj.drawString(
+        this.tile.hasCustomInventoryName() ? this.tile.getInventoryName() : StatCollector
+            .translateToLocal(this.tile.getInventoryName()), 8, 6, 0x404040);
+    this.fontRendererObj.drawString(StatCollector.translateToLocal("container.inventory"), 8,
+        this.ySize - 96 + 2, 0x404040);
   }
 
   @Override

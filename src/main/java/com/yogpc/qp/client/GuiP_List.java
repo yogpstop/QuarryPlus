@@ -40,6 +40,7 @@ public class GuiP_List extends GuiScreenA implements GuiYesNoCallback {
 
   @Override
   public void initGui() {
+    super.initGui();
     this.buttonList.add(new GuiButton(-4, this.width / 2 - 160, this.height - 26, 100, 20,
         StatCollector.translateToLocal("pp.change")));
     this.buttonList.add(new GuiButton(-1, this.width / 2 - 50, this.height - 26, 100, 20,
@@ -71,7 +72,7 @@ public class GuiP_List extends GuiScreenA implements GuiYesNoCallback {
         new GuiButton(PacketHandler.CtS_BOTTOM_MAPPING, this.width * 2 / 3 + 10, 170, 100, 20,
             StatCollector.translateToLocal("tof.bottom")));
     this.oreslot =
-        new GuiP_SlotList(this.mc, this.width * 3 / 5, this.height, 30, this.height - 30, 18, this,
+        new GuiP_SlotList(this.mc, this.width * 3 / 5, this.height, 30, this.height - 30, this,
             this.tile.mapping[this.dir]);
   }
 
@@ -113,8 +114,8 @@ public class GuiP_List extends GuiScreenA implements GuiYesNoCallback {
     drawCenteredString(
         this.fontRendererObj,
         StatCollector.translateToLocal("pp.list.setting")
-            + StatCollector.translateToLocal(TilePump.fdToString(ForgeDirection
-                .getOrientation(this.dir))), this.width / 2, 8, 0xFFFFFF);
+            + StatCollector.translateToLocal("FD."
+                + ForgeDirection.getOrientation(this.dir).toString()), this.width / 2, 8, 0xFFFFFF);
     if (this.tile.mapping[this.dir].isEmpty()) {
       this.delete.enabled = false;
       this.top.enabled = false;

@@ -27,7 +27,6 @@ import net.minecraft.util.IIcon;
 import net.minecraft.world.World;
 import net.minecraftforge.oredict.OreDictionary;
 
-import com.yogpc.mc_lib.PacketHandler;
 import com.yogpc.qp.QuarryPlus.BlockData;
 
 import cpw.mods.fml.common.registry.GameData;
@@ -96,8 +95,8 @@ public class ItemTool extends Item implements IEnchantableItem {
           c.removeTag("Bname");
           c.removeTag("Bmeta");
         } else if (!w.isRemote)
-          tb.sendOpenGUI(ep, f ? PacketHandler.StC_OPENGUI_FORTUNE
-              : PacketHandler.StC_OPENGUI_SILKTOUCH);
+          ep.openGui(QuarryPlus.instance, f ? QuarryPlus.guiIdFList : QuarryPlus.guiIdSList, w, x,
+              y, z);
         return true;
       }
       if (b != null && !b.isAir(w, x, y, z)) {

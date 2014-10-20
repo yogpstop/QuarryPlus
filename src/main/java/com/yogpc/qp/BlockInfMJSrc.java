@@ -37,10 +37,10 @@ public class BlockInfMJSrc extends BlockContainer {
   }
 
   @Override
-  public boolean onBlockActivated(final World world, final int x, final int y, final int z,
+  public boolean onBlockActivated(final World w, final int x, final int y, final int z,
       final EntityPlayer ep, final int par6, final float par7, final float par8, final float par9) {
-    if (!world.isRemote)
-      ((TileInfMJSrc) world.getTileEntity(x, y, z)).S_openGUI(ep);
+    if (!w.isRemote)
+      ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdInfMJSrc, w, x, y, z);
     return true;
   }
 }

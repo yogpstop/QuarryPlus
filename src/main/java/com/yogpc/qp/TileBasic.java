@@ -13,9 +13,6 @@
 
 package com.yogpc.qp;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,7 +34,6 @@ import com.yogpc.mc_lib.APowerTile;
 import com.yogpc.mc_lib.InvUtils;
 import com.yogpc.mc_lib.PacketHandler;
 import com.yogpc.mc_lib.ReflectionHelper;
-import com.yogpc.mc_lib.YogpstopPacket;
 import com.yogpc.qp.QuarryPlus.BlockData;
 
 import cpw.mods.fml.common.registry.GameData;
@@ -56,52 +52,21 @@ public abstract class TileBasic extends APowerTile implements IInventory, IEncha
 
   protected final LinkedList<ItemStack> cacheItems = new LinkedList<ItemStack>();
 
-  void sendOpenGUI(final EntityPlayer ep, final byte id) {
-    final ByteArrayOutputStream bos = new ByteArrayOutputStream();
-    final DataOutputStream dos = new DataOutputStream(bos);
-    try {
-      dos.writeBoolean(id == PacketHandler.StC_OPENGUI_FORTUNE ? this.fortuneInclude
-          : this.silktouchInclude);
-      final List<BlockData> target =
-          id == PacketHandler.StC_OPENGUI_FORTUNE ? this.fortuneList : this.silktouchList;
-      dos.writeInt(target.size());
-      for (final BlockData l : target) {
-        dos.writeUTF(l.name);
-        dos.writeInt(l.meta);
-      }
-    } catch (final IOException e) {
-      throw new RuntimeException(e);
-    }
-    PacketHandler.sendPacketToPlayer(new YogpstopPacket(bos.toByteArray(), this, id), ep);
-  }
-
   @Override
   protected void S_recievePacket(final byte id, final byte[] data, final EntityPlayer ep) {
     final ByteArrayDataInput badi = ByteStreams.newDataInput(data);
     switch (id) {
-      case PacketHandler.CtS_ADD_FORTUNE:
-        this.fortuneList.add(new BlockData(badi.readUTF(), badi.readInt()));
-        sendOpenGUI(ep, PacketHandler.StC_OPENGUI_FORTUNE);
-        break;
       case PacketHandler.CtS_REMOVE_FORTUNE:
         this.fortuneList.remove(new BlockData(badi.readUTF(), badi.readInt()));
-        sendOpenGUI(ep, PacketHandler.StC_OPENGUI_FORTUNE);
-        break;
-      case PacketHandler.CtS_ADD_SILKTOUCH:
-        this.silktouchList.add(new BlockData(badi.readUTF(), badi.readInt()));
-        sendOpenGUI(ep, PacketHandler.StC_OPENGUI_SILKTOUCH);
         break;
       case PacketHandler.CtS_REMOVE_SILKTOUCH:
         this.silktouchList.remove(new BlockData(badi.readUTF(), badi.readInt()));
-        sendOpenGUI(ep, PacketHandler.StC_OPENGUI_SILKTOUCH);
         break;
       case PacketHandler.CtS_TOGGLE_FORTUNE:
         this.fortuneInclude = !this.fortuneInclude;
-        sendOpenGUI(ep, PacketHandler.StC_OPENGUI_FORTUNE);
         break;
       case PacketHandler.CtS_TOGGLE_SILKTOUCH:
         this.silktouchInclude = !this.silktouchInclude;
-        sendOpenGUI(ep, PacketHandler.StC_OPENGUI_SILKTOUCH);
         break;
     }
   }
@@ -123,29 +88,7 @@ public abstract class TileBasic extends APowerTile implements IInventory, IEncha
   }
 
   @Override
-  protected void C_recievePacket(final byte id, final byte[] data, final EntityPlayer ep) {
-    final ByteArrayDataInput badi = ByteStreams.newDataInput(data);
-    switch (id) {
-      case PacketHandler.StC_OPENGUI_FORTUNE:
-        this.fortuneInclude = badi.readBoolean();
-        this.fortuneList.clear();
-        final int fsize = badi.readInt();
-        for (int i = 0; i < fsize; i++)
-          this.fortuneList.add(new BlockData(badi.readUTF(), badi.readInt()));
-        ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdFList, this.worldObj, this.xCoord,
-            this.yCoord, this.zCoord);
-        break;
-      case PacketHandler.StC_OPENGUI_SILKTOUCH:
-        this.silktouchInclude = badi.readBoolean();
-        this.silktouchList.clear();
-        final int ssize = badi.readInt();
-        for (int i = 0; i < ssize; i++)
-          this.silktouchList.add(new BlockData(badi.readUTF(), badi.readInt()));
-        ep.openGui(QuarryPlus.instance, QuarryPlus.guiIdSList, this.worldObj, this.xCoord,
-            this.yCoord, this.zCoord);
-        break;
-    }
-  }
+  protected void C_recievePacket(final byte id, final byte[] data, final EntityPlayer ep) {}
 
   protected void S_pollItems() {
     ItemStack is;
@@ -329,7 +272,7 @@ public abstract class TileBasic extends APowerTile implements IInventory, IEncha
 
   @Override
   public String getInventoryName() {
-    return null;
+    return "container.yog.basic";
   }
 
   @Override

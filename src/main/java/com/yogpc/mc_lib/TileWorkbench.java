@@ -178,7 +178,7 @@ public class TileWorkbench extends APowerTile implements IInventory {
 
   @Override
   public String getInventoryName() {
-    return "";
+    return "tile.WorkbenchPlus.name";
   }
 
   @Override

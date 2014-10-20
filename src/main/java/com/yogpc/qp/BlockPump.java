@@ -24,7 +24,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.IChatComponent;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
@@ -137,11 +137,11 @@ public class BlockPump extends BlockContainer {
       if (ep.getCurrentEquippedItem().getItemDamage() == 0) {
         if (world.isRemote)
           return true;
-        for (final String s : ((TilePump) world.getTileEntity(x, y, z)).C_getNames())
-          ep.addChatMessage(new ChatComponentText(s));
-        for (final String s : EnchantmentHelper.getEnchantmentsChat((IEnchantableTile) world
-            .getTileEntity(x, y, z)))
-          ep.addChatMessage(new ChatComponentText(s));
+        for (final IChatComponent s : ((TilePump) world.getTileEntity(x, y, z)).C_getNames())
+          ep.addChatMessage(s);
+        for (final IChatComponent s : EnchantmentHelper
+            .getEnchantmentsChat((IEnchantableTile) world.getTileEntity(x, y, z)))
+          ep.addChatMessage(s);
         return true;
       }
       if (ep.getCurrentEquippedItem().getItemDamage() == 2) {

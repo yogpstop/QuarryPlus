@@ -16,11 +16,11 @@ package com.yogpc.qp;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.world.World;
 
+import com.yogpc.qp.client.GuiEnchList;
 import com.yogpc.qp.client.GuiInfMJSrc;
 import com.yogpc.qp.client.GuiMover;
 import com.yogpc.qp.client.GuiP_List;
 import com.yogpc.qp.client.GuiPlacer;
-import com.yogpc.qp.client.GuiQ_List;
 
 import cpw.mods.fml.common.network.IGuiHandler;
 
@@ -32,9 +32,9 @@ public class GuiHandler implements IGuiHandler {
       case QuarryPlus.guiIdMover:
         return new GuiMover(p, w, x, y, z);
       case QuarryPlus.guiIdFList:
-        return new GuiQ_List((byte) 0, (TileBasic) w.getTileEntity(x, y, z));
+        return new GuiEnchList((byte) 0, (TileBasic) w.getTileEntity(x, y, z));
       case QuarryPlus.guiIdSList:
-        return new GuiQ_List((byte) 1, (TileBasic) w.getTileEntity(x, y, z));
+        return new GuiEnchList((byte) 1, (TileBasic) w.getTileEntity(x, y, z));
       case QuarryPlus.guiIdInfMJSrc:
         return new GuiInfMJSrc((TileInfMJSrc) w.getTileEntity(x, y, z));
       case QuarryPlus.guiIdPlacer:
@@ -58,6 +58,11 @@ public class GuiHandler implements IGuiHandler {
     switch (ID) {
       case QuarryPlus.guiIdMover:
         return new ContainerMover(p.inventory, w, x, y, z);
+      case QuarryPlus.guiIdFList:
+      case QuarryPlus.guiIdSList:
+        return new ContainerEnchList((TileBasic) w.getTileEntity(x, y, z));
+      case QuarryPlus.guiIdInfMJSrc:
+        return new ContainerInfMJSrc((TileInfMJSrc) w.getTileEntity(x, y, z));
       case QuarryPlus.guiIdPlacer:
         return new ContainerPlacer(p.inventory, (TilePlacer) w.getTileEntity(x, y, z));
     }

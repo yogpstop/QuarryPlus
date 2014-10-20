@@ -68,17 +68,12 @@ public class PacketHandler extends SimpleChannelInboundHandler<YogpstopPacket> {
   static final byte STATIC = 3;
   static final byte KEY = 4;
 
-  public static final byte StC_OPENGUI_FORTUNE = 0;
-  public static final byte StC_OPENGUI_SILKTOUCH = 1;
-  public static final byte StC_OPENGUI_INFMJSRC = 2;
   public static final byte StC_OPENGUI_MAPPING = 3;
   public static final byte StC_NOW = 4;
   public static final byte StC_HEAD_POS = 5;
   public static final byte StC_UPDATE_MARKER = 6;
   public static final byte StC_LINK_RES = 7;
 
-  public static final byte CtS_ADD_FORTUNE = 8;
-  public static final byte CtS_ADD_SILKTOUCH = 9;
   public static final byte CtS_REMOVE_FORTUNE = 10;
   public static final byte CtS_REMOVE_SILKTOUCH = 11;
   public static final byte CtS_TOGGLE_FORTUNE = 12;

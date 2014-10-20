@@ -19,6 +19,7 @@ import java.io.IOException;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiTextField;
+import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 
@@ -26,13 +27,14 @@ import org.lwjgl.opengl.GL11;
 
 import com.yogpc.mc_lib.PacketHandler;
 import com.yogpc.mc_lib.YogpstopPacket;
+import com.yogpc.qp.ContainerInfMJSrc;
 import com.yogpc.qp.TileInfMJSrc;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
-public class GuiInfMJSrc extends GuiScreenA {
+public class GuiInfMJSrc extends GuiContainer {
   private static final ResourceLocation gui = new ResourceLocation("yogpstop_qp",
       "textures/gui/infmjsrc.png");
   private final TileInfMJSrc tile;
@@ -40,8 +42,9 @@ public class GuiInfMJSrc extends GuiScreenA {
   private GuiTextField itv;
 
   public GuiInfMJSrc(final TileInfMJSrc pt) {
-    super(null);
+    super(new ContainerInfMJSrc(pt));
     this.tile = pt;
+    this.ySize = 214;
   }
 
   @Override
@@ -53,9 +56,12 @@ public class GuiInfMJSrc extends GuiScreenA {
     this.eng.setText(Float.toString(this.tile.power));
     this.itv = new GuiTextField(this.fontRendererObj, (this.width >> 1) - 75, yb + 106, 150, 20);
     this.itv.setText(Integer.toString(this.tile.interval));
-    this.buttonList.add(new GuiButton(1, (this.width >> 1) + 30, yb + 34, 50, 20, "Reset"));
-    this.buttonList.add(new GuiButton(2, (this.width >> 1) + 30, yb + 82, 50, 20, "Reset"));
-    this.buttonList.add(new GuiButton(3, (this.width >> 1) - 75, yb + 144, 150, 20, "Apply"));
+    this.buttonList.add(new GuiButton(1, (this.width >> 1) + 30, yb + 34, 50, 20, StatCollector
+        .translateToLocal("gui.reset")));
+    this.buttonList.add(new GuiButton(2, (this.width >> 1) + 30, yb + 82, 50, 20, StatCollector
+        .translateToLocal("gui.reset")));
+    this.buttonList.add(new GuiButton(3, (this.width >> 1) - 75, yb + 144, 150, 20, StatCollector
+        .translateToLocal("gui.apply")));
   }
 
   @Override
@@ -64,10 +70,10 @@ public class GuiInfMJSrc extends GuiScreenA {
       return;
     switch (gb.id) {
       case 1:
-        this.eng.setText("10.0");
+        this.eng.setText(Float.toString(this.tile.power));
         break;
       case 2:
-        this.itv.setText("1");
+        this.itv.setText(Integer.toString(this.tile.interval));
         break;
       case 3:
         try {
@@ -106,26 +112,30 @@ public class GuiInfMJSrc extends GuiScreenA {
   }
 
   @Override
-  public void drawScreen(final int i, final int j, final float k) {
-    drawDefaultBackground();
-    GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-    this.mc.getTextureManager().bindTexture(gui);
-    final int xb = this.width - 176 >> 1;
-    final int yb = this.height - 214 >> 1;
-    drawTexturedModalRect(xb, yb, 0, 0, 176, 214);
+  protected void drawGuiContainerForegroundLayer(final int x, final int y) {
+    super.drawGuiContainerForegroundLayer(x, y);
     drawCenteredString(this.fontRendererObj, StatCollector.translateToLocal("tile.InfMJSrc.name"),
-        this.width / 2, yb + 6, 0xFFFFFF);
+        this.xSize / 2, 6, 0xFFFFFF);
     final StringBuilder sb = new StringBuilder();
     sb.append("x:").append(this.tile.xCoord).append(" y:").append(this.tile.yCoord).append("z: ")
         .append(this.tile.zCoord);
-    drawCenteredString(this.fontRendererObj, sb.toString(), this.width / 2, yb + 20, 0xFFFFFF);
-    this.fontRendererObj.drawStringWithShadow("Energy(MJ)", this.width / 2 - 70, yb + 39, 0xFFFFFF);
-    this.fontRendererObj.drawStringWithShadow("Interval(tick)", this.width / 2 - 70, yb + 88,
-        0xFFFFFF);
-    drawCenteredString(this.fontRendererObj, "1tick=1/20second", this.width / 2, yb + 130, 0xFFFFFF);
+    drawCenteredString(this.fontRendererObj, sb.toString(), this.xSize / 2, 20, 0xFFFFFF);
+    this.fontRendererObj.drawStringWithShadow(
+        StatCollector.translateToLocal("gui.infmjsrc.energy"), this.xSize / 2 - 70, 39, 0xFFFFFF);
+    this.fontRendererObj.drawStringWithShadow(StatCollector.translateToLocal("gui.infmjsrc.itv"),
+        this.xSize / 2 - 70, 88, 0xFFFFFF);
+    drawCenteredString(this.fontRendererObj,
+        StatCollector.translateToLocal("gui.infmjsrc.tickinfo"), this.xSize / 2, 130, 0xFFFFFF);
+  }
+
+  @Override
+  protected void drawGuiContainerBackgroundLayer(final float f, final int i, final int j) {
+    GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+    this.mc.getTextureManager().bindTexture(gui);
+    drawTexturedModalRect(this.width - 176 >> 1, this.height - 214 >> 1, 0, 0, this.xSize,
+        this.ySize);
     this.eng.drawTextBox();
     this.itv.drawTextBox();
-    super.drawScreen(i, j, k);
   }
 
   @Override
@@ -136,11 +146,28 @@ public class GuiInfMJSrc extends GuiScreenA {
   }
 
   @Override
-  protected void keyTyped(final char par1, final int par2) {
+  protected void keyTyped(final char c, final int i) {
     if (this.eng.isFocused())
-      this.eng.textboxKeyTyped(par1, par2);
+      this.eng.textboxKeyTyped(c, i);
     else if (this.itv.isFocused())
-      this.itv.textboxKeyTyped(par1, par2);
-    super.keyTyped(par1, par2);
+      this.itv.textboxKeyTyped(c, i);
+    else
+      super.keyTyped(c, i);
+  }
+
+  private float pp;
+  private int pi;
+
+  @Override
+  public void updateScreen() {
+    super.updateScreen();
+    if (this.pp != this.tile.power) {
+      this.pp = this.tile.power;
+      this.eng.setText(Float.toString(this.pp));
+    }
+    if (this.pi != this.tile.interval) {
+      this.pi = this.tile.interval;
+      this.itv.setText(Integer.toString(this.pi));
+    }
   }
 }

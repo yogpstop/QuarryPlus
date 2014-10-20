@@ -22,7 +22,7 @@ import net.minecraft.item.Item;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.StatCollector;
+import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
@@ -136,12 +136,12 @@ public class BlockMarker extends BlockContainer {
         final TileMarker.Link l = ((TileMarker) world.getTileEntity(x, y, z)).link;
         if (l == null)
           return true;
-        ep.addChatMessage(new ChatComponentText(StatCollector.translateToLocal("chat.markerarea")));
+        ep.addChatMessage(new ChatComponentTranslation("chat.markerarea"));
         final StringBuilder sb = new StringBuilder();
         sb.append("x:").append(l.xn).append(" y:").append(l.yn).append(" z:").append(l.zn)
             .append(" - ");
         sb.append("x:").append(l.xx).append(" y:").append(l.yx).append(" z:").append(l.zx);
-        ep.addChatMessage(new ChatComponentText(sb.toString()));
+        ep.addChatMessage(new ChatComponentText(sb.toString()));// NP coord info
         return true;
       }
       ((TileMarker) world.getTileEntity(x, y, z)).S_tryConnection();

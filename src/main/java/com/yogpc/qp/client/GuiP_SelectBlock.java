@@ -37,8 +37,9 @@ public class GuiP_SelectBlock extends GuiScreenA {
 
   @Override
   public void initGui() {
+    super.initGui();
     this.blocks =
-        new GuiP_SlotBlockList(this.mc, this.width, this.height, 24, this.height - 32, 18, this,
+        new GuiP_SlotBlockList(this.mc, this.width, this.height, 24, this.height - 32, this,
             this.tile.mapping[this.targetid]);
     this.buttonList.add(new GuiButton(-1, this.width / 2 - 150, this.height - 26, 140, 20,
         StatCollector.translateToLocal("gui.done")));

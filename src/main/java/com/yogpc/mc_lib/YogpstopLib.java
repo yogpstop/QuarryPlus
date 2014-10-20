@@ -33,8 +33,8 @@ public class YogpstopLib implements IGuiHandler {
   @Mod.Instance("YogpstopLib")
   public static YogpstopLib instance;
 
-  private static Block workbench, controller;
-  private static Item magicmirror, armor;
+  public static Block workbench, controller;
+  public static Item magicmirror, armor;
   public static final int guiIdWorkbench = 1;
 
   @Mod.EventHandler
@@ -78,6 +78,7 @@ public class YogpstopLib implements IGuiHandler {
     ChestGenHooks.getInfo(ChestGenHooks.STRONGHOLD_CROSSING).addItem(c);
     ChestGenHooks.getInfo(ChestGenHooks.VILLAGE_BLACKSMITH).addItem(c);
     NetworkRegistry.INSTANCE.registerGuiHandler(this, this);
+    PacketHandler.registerStaticHandler(BlockController.class);
   }
 
   @Override

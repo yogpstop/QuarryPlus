@@ -1,5 +1,7 @@
 package com.yogpc.mc_lib;
 
+import java.util.List;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.multiplayer.WorldClient;
@@ -10,6 +12,9 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.network.INetHandler;
 import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.world.World;
+
+import com.yogpc.ip.GuiController;
+
 import cpw.mods.fml.client.registry.ClientRegistry;
 import cpw.mods.fml.client.registry.RenderingRegistry;
 import cpw.mods.fml.common.FMLCommonHandler;
@@ -25,7 +30,7 @@ public class ProxyClient extends ProxyCommon {
   static {
     for (final Key k : Key.values())
       if (k.name != null) {
-        k.binding = new KeyBinding(k.name, k.id, "YogpstopLib");
+        k.binding = new KeyBinding(k.name, k.id, "key.yoglib");
         ClientRegistry.registerKeyBinding((KeyBinding) k.binding);
       }
   }
@@ -87,5 +92,11 @@ public class ProxyClient extends ProxyCommon {
   @Override
   public World getClientWorld() {
     return Minecraft.getMinecraft().theWorld;
+  }
+
+  @Override
+  public Object getGuiController(final int d, final int x, final int y, final int z,
+      final List<String> l) {
+    return new GuiController(d, x, y, z, l);
   }
 }

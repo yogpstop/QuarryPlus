@@ -10,6 +10,7 @@
  * You should have received a copy of the GNU Lesser General Public License along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
  */
+// TODO item usage(NEI), workbench full recipe list(NEI)
 
 package com.yogpc.qp;
 
@@ -227,7 +228,8 @@ public class QuarryPlus {
     }
   }
 
-  public static String getname(final BlockData bd) {
+  @SideOnly(Side.CLIENT)
+  public static String getLocalizedName(final BlockData bd) {
     final StringBuffer sb = new StringBuffer();
     sb.append(bd.name);
     if (bd.meta != OreDictionary.WILDCARD_VALUE) {

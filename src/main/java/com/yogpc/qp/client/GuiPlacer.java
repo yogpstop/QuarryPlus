@@ -14,9 +14,9 @@
 package com.yogpc.qp.client;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.StatCollector;
 
 import org.lwjgl.opengl.GL11;
 
@@ -41,12 +41,12 @@ public class GuiPlacer extends GuiContainer {
   @Override
   protected void drawGuiContainerForegroundLayer(final int par1, final int par2) {
     final String s =
-        this.tile.hasCustomInventoryName() ? this.tile.getInventoryName() : I18n.format(this.tile
-            .getInventoryName());
+        this.tile.hasCustomInventoryName() ? this.tile.getInventoryName() : StatCollector
+            .translateToLocal(this.tile.getInventoryName());
     this.fontRendererObj.drawString(s, this.xSize / 2 - this.fontRendererObj.getStringWidth(s) / 2,
         6, 4210752);
-    this.fontRendererObj.drawString(I18n.format("container.inventory"), 8, this.ySize - 96 + 2,
-        4210752);
+    this.fontRendererObj.drawString(StatCollector.translateToLocal("container.inventory"), 8,
+        this.ySize - 96 + 2, 4210752);
   }
 
   @Override

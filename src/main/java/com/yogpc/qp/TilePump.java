@@ -26,8 +26,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.StatCollector;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.IChatComponent;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import net.minecraftforge.common.util.ForgeDirection;
@@ -335,8 +335,11 @@ public class TilePump extends APacketTile implements IFluidHandler, IEnchantable
       this.quarryRange = false;
     else
       this.range++;
-    ep.addChatMessage(new ChatComponentText(StatCollector.translateToLocalFormatted(
-        "chat.pump_rtoggle", this.quarryRange ? "quarry" : Integer.toString(this.range * 2 + 1))));
+    if (this.quarryRange)
+      ep.addChatMessage(new ChatComponentTranslation("chat.pump_rtoggle.quarry"));
+    else
+      ep.addChatMessage(new ChatComponentTranslation("chat.pump_rtoggle.num", Integer
+          .toString(this.range * 2 + 1)));
     this.fwt = 0;
   }
 
@@ -520,37 +523,19 @@ public class TilePump extends APacketTile implements IFluidHandler, IEnchantable
       this.mapping[i] = new LinkedList<String>();
   }
 
-  public String[] C_getNames() {
-    final String[] ret = new String[this.liquids.size() + 1];
+  public IChatComponent[] C_getNames() {
+    final IChatComponent[] ret = new IChatComponent[this.liquids.size() + 1];
     if (this.liquids.size() > 0) {
-      ret[0] = StatCollector.translateToLocal("chat.pumpcontain");
-      for (int i = 0; i < this.liquids.size(); i++)
+      ret[0] = new ChatComponentTranslation("chat.pumpcontain");
+      for (int i = 0; i < this.liquids.size(); i++) {
+        final FluidStack s = this.liquids.get(i);
         ret[i + 1] =
-            new StringBuilder().append("    ")
-                .append(this.liquids.get(i).getFluid().getLocalizedName(this.liquids.get(i)))
-                .append(": ").append(this.liquids.get(i).amount).append("mB").toString();
+            new ChatComponentTranslation("yog.pump.liquid", s.getFluid().getUnlocalizedName(s),
+                Integer.toString(s.amount));
+      }
     } else
-      ret[0] = StatCollector.translateToLocal("chat.pumpcontainno");
+      ret[0] = new ChatComponentTranslation("chat.pumpcontainno");
     return ret;
-  }
-
-  public static String fdToString(final ForgeDirection fd) {
-    switch (fd) {
-      case UP:
-        return StatCollector.translateToLocal("up");
-      case DOWN:
-        return StatCollector.translateToLocal("down");
-      case EAST:
-        return StatCollector.translateToLocal("east");
-      case WEST:
-        return StatCollector.translateToLocal("west");
-      case NORTH:
-        return StatCollector.translateToLocal("north");
-      case SOUTH:
-        return StatCollector.translateToLocal("south");
-      default:
-        return StatCollector.translateToLocal("unknown_direction");
-    }
   }
 
   @Override

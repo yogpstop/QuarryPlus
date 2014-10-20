@@ -27,16 +27,15 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
-public class GuiQ_SlotList extends GuiSlot {
+public class GuiSlotEnchList extends GuiSlot {
   private final GuiScreen parent;
   public int currentore = 0;
   protected List<BlockData> target;
 
-  public GuiQ_SlotList(final Minecraft par1Minecraft, final int par2, final int par3,
-      final int par4, final int par5, final int par6, final GuiScreen parents,
-      final List<BlockData> ali) {
-    super(par1Minecraft, par2, par3, par4, par5, par6);
-    this.parent = parents;
+  public GuiSlotEnchList(final Minecraft mc, final int w, final int h, final int t, final int b,
+      final GuiScreen par, final List<BlockData> ali) {
+    super(mc, w, h, t, b, 18);
+    this.parent = par;
     this.target = ali;
   }
 
@@ -56,18 +55,16 @@ public class GuiQ_SlotList extends GuiSlot {
   }
 
   @Override
-  protected void drawBackground() {
-    this.parent.drawDefaultBackground();
-  }
+  protected void drawBackground() {}
 
   @Override
-  protected void drawSlot(final int var1, final int var2, final int var3, final int var4,
-      final Tessellator var5, final int var6, final int var7) {
-    final String name = QuarryPlus.getname(this.target.get(var1));
+  protected void drawSlot(final int i, final int v2, final int v3, final int v4,
+      final Tessellator t, final int v6, final int v7) {
+    final String name = QuarryPlus.getLocalizedName(this.target.get(i));
     Minecraft.getMinecraft().fontRenderer
         .drawStringWithShadow(
             name,
             (this.parent.width * 3 / 5 - Minecraft.getMinecraft().fontRenderer.getStringWidth(name)) / 2,
-            var3 + 1, 0xFFFFFF);
+            v3 + 2, 0xFFFFFF);
   }
 }

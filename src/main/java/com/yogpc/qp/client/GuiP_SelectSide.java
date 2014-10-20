@@ -43,18 +43,19 @@ public class GuiP_SelectSide extends GuiScreenA {
 
   @Override
   public void initGui() {
+    super.initGui();
     this.buttonList.add(new GuiButton(ForgeDirection.UP.ordinal(), this.width / 2 - 50,
-        this.height / 2 - 60, 100, 20, StatCollector.translateToLocal("up")));
+        this.height / 2 - 60, 100, 20, StatCollector.translateToLocal("FD.UP")));
     this.buttonList.add(new GuiButton(ForgeDirection.DOWN.ordinal(), this.width / 2 - 50,
-        this.height / 2 + 40, 100, 20, StatCollector.translateToLocal("down")));
+        this.height / 2 + 40, 100, 20, StatCollector.translateToLocal("FD.DOWN")));
     this.buttonList.add(new GuiButton(ForgeDirection.SOUTH.ordinal(), this.width / 2 - 50,
-        this.height / 2 + 15, 100, 20, StatCollector.translateToLocal("south")));
+        this.height / 2 + 15, 100, 20, StatCollector.translateToLocal("FD.SOUTH")));
     this.buttonList.add(new GuiButton(ForgeDirection.NORTH.ordinal(), this.width / 2 - 50,
-        this.height / 2 - 35, 100, 20, StatCollector.translateToLocal("north")));
+        this.height / 2 - 35, 100, 20, StatCollector.translateToLocal("FD.NORTH")));
     this.buttonList.add(new GuiButton(ForgeDirection.EAST.ordinal(), this.width / 2 + 40,
-        this.height / 2 - 10, 100, 20, StatCollector.translateToLocal("east")));
+        this.height / 2 - 10, 100, 20, StatCollector.translateToLocal("FD.EAST")));
     this.buttonList.add(new GuiButton(ForgeDirection.WEST.ordinal(), this.width / 2 - 140,
-        this.height / 2 - 10, 100, 20, StatCollector.translateToLocal("west")));
+        this.height / 2 - 10, 100, 20, StatCollector.translateToLocal("FD.WEST")));
   }
 
   @Override

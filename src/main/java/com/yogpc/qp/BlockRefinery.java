@@ -23,7 +23,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.IChatComponent;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
@@ -145,9 +145,9 @@ public class BlockRefinery extends BlockContainer {
       if (ep.getCurrentEquippedItem().getItemDamage() == 0) {
         if (world.isRemote)
           return true;
-        for (final String s : EnchantmentHelper.getEnchantmentsChat((IEnchantableTile) world
-            .getTileEntity(x, y, z)))
-          ep.addChatMessage(new ChatComponentText(s));
+        for (final IChatComponent s : EnchantmentHelper
+            .getEnchantmentsChat((IEnchantableTile) world.getTileEntity(x, y, z)))
+          ep.addChatMessage(s);
         return true;
       }
     } else if (!world.isRemote) {

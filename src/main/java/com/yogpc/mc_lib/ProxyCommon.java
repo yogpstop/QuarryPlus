@@ -1,5 +1,6 @@
 package com.yogpc.mc_lib;
 
+import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 
@@ -27,7 +28,7 @@ public class ProxyCommon {
   }
 
   public static enum Key {
-    forward, mode("Mode Switch Key", 50), jump;
+    forward, mode("key.hover", 50), jump;
     public Object binding;
     public final String name;
     public final int id;
@@ -57,6 +58,11 @@ public class ProxyCommon {
   }
 
   public World getClientWorld() {
+    return null;
+  }
+
+  public Object getGuiController(final int d, final int x, final int y, final int z,
+      final List<String> l) {
     return null;
   }
 }

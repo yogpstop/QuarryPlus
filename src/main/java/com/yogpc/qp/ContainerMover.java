@@ -112,16 +112,27 @@ public class ContainerMover extends Container implements IPacketContainer {
         if (!mergeItemStack(remain, 2, 38, true))
           return null;
       } else {
+        Slot toslot;
+        final ItemStack put = remain.copy();
+        put.stackSize = 1;
         boolean changed = false;
-        if (!changed && ((Slot) this.inventorySlots.get(0)).isItemValid(remain))
-          changed |= mergeItemStack(remain, 0, 1, false);
-        if (!changed && ((Slot) this.inventorySlots.get(1)).isItemValid(remain))
-          changed |= mergeItemStack(remain, 1, 2, false);
+        toslot = (Slot) this.inventorySlots.get(0);
+        if (!changed && toslot.isItemValid(remain) && toslot.getStack() == null) {
+          toslot.putStack(put);
+          remain.stackSize--;
+          changed = true;
+        }
+        toslot = (Slot) this.inventorySlots.get(1);
+        if (!changed && toslot.isItemValid(remain) && toslot.getStack() == null) {
+          toslot.putStack(put);
+          remain.stackSize--;
+          changed = true;
+        }
         if (!changed)
           return null;
       }
       if (remain.stackSize == 0)
-        slot.putStack((ItemStack) null);
+        slot.putStack(null);
       else
         slot.onSlotChanged();
       if (remain.stackSize == src.stackSize)

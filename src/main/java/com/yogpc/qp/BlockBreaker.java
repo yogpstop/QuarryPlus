@@ -27,7 +27,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.IChatComponent;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
@@ -223,9 +223,9 @@ public class BlockBreaker extends BlockContainer {
     if (equipped instanceof ItemTool && ep.getCurrentEquippedItem().getItemDamage() == 0) {
       if (world.isRemote)
         return true;
-      for (final String s : EnchantmentHelper.getEnchantmentsChat((IEnchantableTile) world
+      for (final IChatComponent s : EnchantmentHelper.getEnchantmentsChat((IEnchantableTile) world
           .getTileEntity(x, y, z)))
-        ep.addChatMessage(new ChatComponentText(s));
+        ep.addChatMessage(s);
       return true;
     }
     return false;
