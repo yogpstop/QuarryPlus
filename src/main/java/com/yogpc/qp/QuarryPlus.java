@@ -10,7 +10,6 @@
  * You should have received a copy of the GNU Lesser General Public License along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
  */
-// TODO item usage(NEI), workbench full recipe list(NEI)
 
 package com.yogpc.qp;
 
@@ -63,7 +62,6 @@ public class QuarryPlus {
       blockInfMJSrc, blockRefinery, blockPlacer, blockBreaker, blockLaser, blockPlainPipe,
       blockFrame;
   public static Item itemTool;
-  public static int RecipeDifficulty;
   public static final int guiIdInfMJSrc = 1;
   public static final int guiIdMover = 2;
   public static final int guiIdFList = 3;
@@ -108,9 +106,8 @@ public class QuarryPlus {
     try {
       cfg.load();
       final Property RD = cfg.get(Configuration.CATEGORY_GENERAL, "RecipeDifficulty", 2);
-      RD.comment =
-          "0:AsCheatRecipe,1:EasyRecipe,2:NormalRecipe(Default),3:HardRecipe,other:NormalRecipe";
-      RecipeDifficulty = RD.getInt(2);
+      RD.comment = "Default is 2.0";
+      WorkbenchRecipe.difficulty = RD.getDouble(2.0);
       PowerManager.loadConfiguration(cfg);
     } finally {
       cfg.save();
@@ -156,50 +153,53 @@ public class QuarryPlus {
     GameRegistry.registerTileEntity(TilePlacer.class, "PlacerPlus");
     GameRegistry.registerTileEntity(TileBreaker.class, "BreakerPlus");
     GameRegistry.registerTileEntity(TileLaser.class, "LaserPlus");
-    // TODO RECIPE
-    WorkbenchRecipe.addRecipe(new ItemStack(blockMarker), 20000, new ItemStack(Items.redstone, 6),
-        new ItemStack(Items.dye, 6, 4), new ItemStack(Items.gold_ingot, 3), new ItemStack(
-            Items.iron_ingot, 3), new ItemStack(Items.glowstone_dust));
-    WorkbenchRecipe.addRecipe(new ItemStack(blockQuarry), 320000, new ItemStack(Items.diamond, 16),
-        new ItemStack(Items.gold_ingot, 16), new ItemStack(Items.iron_ingot, 32), new ItemStack(
-            Items.redstone, 8), new ItemStack(Items.ender_pearl));
-    WorkbenchRecipe.addRecipe(new ItemStack(blockMover), 320000,
-        new ItemStack(Blocks.obsidian, 32), new ItemStack(Items.diamond, 16), new ItemStack(
-            Blocks.anvil, 1), new ItemStack(Items.redstone, 24),
-        new ItemStack(Items.gold_ingot, 4), new ItemStack(Items.iron_ingot, 4));
+    WorkbenchRecipe.addRecipe(new ItemStack(blockMarker), 20000,
+        new ItemStack(Items.redstone, 300), new ItemStack(Items.dye, 300, 4), new ItemStack(
+            Items.gold_ingot, 175), new ItemStack(Items.iron_ingot, 150), new ItemStack(
+            Items.glowstone_dust, 50), new ItemStack(Items.ender_pearl, 10));
+    WorkbenchRecipe.addRecipe(new ItemStack(blockQuarry), 320000,
+        new ItemStack(Items.diamond, 800), new ItemStack(Items.gold_ingot, 800), new ItemStack(
+            Items.iron_ingot, 1600), new ItemStack(Items.redstone, 400), new ItemStack(
+            Items.ender_pearl, 50), new ItemStack(Items.nether_star, 3));
+    WorkbenchRecipe.addRecipe(new ItemStack(blockMover), 320000, new ItemStack(Blocks.obsidian,
+        1600), new ItemStack(Items.diamond, 800), new ItemStack(Blocks.anvil, 50), new ItemStack(
+        Items.redstone, 1200), new ItemStack(Items.gold_ingot, 200), new ItemStack(
+        Items.iron_ingot, 200), new ItemStack(Items.nether_star, 1), new ItemStack(
+        Items.ender_pearl, 25));
     WorkbenchRecipe.addRecipe(new ItemStack(blockMiningWell), 160000, new ItemStack(
-        Items.iron_ingot, 16), new ItemStack(Items.redstone, 8), new ItemStack(Items.diamond, 2),
-        new ItemStack(Items.ender_pearl));
-    WorkbenchRecipe.addRecipe(new ItemStack(blockPump), 320000,
-        new ItemStack(Items.iron_ingot, 24), new ItemStack(Items.redstone, 32), new ItemStack(
-            Blocks.glass, 512), new ItemStack(Blocks.cactus, 40),
-        new ItemStack(Items.gold_ingot, 8));
-    WorkbenchRecipe.addRecipe(new ItemStack(blockRefinery), 640000,
-        new ItemStack(Items.diamond, 18), new ItemStack(Items.gold_ingot, 12), new ItemStack(
-            Items.iron_ingot, 12), new ItemStack(Blocks.glass, 64), new ItemStack(Items.redstone,
-            16), new ItemStack(Blocks.anvil, 1), new ItemStack(Blocks.obsidian, 12));
+        Items.iron_ingot, 800), new ItemStack(Items.redstone, 400), new ItemStack(Items.diamond,
+        100), new ItemStack(Items.ender_pearl, 50), new ItemStack(Items.nether_star, 1),
+        new ItemStack(Items.ender_pearl, 25));
+    WorkbenchRecipe.addRecipe(new ItemStack(blockPump), 320000, new ItemStack(Items.iron_ingot,
+        1200), new ItemStack(Items.redstone, 1600), new ItemStack(Blocks.glass, 12800),
+        new ItemStack(Blocks.cactus, 2000), new ItemStack(Items.gold_ingot, 400), new ItemStack(
+            Items.nether_star, 1), new ItemStack(Items.ender_pearl, 10));
+    WorkbenchRecipe.addRecipe(new ItemStack(blockRefinery), 640000, new ItemStack(Items.diamond,
+        900), new ItemStack(Items.gold_ingot, 600), new ItemStack(Items.iron_ingot, 600),
+        new ItemStack(Blocks.glass, 3200), new ItemStack(Items.redstone, 800), new ItemStack(
+            Blocks.anvil, 50), new ItemStack(Blocks.obsidian, 600), new ItemStack(
+            Items.nether_star, 1), new ItemStack(Items.ender_pearl, 20));
     WorkbenchRecipe.addRecipe(new ItemStack(itemTool, 1, 0), 80000, new ItemStack(Items.gold_ingot,
-        8), new ItemStack(Items.iron_ingot, 12), new ItemStack(Blocks.obsidian, 2), new ItemStack(
-        Items.diamond, 2), new ItemStack(Items.redstone, 8), new ItemStack(Items.dye, 2, 4));
+        400), new ItemStack(Items.iron_ingot, 600), new ItemStack(Blocks.obsidian, 100),
+        new ItemStack(Items.diamond, 100), new ItemStack(Items.redstone, 400), new ItemStack(
+            Items.dye, 100, 4), new ItemStack(Items.ender_pearl, 3));
     WorkbenchRecipe.addRecipe(new ItemStack(itemTool, 1, 1), 160000, new ItemStack(
-        Items.iron_ingot, 8), new ItemStack(Items.book, 32), new ItemStack(Items.feather),
-        new ItemStack(Items.dye, 8), new ItemStack(Items.diamond, 2), new ItemStack(Items.redstone,
-            2));
+        Items.iron_ingot, 400), new ItemStack(Items.book, 1600), new ItemStack(Items.feather, 50),
+        new ItemStack(Items.dye, 400), new ItemStack(Items.diamond, 100), new ItemStack(
+            Items.redstone, 100), new ItemStack(Items.ender_pearl, 3));
     WorkbenchRecipe.addRecipe(new ItemStack(itemTool, 1, 2), 320000, new ItemStack(
-        Items.iron_ingot, 32), new ItemStack(Items.lava_bucket));
-    WorkbenchRecipe.addRecipe(new ItemStack(blockBreaker), 320000,
-        new ItemStack(Items.redstone, 32), new ItemStack(Items.diamond, 12), new ItemStack(
-            Items.gold_ingot, 16), new ItemStack(Items.iron_ingot, 32), new ItemStack(
-            Items.ender_pearl));
-    WorkbenchRecipe.addRecipe(new ItemStack(blockPlacer), 320000,
-        new ItemStack(Items.redstone, 32), new ItemStack(Items.diamond, 12), new ItemStack(
-            Items.gold_ingot, 32), new ItemStack(Items.iron_ingot, 16), new ItemStack(
-            Items.ender_pearl));
-    WorkbenchRecipe.addRecipe(new ItemStack(blockLaser), 640000, new ItemStack(Items.diamond, 8),
-        new ItemStack(Items.redstone, 96), new ItemStack(Blocks.obsidian, 16), new ItemStack(
-            Blocks.glass, 72), new ItemStack(Items.glowstone_dust, 32), new ItemStack(
-            Items.gold_ingot, 16));
-    // RECIPE DONE
+        Items.iron_ingot, 1600), new ItemStack(Items.lava_bucket, 60), new ItemStack(
+        Items.water_bucket, 60), new ItemStack(Items.ender_pearl, 3));
+    WorkbenchRecipe.addRecipe(new ItemStack(blockBreaker), 320000, new ItemStack(Items.redstone,
+        1600), new ItemStack(Items.diamond, 600), new ItemStack(Items.gold_ingot, 800),
+        new ItemStack(Items.iron_ingot, 1600), new ItemStack(Items.ender_pearl, 50));
+    WorkbenchRecipe.addRecipe(new ItemStack(blockPlacer), 320000, new ItemStack(Items.redstone,
+        1600), new ItemStack(Items.diamond, 600), new ItemStack(Items.gold_ingot, 1600),
+        new ItemStack(Items.iron_ingot, 800), new ItemStack(Items.ender_pearl, 50));
+    WorkbenchRecipe.addRecipe(new ItemStack(blockLaser), 640000, new ItemStack(Items.diamond, 400),
+        new ItemStack(Items.redstone, 4800), new ItemStack(Blocks.obsidian, 800), new ItemStack(
+            Blocks.glass, 3600), new ItemStack(Items.glowstone_dust, 1600), new ItemStack(
+            Items.gold_ingot, 800), new ItemStack(Items.ender_pearl, 5));
     NetworkRegistry.INSTANCE.registerGuiHandler(this, new GuiHandler());
     proxy.registerTextures();
     PacketHandler.registerStaticHandler(TileMarker.class);

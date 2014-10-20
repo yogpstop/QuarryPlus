@@ -64,11 +64,23 @@ public class YogpstopLib implements IGuiHandler {
     GameRegistry.addRecipe(new ItemStack(workbench, 1), new Object[] {"III", "GDG", "RRR",
         Character.valueOf('D'), Blocks.diamond_block, Character.valueOf('R'), Items.redstone,
         Character.valueOf('I'), Blocks.iron_block, Character.valueOf('G'), Blocks.gold_block});
-    GameRegistry.addRecipe(new ItemStack(magicmirror, 1, 1), "###", "#X#", "###",
-        Character.valueOf('#'), new ItemStack(Items.ender_eye, 1, 0), Character.valueOf('X'),
-        new ItemStack(magicmirror, 1, 0));
+    WorkbenchRecipe.addRecipe(new ItemStack(magicmirror, 1, 1), 32000, new ItemStack(
+        Items.ender_eye, 400), new ItemStack(magicmirror, 50));
+    WorkbenchRecipe.addRecipe(new ItemStack(armor), 128000, new ItemStack(Items.iron_ingot, 1600),
+        new ItemStack(Items.coal, 3200), new ItemStack(Items.gold_ingot, 400), new ItemStack(
+            Items.diamond, 360), new ItemStack(Items.nether_star, 1), new ItemStack(
+            Items.ender_eye, 25), new ItemStack(Items.glowstone_dust, 100), new ItemStack(
+            Items.dye, 100, 10));
+    WorkbenchRecipe
+        .addRecipe(new ItemStack(controller), 1000000, new ItemStack(Items.nether_star, 50),
+            new ItemStack(Items.rotten_flesh, 1000), new ItemStack(Items.arrow, 1000),
+            new ItemStack(Items.bone, 1000), new ItemStack(Items.gunpowder, 1000), new ItemStack(
+                Items.iron_ingot, 2000), new ItemStack(Items.gold_ingot, 1000), new ItemStack(
+                Items.ghast_tear, 250), new ItemStack(Items.magma_cream, 500), new ItemStack(
+                Items.blaze_rod, 700), new ItemStack(Items.carrot, 50), new ItemStack(Items.potato,
+                50));
     final WeightedRandomChestContent c =
-        new WeightedRandomChestContent(new ItemStack(magicmirror, 1, 0), 1, 1, 9);
+        new WeightedRandomChestContent(new ItemStack(magicmirror), 1, 1, 9);
     ChestGenHooks.getInfo(ChestGenHooks.DUNGEON_CHEST).addItem(c);
     ChestGenHooks.getInfo(ChestGenHooks.MINESHAFT_CORRIDOR).addItem(c);
     ChestGenHooks.getInfo(ChestGenHooks.PYRAMID_DESERT_CHEST).addItem(c);

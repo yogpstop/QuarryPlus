@@ -4,16 +4,50 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 
 public class WorkbenchRecipe {
+  public static final class WBIS {
+    public final double weight;
+    public final Item item;
+    public final NBTTagCompound tag;
+    public final int meta;
+
+    private WBIS(final ItemStack is) {
+      this.weight = is.stackSize / 50.0;
+      this.item = is.getItem();
+      this.tag = is.stackTagCompound != null ? (NBTTagCompound) is.stackTagCompound.copy() : null;
+      this.meta = is.getItemDamage();
+    }
+
+    static WBIS[] convert(final ItemStack[] s) {
+      final WBIS[] r = new WBIS[s.length];
+      for (int i = 0; i < s.length; i++)
+        r[i] = new WBIS(s[i]);
+      return r;
+    }
+
+    public int getAmount() {
+      return (int) Math.floor(difficulty * this.weight);
+    }
+
+    public ItemStack getItemStack() {
+      final ItemStack ret = new ItemStack(this.item, getAmount(), this.meta);
+      ret.setTagCompound(this.tag);
+      return ret;
+    }
+  }
+
+  public static double difficulty;
   private static final List<WorkbenchRecipe> recipes = new ArrayList<WorkbenchRecipe>();
-  public final ItemStack[] input;
+  public final WBIS[] input;
   public final ItemStack output;
   public final double power;
 
   private WorkbenchRecipe(final ItemStack out, final double p, final ItemStack... in) {
-    this.input = in;
+    this.input = WBIS.convert(in);
     this.output = out;
     this.power = p;
   }
@@ -27,21 +61,24 @@ public class WorkbenchRecipe {
   }
 
   boolean check(final ItemStack[] sinv) {
-    for (final ItemStack raw : this.input) {
-      final ItemStack miss = raw.copy();
+    for (final WBIS raw : this.input) {
+      int miss = raw.getAmount();
       for (int i = 0; i < 27; i++) {
+        if (miss <= 0)
+          break;
         final ItemStack is = sinv[i];
         if (is == null || is.stackSize <= 0)
           continue;
-        if (!is.isItemEqual(miss))
+        if (is.getItem() != raw.item || is.getItemDamage() != raw.meta)
           continue;
-        if (!ItemStack.areItemStackTagsEqual(is, miss))
+        if (is.stackTagCompound == null && raw.tag != null ? true : is.stackTagCompound != null
+            && !is.stackTagCompound.equals(raw.tag))
           continue;
-        final int toMove = Math.min(is.stackSize, miss.stackSize);
+        final int toMove = Math.min(is.stackSize, miss);
         is.stackSize -= toMove;
-        miss.stackSize -= toMove;
+        miss -= toMove;
       }
-      if (miss.stackSize > 0)
+      if (miss > 0)
         return false;
     }
     return true;

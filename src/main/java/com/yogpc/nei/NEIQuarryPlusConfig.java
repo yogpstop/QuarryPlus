@@ -18,6 +18,9 @@ public class NEIQuarryPlusConfig implements IConfigureNEI {
   @Override
   public void loadConfig() {
     API.registerRecipeHandler(new WBPRecipeHandler());
+    API.registerUsageHandler(new WBPRecipeHandler());
+    // TODO Machine Usage is disabled.
+    // See also, QuarryPlusUsageHandler, UsageList
   }
 
 }

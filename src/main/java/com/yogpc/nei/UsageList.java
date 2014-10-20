@@ -1,6 +1,10 @@
 package com.yogpc.nei;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 
 import com.yogpc.mc_lib.YogpstopLib;
 import com.yogpc.qp.QuarryPlus;
@@ -48,5 +52,13 @@ public class UsageList {
     if (i == Item.getItemFromBlock(YogpstopLib.workbench))
       return "yog.usage.blockWorkbench";
     return null;
+  }
+
+  static Map<ItemStack, String[]> getAll() {
+    return new HashMap<ItemStack, String[]>();
+  }
+
+  static String[] getFromItemStack(final ItemStack is) {
+    return new String[0];
   }
 }
