@@ -1,5 +1,5 @@
 F,net.minecraft.client.renderer.texture.
-F,net.minecraft.util.int
+F,net.minecraft.util.Icon
 F,net.minecraftforge.common.FakePlayerFactory
 F,net.minecraftforge.client.event.TextureStitchEvent
 F,net.minecraft.tileentity.MobSpawnerBaseLogic

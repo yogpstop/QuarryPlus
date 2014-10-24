@@ -37,8 +37,9 @@ public class RenderLaser extends TileEntitySpecialRenderer {
     GL11.glTranslated(tx, ty, tz);
     final double dx = tx - fx, dy = ty - fy, dz = tz - fz;
     final double total = Math.sqrt(dx * dx + dy * dy + dz * dz);
-    GL11.glRotated(360 - (Math.atan2(dz, dx) * 180.0 / Math.PI + 180.0), 0, 1, 0);
-    GL11.glRotated(-Math.atan2(dy, Math.sqrt(total * total - dy * dy)) * 180.0 / Math.PI, 0, 0, 1);
+    GL11.glRotatef((float) (360 - (Math.atan2(dz, dx) * 180.0 / Math.PI + 180.0)), 0, 1, 0);
+    GL11.glRotatef((float) (-Math.atan2(dy, Math.sqrt(total * total - dy * dy)) * 180.0 / Math.PI),
+        0, 0, 1);
     tm.bindTexture(tex);
     int i = 0;
     while (i <= total - 1) {

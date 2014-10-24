@@ -46,7 +46,7 @@ public final class EnchantmentHelper {
   private static IChatComponent getEnchChat(final int id, final int l) {
     return new ChatComponentTranslation("chat.indent", new ChatComponentTranslation(
         Enchantment.enchantmentsList[id].getName()), new ChatComponentTranslation(
-        "enchnatment.level." + Integer.toString(l)));
+        "enchantment.level." + Integer.toString(l)));
   }
 
   public static Collection<IChatComponent> getEnchantmentsChat(final IEnchantableTile te) {

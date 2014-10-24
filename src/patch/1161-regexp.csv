@@ -3,3 +3,6 @@ METHOD,double,int,getTransferLimit,getTransferLimit,ItemStack,ItemStack
 SIMPLE,getDemandedEnergy,demandedEnergyUnits
 METHOD,double,double,injectEnergy,injectEnergyUnits,ForgeDirection,ForgeDirection,double,double,double,@SKIP@
 SIMPLE,getSinkTier,getMaxSafeInput
+SIMPLE,"func_152457_a\\(((?:[^\\(\\),]|\\(\\))+),\\s*NBTSizeTracker\\.field_152451_a\\s*\\)","decompress($1)"
+SIMPLE,"implements\\s+GuiYesNoCallback\\s+\\{","{"
+SIMPLE,"GuiYesNoCallback","GuiScreen"

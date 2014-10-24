@@ -164,7 +164,7 @@
    }
 --- a/com/yogpc/mc_lib/ContainerWorkbench.java
 +++ b/com/yogpc/mc_lib/ContainerWorkbench.java
-@@ -187,19 +187,6 @@
+@@ -184,19 +184,6 @@
      return;
    }
  
@@ -184,7 +184,7 @@
    public static boolean canDrag(final Slot slot, final ItemStack is, final boolean always_true) {
      boolean can = slot == null || !slot.getHasStack();
      if (slot != null && slot.getHasStack() && is != null && is.isItemEqual(slot.getStack())
-@@ -219,60 +206,7 @@
+@@ -216,60 +203,7 @@
    public ItemStack slotClick(final int i, final int param, final int type, final EntityPlayer ep) {
      ItemStack ret = null;
      final InventoryPlayer player_inv = ep.inventory;
@@ -246,7 +246,7 @@
        if (i == -999) {
          if (player_inv.getItemStack() != null && i == -999) {
            if (param == 0) {
-@@ -407,31 +341,6 @@
+@@ -404,31 +338,6 @@
          slot.onPickupFromSlot(ep, drop_stack);
          ep.dropPlayerItemWithRandomChoice(drop_stack, true);
        }
@@ -330,7 +330,7 @@
          e.add(new Integer(i));
 --- a/com/yogpc/mc_lib/ProxyClient.java
 +++ b/com/yogpc/mc_lib/ProxyClient.java
-@@ -64,16 +64,16 @@
+@@ -65,16 +65,16 @@
      if (currentScreen == null || currentScreen.allowUserInput)
        for (final Key k : Key.values())
          if (k.binding instanceof KeyBinding) {
@@ -352,7 +352,7 @@
              default:
 --- a/com/yogpc/mc_lib/TileWorkbench.java
 +++ b/com/yogpc/mc_lib/TileWorkbench.java
-@@ -170,21 +170,11 @@
+@@ -169,21 +169,11 @@
    }
  
    @Override
@@ -949,7 +949,7 @@
        return prop.getDouble(def);
 --- a/com/yogpc/qp/QuarryPlus.java
 +++ b/com/yogpc/qp/QuarryPlus.java
-@@ -74,23 +74,6 @@
+@@ -76,23 +76,6 @@
          l.destructor();
    }
  
@@ -973,7 +973,7 @@
    @Mod.PreInit
    public void preInit(final FMLPreInitializationEvent event) {
      final Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
-@@ -210,6 +193,8 @@
+@@ -212,6 +195,8 @@
      proxy.registerTextures();
      PacketHandler.registerStaticHandler(TileMarker.class);
    }
@@ -1264,10 +1264,10 @@
                remainZ > 1.0 ? 1.0 : remainZ);
 --- a/com/yogpc/qp/client/RenderLaser.java
 +++ b/com/yogpc/qp/client/RenderLaser.java
-@@ -38,7 +38,7 @@
-     final double total = Math.sqrt(dx * dx + dy * dy + dz * dz);
-     GL11.glRotated(360 - (Math.atan2(dz, dx) * 180.0 / Math.PI + 180.0), 0, 1, 0);
-     GL11.glRotated(-Math.atan2(dy, Math.sqrt(total * total - dy * dy)) * 180.0 / Math.PI, 0, 0, 1);
+@@ -39,7 +39,7 @@
+     GL11.glRotatef((float) (360 - (Math.atan2(dz, dx) * 180.0 / Math.PI + 180.0)), 0, 1, 0);
+     GL11.glRotatef((float) (-Math.atan2(dy, Math.sqrt(total * total - dy * dy)) * 180.0 / Math.PI),
+         0, 0, 1);
 -    tm.bindTexture(tex);
 +    tm.bindTexture(tm.getTexture(tex));
      int i = 0;

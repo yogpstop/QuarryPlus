@@ -1,9 +1,9 @@
-F,buildcraft.api.power.IPowerProvider.Type
-F,buildcraft.api.power.IPowerProvider.IPowerProvider
+F,buildcraft.api.power.PowerHandler.Type
+F,buildcraft.api.power.PowerHandler.PowerReceiver
 F,buildcraft.api.power.IPowerEmitter
-F,net.minecraft.util.String
+F,net.minecraft.util.ResourceLocation
 F,cofh.
-F,net.minecraftforge.liquids.Fluid
+F,net.minecraftforge.fluids.Fluid
 F,codechicken.core.gui.GuiDraw
 A,com/yogpc/nei/WBPRecipeHandler,com/yogpc/nei/QuarryPlusUsageHandler,codechicken.nei.forge.GuiContainerManager
 A,com/yogpc/mc_lib/APowerTile,ic2.api.Direction,buildcraft.api.power.PowerFramework
@@ -16,5 +16,5 @@ A,com/yogpc/qp/TilePump,com/yogpc/qp/TileRefinery,net.minecraftforge.liquids.ILi
 A,com/yogpc/qp/client/RenderRefinery,net.minecraft.item.ItemStack
 R,com/yogpc/qp/client/RenderEntityLaser,com/yogpc/qp/client/RenderRefinery,net.minecraft.client.renderer.texture.TextureMap
 R,com/yogpc/mc_lib/APowerTile,net.minecraft.world.World
-R,com/yogpc/qp/client/GuiP_List,com/yogpc/qp/client/GuiP_Manual,com/yogpc/qp/client/GuiP_SlotList,net.minecraftforge.liquids.LiquidDictionary
+R,com/yogpc/qp/client/GuiP_List,com/yogpc/qp/client/GuiP_Manual,com/yogpc/qp/client/GuiP_SlotList,net.minecraftforge.fluids.FluidRegistry
 R,com/yogpc/nei/WBPRecipeHandler,java.util.List

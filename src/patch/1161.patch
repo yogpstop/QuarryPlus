@@ -20,29 +20,6 @@
    }
  
    @Override
---- a/com/yogpc/mc_lib/ContainerWorkbench.java
-+++ b/com/yogpc/mc_lib/ContainerWorkbench.java
-@@ -31,7 +31,7 @@
-     if (nbtlen >= 0) {
-       final byte[] ba = new byte[nbtlen];
-       bb.readFully(ba);
--      is.setTagCompound(CompressedStreamTools.func_152457_a(ba, NBTSizeTracker.field_152451_a));
-+      is.setTagCompound(CompressedStreamTools.decompress(ba));
-     }
-     return is;
-   }
---- a/com/yogpc/mc_lib/PacketHandler.java
-+++ b/com/yogpc/mc_lib/PacketHandler.java
-@@ -150,8 +150,7 @@
- 
-   private static void setNBTFromPacket(final YogpstopPacket p) {
-     try {
--      final NBTTagCompound cache =
--          CompressedStreamTools.func_152457_a(p.getData(), NBTSizeTracker.field_152451_a);
-+      final NBTTagCompound cache = CompressedStreamTools.decompress(p.getData());
-       final TileEntity te =
-           p.getPlayer().worldObj.getTileEntity(cache.getInteger("x"), cache.getInteger("y"),
-               cache.getInteger("z"));
 --- a/com/yogpc/qp/TilePump.java
 +++ b/com/yogpc/qp/TilePump.java
 @@ -531,7 +531,7 @@
@@ -54,28 +31,8 @@
        }
      } else
        ret[0] = new ChatComponentTranslation("chat.pumpcontainno");
---- a/com/yogpc/qp/client/GuiEnchList.java
-+++ b/com/yogpc/qp/client/GuiEnchList.java
-@@ -32,7 +32,7 @@
- import cpw.mods.fml.relauncher.SideOnly;
- 
- @SideOnly(Side.CLIENT)
--public class GuiEnchList extends GuiContainer implements GuiYesNoCallback {
-+public class GuiEnchList extends GuiContainer {
-   private GuiSlotEnchList slot;
-   private final TileBasic tile;
-   private final byte targetid;
 --- a/com/yogpc/qp/client/GuiP_List.java
 +++ b/com/yogpc/qp/client/GuiP_List.java
-@@ -25,7 +25,7 @@
- import cpw.mods.fml.relauncher.SideOnly;
- 
- @SideOnly(Side.CLIENT)
--public class GuiP_List extends GuiScreenA implements GuiYesNoCallback {
-+public class GuiP_List extends GuiScreenA {
-   private GuiP_SlotList oreslot;
-   private GuiButton delete, top, up, down, bottom;
-   private final TilePump tile;
 @@ -94,8 +94,7 @@
        case PacketHandler.CtS_REMOVE_MAPPING:
          String name = this.tile.mapping[this.dir].get(this.oreslot.currentore);
@@ -88,15 +45,6 @@
          break;
 --- a/com/yogpc/qp/client/GuiP_Manual.java
 +++ b/com/yogpc/qp/client/GuiP_Manual.java
-@@ -26,7 +26,7 @@
- import cpw.mods.fml.relauncher.SideOnly;
- 
- @SideOnly(Side.CLIENT)
--public class GuiP_Manual extends GuiScreenA implements GuiYesNoCallback {
-+public class GuiP_Manual extends GuiScreenA {
-   private GuiTextField blockid;
-   private final byte targetid;
-   private final TilePump tile;
 @@ -57,15 +57,13 @@
            return;
          if (this.tile.mapping[this.targetid].contains(name)) {
@@ -139,20 +87,3 @@
      Minecraft.getMinecraft().fontRenderer
          .drawStringWithShadow(
              name,
---- a/com/yogpc/qp/client/GuiYesNo.java
-+++ b/com/yogpc/qp/client/GuiYesNo.java
-@@ -19,12 +19,12 @@
- @SideOnly(Side.CLIENT)
- public class GuiYesNo extends net.minecraft.client.gui.GuiYesNo {
- 
--  public GuiYesNo(final GuiYesNoCallback par1GuiScreen, final String par2Str, final String par3Str,
-+  public GuiYesNo(final GuiScreen par1GuiScreen, final String par2Str, final String par3Str,
-       final int par4) {
-     super(par1GuiScreen, par2Str, par3Str, par4);
-   }
- 
--  public GuiYesNo(final GuiYesNoCallback par1GuiScreen, final String par2Str, final String par3Str,
-+  public GuiYesNo(final GuiScreen par1GuiScreen, final String par2Str, final String par3Str,
-       final String par4Str, final String par5Str, final int par6) {
-     super(par1GuiScreen, par2Str, par3Str, par4Str, par5Str, par6);
-   }
