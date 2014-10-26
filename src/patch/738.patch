@@ -1,6 +1,6 @@
 --- a/com/yogpc/ip/BlockController.java
 +++ b/com/yogpc/ip/BlockController.java
-@@ -38,11 +38,16 @@
+@@ -37,11 +37,16 @@
    public BlockController(final int id) {
      super(id, Material.circuits);
      setUnlocalizedName("spawnercontroller");
@@ -20,7 +20,7 @@
      for (final ForgeDirection d : ForgeDirection.VALID_DIRECTIONS) {
 --- a/com/yogpc/ip/ItemArmorElectric.java
 +++ b/com/yogpc/ip/ItemArmorElectric.java
-@@ -27,20 +27,24 @@
+@@ -27,21 +27,25 @@
  import cpw.mods.fml.relauncher.Side;
  import cpw.mods.fml.relauncher.SideOnly;
  
@@ -39,6 +39,7 @@
  
    @Override
 -  public String getArmorTexture(final ItemStack i, final Entity e, final int s, final String t) {
+-    return "yogpstop_qp:textures/models/armor/elecArmor_layer_1.png";
 +  @SideOnly(Side.CLIENT)
 +  public void registerIcons(final IconRegister ir) {
 +    this.itemIcon = ir.registerIcon("yogpstop_qp:elecArmor");
@@ -46,9 +47,10 @@
 +
 +  @Override
 +  public String getArmorTexture(ItemStack i, Entity e, int s, int l) {
-     return "yogpstop_qp:textures/models/armor/elecArmor_layer_1.png";
++    return "/mods/yogpstop_qp/textures/models/armor/elecArmor_layer_1.png";
    }
  
+   private static final double maxFallSpeedOnHover = 0.35;
 @@ -189,25 +193,4 @@
    public int getTransferLimit(final ItemStack itemStack) {
      return 2500;
@@ -97,7 +99,7 @@
        if (i.getItemDamage() != 0) {
 --- a/com/yogpc/mc_lib/APowerTile.java
 +++ b/com/yogpc/mc_lib/APowerTile.java
-@@ -9,9 +9,8 @@
+@@ -9,16 +9,18 @@
  import buildcraft.api.power.IPowerReceptor;
  import buildcraft.api.power.IPowerProvider;
  
@@ -105,11 +107,23 @@
 -    IEnergySink {
 -  private final IPowerProvider pp = new IPowerProvider(this, Type.MACHINE);
 +public abstract class APowerTile extends APacketTile implements IPowerReceptor, IEnergySink {
-+  private final IPowerProvider pp = PowerFramework.currentFramework.createPowerProvider();
++  private final IPowerProvider pp = PowerFramework.currentFramework != null ?
++      PowerFramework.currentFramework.createPowerProvider() : null;
    private double all, maxGot, max, got;
  
    @Override
-@@ -32,8 +31,13 @@
+   public void updateEntity() {
+     super.updateEntity();
+-    final double rem = Math.min(this.maxGot - this.got, this.max - this.all - this.got);
+-    this.got += this.pp.useEnergy(0, (float) rem, true);
++    if (this.pp != null) {
++      final double rem = Math.min(this.maxGot - this.got, this.max - this.all - this.got);
++      this.got += this.pp.useEnergy(0, (float) rem, true);
++    }
+     this.all += this.got;
+     this.got = 0;
+   }
+@@ -32,8 +34,13 @@
    public final void doWork() {}
  
    @Override
@@ -125,16 +139,17 @@
    }
  
    @Override
-@@ -42,7 +46,7 @@
+@@ -42,7 +49,8 @@
      this.all = nbttc.getDouble("storedEnergy");
      this.max = nbttc.getDouble("MAX_stored");
      this.maxGot = nbttc.getDouble("MAX_receive");
 -    this.pp.configure(0, (float) this.maxGot, 0, (float) this.max);
-+    this.pp.configure(0, 0, (int) this.maxGot, 0, (int) this.max);
++    if (this.pp != null)
++      this.pp.configure(0, 0, (int) this.maxGot, 0, (int) this.max);
    }
  
    @Override
-@@ -86,32 +90,17 @@
+@@ -86,32 +94,18 @@
    public final void configure(final double x, final double maxstored) {
      this.maxGot = x;
      this.max = maxstored;
@@ -154,7 +169,8 @@
 -  @Override
 -  public int receiveEnergy(final ForgeDirection d, final int am, final boolean sim) {
 -    return (int) getEnergy((double) am / 10) * 10;
-+    this.pp.configure(0, 0, (int) this.maxGot, 0, (int) this.max);
++    if (this.pp != null)
++      this.pp.configure(0, 0, (int) this.maxGot, 0, (int) this.max);
    }
  
    @Override
@@ -170,7 +186,7 @@
    }
  
    @Override
-@@ -120,11 +109,6 @@
+@@ -120,11 +114,6 @@
    }
  
    @Override
@@ -280,8 +296,8 @@
 +  private static final Pattern lang = Pattern.compile("mods/(.*)/lang/(.*)\\.lang");
    private static final Pattern format = Pattern.compile("%(\\d+\\$)?[\\d\\.]*[df]");
  
-   public static Properties parseLangFile(final InputStream is) {
-@@ -134,7 +134,7 @@
+   public static Properties parseLangFile(final InputStream is, final boolean cl) {
+@@ -136,7 +136,7 @@
      }
    }
  
@@ -292,7 +308,7 @@
      GameRegistry.registerBlock(controller, "yogSC");
 --- a/com/yogpc/nei/QuarryPlusUsageHandler.java
 +++ b/com/yogpc/nei/QuarryPlusUsageHandler.java
-@@ -31,7 +31,7 @@
+@@ -32,7 +32,7 @@
  
    @Override
    public String getGuiTexture() {
@@ -401,7 +417,7 @@
        if (used > 0) {
 --- a/com/yogpc/qp/QuarryPlus.java
 +++ b/com/yogpc/qp/QuarryPlus.java
-@@ -84,7 +84,7 @@
+@@ -86,7 +86,7 @@
    @ForgeSubscribe
    @SideOnly(Side.CLIENT)
    public void loadTextures(final TextureStitchEvent.Pre evt) {
@@ -410,7 +426,7 @@
        final TextureMap map = evt.map;
        RenderEntityLaser.icons = new Icon[4];
        RenderEntityLaser.icons[EntityLaser.DRILL] =
-@@ -98,7 +98,7 @@
+@@ -100,7 +100,7 @@
      }
    }
  
@@ -419,7 +435,7 @@
    public void preInit(final FMLPreInitializationEvent event) {
      final Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
      final int[] id = new int[13];
-@@ -142,7 +142,7 @@
+@@ -144,7 +144,7 @@
      YogpstopLib.loadLangs(event.getSourceFile());
    }
  
@@ -453,11 +469,11 @@
 -      new String("yogpstop_qp", "textures/entities/laser_3.png"),
 -      new String("yogpstop_qp", "textures/entities/laser_4.png"),
 -      new String("yogpstop_qp", "textures/entities/stripes.png")};
-+      new String("/mods/yogpstop_qp/textures/entities/laser_1.png"),
-+      new String("/mods/yogpstop_qp/textures/entities/laser_2.png"),
-+      new String("/mods/yogpstop_qp/textures/entities/laser_3.png"),
-+      new String("/mods/yogpstop_qp/textures/entities/laser_4.png"),
-+      new String("/mods/yogpstop_qp/textures/entities/stripes.png")};
++      "/mods/yogpstop_qp/textures/entities/laser_1.png",
++      "/mods/yogpstop_qp/textures/entities/laser_2.png",
++      "/mods/yogpstop_qp/textures/entities/laser_3.png",
++      "/mods/yogpstop_qp/textures/entities/laser_4.png",
++      "/mods/yogpstop_qp/textures/entities/stripes.png"};
  
    public String getTexture() {
      final double avg = this.pa / 100;
@@ -728,6 +744,18 @@
      Minecraft.getMinecraft().fontRenderer
          .drawStringWithShadow(
              name,
+--- a/com/yogpc/qp/client/GuiPlacer.java
++++ b/com/yogpc/qp/client/GuiPlacer.java
+@@ -27,8 +27,7 @@
+ 
+ @SideOnly(Side.CLIENT)
+ public class GuiPlacer extends GuiContainer {
+-  private static final String tex = new String(
+-      "textures/gui/container/dispenser.png");
++  private static final String tex = "/gui/trap.png";
+   public TilePlacer tile;
+ 
+   public GuiPlacer(final InventoryPlayer par1InventoryPlayer,
 --- a/com/yogpc/qp/client/RenderEntityLaser.java
 +++ b/com/yogpc/qp/client/RenderEntityLaser.java
 @@ -23,11 +23,6 @@

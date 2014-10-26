@@ -41,3 +41,4 @@ METHOD,int,int,getEmptyItemId,getEmptyItemId,ItemStack,@SKIP@
 METHOD,int,int,getMaxCharge,getMaxCharge,ItemStack,@SKIP@
 METHOD,int,int,getTier,getTier,ItemStack,@SKIP@
 METHOD,int,int,getTransferLimit,getTransferLimit,ItemStack,@SKIP@
+METHOD,String,String,getArmorTexture,getArmorTextureFile,ItemStack,ItemStack,Entity,@SKIP@,int,@SKIP@,int,@SKIP@

@@ -14,7 +14,7 @@ A,com/yogpc/qp/TileRefinery,buildcraft.api.recipes.RefineryRecipes
 R,com/yogpc/mc_lib/YogpstopPacket,cpw.mods.fml.common.network.NetworkRegistry
 A,com/yogpc/mc_lib/YogpstopPacket,cpw.mods.fml.common.network.Player
 A,com/yogpc/qp/EnchantmentHelper,net.minecraft.nbt.NBTTagCompound
-A,com/yogpc/qp/QuarryPlus,com.yogpc.mc_lib.YogpstopLib
+A,com/yogpc/qp/QuarryPlus,com.yogpc.mc_lib.YogpstopLib,cpw.mods.fml.common.network.NetworkMod
 R,com/yogpc/ip/ItemArmorElectric,com.yogpc.mc_lib.ReflectionHelper,java.lang.reflect.Field
 R,com/yogpc/qp/ItemTool,com/yogpc/qp/QuarryPlus,com/yogpc/qp/TileBasic,cpw.mods.fml.common.registry.GameData
 R,com/yogpc/qp/BlockPlacer,com/yogpc/qp/BlockBreaker,net.minecraft.world.IBlockAccess,net.minecraft.world.WorldServer

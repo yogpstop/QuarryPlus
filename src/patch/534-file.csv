@@ -1,6 +1,5 @@
 MV,mods/yogpstop_qp/textures/blocks/refinery.png,refinery.png
-MV,mods/yogpstop_qp/textures/gui,textures_gui
-RM,mods/yogpstop_qp/textures
+RM,mods/yogpstop_qp/textures/blocks
+RM,mods/yogpstop_qp/textures/items
 ADD,textures.png,mods/yogpstop_qp/textures/textures.png
 MV,refinery.png,mods/yogpstop_qp/textures/blocks/refinery.png
-MV,textures_gui,mods/yogpstop_qp/textures/gui

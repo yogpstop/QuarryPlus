@@ -4,7 +4,7 @@ F,net.minecraftforge.common.FakePlayerFactory
 F,net.minecraftforge.client.event.TextureStitchEvent
 F,net.minecraft.tileentity.MobSpawnerBaseLogic
 A,com/yogpc/ip/BlockController,com.yogpc.qp.CommonProxy
-A,com/yogpc/ip/ItemArmorElectric,net.minecraftforge.common.IArmorTextureProvider
+A,com/yogpc/ip/ItemArmorElectric,net.minecraftforge.common.IArmorTextureProvider,cpw.mods.fml.common.Loader
 R,com/yogpc/ip/ItemArmorElectric,net.minecraft.entity.Entity
 A,com/yogpc/qp/BlockInfMJSrc,net.minecraft.block.Block
 A,com/yogpc/qp/CommonProxy,net.minecraft.entity.player.EntityPlayer,net.minecraft.util.ChunkCoordinates,net.minecraft.world.World

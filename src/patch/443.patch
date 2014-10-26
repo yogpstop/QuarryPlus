@@ -18,7 +18,7 @@
    }
  
    @Override
-@@ -121,15 +123,30 @@
+@@ -121,16 +123,31 @@
    }
  
    @Override
@@ -26,6 +26,7 @@
 +  public void tickStart(final EnumSet<TickType> type, final Object... tickData) {
 +    final EntityPlayer player = (EntityPlayer) tickData[0];
 +    final ItemStack is = player.inventory.armorInventory[2];
+     if (Loader.isModLoaded("IC2"))
        ElectricItemManager.charge(is, ElectricItem.discharge(is, Integer.MAX_VALUE,
            Integer.MAX_VALUE, true, false), getMaxCharge());
 -    if (player.inventory.armorInventory[2] != is)

@@ -176,7 +176,7 @@
    private static void setNBTFromPacket(final YogpstopPacket p) {
 --- a/com/yogpc/mc_lib/ProxyClient.java
 +++ b/com/yogpc/mc_lib/ProxyClient.java
-@@ -21,25 +21,44 @@
+@@ -20,25 +20,44 @@
  import cpw.mods.fml.relauncher.SideOnly;
  
  @SideOnly(Side.CLIENT)
@@ -229,7 +229,7 @@
      final int prev = this.key;
      this.key = 0;
      final GuiScreen currentScreen = Minecraft.getMinecraft().currentScreen;
-@@ -68,13 +87,6 @@
+@@ -67,13 +86,6 @@
    }
  
    @Override
@@ -282,7 +282,7 @@
  
 --- a/com/yogpc/mc_lib/YogpstopLib.java
 +++ b/com/yogpc/mc_lib/YogpstopLib.java
-@@ -40,6 +41,8 @@
+@@ -38,6 +38,8 @@
  
  @Mod(modid = "YogpstopLib", name = "Yogpstop Library", version = "{version}",
      dependencies = "after:IC2;after:BuildCraft|Core;after:CoFHCore")
@@ -291,7 +291,7 @@
  public class YogpstopLib implements IGuiHandler {
  
    @SidedProxy(clientSide = "com.yogpc.mc_lib.ProxyClient",
-@@ -55,22 +58,89 @@
+@@ -53,22 +55,89 @@
    @Mod.EventHandler
    public void preInit(final FMLPreInitializationEvent event) {
      final Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
@@ -633,7 +633,7 @@
 -    return StatCollector.translateToLocal("chat.indent", StatCollector.translateToLocal(
 +    return StatCollector.translateToLocalFormatted("chat.indent", StatCollector.translateToLocal(
          Enchantment.enchantmentsList[id].getName()), StatCollector.translateToLocal(
-         "enchnatment.level." + Integer.toString(l)));
+         "enchantment.level." + Integer.toString(l)));
    }
 --- a/com/yogpc/qp/ItemTool.java
 +++ b/com/yogpc/qp/ItemTool.java
@@ -648,7 +648,15 @@
          bd = new BlockData(c.getString("Bname"), c.getInteger("Bmeta"));
 --- a/com/yogpc/qp/QuarryPlus.java
 +++ b/com/yogpc/qp/QuarryPlus.java
-@@ -103,8 +103,22 @@
+@@ -45,6 +46,7 @@
+ 
+ @Mod(modid = "QuarryPlus", name = "QuarryPlus", version = "{version}",
+     dependencies = "required-after:YogpstopLib")
++@NetworkMod(clientSideRequired = true, serverSideRequired = false)
+ public class QuarryPlus {
+   public static final CreativeTabs ct = new CreativeTabQuarryPlus();
+   @SidedProxy(clientSide = "com.yogpc.qp.client.ClientProxy",
+@@ -101,8 +103,22 @@
    @Mod.EventHandler
    public void preInit(final FMLPreInitializationEvent event) {
      final Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
@@ -671,7 +679,7 @@
        final Property RD = cfg.get(Configuration.CATEGORY_GENERAL, "RecipeDifficulty", 2);
        RD.comment = "Default is 2.0";
        WorkbenchRecipe.difficulty = RD.getDouble(2.0);
-@@ -112,21 +126,22 @@
+@@ -110,21 +126,22 @@
      } finally {
        cfg.save();
      }
@@ -849,7 +857,7 @@
      }
 --- a/com/yogpc/qp/TilePump.java
 +++ b/com/yogpc/qp/TilePump.java
-@@ -85,7 +85,7 @@
+@@ -84,7 +84,7 @@
      if (nbttc.getTag("mapping0") instanceof NBTTagList)
        for (int i = 0; i < this.mapping.length; i++)
          readStringCollection(
@@ -858,7 +866,7 @@
              this.mapping[i]);
      this.range = nbttc.getByte("range");
      this.quarryRange = nbttc.getBoolean("quarryRange");
-@@ -337,7 +337,7 @@
+@@ -336,7 +336,7 @@
      if (this.quarryRange)
        ep.addChatMessage(StatCollector.translateToLocal("chat.pump_rtoggle.quarry"));
      else
@@ -867,7 +875,7 @@
            .toString(this.range * 2 + 1)));
      this.fwt = 0;
    }
-@@ -410,7 +410,7 @@
+@@ -409,7 +409,7 @@
      while (cp != cg) {
        ebs_c = this.ebses[xb[cg] >> 4][zb[cg] >> 4][yb[cg] >> 4];
        if (ebs_c != null) {
@@ -876,7 +884,7 @@
          if (this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] == 0
              && isLiquid(b_c, false, null, 0, 0, 0, 0)) {
            this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] = 0x3F;
-@@ -471,8 +471,7 @@
+@@ -470,8 +470,7 @@
              for (bz = 0; bz < this.block_side_z; bz++)
                if ((this.blocks[this.py - this.yOffset][bx][bz] & 0x40) != 0) {
                  bb =
@@ -886,7 +894,7 @@
                  if (isLiquid(bb, false, null, 0, 0, 0, 0))
                    count++;
                }
-@@ -480,8 +479,7 @@
+@@ -479,8 +478,7 @@
            for (bz = 0; bz < this.block_side_z; bz++)
              if (this.blocks[this.py - this.yOffset][this.px][bz] != 0) {
                bb =
@@ -896,7 +904,7 @@
                meta =
                    this.ebses[this.px >> 4][bz >> 4][this.py >> 4].getExtBlockMetadata(
                        this.px & 0xF, this.py & 0xF, bz & 0xF);
-@@ -503,11 +501,11 @@
+@@ -502,11 +500,11 @@
          for (bx = 0; bx < this.block_side_x; bx++)
            for (bz = 0; bz < this.block_side_z; bz++)
              if ((this.blocks[this.py - this.yOffset][bx][bz] & 0x40) != 0)
@@ -910,7 +918,7 @@
      S_sendNowPacket();
      return this.py < this.cy;
    }
-@@ -529,7 +527,7 @@
+@@ -528,7 +526,7 @@
        for (int i = 0; i < this.liquids.size(); i++) {
          final FluidStack s = this.liquids.get(i);
          ret[i + 1] =
@@ -919,7 +927,7 @@
                  .getFluid().getUnlocalizedName()), Integer.toString(s.amount));
        }
      } else
-@@ -644,10 +642,9 @@
+@@ -643,10 +641,9 @@
      return false;
    }
  
@@ -975,7 +983,7 @@
  
 --- a/com/yogpc/qp/client/RenderRefinery.java
 +++ b/com/yogpc/qp/client/RenderRefinery.java
-@@ -204,8 +204,8 @@
+@@ -203,8 +203,8 @@
      diplayLists = new int[100];
      Block baseBlock;
      Icon texture;
