@@ -1,6 +1,6 @@
 --- a/com/yogpc/ip/BlockController.java
 +++ b/com/yogpc/ip/BlockController.java
-@@ -37,24 +37,22 @@
+@@ -37,12 +37,13 @@
      setBlockName("spawnercontroller");
      setHardness(1.0f);
      setCreativeTab(CreativeTabs.tabRedstone);
@@ -15,14 +15,12 @@
 +    return "/mods/yogpstop_qp/textures/textures.png";
    }
  
--  private static final MobSpawnerBaseLogic getSpawner(final World w, final int x, final int y,
-+  private static final TileEntityMobSpawner getSpawner(final World w, final int x, final int y,
-       final int z) {
-     for (final ForgeDirection d : ForgeDirection.VALID_DIRECTIONS) {
+   private static final TileEntityMobSpawner getSpawner(final World w, final int x, final int y,
+@@ -51,10 +52,7 @@
        final TileEntity t = w.getBlockTileEntity(x + d.offsetX, y + d.offsetY, z + d.offsetZ);
        if (!(t instanceof TileEntityMobSpawner))
          continue;
--      final MobSpawnerBaseLogic l = ((TileEntityMobSpawner) t).func_98049_a();
+-      final TileEntityMobSpawner l = ((TileEntityMobSpawner) t).func_98049_a();
 -      if (l == null)
 -        continue;
 -      return l;
@@ -30,39 +28,17 @@
      }
      return null;
    }
-@@ -93,15 +91,15 @@
-     final ByteArrayDataInput data = ByteStreams.newDataInput(ba);
-     switch (data.readByte()) {
-       case 0:
--        final MobSpawnerBaseLogic l =
-+        final TileEntityMobSpawner l =
-             getSpawner(DimensionManager.getWorld(data.readInt()), data.readInt(), data.readInt(),
-                 data.readInt());
-         if (l == null)
-           return;
-         l.setMobID(data.readUTF());
--        l.getSpawnerWorld().getBlockTileEntity(l.getSpawnerX(), l.getSpawnerY(), l.getSpawnerZ())
-+        l.worldObj.getBlockTileEntity(l.xCoord, l.yCoord, l.zCoord)
-             .onInventoryChanged();
--        l.getSpawnerWorld().markBlockForUpdate(l.getSpawnerX(), l.getSpawnerY(), l.getSpawnerZ());
-+        l.worldObj.markBlockForUpdate(l.xCoord, l.yCoord, l.zCoord);
-         return;
-       case 1:
-         final List<String> s = new ArrayList<String>();
-@@ -122,15 +120,13 @@
-             || w.isBlockIndirectlyGettingPowered(x, y + 1, z);
-     final int m = w.getBlockMetadata(x, y, z);
+@@ -124,13 +122,11 @@
      if (r && m == 0) {
--      final MobSpawnerBaseLogic l = getSpawner(w, x, y, z);
-+      final TileEntityMobSpawner l = getSpawner(w, x, y, z);
+       final TileEntityMobSpawner l = getSpawner(w, x, y, z);
        if (l != null) {
 -        l.spawnDelay = 0;
 -        final EntityPlayer p = CommonProxy.getPlayer(w);
--        p.setWorld(l.getSpawnerWorld());
--        p.setPosition(l.getSpawnerX(), l.getSpawnerY(), l.getSpawnerZ());
--        l.getSpawnerWorld().playerEntities.add(p);
+-        p.setWorld(l.worldObj);
+-        p.setPosition(l.xCoord, l.yCoord, l.zCoord);
+-        l.worldObj.playerEntities.add(p);
 -        l.updateSpawner();
--        l.getSpawnerWorld().playerEntities.remove(p);
+-        l.worldObj.playerEntities.remove(p);
 +        l.delay = 0;
 +        final EntityPlayer p = CommonProxy.getPlayer(w,x,y,z);
 +        l.worldObj.playerEntities.add(p);
@@ -330,7 +306,7 @@
          e.add(new Integer(i));
 --- a/com/yogpc/mc_lib/ProxyClient.java
 +++ b/com/yogpc/mc_lib/ProxyClient.java
-@@ -65,16 +65,16 @@
+@@ -64,16 +64,16 @@
      if (currentScreen == null || currentScreen.allowUserInput)
        for (final Key k : Key.values())
          if (k.binding instanceof KeyBinding) {
@@ -1135,11 +1111,10 @@
  }
 --- a/com/yogpc/qp/client/ClientProxy.java
 +++ b/com/yogpc/qp/client/ClientProxy.java
-@@ -37,5 +37,7 @@
+@@ -37,5 +37,6 @@
      RenderingRegistry.registerBlockHandler(RenderLaserBlock.INSTANCE);
      RenderingRegistry.registerBlockHandler(RenderMarker.INSTANCE);
      RenderingRegistry.registerBlockHandler(RenderFrame.INSTANCE);
-+    MinecraftForgeClient.preloadTexture("/mods/yogpstop_qp/textures/textures.png");
 +    MinecraftForgeClient.preloadTexture("/mods/yogpstop_qp/textures/textures.png");
    }
  }
