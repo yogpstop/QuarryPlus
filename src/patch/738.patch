@@ -46,7 +46,7 @@
 +  }
 +
 +  @Override
-+  public String getArmorTexture(ItemStack i, Entity e, int s, int l) {
++  public String getArmorTexture(final ItemStack i, final Entity e, final int s, final int l) {
 +    return "/mods/yogpstop_qp/textures/models/armor/elecArmor_layer_1.png";
    }
  
@@ -245,7 +245,7 @@
      for (final ForgeDirection d : ForgeDirection.VALID_DIRECTIONS) {
        final TileEntity t = w.getBlockTileEntity(x + d.offsetX, y + d.offsetY, z + d.offsetZ);
 -      if (t instanceof IInventory && !(t instanceof IPowerEmitter)
-+      if ((t instanceof IInventory) && (engcls == null || !engcls.isInstance(t))
++      if (t instanceof IInventory && (engcls == null || !engcls.isInstance(t))
            && addToIInv((IInventory) t, is, d.getOpposite(), false) > 0) {
          pi.add((IInventory) t);
          pid.add(d.getOpposite());

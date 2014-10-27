@@ -122,7 +122,7 @@
 -        ((IPacketContainer) container).receivePacket(packet.getData());
 +        try {
 +          ((IPacketContainer) container).receivePacket(packet.getData());
-+        } catch (IOException e) {
++        } catch (final IOException e) {
 +          throw new RuntimeException(e);
 +        }
      } else if (packet.getChannel() == Tile) {
@@ -403,7 +403,7 @@
 -    d.readBytes(this.data);
 +  public void readData(final byte[] d, final Player p) {
 +    this.ep = (EntityPlayer) p;
-+    this.header = new byte[d[0] << 24 | (d[1] & 0xFF) << 16 | (d[2] & 0xFF) << 8 | (d[3] & 0xFF)];
++    this.header = new byte[d[0] << 24 | (d[1] & 0xFF) << 16 | (d[2] & 0xFF) << 8 | d[3] & 0xFF];
 +    this.data = new byte[d.length - this.header.length - 4];
 +    System.arraycopy(d, 4, this.header, 0, this.header.length);
 +    System.arraycopy(d, 4 + this.header.length, this.data, 0, this.data.length);
@@ -648,7 +648,7 @@
          bd = new BlockData(c.getString("Bname"), c.getInteger("Bmeta"));
 --- a/com/yogpc/qp/QuarryPlus.java
 +++ b/com/yogpc/qp/QuarryPlus.java
-@@ -45,6 +46,7 @@
+@@ -46,6 +46,7 @@
  
  @Mod(modid = "QuarryPlus", name = "QuarryPlus", version = "{version}",
      dependencies = "required-after:YogpstopLib")
@@ -656,7 +656,7 @@
  public class QuarryPlus {
    public static final CreativeTabs ct = new CreativeTabQuarryPlus();
    @SidedProxy(clientSide = "com.yogpc.qp.client.ClientProxy",
-@@ -101,8 +103,22 @@
+@@ -102,8 +103,22 @@
    @Mod.EventHandler
    public void preInit(final FMLPreInitializationEvent event) {
      final Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
@@ -679,7 +679,7 @@
        final Property RD = cfg.get(Configuration.CATEGORY_GENERAL, "RecipeDifficulty", 2);
        RD.comment = "Default is 2.0";
        WorkbenchRecipe.difficulty = RD.getDouble(2.0);
-@@ -110,21 +126,22 @@
+@@ -111,21 +126,22 @@
      } finally {
        cfg.save();
      }

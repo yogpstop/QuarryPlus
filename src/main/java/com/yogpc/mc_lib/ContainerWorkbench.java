@@ -218,6 +218,16 @@ public class ContainerWorkbench extends Container implements IPacketContainer {
    */
   @Override
   public ItemStack slotClick(final int i, final int param, final int type, final EntityPlayer ep) {
+    if (0 < i && i <= this.inventorySlots.size()) {
+      final Slot c = (Slot) this.inventorySlots.get(i);
+      if (c instanceof SlotWorkbench) {
+        if (type == 0 && c.getHasStack()) {
+          this.tile.cur_recipe = c.getSlotIndex();
+          this.tile.markDirty();
+        }
+        return null;
+      }
+    }
     ItemStack ret = null;
     final InventoryPlayer player_inv = ep.inventory;
     if (type == 5) {

@@ -73,7 +73,7 @@
    }
  
    @Override
-@@ -117,7 +120,7 @@
+@@ -118,7 +120,7 @@
  
    @Override
    public void onArmorTickUpdate(final World world, final EntityPlayer player, final ItemStack is) {
@@ -151,8 +151,8 @@
    public static boolean canDrag(final Slot slot, final ItemStack is, final boolean always_true) {
      boolean can = slot == null || !slot.getHasStack();
      if (slot != null && slot.getHasStack() && is != null && is.isItemEqual(slot.getStack())
-@@ -216,60 +203,7 @@
-   public ItemStack slotClick(final int i, final int param, final int type, final EntityPlayer ep) {
+@@ -226,60 +213,7 @@
+     }
      ItemStack ret = null;
      final InventoryPlayer player_inv = ep.inventory;
 -    if (type == 5) {
@@ -213,7 +213,7 @@
        if (i == -999) {
          if (player_inv.getItemStack() != null && i == -999) {
            if (param == 0) {
-@@ -404,31 +338,6 @@
+@@ -414,31 +348,6 @@
          slot.onPickupFromSlot(ep, drop_stack);
          ep.dropPlayerItemWithRandomChoice(drop_stack, true);
        }
@@ -486,7 +486,7 @@
    }
  
    @Override
-@@ -153,7 +158,7 @@
+@@ -153,7 +154,7 @@
  
    @Override
    @SideOnly(Side.CLIENT)
@@ -785,13 +785,13 @@
 +
    public void registerTextures() {}
 +
-+  private static EntityPlayer createNewPlayer(World w) {
-+    EntityPlayer p = new EntityPlayer(w) {
++  private static EntityPlayer createNewPlayer(final World w) {
++    final EntityPlayer p = new EntityPlayer(w) {
 +      @Override
-+      public void sendChatToPlayer(String var1) {}
++      public void sendChatToPlayer(final String var1) {}
 +
 +      @Override
-+      public boolean canCommandSenderUseCommand(int var1, String var2) {
++      public boolean canCommandSenderUseCommand(final int var1, final String var2) {
 +        return false;
 +      }
 +
@@ -805,7 +805,7 @@
 +    return p;
 +  }
 +
-+  public static EntityPlayer getPlayer(World w, int x, int y, int z) {
++  public static EntityPlayer getPlayer(final World w, final int x, final int y, final int z) {
 +    if (player == null)
 +      player = createNewPlayer(w);
 +    else

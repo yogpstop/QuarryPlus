@@ -52,7 +52,7 @@ public class ILaserTargetHelper {
   }
 
   static void receiveLaserEnergy(final Object o, final double v) {
-    Class<?> t = _receiveLaserEnergy.getParameterTypes()[0];
+    final Class<?> t = _receiveLaserEnergy.getParameterTypes()[0];
     Object p = null;
     if (double.class.equals(t))
       p = new Double(v);
