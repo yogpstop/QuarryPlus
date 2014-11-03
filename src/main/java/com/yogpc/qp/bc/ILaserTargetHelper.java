@@ -1,4 +1,4 @@
-package com.yogpc.qp;
+package com.yogpc.qp.bc;
 
 import java.lang.reflect.Method;
 
@@ -31,27 +31,27 @@ public class ILaserTargetHelper {
     return r == null ? d : r.booleanValue();
   }
 
-  static int getXCoord(final Object o) {
+  public static int getXCoord(final Object o) {
     return call_num(_getXCoord, o, new Object[] {}, Integer.MIN_VALUE);
   }
 
-  static int getYCoord(final Object o) {
+  public static int getYCoord(final Object o) {
     return call_num(_getYCoord, o, new Object[] {}, Integer.MIN_VALUE);
   }
 
-  static int getZCoord(final Object o) {
+  public static int getZCoord(final Object o) {
     return call_num(_getZCoord, o, new Object[] {}, Integer.MIN_VALUE);
   }
 
-  static boolean requiresLaserEnergy(final Object o) {
+  public static boolean requiresLaserEnergy(final Object o) {
     return call_bool(_requiresLaserEnergy, o, new Object[] {}, false);
   }
 
-  static boolean isInvalidTarget(final Object o) {
+  public static boolean isInvalidTarget(final Object o) {
     return call_bool(_isInvalidTarget, o, new Object[] {}, true);
   }
 
-  static void receiveLaserEnergy(final Object o, final double v) {
+  public static void receiveLaserEnergy(final Object o, final double v) {
     final Class<?> t = _receiveLaserEnergy.getParameterTypes()[0];
     Object p = null;
     if (double.class.equals(t))
@@ -63,11 +63,11 @@ public class ILaserTargetHelper {
     ReflectionHelper.invoke(_receiveLaserEnergy, o, new Object[] {p});
   }
 
-  static boolean isValid(final Object o) {
+  public static boolean isValid(final Object o) {
     return !isInvalidTarget(o) && requiresLaserEnergy(o);
   }
 
-  static boolean isInstance(final Object o) {
+  public static boolean isInstance(final Object o) {
     return cls.isInstance(o);
   }
 }

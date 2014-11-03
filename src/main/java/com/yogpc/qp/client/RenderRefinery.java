@@ -156,8 +156,8 @@ public class RenderRefinery extends TileEntitySpecialRenderer implements
       GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
       GL11.glTranslatef(-0.5F, -0.5F, -0.5F);
       GL11.glScalef(0.5F, 1, 0.5F);
-      renderFluid(tile.src1, 0, 0, 0, tile.buf);
-      renderFluid(tile.src2, 0, 0, 1, tile.buf);
+      renderFluid(tile.src[0], 0, 0, 0, tile.buf);
+      renderFluid(tile.src[1], 0, 0, 1, tile.buf);
       renderFluid(tile.res, 1, 0, 0.5F, tile.buf);
       GL11.glPopAttrib();
     }

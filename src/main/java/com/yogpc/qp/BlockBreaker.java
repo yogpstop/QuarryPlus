@@ -37,6 +37,7 @@ import net.minecraftforge.common.util.ForgeDirection;
 
 import com.yogpc.mc_lib.InvUtils;
 import com.yogpc.mc_lib.ReflectionHelper;
+import com.yogpc.qp.bc.BuildCraftHelper;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;

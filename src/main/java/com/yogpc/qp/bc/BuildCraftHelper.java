@@ -1,4 +1,4 @@
-package com.yogpc.qp;
+package com.yogpc.qp.bc;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;

@@ -296,8 +296,10 @@ public class PowerManager {
     return useEnergy(pp, F_BP, U, F_CU);
   }
 
-  static boolean useEnergyR(final APowerTile pp, final int energy, final byte U) {
-    return useEnergy(pp, energy, U, R_CU);
+  static double useEnergyR(final APowerTile pp, final double energy, final byte U, final byte E) {
+    double pw = E * energy / (U * R_CU + 1);
+    pw = pp.useEnergy(pw, pw, true);
+    return pw * (U * R_CU + 1) / E;
   }
 
   static boolean useEnergyP(final APowerTile pp, final byte U, final long liquids, final long frames) {

@@ -19,24 +19,27 @@ import java.io.IOException;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidContainerRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidTankInfo;
 import net.minecraftforge.fluids.IFluidHandler;
-import buildcraft.api.recipes.BuildcraftRecipes;
-import buildcraft.api.recipes.IRefineryRecipeManager.IRefineryRecipe;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
 import com.yogpc.mc_lib.APowerTile;
 import com.yogpc.mc_lib.PacketHandler;
 import com.yogpc.mc_lib.YogpstopPacket;
+import com.yogpc.qp.bc.RefineryRecipeHelper;
 
 public class TileRefinery extends APowerTile implements IFluidHandler, IEnchantableTile {
-  public FluidStack src1, src2, res;
-  private int ticks;
+  public FluidStack res;
+  public final FluidStack[] src = new FluidStack[2];
+  public double rem_energy;
+  public long rem_time;
+  public FluidStack cached;
 
   public float animationSpeed = 1;
   private int animationStage = 0;
@@ -61,9 +64,17 @@ public class TileRefinery extends APowerTile implements IFluidHandler, IEnchanta
     this.fortune = nbttc.getByte("fortune");
     this.efficiency = nbttc.getByte("efficiency");
     this.unbreaking = nbttc.getByte("unbreaking");
-    this.src1 = FluidStack.loadFluidStackFromNBT(nbttc.getCompoundTag("src1"));
-    this.src2 = FluidStack.loadFluidStackFromNBT(nbttc.getCompoundTag("src2"));
+    final NBTTagList srcl = nbttc.getTagList("src", 10);
+    for (int i = 0; i < srcl.tagCount(); ++i) {
+      final NBTTagCompound srct = srcl.getCompoundTagAt(i);
+      final int j = srct.getByte("Slot") & 255;
+      if (j >= 0 && j < this.src.length)
+        this.src[j] = FluidStack.loadFluidStackFromNBT(srct);
+    }
     this.res = FluidStack.loadFluidStackFromNBT(nbttc.getCompoundTag("res"));
+    this.cached = FluidStack.loadFluidStackFromNBT(nbttc.getCompoundTag("cached"));
+    this.rem_energy = nbttc.getDouble("rem_energy");
+    this.rem_time = nbttc.getLong("rem_time");
     this.animationSpeed = nbttc.getFloat("animationSpeed");
     this.animationStage = nbttc.getInteger("animationStage");
     this.buf = (int) (FluidContainerRegistry.BUCKET_VOLUME * 4 * Math.pow(1.3, this.fortune));
@@ -77,12 +88,21 @@ public class TileRefinery extends APowerTile implements IFluidHandler, IEnchanta
     nbttc.setByte("fortune", this.fortune);
     nbttc.setByte("efficiency", this.efficiency);
     nbttc.setByte("unbreaking", this.unbreaking);
-    if (this.src1 != null)
-      nbttc.setTag("src1", this.src1.writeToNBT(new NBTTagCompound()));
-    if (this.src2 != null)
-      nbttc.setTag("src2", this.src2.writeToNBT(new NBTTagCompound()));
+    final NBTTagList srcl = new NBTTagList();
+    for (int i = 0; i < this.src.length; ++i)
+      if (this.src[i] != null) {
+        final NBTTagCompound srct = new NBTTagCompound();
+        srct.setByte("Slot", (byte) i);
+        this.src[i].writeToNBT(srct);
+        srcl.appendTag(srct);
+      }
+    nbttc.setTag("src", srcl);
     if (this.res != null)
       nbttc.setTag("res", this.res.writeToNBT(new NBTTagCompound()));
+    if (this.cached != null)
+      nbttc.setTag("cached", this.cached.writeToNBT(new NBTTagCompound()));
+    nbttc.setDouble("rem_energy", this.rem_energy);
+    nbttc.setLong("rem_time", this.rem_time);
     nbttc.setFloat("animationSpeed", this.animationSpeed);
     nbttc.setInteger("animationStage", this.animationStage);
   }
@@ -97,45 +117,24 @@ public class TileRefinery extends APowerTile implements IFluidHandler, IEnchanta
     if (this.worldObj.getWorldTime() % 20 == 7)
       PacketHandler.sendPacketToAround(new YogpstopPacket(this),
           this.worldObj.provider.dimensionId, this.xCoord, this.yCoord, this.zCoord);
-    this.ticks++;
-    for (int i = this.efficiency + 1; i > 0; i--) {
-      final IRefineryRecipe r = BuildcraftRecipes.refinery.findRefineryRecipe(this.src1, this.src2);
-      if (r == null) {
-        decreaseAnimation();
-        this.ticks = 0;
-        return;
-      }
-      if (this.res != null && r.getResult().amount > this.buf - this.res.amount) {
-        decreaseAnimation();
-        return;
-      }
-      if (r.getTimeRequired() > this.ticks)
-        return;
-      if (i == 1)
-        this.ticks = 0;
-      if (!PowerManager.useEnergyR(this, r.getEnergyCost(), this.unbreaking)) {
-        decreaseAnimation();
-        return;
-      }
-      increaseAnimation();
-      if (r.getIngredient1().isFluidEqual(this.src1))
-        this.src1.amount -= r.getIngredient1().amount;
-      else
-        this.src2.amount -= r.getIngredient1().amount;
-      if (r.getIngredient2() != null)
-        if (r.getIngredient2().isFluidEqual(this.src2))
-          this.src2.amount -= r.getIngredient2().amount;
-        else
-          this.src1.amount -= r.getIngredient2().amount;
-      if (this.src1 != null && this.src1.amount == 0)
-        this.src1 = null;
-      if (this.src2 != null && this.src2.amount == 0)
-        this.src2 = null;
-      if (this.res == null)
-        this.res = r.getResult().copy();
-      else
-        this.res.amount += r.getResult().amount;
+    if (this.cached == null) {
+      decreaseAnimation();
+      return;
     }
+    this.rem_time--;
+    this.rem_energy -=
+        PowerManager.useEnergyR(this, this.rem_energy, this.unbreaking, this.efficiency);
+    increaseAnimation();
+    if (this.rem_time > 0 || this.rem_energy > 0.01)
+      return;
+    if (this.res == null)
+      this.res = this.cached.copy();
+    else
+      this.res.amount += this.cached.amount;
+    this.cached = null;
+    decreaseAnimation();
+    RefineryRecipeHelper.get(this);
+    return;
   }
 
   public int getAnimationStage() {
@@ -212,29 +211,24 @@ public class TileRefinery extends APowerTile implements IFluidHandler, IEnchanta
 
   @Override
   public int fill(final ForgeDirection from, final FluidStack resource, final boolean doFill) {
-    if (resource.isFluidEqual(this.src1)) {
-      final int ret = Math.min(this.buf - this.src1.amount, resource.amount);
+    for (final FluidStack s : this.src) {
+      if (!resource.isFluidEqual(s))
+        continue;
+      final int ret = Math.min(this.buf - s.amount, resource.amount);
       if (doFill)
-        this.src1.amount += ret;
+        s.amount += ret;
+      RefineryRecipeHelper.get(this);
       return ret;
-    } else if (resource.isFluidEqual(this.src2)) {
-      final int ret = Math.min(this.buf - this.src2.amount, resource.amount);
-      if (doFill)
-        this.src2.amount += ret;
-      return ret;
-    } else if (this.src1 == null) {
+    }
+    for (int i = this.src.length - 1; i >= 0; i--) {
+      if (this.src[i] != null)
+        continue;
       final int ret = Math.min(this.buf, resource.amount);
       if (doFill) {
-        this.src1 = resource.copy();
-        this.src1.amount = ret;
+        this.src[i] = resource.copy();
+        this.src[i].amount = ret;
       }
-      return ret;
-    } else if (this.src2 == null) {
-      final int ret = Math.min(this.buf, resource.amount);
-      if (doFill) {
-        this.src2 = resource.copy();
-        this.src2.amount = ret;
-      }
+      RefineryRecipeHelper.get(this);
       return ret;
     }
     return 0;
@@ -243,27 +237,21 @@ public class TileRefinery extends APowerTile implements IFluidHandler, IEnchanta
   @Override
   public FluidStack drain(final ForgeDirection from, final FluidStack resource,
       final boolean doDrain) {
-    // if (resource == null) return null;
-    if (resource.equals(this.res))
+    if (resource == null)
+      return null;
+    if (resource.isFluidEqual(this.res))
       return drain(from, resource.amount, doDrain);
-    if (resource.equals(this.src1)) {
-      final FluidStack ret = this.src1.copy();
+    for (int i = this.src.length - 1; i >= 0; i--) {
+      if (!resource.isFluidEqual(this.src[i]))
+        continue;
+      final FluidStack ret = this.src[i].copy();
       ret.amount = Math.min(resource.amount, ret.amount);
       if (doDrain) {
-        this.src1.amount -= ret.amount;
-        if (this.src1.amount == 0)
-          this.src1 = null;
+        this.src[i].amount -= ret.amount;
+        if (this.src[i].amount == 0)
+          this.src[i] = null;
       }
-      return ret;
-    }
-    if (resource.equals(this.src2)) {
-      final FluidStack ret = this.src2.copy();
-      ret.amount = Math.min(resource.amount, ret.amount);
-      if (doDrain) {
-        this.src2.amount -= ret.amount;
-        if (this.src2.amount == 0)
-          this.src2 = null;
-      }
+      RefineryRecipeHelper.get(this);
       return ret;
     }
     return null;
@@ -280,6 +268,7 @@ public class TileRefinery extends APowerTile implements IFluidHandler, IEnchanta
       if (this.res.amount == 0)
         this.res = null;
     }
+    RefineryRecipeHelper.get(this);
     return ret;
   }
 
@@ -295,8 +284,11 @@ public class TileRefinery extends APowerTile implements IFluidHandler, IEnchanta
 
   @Override
   public FluidTankInfo[] getTankInfo(final ForgeDirection from) {
-    return new FluidTankInfo[] {new FluidTankInfo(this.src1, this.buf),
-        new FluidTankInfo(this.src2, this.buf), new FluidTankInfo(this.res, this.buf)};
+    final FluidTankInfo[] ret = new FluidTankInfo[this.src.length + 1];
+    ret[0] = new FluidTankInfo(this.res, this.buf);
+    for (int i = this.src.length - 1; i >= 0; i--)
+      ret[i + 1] = new FluidTankInfo(this.src[i], this.buf);
+    return ret;
   }
 
   @Override

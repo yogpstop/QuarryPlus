@@ -106,11 +106,9 @@ public class TilePlacer extends TileEntity implements IInventory {
   public void readFromNBT(final NBTTagCompound par1NBTTagCompound) {
     super.readFromNBT(par1NBTTagCompound);
     final NBTTagList nbttaglist = par1NBTTagCompound.getTagList("Items", 10);
-
     for (int i = 0; i < nbttaglist.tagCount(); ++i) {
       final NBTTagCompound nbttagcompound1 = nbttaglist.getCompoundTagAt(i);
       final int j = nbttagcompound1.getByte("Slot") & 255;
-
       if (j >= 0 && j < this.stack.length)
         this.stack[j] = ItemStack.loadItemStackFromNBT(nbttagcompound1);
     }
@@ -120,7 +118,6 @@ public class TilePlacer extends TileEntity implements IInventory {
   public void writeToNBT(final NBTTagCompound par1NBTTagCompound) {
     super.writeToNBT(par1NBTTagCompound);
     final NBTTagList nbttaglist = new NBTTagList();
-
     for (int i = 0; i < this.stack.length; ++i)
       if (this.stack[i] != null) {
         final NBTTagCompound nbttagcompound1 = new NBTTagCompound();
@@ -128,7 +125,6 @@ public class TilePlacer extends TileEntity implements IInventory {
         this.stack[i].writeToNBT(nbttagcompound1);
         nbttaglist.appendTag(nbttagcompound1);
       }
-
     par1NBTTagCompound.setTag("Items", nbttaglist);
   }
 }

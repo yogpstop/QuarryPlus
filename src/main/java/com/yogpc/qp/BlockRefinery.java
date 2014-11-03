@@ -32,6 +32,7 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.IFluidHandler;
 
 import com.yogpc.mc_lib.InvUtils;
+import com.yogpc.qp.bc.BuildCraftHelper;
 
 public class BlockRefinery extends BlockContainer {
 
