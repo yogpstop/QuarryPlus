@@ -97,6 +97,20 @@
      nbt.setInteger("Count", is.stackSize);
      nbt.setShort("Damage", (short) is.getItemDamage());
  
+--- a/com/yogpc/qp/bc/RefineryRecipeHelper.java
++++ b/com/yogpc/qp/bc/RefineryRecipeHelper.java
+@@ -39,9 +39,8 @@
+   public static void get(final TileRefinery tr) {
+     if (tr.cached != null)
+       return;
+-    for (final RefineryRecipe ifr : RefineryRecipe.getRecipes()) {
+-      if (!craft(ifr, tr, false) || !RefineryRecipeHelper.check(ifr.result, tr))
+-        continue;
++    final RefineryRecipe ifr = RefineryRecipe.findRefineryRecipe(tr.src[0], tr.src[1]);
++    if (ifr != null && craft(ifr, tr, false) && RefineryRecipeHelper.check(ifr.result, tr)) {
+       craft(ifr, tr, true);
+       tr.rem_energy = ifr.energy;
+       tr.rem_time = ifr.delay;
 --- a/com/yogpc/qp/client/RenderRefinery.java
 +++ b/com/yogpc/qp/client/RenderRefinery.java
 @@ -177,7 +177,7 @@

@@ -1,0 +1,174 @@
+--- a/com/yogpc/mc_lib/APowerTile.java
++++ b/com/yogpc/mc_lib/APowerTile.java
+@@ -3,25 +3,48 @@ package com.yogpc.mc_lib;
+ import ic2.api.energy.tile.IEnergySink;
+ import net.minecraft.nbt.NBTTagCompound;
+ import net.minecraft.tileentity.TileEntity;
++import net.minecraft.world.World;
+ import net.minecraftforge.common.util.ForgeDirection;
++import buildcraft.api.power.IPowerReceptor;
++import buildcraft.api.power.PowerHandler;
++import buildcraft.api.power.PowerHandler.PowerReceiver;
++import buildcraft.api.power.PowerHandler.Type;
+ import cofh.api.energy.IEnergyHandler;
+ 
+-public abstract class APowerTile extends APacketTile implements IEnergyHandler, IEnergySink {
++public abstract class APowerTile extends APacketTile implements IPowerReceptor, IEnergyHandler,
++    IEnergySink {
++  private final PowerHandler pp = new PowerHandler(this, Type.MACHINE);
+   private double all, maxGot, max, got;
+ 
+   @Override
+   public void updateEntity() {
+     super.updateEntity();
++    final double rem = Math.min(this.maxGot - this.got, this.max - this.all - this.got);
++    this.got += this.pp.useEnergy(0, rem, true);
+     this.all += this.got;
+     this.got = 0;
+   }
+ 
+   @Override
++  public final PowerReceiver getPowerReceiver(final ForgeDirection side) {
++    return this.pp.getPowerReceiver();
++  }
++
++  @Override
++  public final void doWork(final PowerHandler workProvider) {}
++
++  @Override
++  public final World getWorld() {
++    return this.worldObj;
++  }
++
++  @Override
+   public void readFromNBT(final NBTTagCompound nbttc) {
+     super.readFromNBT(nbttc);
+     this.all = nbttc.getDouble("storedEnergy");
+     this.max = nbttc.getDouble("MAX_stored");
+     this.maxGot = nbttc.getDouble("MAX_receive");
++    this.pp.configure(0, this.maxGot, 0, this.max);
+   }
+ 
+   @Override
+@@ -65,6 +88,7 @@ public abstract class APowerTile extends APacketTile implements IEnergyHandler,
+   public final void configure(final double x, final double maxstored) {
+     this.maxGot = x;
+     this.max = maxstored;
++    this.pp.configure(0, this.maxGot, 0, this.max);
+   }
+ 
+   @Override
+--- a/com/yogpc/qp/bc/RefineryRecipeHelper.java
++++ b/com/yogpc/qp/bc/RefineryRecipeHelper.java
+@@ -1,76 +1,56 @@
+ package com.yogpc.qp.bc;
+ 
+-import net.minecraft.item.ItemStack;
+ import net.minecraftforge.fluids.FluidStack;
+-import buildcraft.api.recipes.BuildcraftRecipeRegistry;
+-import buildcraft.api.recipes.CraftingResult;
+-import buildcraft.api.recipes.IFlexibleCrafter;
+-import buildcraft.api.recipes.IFlexibleRecipe;
++import buildcraft.api.recipes.BuildcraftRecipes;
+ import buildcraft.api.recipes.IRefineryRecipeManager;
++import buildcraft.api.recipes.IRefineryRecipeManager.IRefineryRecipe;
+ 
+ import com.yogpc.qp.TileRefinery;
+ 
+-public class RefineryRecipeHelper implements IFlexibleCrafter {
+-  private final TileRefinery tile;
+-
+-  private RefineryRecipeHelper(final TileRefinery tr) {
+-    this.tile = tr;
+-  }
+-
+-  @Override
+-  public int getCraftingItemStackSize() {
+-    return 0;
+-  }
+-
+-  @Override
+-  public ItemStack getCraftingItemStack(final int slotid) {
+-    return null;
+-  }
+-
+-  @Override
+-  public ItemStack decrCraftingItemgStack(final int slotid, final int val) {
+-    return null;
+-  }
+-
+-  @Override
+-  public FluidStack getCraftingFluidStack(final int id) {
+-    return this.tile.src[id];
+-  }
+-
+-  @Override
+-  public FluidStack decrCraftingFluidStack(final int id, final int val) {
+-    final FluidStack ret = this.tile.src[id];
+-    if (ret == null)
+-      return null;
+-    if (val >= ret.amount) {
+-      this.tile.src[id] = null;
+-      return ret;
++public class RefineryRecipeHelper {
++  private static void use(final FluidStack fs, final TileRefinery tr, final boolean real) {
++    if (fs == null)
++      return;
++    for (final FluidStack s : tr.src) {
++      if (!fs.isFluidEqual(s))
++        continue;
++      final int min = Math.min(s.amount, fs.amount);
++      if (real)
++        s.amount -= min;
++      fs.amount -= min;
++      if (fs.amount <= 0)
++        break;
+     }
+-    this.tile.src[id] = ret.copy();
+-    this.tile.src[id].amount -= val;
+-    ret.amount = val;
+-    return ret;
++    if (real)
++      for (int i = tr.src.length - 1; i >= 0; i--)
++        if (tr.src[i] != null && tr.src[i].amount == 0)
++          tr.src[i] = null;
+   }
+ 
+-  @Override
+-  public int getCraftingFluidStackSize() {
+-    return this.tile.src.length;
++  private static boolean craft(final IRefineryRecipe r, final TileRefinery t, final boolean real) {
++    FluidStack f1 = r.getIngredient1(), f2 = r.getIngredient2();
++    if (f1 != null)
++      f1 = f1.copy();
++    if (f2 != null)
++      f2 = f2.copy();
++    use(f1, t, real);
++    use(f2, t, real);
++    return (f1 == null || f1.amount <= 0) && (f2 == null || f2.amount <= 0);
+   }
+ 
+   public static void get(final TileRefinery tr) {
+     if (tr.cached != null)
+       return;
+-    final IRefineryRecipeManager irrm = BuildcraftRecipeRegistry.refinery;
++    final IRefineryRecipeManager irrm = BuildcraftRecipes.refinery;
+     if (irrm == null)
+       return;
+-    for (final IFlexibleRecipe<FluidStack> ifr : irrm.getRecipes()) {
+-      final CraftingResult<FluidStack> cr = ifr.craft(new RefineryRecipeHelper(tr), true);
+-      if (cr == null || !RefineryRecipeHelper.check(cr.crafted, tr))
++    for (final IRefineryRecipe ifr : irrm.getRecipes()) {
++      if (!craft(ifr, tr, false) || !RefineryRecipeHelper.check(ifr.getResult(), tr))
+         continue;
+-      ifr.craft(new RefineryRecipeHelper(tr), false);
+-      tr.rem_energy = cr.energyCost;
+-      tr.rem_time = cr.craftingTime;
+-      tr.cached = cr.crafted.copy();
++      craft(ifr, tr, true);
++      tr.rem_energy = ifr.getEnergyCost();
++      tr.rem_time = ifr.getTimeRequired();
++      tr.cached = ifr.getResult().copy();
+       tr.cached.amount *= tr.getEfficiency() + 1;
+       RefineryRecipeHelper.get(tr);
+       return;

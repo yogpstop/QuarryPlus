@@ -3,14 +3,14 @@ F,net.minecraft.network.NetHandlerPlayServer,net.minecraft.network.INetHandler
 F,cpw.mods.fml.common.network.FMLEmbeddedChannel,cpw.mods.fml.common.network.FMLOutboundHandler,cpw.mods.fml.common.network.FMLOutboundHandler.,cpw.mods.fml.common.network.internal.FMLProxyPacket
 F,cpw.mods.fml.common.gameevent.
 F,io.netty.
-F,buildcraft.api.recipes.BuildcraftRecipes,buildcraft.api.recipes.IRefineryRecipeManager.IRefineryRecipe
+F,buildcraft.api.recipes.BuildcraftRecipes,buildcraft.api.recipes.IRefineryRecipeManager.IRefineryRecipe,buildcraft.api.recipes.IRefineryRecipeManager
 F,net.minecraft.init.
 A,com/yogpc/mc_lib/YogpstopLib,java.io.BufferedReader,java.io.File,java.io.FileInputStream,java.io.InputStream,java.io.InputStreamReader,java.io.IOException,java.io.Reader,java.util.Properties,java.util.regex.Matcher,java.util.regex.Pattern,java.util.zip.ZipEntry,java.util.zip.ZipInputStream,com.google.common.base.Charsets,cpw.mods.fml.common.network.NetworkMod,cpw.mods.fml.common.registry.LanguageRegistry
 A,com/yogpc/mc_lib/ProxyClient,java.util.ArrayList,java.util.EnumSet,java.util.List,cpw.mods.fml.common.ITickHandler,cpw.mods.fml.common.TickType,cpw.mods.fml.common.registry.TickRegistry
 R,com/yogpc/mc_lib/ProxyClient,net.minecraft.entity.player.EntityPlayer,cpw.mods.fml.client.registry.ClientRegistry,cpw.mods.fml.common.FMLCommonHandler,net.minecraftforge.event.ForgeSubscribe
 R,com/yogpc/mc_lib/PacketHandler,cpw.mods.fml.common.network.NetworkRegistry,cpw.mods.fml.relauncher.Side,java.util.EnumMap
 A,com/yogpc/mc_lib/PacketHandler,net.minecraft.network.INetworkManager,net.minecraft.network.packet.Packet250CustomPayload,cpw.mods.fml.common.network.IPacketHandler,cpw.mods.fml.common.network.PacketDispatcher,cpw.mods.fml.common.network.Player
-A,com/yogpc/qp/TileRefinery,buildcraft.api.recipes.RefineryRecipes
+A,com/yogpc/qp/bc/RefineryRecipeHelper,buildcraft.api.recipes.RefineryRecipes
 R,com/yogpc/mc_lib/YogpstopPacket,cpw.mods.fml.common.network.NetworkRegistry
 A,com/yogpc/mc_lib/YogpstopPacket,cpw.mods.fml.common.network.Player
 A,com/yogpc/qp/EnchantmentHelper,net.minecraft.nbt.NBTTagCompound

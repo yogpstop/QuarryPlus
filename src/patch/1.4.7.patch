@@ -420,22 +420,6 @@
    }
  
    @Override
---- a/com/yogpc/qp/BlockInfMJSrc.java
-+++ b/com/yogpc/qp/BlockInfMJSrc.java
-@@ -29,12 +29,7 @@
-     setStepSound(soundStoneFootstep);
-     setCreativeTab(QuarryPlus.ct);
-     setBlockName("InfMJSrc");
--  }
--
--  @Override
--  @SideOnly(Side.CLIENT)
--  public void registerIcons(final IconRegister ir) {
--    this.blockIndexInTexture = ir.registerIcon("portal");
-+    this.blockIndexInTexture = Block.portal.blockIndexInTexture;
-   }
- 
-   @Override
 --- a/com/yogpc/qp/BlockLaser.java
 +++ b/com/yogpc/qp/BlockLaser.java
 @@ -29,13 +29,16 @@
@@ -1108,17 +1092,6 @@
 +    super.drawScreen(par1, par2, par3);
    }
  }
---- a/com/yogpc/qp/client/GuiInfMJSrc.java
-+++ b/com/yogpc/qp/client/GuiInfMJSrc.java
-@@ -129,7 +129,7 @@
-   @Override
-   protected void drawGuiContainerBackgroundLayer(final float f, final int i, final int j) {
-     GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
--    this.mc.renderEngine.bindTexture(gui);
-+    this.mc.renderEngine.bindTexture(this.mc.renderEngine.getTexture(gui));
-     drawTexturedModalRect(this.width - 176 >> 1, this.height - 214 >> 1, 0, 0, this.xSize,
-         this.ySize);
-     this.eng.drawTextBox();
 --- a/com/yogpc/qp/client/GuiMover.java
 +++ b/com/yogpc/qp/client/GuiMover.java
 @@ -63,7 +63,7 @@
