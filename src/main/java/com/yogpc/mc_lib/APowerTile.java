@@ -47,10 +47,11 @@ public abstract class APowerTile extends APacketTile implements IEnergyHandler, 
     return res;
   }
 
-  private final double getEnergy(final double a) {
+  private final double getEnergy(final double a, final boolean r) {
     final double ret =
         Math.min(Math.min(this.maxGot - this.got, this.max - this.all - this.got), a);
-    this.got += ret;
+    if (r)
+      this.got += ret;
     return ret;
   }
 
@@ -79,7 +80,7 @@ public abstract class APowerTile extends APacketTile implements IEnergyHandler, 
 
   @Override
   public int receiveEnergy(final ForgeDirection d, final int am, final boolean sim) {
-    return (int) getEnergy((double) am / 10) * 10;
+    return (int) getEnergy((double) am / 10, !sim) * 10;
   }
 
   @Override
@@ -89,7 +90,7 @@ public abstract class APowerTile extends APacketTile implements IEnergyHandler, 
 
   @Override
   public double injectEnergy(final ForgeDirection d, final double am, final double v) {
-    return getEnergy(am / 2.5) * 2.5;
+    return getEnergy(am / 2.5, true) * 2.5;
   }
 
   @Override

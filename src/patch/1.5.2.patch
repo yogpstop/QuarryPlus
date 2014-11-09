@@ -149,7 +149,7 @@
    }
  
    @Override
-@@ -86,32 +94,18 @@
+@@ -87,32 +95,18 @@
    public final void configure(final double x, final double maxstored) {
      this.maxGot = x;
      this.max = maxstored;
@@ -168,7 +168,7 @@
 -
 -  @Override
 -  public int receiveEnergy(final ForgeDirection d, final int am, final boolean sim) {
--    return (int) getEnergy((double) am / 10) * 10;
+-    return (int) getEnergy((double) am / 10, !sim) * 10;
 +    if (this.pp != null)
 +      this.pp.configure(0, 0, (int) this.maxGot, 0, (int) this.max);
    }
@@ -181,12 +181,12 @@
  
    @Override
    public int injectEnergy(final Direction d, final int am) {
--    return getEnergy(am / 2.5) * 2.5;
-+    return (int) (getEnergy(am / 2.5) * 2.5);
+-    return getEnergy(am / 2.5, true) * 2.5;
++    return (int) (getEnergy(am / 2.5, true) * 2.5);
    }
  
    @Override
-@@ -120,11 +114,6 @@
+@@ -121,11 +115,6 @@
    }
  
    @Override

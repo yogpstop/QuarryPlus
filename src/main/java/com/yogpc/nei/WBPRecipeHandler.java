@@ -110,7 +110,7 @@ public class WBPRecipeHandler extends TemplateRecipeHandler {
   public void drawExtras(final int recipeIndex) {
     drawProgressBar(3, 67, 0, 222, 160, 4, 40, 0);
     final WBPRecipe recipe = (WBPRecipe) this.arecipes.get(recipeIndex);
-    Minecraft.getMinecraft().fontRenderer.drawString(Double.toString(recipe.energy), 3, 121,
+    Minecraft.getMinecraft().fontRenderer.drawString(Double.toString(recipe.energy) + "MJ", 3, 121,
         0x404040);
   }
 
