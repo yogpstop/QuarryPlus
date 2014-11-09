@@ -17,7 +17,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.world.World;
 
 import com.yogpc.qp.client.GuiEnchList;
-import com.yogpc.qp.client.GuiInfMJSrc;
 import com.yogpc.qp.client.GuiMover;
 import com.yogpc.qp.client.GuiP_List;
 import com.yogpc.qp.client.GuiPlacer;
@@ -35,8 +34,6 @@ public class GuiHandler implements IGuiHandler {
         return new GuiEnchList((byte) 0, (TileBasic) w.getTileEntity(x, y, z));
       case QuarryPlus.guiIdSList:
         return new GuiEnchList((byte) 1, (TileBasic) w.getTileEntity(x, y, z));
-      case QuarryPlus.guiIdInfMJSrc:
-        return new GuiInfMJSrc((TileInfMJSrc) w.getTileEntity(x, y, z));
       case QuarryPlus.guiIdPlacer:
         return new GuiPlacer(p.inventory, (TilePlacer) w.getTileEntity(x, y, z));
       case QuarryPlus.guiIdPump:
@@ -61,8 +58,6 @@ public class GuiHandler implements IGuiHandler {
       case QuarryPlus.guiIdFList:
       case QuarryPlus.guiIdSList:
         return new ContainerEnchList((TileBasic) w.getTileEntity(x, y, z));
-      case QuarryPlus.guiIdInfMJSrc:
-        return new ContainerInfMJSrc((TileInfMJSrc) w.getTileEntity(x, y, z));
       case QuarryPlus.guiIdPlacer:
         return new ContainerPlacer(p.inventory, (TilePlacer) w.getTileEntity(x, y, z));
     }

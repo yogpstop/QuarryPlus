@@ -3,39 +3,17 @@ package com.yogpc.mc_lib;
 import ic2.api.energy.tile.IEnergySink;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
-import buildcraft.api.power.IPowerReceptor;
-import buildcraft.api.power.PowerHandler;
-import buildcraft.api.power.PowerHandler.PowerReceiver;
-import buildcraft.api.power.PowerHandler.Type;
 import cofh.api.energy.IEnergyHandler;
 
-public abstract class APowerTile extends APacketTile implements IPowerReceptor, IEnergyHandler,
-    IEnergySink {
-  private final PowerHandler pp = new PowerHandler(this, Type.MACHINE);
+public abstract class APowerTile extends APacketTile implements IEnergyHandler, IEnergySink {
   private double all, maxGot, max, got;
 
   @Override
   public void updateEntity() {
     super.updateEntity();
-    final double rem = Math.min(this.maxGot - this.got, this.max - this.all - this.got);
-    this.got += this.pp.useEnergy(0, rem, true);
     this.all += this.got;
     this.got = 0;
-  }
-
-  @Override
-  public final PowerReceiver getPowerReceiver(final ForgeDirection side) {
-    return this.pp.getPowerReceiver();
-  }
-
-  @Override
-  public final void doWork(final PowerHandler workProvider) {}
-
-  @Override
-  public final World getWorld() {
-    return this.worldObj;
   }
 
   @Override
@@ -44,7 +22,6 @@ public abstract class APowerTile extends APacketTile implements IPowerReceptor, 
     this.all = nbttc.getDouble("storedEnergy");
     this.max = nbttc.getDouble("MAX_stored");
     this.maxGot = nbttc.getDouble("MAX_receive");
-    this.pp.configure(0, this.maxGot, 0, this.max);
   }
 
   @Override
@@ -88,7 +65,6 @@ public abstract class APowerTile extends APacketTile implements IPowerReceptor, 
   public final void configure(final double x, final double maxstored) {
     this.maxGot = x;
     this.max = maxstored;
-    this.pp.configure(0, this.maxGot, 0, this.max);
   }
 
   @Override

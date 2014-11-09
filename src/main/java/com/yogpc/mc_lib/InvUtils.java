@@ -12,7 +12,6 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
-import buildcraft.api.power.IPowerEmitter;
 import buildcraft.api.transport.IPipeTile;
 
 public class InvUtils {
@@ -96,8 +95,7 @@ public class InvUtils {
     final List<ForgeDirection> pid = new LinkedList<ForgeDirection>();
     for (final ForgeDirection d : ForgeDirection.VALID_DIRECTIONS) {
       final TileEntity t = w.getTileEntity(x + d.offsetX, y + d.offsetY, z + d.offsetZ);
-      if (t instanceof IInventory && !(t instanceof IPowerEmitter)
-          && addToIInv((IInventory) t, is, d.getOpposite(), false) > 0) {
+      if (t instanceof IInventory && addToIInv((IInventory) t, is, d.getOpposite(), false) > 0) {
         pi.add((IInventory) t);
         pid.add(d.getOpposite());
       }

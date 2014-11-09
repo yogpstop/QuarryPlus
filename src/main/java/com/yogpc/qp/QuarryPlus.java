@@ -59,10 +59,8 @@ public class QuarryPlus {
   public static final int markerRenderID = RenderingRegistry.getNextAvailableRenderId();
   public static final int frameRenderID = RenderingRegistry.getNextAvailableRenderId();
   public static Block blockQuarry, blockMarker, blockMover, blockMiningWell, blockPump,
-      blockInfMJSrc, blockRefinery, blockPlacer, blockBreaker, blockLaser, blockPlainPipe,
-      blockFrame;
+      blockRefinery, blockPlacer, blockBreaker, blockLaser, blockPlainPipe, blockFrame;
   public static Item itemTool;
-  public static final int guiIdInfMJSrc = 1;
   public static final int guiIdMover = 2;
   public static final int guiIdFList = 3;
   public static final int guiIdSList = 4;
@@ -117,7 +115,6 @@ public class QuarryPlus {
     blockMover = new BlockMover();
     blockMiningWell = new BlockMiningWell();
     blockPump = new BlockPump();
-    blockInfMJSrc = new BlockInfMJSrc();
     blockRefinery = new BlockRefinery();
     blockPlacer = new BlockPlacer();
     blockBreaker = new BlockBreaker();
@@ -137,7 +134,6 @@ public class QuarryPlus {
     GameRegistry.registerBlock(blockMover, "EnchantMover");
     GameRegistry.registerBlock(blockMiningWell, ItemBlockQuarry.class, "MiningWellPlus");
     GameRegistry.registerBlock(blockPump, ItemBlockPump.class, "PumpPlus");
-    GameRegistry.registerBlock(blockInfMJSrc, "InfMJSrc");
     GameRegistry.registerBlock(blockRefinery, ItemBlockRefinery.class, "RefineryPlus");
     GameRegistry.registerBlock(blockPlacer, "PlacerPlus");
     GameRegistry.registerBlock(blockBreaker, ItemBlockBreaker.class, "BreakerPlus");
@@ -148,7 +144,6 @@ public class QuarryPlus {
     GameRegistry.registerTileEntity(TileMarker.class, "MarkerPlus");
     GameRegistry.registerTileEntity(TileMiningWell.class, "MiningWellPlus");
     GameRegistry.registerTileEntity(TilePump.class, "PumpPlus");
-    GameRegistry.registerTileEntity(TileInfMJSrc.class, "InfMJSrc");
     GameRegistry.registerTileEntity(TileRefinery.class, "RefineryPlus");
     GameRegistry.registerTileEntity(TilePlacer.class, "PlacerPlus");
     GameRegistry.registerTileEntity(TileBreaker.class, "BreakerPlus");

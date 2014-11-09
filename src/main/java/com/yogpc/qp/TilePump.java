@@ -38,9 +38,6 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidTankInfo;
 import net.minecraftforge.fluids.IFluidBlock;
 import net.minecraftforge.fluids.IFluidHandler;
-import buildcraft.api.power.IPowerReceptor;
-import buildcraft.api.power.PowerHandler;
-import buildcraft.api.power.PowerHandler.PowerReceiver;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
@@ -49,8 +46,7 @@ import com.yogpc.mc_lib.APowerTile;
 import com.yogpc.mc_lib.PacketHandler;
 import com.yogpc.mc_lib.YogpstopPacket;
 
-public class TilePump extends APacketTile implements IFluidHandler, IEnchantableTile,
-    IPowerReceptor {
+public class TilePump extends APacketTile implements IFluidHandler, IEnchantableTile {
   private ForgeDirection connectTo = ForgeDirection.UNKNOWN;
   private boolean initialized = false;
 
@@ -702,19 +698,5 @@ public class TilePump extends APacketTile implements IFluidHandler, IEnchantable
     this.fortune = pfortune;
     this.unbreaking = punbreaking;
     this.silktouch = psilktouch;
-  }
-
-  @Override
-  public PowerReceiver getPowerReceiver(final ForgeDirection side) {
-    final TileBasic tb = G_connected();
-    return tb == null ? null : tb.getPowerReceiver(side);
-  }
-
-  @Override
-  public void doWork(final PowerHandler workProvider) {}
-
-  @Override
-  public World getWorld() {
-    return this.worldObj;
   }
 }
