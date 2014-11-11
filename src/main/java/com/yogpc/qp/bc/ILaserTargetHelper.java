@@ -68,6 +68,6 @@ public class ILaserTargetHelper {
   }
 
   public static boolean isInstance(final Object o) {
-    return cls == null || cls.isInstance(o);
+    return cls != null && cls.isInstance(o);
   }
 }
