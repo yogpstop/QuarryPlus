@@ -61,9 +61,9 @@ public class RenderQuarry extends TileEntitySpecialRenderer {
       GL11.glPopMatrix();
     }
     if (tq.G_getNow() == TileQuarry.BREAKBLOCK || tq.G_getNow() == TileQuarry.MOVEHEAD)
-      RenderEntityLaser.doRender(this.field_147501_a.field_147553_e, tq.xMin + 0.75, tq.yMax,
-          tq.zMin + 0.75, tq.headPosX, tq.headPosY, tq.headPosZ, tq.xMax - tq.xMin - 0.5, tq.zMax
-              - tq.zMin - 0.5);
+      RenderEntityLaser.doRender(this.field_147501_a.field_147553_e, tq.xMin + 0.75,
+          tq.yMax + 0.25, tq.zMin + 0.75, tq.headPosX, tq.headPosY, tq.headPosZ, tq.xMax - tq.xMin
+              - 0.5, tq.zMax - tq.zMin - 0.5);
     GL11.glPopAttrib();
     GL11.glPopMatrix();
   }
