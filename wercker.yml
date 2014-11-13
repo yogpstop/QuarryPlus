@@ -1,0 +1,9 @@
+box: mies/java7-oracle
+build:
+    steps:
+        - script:
+            name: install
+            code: curl -o fb.jar https://drone.io/github.com/yogpstop/ForgeBuilder/files/target/ForgeBuilder-0.0.1-SNAPSHOT.jar
+        - script:
+            name: script
+            code: java -jar fb.jar .
