@@ -6,4 +6,4 @@ install:
     - curl -o bc.sh https://drone.io/github.com/yogpstop/ForgeBuilder/files/src/main/sh/bc.sh
 script:
     - bash bc.sh fb.jar
-    - java -jar fb.jar .
+    - java -jar -Xms2G -Xmx2G fb.jar .

@@ -3,11 +3,11 @@ build:
     steps:
         - script:
             name: install
-            code:
-                - curl -o fb.jar https://drone.io/github.com/yogpstop/ForgeBuilder/files/target/ForgeBuilder-0.0.1-SNAPSHOT.jar
-                - curl -o bc.sh https://drone.io/github.com/yogpstop/ForgeBuilder/files/src/main/sh/bc.sh
+            code: |
+                curl -o fb.jar https://drone.io/github.com/yogpstop/ForgeBuilder/files/target/ForgeBuilder-0.0.1-SNAPSHOT.jar
+                curl -o bc.sh https://drone.io/github.com/yogpstop/ForgeBuilder/files/src/main/sh/bc.sh
         - script:
             name: script
-            code:
-                - bash bc.sh fb.jar
-                - java -jar fb.jar .
+            code: |
+                bash bc.sh fb.jar
+                java -jar fb.jar .
