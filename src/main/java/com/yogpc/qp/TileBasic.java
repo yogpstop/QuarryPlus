@@ -76,12 +76,6 @@ public abstract class TileBasic extends APowerTile implements IInventory, IEncha
   protected abstract void G_destroy();
 
   @Override
-  public final void invalidate() {
-    G_destroy();
-    super.invalidate();
-  }
-
-  @Override
   public final void onChunkUnload() {
     G_destroy();
     super.onChunkUnload();

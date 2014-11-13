@@ -99,31 +99,91 @@
        if (i.getItemDamage() != 0) {
 --- a/com/yogpc/mc_lib/APowerTile.java
 +++ b/com/yogpc/mc_lib/APowerTile.java
-@@ -9,16 +9,18 @@
- import buildcraft.api.power.IPowerReceptor;
- import buildcraft.api.power.IPowerProvider;
+@@ -12,9 +12,10 @@
+ import net.minecraftforge.common.MinecraftForge;
+ import net.minecraftforge.common.ForgeDirection;
  
--public abstract class APowerTile extends APacketTile implements IPowerReceptor, IEnergyHandler,
--    IEnergySink {
+-public abstract class APowerTile extends APacketTile implements IEnergyHandler, IEnergySink,
+-    IPowerReceptor {
 -  private final IPowerProvider pp = new IPowerProvider(this, Type.MACHINE);
-+public abstract class APowerTile extends APacketTile implements IPowerReceptor, IEnergySink {
-+  private final IPowerProvider pp = PowerFramework.currentFramework != null ?
-+      PowerFramework.currentFramework.createPowerProvider() : null;
++public abstract class APowerTile extends APacketTile implements IEnergySink, IPowerReceptor {
++  private final IPowerProvider pp =
++      PowerFramework.currentFramework != null ? PowerFramework.currentFramework
++          .createPowerProvider() : null;
    private double all, maxGot, max, got;
+   private boolean ic2ok;
  
-   @Override
-   public void updateEntity() {
-     super.updateEntity();
--    final double rem = Math.min(this.maxGot - this.got, this.max - this.all - this.got);
--    this.got += this.pp.useEnergy(0, (float) rem, true);
+@@ -25,8 +26,10 @@
+       MinecraftForge.EVENT_BUS.post(new EnergyTileLoadEvent(this));
+       this.ic2ok = true;
+     }
 +    if (this.pp != null) {
-+      final double rem = Math.min(this.maxGot - this.got, this.max - this.all - this.got);
-+      this.got += this.pp.useEnergy(0, (float) rem, true);
+     final double rem = Math.min(this.maxGot - this.got, this.max - this.all - this.got);
+     this.got += this.pp.useEnergy(0, (float) rem, true);
 +    }
      this.all += this.got;
      this.got = 0;
    }
-@@ -32,8 +34,13 @@
+@@ -52,7 +55,8 @@
+     this.all = nbttc.getDouble("storedEnergy");
+     this.max = nbttc.getDouble("MAX_stored");
+     this.maxGot = nbttc.getDouble("MAX_receive");
+-    this.pp.configure(0, (float) this.maxGot, 0, (float) this.max);
++    if (this.pp != null)
++      this.pp.configure(0, 0, (int) this.maxGot, 0, (int) this.max);
+   }
+ 
+   @Override
+@@ -97,32 +101,18 @@
+   public final void configure(final double x, final double maxstored) {
+     this.maxGot = x;
+     this.max = maxstored;
+-    this.pp.configure(0, (float) this.maxGot, 0, (float) this.max);
+-  }
+-
+-  @Override
+-  public final int getEnergyStored(final ForgeDirection d) {
+-    return (int) (this.all * 10);
+-  }
+-
+-  @Override
+-  public final int getMaxEnergyStored(final ForgeDirection d) {
+-    return (int) (this.max * 10);
+-  }
+-
+-  @Override
+-  public final int receiveEnergy(final ForgeDirection d, final int am, final boolean sim) {
+-    return (int) getEnergy((double) am / 10, !sim) * 10;
++    if (this.pp != null)
++      this.pp.configure(0, 0, (int) this.maxGot, 0, (int) this.max);
+   }
+ 
+   @Override
+   public final int demandsEnergy() {
+-    return Math.min(this.maxGot - this.got, this.max - this.all - this.got) * 2.5;
++    return (int) (Math.min(this.maxGot - this.got, this.max - this.all - this.got) * 2.5);
+   }
+ 
+   @Override
+   public final int injectEnergy(final Direction d, final int am) {
+-    return am - getEnergy(am / 2.5, true) * 2.5;
++    return (int) (am - getEnergy(am / 2.5, true) * 2.5);
+   }
+ 
+   @Override
+@@ -131,11 +121,6 @@
+   }
+ 
+   @Override
+-  public final int extractEnergy(final ForgeDirection d, final int am, final boolean sim) {
+-    return 0;
+-  }
+-
+-  @Override
+   public final boolean isAddedToEnergyNet() {
+     return true;
+   }
+@@ -154,8 +139,13 @@
    public final void doWork() {}
  
    @Override
@@ -138,66 +198,7 @@
 +    return;
    }
  
-   @Override
-@@ -42,7 +49,8 @@
-     this.all = nbttc.getDouble("storedEnergy");
-     this.max = nbttc.getDouble("MAX_stored");
-     this.maxGot = nbttc.getDouble("MAX_receive");
--    this.pp.configure(0, (float) this.maxGot, 0, (float) this.max);
-+    if (this.pp != null)
-+      this.pp.configure(0, 0, (int) this.maxGot, 0, (int) this.max);
-   }
- 
-   @Override
-@@ -87,32 +95,18 @@
-   public final void configure(final double x, final double maxstored) {
-     this.maxGot = x;
-     this.max = maxstored;
--    this.pp.configure(0, (float) this.maxGot, 0, (float) this.max);
--  }
--
--  @Override
--  public int getEnergyStored(final ForgeDirection d) {
--    return (int) (this.all * 10);
--  }
--
--  @Override
--  public int getMaxEnergyStored(final ForgeDirection d) {
--    return (int) (this.max * 10);
--  }
--
--  @Override
--  public int receiveEnergy(final ForgeDirection d, final int am, final boolean sim) {
--    return (int) getEnergy((double) am / 10, !sim) * 10;
-+    if (this.pp != null)
-+      this.pp.configure(0, 0, (int) this.maxGot, 0, (int) this.max);
-   }
- 
-   @Override
-   public int demandsEnergy() {
--    return Math.min(this.maxGot - this.got, this.max - this.all - this.got) * 2.5;
-+    return (int) (Math.min(this.maxGot - this.got, this.max - this.all - this.got) * 2.5);
-   }
- 
-   @Override
-   public int injectEnergy(final Direction d, final int am) {
--    return getEnergy(am / 2.5, true) * 2.5;
-+    return (int) (getEnergy(am / 2.5, true) * 2.5);
-   }
- 
-   @Override
-@@ -121,11 +115,6 @@
-   }
- 
-   @Override
--  public int extractEnergy(final ForgeDirection d, final int am, final boolean sim) {
--    return 0;
--  }
--
--  @Override
-   public boolean isAddedToEnergyNet() {
-     return true;
-   }
+ }
 --- a/com/yogpc/mc_lib/BlockWorkbench.java
 +++ b/com/yogpc/mc_lib/BlockWorkbench.java
 @@ -22,7 +22,12 @@
@@ -333,6 +334,17 @@
    }
  
    @Override
+--- a/com/yogpc/qp/bc/RefineryRecipeHelper.java
++++ b/com/yogpc/qp/bc/RefineryRecipeHelper.java
+@@ -39,7 +39,7 @@
+   public static void get(final TileRefinery tr) {
+     if (tr.cached != null)
+       return;
+-    for (final RefineryRecipe ifr : RefineryRecipe.getRecipes()) {
++    for (final RefineryRecipe ifr : (java.util.Collection<RefineryRecipe>)RefineryRecipe.getRecipes()) {
+       if (!craft(ifr, tr, false) || !RefineryRecipeHelper.check(ifr.result, tr))
+         continue;
+       craft(ifr, tr, true);
 --- a/com/yogpc/qp/BlockFrame.java
 +++ b/com/yogpc/qp/BlockFrame.java
 @@ -24,7 +24,12 @@

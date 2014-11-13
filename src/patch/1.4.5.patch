@@ -54,25 +54,25 @@
      return EnumRarity.uncommon;
 --- a/com/yogpc/mc_lib/APowerTile.java
 +++ b/com/yogpc/mc_lib/APowerTile.java
-@@ -99,7 +99,7 @@
+@@ -106,7 +106,7 @@
  
    @Override
-   public boolean demandsEnergy() {
+   public final boolean demandsEnergy() {
 -    return (int) (Math.min(this.maxGot - this.got, this.max - this.all - this.got) * 2.5);
 +    return Math.min(this.maxGot - this.got, this.max - this.all - this.got) * 2.5 > 0;
    }
  
    @Override
-@@ -108,11 +108,6 @@
+@@ -115,11 +115,6 @@
    }
  
    @Override
--  public int getMaxSafeInput() {
+-  public final int getMaxSafeInput() {
 -    return 3;
 -  }
 -
 -  @Override
-   public boolean isAddedToEnergyNet() {
+   public final boolean isAddedToEnergyNet() {
      return true;
    }
 --- a/com/yogpc/mc_lib/ContainerWorkbench.java
@@ -103,7 +103,7 @@
    public static void get(final TileRefinery tr) {
      if (tr.cached != null)
        return;
--    for (final RefineryRecipe ifr : RefineryRecipe.getRecipes()) {
+-    for (final RefineryRecipe ifr : (java.util.Collection<RefineryRecipe>)RefineryRecipe.getRecipes()) {
 -      if (!craft(ifr, tr, false) || !RefineryRecipeHelper.check(ifr.result, tr))
 -        continue;
 +    final RefineryRecipe ifr = RefineryRecipe.findRefineryRecipe(tr.src[0], tr.src[1]);
