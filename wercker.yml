@@ -4,6 +4,7 @@ build:
         - script:
             name: install
             code: |
+                sudo apt-get update
                 sudo apt-get install git
                 curl -o fb.jar https://drone.io/github.com/yogpstop/ForgeBuilder/files/target/ForgeBuilder-0.0.1-SNAPSHOT.jar
                 curl -o bc.sh https://drone.io/github.com/yogpstop/ForgeBuilder/files/src/main/sh/bc.sh
