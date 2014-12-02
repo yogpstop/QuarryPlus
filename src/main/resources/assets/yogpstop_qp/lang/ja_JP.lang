@@ -80,3 +80,7 @@ gui.apply=適用する
 gui.infmjsrc.energy=出力エネルギー(MJ)
 gui.infmjsrc.itv=出力間隔(tick)
 gui.infmjsrc.tickinfo=20 tick = 1 秒
+chat.currentmode=現在%sで動作しています
+chat.quarrymode=クァーリーモード
+chat.fillermode=フィラーモード
+chat.changemode=動作モードを%sに切り替えました

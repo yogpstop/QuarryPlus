@@ -130,11 +130,10 @@ public class BlockLaser extends BlockContainer {
     final Item equipped =
         ep.getCurrentEquippedItem() != null ? ep.getCurrentEquippedItem().getItem() : null;
     if (equipped instanceof ItemTool && ep.getCurrentEquippedItem().getItemDamage() == 0) {
-      if (world.isRemote)
-        return true;
-      for (final IChatComponent s : EnchantmentHelper.getEnchantmentsChat((IEnchantableTile) world
-          .getTileEntity(x, y, z)))
-        ep.addChatMessage(s);
+      if (!world.isRemote)
+        for (final IChatComponent s : EnchantmentHelper
+            .getEnchantmentsChat((IEnchantableTile) world.getTileEntity(x, y, z)))
+          ep.addChatMessage(s);
       return true;
     }
     return false;

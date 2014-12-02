@@ -140,10 +140,10 @@ public class BlockPump extends BlockContainer {
       if (ep.getCurrentEquippedItem().getItemDamage() == 0) {
         if (world.isRemote)
           return true;
-        for (final IChatComponent s : ((TilePump) world.getTileEntity(x, y, z)).C_getNames())
-          ep.addChatMessage(s);
         for (final IChatComponent s : EnchantmentHelper
             .getEnchantmentsChat((IEnchantableTile) world.getTileEntity(x, y, z)))
+          ep.addChatMessage(s);
+        for (final IChatComponent s : ((TilePump) world.getTileEntity(x, y, z)).C_getNames())
           ep.addChatMessage(s);
         return true;
       }

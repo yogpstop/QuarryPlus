@@ -43,6 +43,7 @@ import com.yogpc.mc_lib.YogpstopPacket;
 public class TileQuarry extends TileBasic {
   private int targetX, targetY, targetZ;
   public int xMin, xMax, yMin, yMax = Integer.MIN_VALUE, zMin, zMax;
+  boolean filler;
 
   private IAreaProvider iap = null;
 
@@ -112,6 +113,11 @@ public class TileQuarry extends TileBasic {
         return true;
       case NOTNEEDBREAK:
         if (this.targetY < this.yMin) {
+          if (this.filler) {
+            G_destroy();
+            PacketHandler.sendNowPacket(this, this.now);
+            return true;
+          }
           this.now = MAKEFRAME;
           G_renew_powerConfigure();
           this.targetX = this.xMin;
@@ -537,6 +543,7 @@ public class TileQuarry extends TileBasic {
     this.headPosX = nbttc.getDouble("headPosX");
     this.headPosY = nbttc.getDouble("headPosY");
     this.headPosZ = nbttc.getDouble("headPosZ");
+    this.filler = nbttc.getBoolean("filler");
     this.initialized = false;
   }
 
@@ -560,6 +567,7 @@ public class TileQuarry extends TileBasic {
     nbttc.setDouble("headPosX", this.headPosX);
     nbttc.setDouble("headPosY", this.headPosY);
     nbttc.setDouble("headPosZ", this.headPosZ);
+    nbttc.setBoolean("filler", this.filler);
   }
 
   public static final byte NONE = 0;

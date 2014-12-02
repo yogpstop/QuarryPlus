@@ -638,17 +638,6 @@
    }
  
  }
---- a/com/yogpc/qp/EnchantmentHelper.java
-+++ b/com/yogpc/qp/EnchantmentHelper.java
-@@ -44,7 +44,7 @@
-   }
- 
-   private static String getEnchChat(final int id, final int l) {
--    return StatCollector.translateToLocal("chat.indent", StatCollector.translateToLocal(
-+    return StatCollector.translateToLocalFormatted("chat.indent", StatCollector.translateToLocal(
-         Enchantment.enchantmentsList[id].getName()), StatCollector.translateToLocal(
-         "enchantment.level." + Integer.toString(l)));
-   }
 --- a/com/yogpc/qp/ItemTool.java
 +++ b/com/yogpc/qp/ItemTool.java
 @@ -75,7 +75,7 @@
@@ -878,15 +867,6 @@
              this.mapping[i]);
      this.range = nbttc.getByte("range");
      this.quarryRange = nbttc.getBoolean("quarryRange");
-@@ -332,7 +332,7 @@
-     if (this.quarryRange)
-       ep.addChatMessage(StatCollector.translateToLocal("chat.pump_rtoggle.quarry"));
-     else
--      ep.addChatMessage(StatCollector.translateToLocal("chat.pump_rtoggle.num", Integer
-+      ep.addChatMessage(StatCollector.translateToLocalFormatted("chat.pump_rtoggle.num", Integer
-           .toString(this.range * 2 + 1)));
-     this.fwt = 0;
-   }
 @@ -405,7 +405,7 @@
      while (cp != cg) {
        ebs_c = this.ebses[xb[cg] >> 4][zb[cg] >> 4][yb[cg] >> 4];
@@ -930,15 +910,6 @@
      S_sendNowPacket();
      return this.py < this.cy;
    }
-@@ -524,7 +522,7 @@
-       for (int i = 0; i < this.liquids.size(); i++) {
-         final FluidStack s = this.liquids.get(i);
-         ret[i + 1] =
--            StatCollector.translateToLocal("yog.pump.liquid", StatCollector.translateToLocal(s
-+            StatCollector.translateToLocalFormatted("yog.pump.liquid", StatCollector.translateToLocal(s
-                 .getFluid().getUnlocalizedName()), Integer.toString(s.amount));
-       }
-     } else
 @@ -639,10 +637,9 @@
      return false;
    }

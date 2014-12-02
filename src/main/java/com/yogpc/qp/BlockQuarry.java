@@ -24,6 +24,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
@@ -159,15 +160,20 @@ public class BlockQuarry extends BlockContainer {
       ((TileQuarry) world.getTileEntity(x, y, z)).G_reinit();
       return true;
     }
+    if (world.isRemote)
+      return true;
+    final TileQuarry tq = (TileQuarry) world.getTileEntity(x, y, z);
     if (equipped instanceof ItemTool && ep.getCurrentEquippedItem().getItemDamage() == 0) {
-      if (world.isRemote)
-        return true;
-      for (final IChatComponent s : EnchantmentHelper.getEnchantmentsChat((IEnchantableTile) world
-          .getTileEntity(x, y, z)))
+      for (final IChatComponent s : EnchantmentHelper.getEnchantmentsChat(tq))
         ep.addChatMessage(s);
+      ep.addChatMessage(new ChatComponentTranslation("chat.currentmode",
+          new ChatComponentTranslation(tq.filler ? "chat.fillermode" : "chat.quarrymode")));
       return true;
     }
-    return false;
+    tq.filler = !tq.filler;
+    ep.addChatMessage(new ChatComponentTranslation("chat.changemode", new ChatComponentTranslation(
+        tq.filler ? "chat.fillermode" : "chat.quarrymode")));
+    return true;
   }
 
   @Override

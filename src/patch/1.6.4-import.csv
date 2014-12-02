@@ -19,7 +19,7 @@ R,com/yogpc/ip/ItemArmorElectric,com.yogpc.mc_lib.ReflectionHelper,java.lang.ref
 R,com/yogpc/qp/ItemTool,com/yogpc/qp/QuarryPlus,com/yogpc/qp/TileBasic,cpw.mods.fml.common.registry.GameData
 R,com/yogpc/qp/BlockPlacer,com/yogpc/qp/BlockBreaker,net.minecraft.world.IBlockAccess,net.minecraft.world.WorldServer
 R,com/yogpc/ip/BlockController,net.minecraft.world.WorldServer
-A,com/yogpc/qp/BlockMarker,com/yogpc/qp/EnchantmentHelper,com/yogpc/ip/ItemArmorElectric,com/yogpc/qp/TilePump,net.minecraft.util.StatCollector
+A,com/yogpc/qp/BlockMarker,com/yogpc/qp/EnchantmentHelper,com/yogpc/ip/ItemArmorElectric,com/yogpc/qp/TilePump,com/yogpc/qp/BlockQuarry,net.minecraft.util.StatCollector
 A,com/yogpc/qp/SlotMover,net.minecraft.item.Item
 A,com/yogpc/qp/client/RenderEntityLaser,net.minecraft.block.Block
 R,com/yogpc/mc_lib/BlockWorkbench,com/yogpc/qp/BlockLaser,com/yogpc/qp/BlockMarker,com/yogpc/qp/BlockMiningWell,com/yogpc/qp/BlockPump,com/yogpc/qp/BlockQuarry,com/yogpc/qp/BlockRefinery,com/yogpc/qp/ChunkLoadingHandler,com/yogpc/qp/ItemBlockBreaker,com/yogpc/qp/ItemBlockPump,com/yogpc/qp/ItemBlockQuarry,com/yogpc/qp/ItemBlockRefinery,net.minecraft.block.Block
