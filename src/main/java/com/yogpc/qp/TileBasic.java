@@ -21,6 +21,7 @@ import java.util.List;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -235,12 +236,15 @@ public abstract class TileBasic extends APowerTile implements IInventory, IEncha
   }
 
   @Override
-  public ItemStack getStackInSlot(final int i) {
-    return i < 0 || i >= this.cacheItems.size() ? null : this.cacheItems.get(i);
+  public ItemStack getStackInSlot(final int i) {// NOTE better way?
+    return i < 0 || i >= this.cacheItems.size() ? new ItemStack(Blocks.cobblestone, 0)
+        : this.cacheItems.get(i);
   }
 
   @Override
   public ItemStack decrStackSize(final int i, final int a) {
+    if (i < 0 || i >= this.cacheItems.size())
+      return null;
     final ItemStack from = this.cacheItems.get(i);
     final ItemStack res =
         new ItemStack(from.getItem(), Math.min(a, from.stackSize), from.getItemDamage());
@@ -254,14 +258,16 @@ public abstract class TileBasic extends APowerTile implements IInventory, IEncha
 
   @Override
   public ItemStack getStackInSlotOnClosing(final int i) {
-    return this.cacheItems.get(i);
+    return i < 0 || i >= this.cacheItems.size() ? new ItemStack(Blocks.cobblestone, 0)
+        : this.cacheItems.get(i);
   }
 
   @Override
   public void setInventorySlotContents(final int i, final ItemStack is) {
     if (is != null && is.stackSize > 0)
       System.err.println("QuarryPlus WARN: call setInventorySlotContents with non null ItemStack.");
-    this.cacheItems.remove(i);
+    if (i >= 0 && i < this.cacheItems.size())
+      this.cacheItems.remove(i);
   }
 
   @Override

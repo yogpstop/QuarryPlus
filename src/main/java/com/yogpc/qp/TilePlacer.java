@@ -29,8 +29,8 @@ public class TilePlacer extends TileEntity implements IInventory {
   }
 
   @Override
-  public ItemStack getStackInSlot(final int pos) {
-    return this.stack[pos];
+  public ItemStack getStackInSlot(final int i) {
+    return this.stack[i];
   }
 
   @Override
@@ -56,9 +56,9 @@ public class TilePlacer extends TileEntity implements IInventory {
   }
 
   @Override
-  public ItemStack getStackInSlotOnClosing(final int pos) {
-    final ItemStack is = this.stack[pos];
-    this.stack[pos] = null;
+  public ItemStack getStackInSlotOnClosing(final int i) {
+    final ItemStack is = this.stack[i];
+    this.stack[i] = null;
     return is;
   }
 

@@ -14,6 +14,7 @@
 package com.yogpc.qp;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -73,8 +74,8 @@ public class TileBreaker extends TileEntity implements IEnchantableTile, IInvent
   }
 
   @Override
-  public ItemStack getStackInSlot(final int i) {
-    return null;
+  public ItemStack getStackInSlot(final int i) {// NOTE better way?
+    return new ItemStack(Blocks.cobblestone, 0);
   }
 
   @Override
