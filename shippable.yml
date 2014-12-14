@@ -6,8 +6,7 @@ jdk:
 matrix:
     include:
         - jdk: oraclejdk8
-          script:
-              - java -Xms2G -Xmx2G -jar ForgeBuilder/target/*.jar -s1.6.4 -s1.5.2 -s1.4.7 -s1.4.5 QuarryPlus
+        - env: SKIP='-s1.6.4 -s1.5.2 -s1.4.7 -s1.4.5'
 install:
     - cd ..
     - git clone --depth 1 git://github.com/yogpstop/ForgeBuilder
@@ -15,8 +14,8 @@ install:
     - mvn package -q -Dmaven.test.skip=true
     - cd ..
 script:
-    - bash ForgeBuilder/src/main/sh/bc.sh ForgeBuilder/target/*.jar
-    - java -Xms2G -Xmx2G -jar ForgeBuilder/target/*.jar QuarryPlus
+    - if [[ ! $SKIP ]] ; then bash ForgeBuilder/src/main/sh/bc.sh ForgeBuilder/target/*.jar ; fi
+    - java -Xms2G -Xmx2G -jar ForgeBuilder/target/*.jar $SKIP QuarryPlus
 env:
     global:
         - REL_TYPE='CI'
