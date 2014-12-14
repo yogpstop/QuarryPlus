@@ -28,7 +28,7 @@ public class RefineryRecipeHelper implements IFlexibleCrafter {
   }
 
   @Override
-  public ItemStack decrCraftingItemgStack(final int slotid, final int val) {
+  public ItemStack decrCraftingItemStack(final int slotid, final int val) {
     return null;
   }
 
