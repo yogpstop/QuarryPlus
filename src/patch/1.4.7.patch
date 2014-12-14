@@ -247,7 +247,16 @@
    }
 --- a/com/yogpc/mc_lib/GuiWorkbench.java
 +++ b/com/yogpc/mc_lib/GuiWorkbench.java
-@@ -24,7 +24,7 @@
+@@ -60,7 +60,7 @@
+ 
+     @Override
+     public void renderItemOverlayIntoGUI(final FontRenderer a, final RenderEngine b, final ItemStack c, final int d, final int e) {
+-      super.renderItemOverlayIntoGUI(myfont.setParent(a), b, c, d, e, f);
++      super.renderItemOverlayIntoGUI(myfont.setParent(a), b, c, d, e);
+     }
+   }
+ 
+@@ -79,7 +79,7 @@
    @Override
    protected void drawGuiContainerForegroundLayer(final int p_146979_1_, final int p_146979_2_) {
      this.fontRenderer.drawString(
@@ -256,7 +265,7 @@
              .translateToLocal(this.tile.getInvName()), 8, 6, 0x404040);
      this.fontRenderer.drawString(StatCollector.translateToLocal("container.inventory"), 8,
          this.ySize - 96 + 2, 0x404040);
-@@ -34,7 +34,7 @@
+@@ -89,7 +89,7 @@
    protected void drawGuiContainerBackgroundLayer(final float p_146976_1_, final int p_146976_2_,
        final int p_146976_3_) {
      GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
@@ -354,7 +363,7 @@
  
 --- a/com/yogpc/qp/BlockBreaker.java
 +++ b/com/yogpc/qp/BlockBreaker.java
-@@ -49,6 +49,10 @@
+@@ -50,6 +50,10 @@
      setHardness(3.5F);
      setStepSound(soundStoneFootstep);
      setBlockName("BreakerPlus");
@@ -365,7 +374,7 @@
    }
  
    @Override
-@@ -74,11 +78,8 @@
+@@ -75,11 +79,8 @@
  
    @Override
    @SideOnly(Side.CLIENT)
@@ -379,7 +388,7 @@
    }
  
    @Override
-@@ -108,7 +109,7 @@
+@@ -109,7 +110,7 @@
      final Block b = Block.blocksList[w.getBlockId(tx, ty, tz)];
      if (b == null || b.isAirBlock(w, x, y, z))
        return;
@@ -388,7 +397,7 @@
      b.onBlockHarvested(w, tx, ty, tz, meta, player);
      if (b.removeBlockByPlayer(w, player, tx, ty, tz))
        b.onBlockDestroyedByPlayer(w, tx, ty, tz, meta);
-@@ -139,10 +140,10 @@
+@@ -140,10 +141,10 @@
  
    @Override
    public void onBlockPlacedBy(final World world, final int x, final int y, final int z, final EntityLiving ent) {
@@ -482,7 +491,7 @@
  }
 --- a/com/yogpc/qp/BlockMiningWell.java
 +++ b/com/yogpc/qp/BlockMiningWell.java
-@@ -37,6 +37,11 @@
+@@ -40,6 +40,11 @@
      setCreativeTab(QuarryPlus.ct);
      setStepSound(soundStoneFootstep);
      setBlockName("MiningWellPlus");
@@ -494,7 +503,7 @@
    }
  
    @Override
-@@ -46,12 +51,8 @@
+@@ -49,12 +54,8 @@
  
    @Override
    @SideOnly(Side.CLIENT)
@@ -509,7 +518,7 @@
    }
  
    @Override
-@@ -84,8 +85,8 @@
+@@ -87,8 +88,8 @@
    public void onBlockPlacedBy(final World w, final int x, final int y, final int z, final EntityLiving el) {
      super.onBlockPlacedBy(w, x, y, z, el);
      final ForgeDirection orientation = get2dOrientation(el.posX, el.posZ, x, z);
@@ -547,7 +556,7 @@
    @Override
 --- a/com/yogpc/qp/BlockPlacer.java
 +++ b/com/yogpc/qp/BlockPlacer.java
-@@ -46,6 +46,10 @@
+@@ -49,6 +49,10 @@
      setHardness(3.5F);
      setStepSound(soundStoneFootstep);
      setBlockName("PlacerPlus");
@@ -558,7 +567,7 @@
    }
  
    @Override
-@@ -71,11 +75,8 @@
+@@ -74,11 +78,8 @@
  
    @Override
    @SideOnly(Side.CLIENT)
@@ -572,7 +581,7 @@
    }
  
    @Override
-@@ -127,7 +128,7 @@
+@@ -130,7 +131,7 @@
        ty = y + fd2.offsetY;
        tz = z + fd2.offsetZ;
  
@@ -581,7 +590,7 @@
        ItemStack is = null;
        int i = 0;
        for (; i < tile.getSizeInventory(); i++) {
-@@ -188,7 +189,7 @@
+@@ -191,7 +192,7 @@
    @Override
    public void onBlockPlacedBy(final World par1World, final int par2, final int par3, final int par4, final EntityLiving par5EntityLiving) {
      final int l =
@@ -590,7 +599,7 @@
      par1World.setBlockMetadataWithNotify(par2, par3, par4, l);
    }
  
-@@ -229,7 +230,6 @@
+@@ -232,7 +233,6 @@
          }
        }
  
@@ -618,7 +627,7 @@
    @Override
 --- a/com/yogpc/qp/BlockPump.java
 +++ b/com/yogpc/qp/BlockPump.java
-@@ -28,13 +28,18 @@
+@@ -31,13 +31,18 @@
  
  public class BlockPump extends BlockContainer {
  
@@ -638,7 +647,7 @@
    }
  
    @Override
-@@ -70,12 +75,8 @@
+@@ -73,12 +78,8 @@
  
    @Override
    @SideOnly(Side.CLIENT)
@@ -653,7 +662,7 @@
    }
  
    private final ArrayList<ItemStack> drop = new ArrayList<ItemStack>();
-@@ -106,7 +107,7 @@
+@@ -109,7 +110,7 @@
    @Override
    public void onBlockPlacedBy(final World w, final int x, final int y, final int z, final EntityLiving el) {
      super.onBlockPlacedBy(w, x, y, z, el);
@@ -664,7 +673,7 @@
    @Override
 --- a/com/yogpc/qp/BlockQuarry.java
 +++ b/com/yogpc/qp/BlockQuarry.java
-@@ -37,6 +37,12 @@
+@@ -41,6 +41,12 @@
      setStepSound(soundStoneFootstep);
      setCreativeTab(QuarryPlus.ct);
      setBlockName("QuarryPlus");
@@ -677,7 +686,7 @@
    }
  
    private final ArrayList<ItemStack> drop = new ArrayList<ItemStack>();
-@@ -101,13 +107,8 @@
+@@ -105,13 +111,8 @@
  
    @Override
    @SideOnly(Side.CLIENT)
@@ -693,7 +702,7 @@
    }
  
    @Override
-@@ -119,9 +120,9 @@
+@@ -123,9 +124,9 @@
    public void onBlockPlacedBy(final World w, final int x, final int y, final int z, final EntityLiving el) {
      super.onBlockPlacedBy(w, x, y, z, el);
      final ForgeDirection orientation = get2dOrientation(el.posX, el.posZ, x, z);
@@ -707,7 +716,7 @@
    private static ForgeDirection get2dOrientation(final double x1, final double z1, final double x2,
 --- a/com/yogpc/qp/BlockRefinery.java
 +++ b/com/yogpc/qp/BlockRefinery.java
-@@ -39,12 +39,13 @@
+@@ -40,12 +40,13 @@
      setHardness(5F);
      setCreativeTab(QuarryPlus.ct);
      setBlockName("RefineryPlus");
@@ -723,7 +732,7 @@
    }
  
    @Override
-@@ -80,11 +81,11 @@
+@@ -81,11 +82,11 @@
    @Override
    public void onBlockPlacedBy(final World w, final int x, final int y, final int z, final EntityLiving el) {
      super.onBlockPlacedBy(w, x, y, z, el);
@@ -737,7 +746,7 @@
    }
  
    private static void consumeItem(final EntityPlayer ep, final ItemStack stack) {
-@@ -129,17 +130,17 @@
+@@ -130,17 +131,17 @@
        final int meta = world.getBlockMetadata(x, y, z);
        switch (ForgeDirection.values()[meta]) {
          case WEST:
@@ -855,7 +864,7 @@
        return prop.getDouble(def);
 --- a/com/yogpc/qp/QuarryPlus.java
 +++ b/com/yogpc/qp/QuarryPlus.java
-@@ -78,23 +78,6 @@
+@@ -76,23 +76,6 @@
          l.destructor();
    }
  
@@ -879,7 +888,7 @@
    @Mod.PreInit
    public void preInit(final FMLPreInitializationEvent event) {
      final Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
-@@ -214,6 +197,8 @@
+@@ -209,6 +192,8 @@
      proxy.registerTextures();
      PacketHandler.registerStaticHandler(TileMarker.class);
    }
@@ -890,7 +899,7 @@
      public final String name;
 --- a/com/yogpc/qp/TileBasic.java
 +++ b/com/yogpc/qp/TileBasic.java
-@@ -273,11 +273,6 @@
+@@ -272,11 +272,6 @@
    }
  
    @Override
@@ -902,7 +911,7 @@
    public int getInventoryStackLimit() {
      return 0;
    }
-@@ -295,9 +290,4 @@
+@@ -294,9 +289,4 @@
  
    @Override
    public void closeChest() {}
@@ -914,7 +923,7 @@
  }
 --- a/com/yogpc/qp/TileBreaker.java
 +++ b/com/yogpc/qp/TileBreaker.java
-@@ -96,11 +96,6 @@
+@@ -97,11 +97,6 @@
    }
  
    @Override
@@ -926,7 +935,7 @@
    public int getInventoryStackLimit() {
      return 0;
    }
-@@ -118,9 +113,4 @@
+@@ -119,9 +114,4 @@
  
    @Override
    public void closeChest() {}
@@ -964,7 +973,7 @@
      final NBTTagList nbttaglist = par1NBTTagCompound.getTagList("Items");
 --- a/com/yogpc/qp/TilePump.java
 +++ b/com/yogpc/qp/TilePump.java
-@@ -142,7 +142,7 @@
+@@ -139,7 +139,7 @@
                this.zCoord + fd.offsetZ);
        if (te instanceof ITankContainer)
          for (final String s : this.mapping[fd.ordinal()]) {
@@ -973,7 +982,7 @@
            if (pZ == -1)
              continue;
            fs = this.liquids.get(pZ);
-@@ -526,7 +526,7 @@
+@@ -523,7 +523,7 @@
        for (int i = 0; i < this.liquids.size(); i++) {
          final LiquidStack s = this.liquids.get(i);
          ret[i + 1] =
@@ -982,7 +991,7 @@
                  , Integer.toString(s.amount));
        }
      } else
-@@ -547,7 +547,7 @@
+@@ -544,7 +544,7 @@
    public LiquidStack drain(final ForgeDirection fd, final LiquidStack resource, final boolean doDrain) {
      if (resource == null)
        return null;
@@ -991,7 +1000,7 @@
      if (index == -1)
        return null;
      final LiquidStack fs = this.liquids.get(index);
-@@ -585,10 +585,10 @@
+@@ -582,10 +582,10 @@
        int index;
        LiquidStack fs;
        for (final String s : this.mapping[fd.ordinal()]) {
@@ -1004,7 +1013,7 @@
          if (index != -1)
            ret.add(new LiquidTank(this.liquids.get(index), Integer.MAX_VALUE));
          else
-@@ -623,7 +623,7 @@
+@@ -620,7 +620,7 @@
        fs = LiquidDictionary.getLiquid(s, maxDrain);
        if (fs == null)
          continue;
@@ -1013,7 +1022,7 @@
        if (index == -1)
          continue;
        return drain(fd, this.liquids.get(index), doDrain);
-@@ -666,7 +666,7 @@
+@@ -663,7 +663,7 @@
        else if ((b == Block.lavaStill || b == Block.lavaMoving) && meta == 0)
          fs = new LiquidStack(Block.lavaStill, LiquidContainerRegistry.BUCKET_VOLUME);
        if (fs != null) {
@@ -1022,9 +1031,9 @@
          if (index != -1)
            this.liquids.get(index).amount += fs.amount;
          else
-@@ -724,4 +724,16 @@
-     final TileBasic tb = G_connected();
-     return tb == null ? 0 : tb.powerRequest();
+@@ -701,4 +701,16 @@
+     this.unbreaking = punbreaking;
+     this.silktouch = psilktouch;
    }
 +
 +  private static String findLiquidName(final LiquidStack fs) {

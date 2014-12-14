@@ -215,18 +215,6 @@
    }
  
    @Override
---- a/com/yogpc/mc_lib/GuiWorkbench.java
-+++ b/com/yogpc/mc_lib/GuiWorkbench.java
-@@ -11,8 +11,7 @@
- 
- @SideOnly(Side.CLIENT)
- public class GuiWorkbench extends GuiContainer {
--  private static final String gui = new String("yogpstop_qp",
--      "textures/gui/workbench.png");
-+  private static final String gui = "/mods/yogpstop_qp/textures/gui/workbench.png";
-   private final TileWorkbench tile;
- 
-   public GuiWorkbench(final IInventory pi, final TileWorkbench tw) {
 --- a/com/yogpc/mc_lib/InvUtils.java
 +++ b/com/yogpc/mc_lib/InvUtils.java
 @@ -90,7 +90,7 @@
@@ -431,25 +419,6 @@
    public void init(final FMLInitializationEvent event) {
      GameRegistry.registerItem(itemTool, "qpTool");
      GameRegistry.registerBlock(blockQuarry, ItemBlockQuarry.class, "QuarryPlus");
---- a/com/yogpc/qp/TileLaser.java
-+++ b/com/yogpc/qp/TileLaser.java
-@@ -184,11 +184,11 @@
-   }
- 
-   public static final String[] LASER_TEXTURES = new String[] {
--      new String("yogpstop_qp", "textures/entities/laser_1.png"),
--      new String("yogpstop_qp", "textures/entities/laser_2.png"),
--      new String("yogpstop_qp", "textures/entities/laser_3.png"),
--      new String("yogpstop_qp", "textures/entities/laser_4.png"),
--      new String("yogpstop_qp", "textures/entities/stripes.png")};
-+      "/mods/yogpstop_qp/textures/entities/laser_1.png",
-+      "/mods/yogpstop_qp/textures/entities/laser_2.png",
-+      "/mods/yogpstop_qp/textures/entities/laser_3.png",
-+      "/mods/yogpstop_qp/textures/entities/laser_4.png",
-+      "/mods/yogpstop_qp/textures/entities/stripes.png"};
- 
-   public String getTexture() {
-     final double avg = this.pa / 100;
 --- a/com/yogpc/qp/TilePump.java
 +++ b/com/yogpc/qp/TilePump.java
 @@ -138,7 +138,7 @@
@@ -621,18 +590,6 @@
    public byte getEfficiency() {
      return this.efficiency;
    }
---- a/com/yogpc/qp/client/GuiMover.java
-+++ b/com/yogpc/qp/client/GuiMover.java
-@@ -30,8 +30,7 @@
- 
- @SideOnly(Side.CLIENT)
- public class GuiMover extends GuiContainer {
--  private static final String gui = new String("yogpstop_qp",
--      "textures/gui/mover.png");
-+  private static final String gui = "/mods/yogpstop_qp/textures/gui/mover.png";
- 
-   public GuiMover(final EntityPlayer player, final World world, final int x, final int y,
-       final int z) {
 --- a/com/yogpc/qp/client/GuiP_List.java
 +++ b/com/yogpc/qp/client/GuiP_List.java
 @@ -91,9 +91,7 @@
@@ -692,18 +649,6 @@
      Minecraft.getMinecraft().fontRenderer
          .drawStringWithShadow(
              name,
---- a/com/yogpc/qp/client/GuiPlacer.java
-+++ b/com/yogpc/qp/client/GuiPlacer.java
-@@ -27,8 +27,7 @@
- 
- @SideOnly(Side.CLIENT)
- public class GuiPlacer extends GuiContainer {
--  private static final String tex = new String(
--      "textures/gui/container/dispenser.png");
-+  private static final String tex = "/gui/trap.png";
-   public TilePlacer tile;
- 
-   public GuiPlacer(final InventoryPlayer par1InventoryPlayer,
 --- a/com/yogpc/qp/client/RenderEntityLaser.java
 +++ b/com/yogpc/qp/client/RenderEntityLaser.java
 @@ -23,11 +23,6 @@
@@ -729,16 +674,6 @@
      for (int iBase = 0; iBase < iSize; ++iBase)
 --- a/com/yogpc/qp/client/RenderRefinery.java
 +++ b/com/yogpc/qp/client/RenderRefinery.java
-@@ -41,8 +41,7 @@
- @SideOnly(Side.CLIENT)
- public class RenderRefinery extends TileEntitySpecialRenderer implements
-     ISimpleBlockRenderingHandler {
--  private static final String TEXTURE = new String("yogpstop_qp",
--      "textures/blocks/refinery.png");
-+  private static final String TEXTURE = "/mods/yogpstop_qp/textures/blocks/refinery.png";
-   private static final float pixel = (float) (1.0 / 16.0);
-   private static final RenderBlocks renderBlocks = new RenderBlocks();
-   public static final RenderRefinery INSTANCE = new RenderRefinery();
 @@ -112,7 +111,7 @@
  
      GL11.glRotatef(angle, 0, 1, 0);

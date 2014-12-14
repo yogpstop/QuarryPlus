@@ -42,3 +42,4 @@ METHOD,int,int,getMaxCharge,getMaxCharge,ItemStack,@SKIP@
 METHOD,int,int,getTier,getTier,ItemStack,@SKIP@
 METHOD,int,int,getTransferLimit,getTransferLimit,ItemStack,@SKIP@
 METHOD,String,String,getArmorTexture,getArmorTextureFile,ItemStack,ItemStack,Entity,@SKIP@,int,@SKIP@,int,@SKIP@
+METHOD,void,void,renderItemOverlayIntoGUI,renderItemOverlayIntoGUI,FontRenderer,FontRenderer,RenderEngine,RenderEngine,ItemStack,ItemStack,int,int,int,int,String,@SKIP@
