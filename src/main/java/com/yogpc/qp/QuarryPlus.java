@@ -164,7 +164,7 @@ public class QuarryPlus {
     WorkbenchRecipe.addRecipe(new ItemStack(blockMiningWell), 160000, new ItemStack(
         Items.iron_ingot, 800), new ItemStack(Items.redstone, 400), new ItemStack(Items.diamond,
         100), new ItemStack(Items.ender_pearl, 50), new ItemStack(Items.nether_star, 1),
-        new ItemStack(Items.ender_pearl, 25));
+        new ItemStack(Items.gold_ingot, 25));
     WorkbenchRecipe.addRecipe(new ItemStack(blockPump), 320000, new ItemStack(Items.iron_ingot,
         1200), new ItemStack(Items.redstone, 1600), new ItemStack(Blocks.glass, 12800),
         new ItemStack(Blocks.cactus, 2000), new ItemStack(Items.gold_ingot, 400), new ItemStack(

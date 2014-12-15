@@ -1,6 +1,7 @@
 SIMPLE,"net\\.minecraftforge\\.common\\.util","net.minecraftforge.common"
 SIMPLE,"net\\.minecraftforge\\.common\\.config","net.minecraftforge.common"
 SIMPLE,"net\\.minecraft\\.network\\.Packet","net.minecraft.network.packet.Packet"
+SIMPLE,"codechicken\\.nei\\.guihook","codechicken.nei.forge"
 SIMPLE,"GuiScreen(\\s*\\.\\s*itemRender)","GuiContainer$1er"
 SIMPLE,"new ChatComponentText",""
 SIMPLE,"getEntityId\\(\\)","entityId"

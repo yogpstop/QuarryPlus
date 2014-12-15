@@ -6,6 +6,7 @@ import java.util.List;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.StatCollector;
 
@@ -14,6 +15,9 @@ import org.lwjgl.opengl.GL11;
 import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.NEIServerUtils;
 import codechicken.nei.PositionedStack;
+import codechicken.nei.guihook.GuiContainerManager;
+import codechicken.nei.guihook.IContainerDrawHandler;
+import codechicken.nei.recipe.GuiRecipe;
 import codechicken.nei.recipe.TemplateRecipeHandler;
 
 import com.yogpc.mc_lib.GuiWorkbench;
@@ -117,5 +121,34 @@ public class WBPRecipeHandler extends TemplateRecipeHandler {
   @Override
   public void loadTransferRects() {
     this.transferRects.add(new RecipeTransferRect(new Rectangle(2, 66, 162, 6), "workbenchPlus"));
+  }
+
+  static {
+    GuiContainerManager.addDrawHandler(new IContainerDrawHandler() {
+      @Override
+      public void onPreDraw(final GuiContainer arg0) {}
+
+      @Override
+      public void postRenderObjects(final GuiContainer arg0, final int arg1, final int arg2) {}
+
+      @Override
+      public void renderObjects(final GuiContainer arg0, final int arg1, final int arg2) {}
+
+      @Override
+      public void renderSlotUnderlay(final GuiContainer arg0, final Slot arg1) {
+        if (arg0 instanceof GuiRecipe
+            && ((GuiRecipe) arg0).getCurrentRecipeHandlers().get(((GuiRecipe) arg0).recipetype) instanceof WBPRecipeHandler
+            && arg1.getHasStack())
+          GuiWorkbench.handlePre();
+      }
+
+      @Override
+      public void renderSlotOverlay(final GuiContainer arg0, final Slot arg1) {
+        if (arg0 instanceof GuiRecipe
+            && ((GuiRecipe) arg0).getCurrentRecipeHandlers().get(((GuiRecipe) arg0).recipetype) instanceof WBPRecipeHandler
+            && arg1.getHasStack())
+          GuiWorkbench.handlePost();
+      }
+    });
   }
 }

@@ -103,27 +103,41 @@ public class GuiWorkbench extends GuiContainer {
     }
   }
 
-  private static final Field item = ReflectionHelper.getField(ReflectionHelper.getClass(
-      "codechicken.nei.guihook.GuiContainerManager", "codechicken.nei.forge.GuiContainerManager"),
-      "drawItems");
-
   @Override
   public void drawScreen(final int p_73863_1_, final int p_73863_2_, final float p_73863_3_) {
-    RenderItem nitem = null;
+    handlePre();
+    super.drawScreen(p_73863_1_, p_73863_2_, p_73863_3_);
+    handlePost();
+  }
+
+  private static final Field item = ReflectionHelper.getField(
+      ReflectionHelper.getClass("codechicken.nei.guihook.GuiContainerManager"), "drawItems");
+
+  private static RenderItem nitem, pitem;
+
+  public static void handlePre() {
     if (item != null)
       try {
         nitem = (RenderItem) item.get(null);
         item.set(null, myitem);
       } catch (final Exception e) {
+        e.printStackTrace();
       }
-    final RenderItem pitem = GuiScreen.itemRender;
+    pitem = GuiScreen.itemRender;
     GuiScreen.itemRender = myitem;
-    super.drawScreen(p_73863_1_, p_73863_2_, p_73863_3_);
-    GuiScreen.itemRender = pitem;
+  }
+
+  public static void handlePost() {
+    if (pitem != null) {
+      GuiScreen.itemRender = pitem;
+      pitem = null;
+    }
     if (nitem != null)
       try {
         item.set(null, nitem);
+        nitem = null;
       } catch (final Exception e) {
+        e.printStackTrace();
       }
   }
 }
