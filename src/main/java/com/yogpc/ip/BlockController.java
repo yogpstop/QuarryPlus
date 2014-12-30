@@ -65,7 +65,8 @@ public class BlockController extends Block {
         for (final Object e : EntityList.stringToClassMapping.entrySet()) {
           final Map.Entry<?, ?> ve = (Entry<?, ?>) e;
           final Class<?> c = (Class<?>) ve.getValue();
-          if (c == null || Modifier.isAbstract(c.getModifiers()))
+          if (c == null || Modifier.isAbstract(c.getModifiers())
+              || YogpstopLib.spawnerBlacklist.contains(ve.getKey()))
             continue;
           dos.writeByte(0);
           dos.writeUTF((String) ve.getKey());
@@ -93,7 +94,9 @@ public class BlockController extends Block {
                 data.readInt());
         if (l == null)
           return;
-        l.setEntityName(data.readUTF());
+        final String tmp = data.readUTF();
+        if (!YogpstopLib.spawnerBlacklist.contains(tmp))
+          l.setEntityName(tmp);
         l.getSpawnerWorld().getTileEntity(l.getSpawnerX(), l.getSpawnerY(), l.getSpawnerZ())
             .markDirty();
         l.getSpawnerWorld().markBlockForUpdate(l.getSpawnerX(), l.getSpawnerY(), l.getSpawnerZ());

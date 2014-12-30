@@ -38,16 +38,16 @@
  }
 --- a/com/yogpc/mc_lib/APowerTile.java
 +++ b/com/yogpc/mc_lib/APowerTile.java
-@@ -20,7 +20,7 @@
-   public void updateEntity() {
-     super.updateEntity();
+@@ -28,7 +28,7 @@
+       this.ic2ok = true;
+     }
      final double rem = Math.min(this.maxGot - this.got, this.max - this.all - this.got);
 -    this.got += this.pp.useEnergy(0, rem, true);
 +    this.got += this.pp.useEnergy(0, (float) rem, true);
      this.all += this.got;
      this.got = 0;
    }
-@@ -44,7 +44,7 @@
+@@ -54,7 +54,7 @@
      this.all = nbttc.getDouble("storedEnergy");
      this.max = nbttc.getDouble("MAX_stored");
      this.maxGot = nbttc.getDouble("MAX_receive");
@@ -56,7 +56,7 @@
    }
  
    @Override
-@@ -88,7 +88,7 @@
+@@ -99,7 +99,7 @@
    public final void configure(final double x, final double maxstored) {
      this.maxGot = x;
      this.max = maxstored;
@@ -282,7 +282,7 @@
  
 --- a/com/yogpc/mc_lib/YogpstopLib.java
 +++ b/com/yogpc/mc_lib/YogpstopLib.java
-@@ -38,6 +38,8 @@
+@@ -41,6 +42,8 @@
  
  @Mod(modid = "YogpstopLib", name = "Yogpstop Library", version = "{version}",
      dependencies = "after:IC2;after:BuildCraft|Core;after:CoFHCore")
@@ -291,7 +291,7 @@
  public class YogpstopLib implements IGuiHandler {
  
    @SidedProxy(clientSide = "com.yogpc.mc_lib.ProxyClient",
-@@ -53,22 +55,89 @@
+@@ -58,29 +61,96 @@
    @Mod.EventHandler
    public void preInit(final FMLPreInitializationEvent event) {
      final Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
@@ -302,15 +302,22 @@
 +      id[1] = cfg.getBlock("Controller", 3334).getInt();
 +      id[2] = cfg.getItem("MagicMirror", 21477).getInt();
 +      id[3] = cfg.getItem("ElectricArmor", 21478).getInt();
+       disableController =
+           cfg.get(Configuration.CATEGORY_GENERAL, "DisableSpawnerController", false).getBoolean(
+               false);
+       spawnerBlacklist =
+           Arrays.asList(cfg.get(Configuration.CATEGORY_GENERAL, "SpawnerControllerEntityBlackList",
+               new String[0]).getStringList());
      } finally {
        cfg.save();
      }
 -    workbench = new BlockWorkbench();
--    controller = new BlockController();
++    workbench = new BlockWorkbench(id[0]);
+     if (!disableController)
+-      controller = new BlockController();
 -    magicmirror = new ItemMirror();
 -    armor = new ItemArmorElectric();
-+    workbench = new BlockWorkbench(id[0]);
-+    controller = new BlockController(id[1]);
++      controller = new BlockController(id[1]);
 +    magicmirror = new ItemMirror(id[2]);
 +    armor = new ItemArmorElectric(id[3]);
 +  }
@@ -386,8 +393,8 @@
 -        NetworkRegistry.instance().newChannel("YogpstopLib", new YogpstopPacketCodec(),
 -            new PacketHandler());
      GameRegistry.registerBlock(workbench, "WorkbenchPlus");
-     GameRegistry.registerBlock(controller, "yogSC");
-     GameRegistry.registerItem(magicmirror, "magicmirror");
+     if (!disableController)
+       GameRegistry.registerBlock(controller, "yogSC");
 --- a/com/yogpc/mc_lib/YogpstopPacket.java
 +++ b/com/yogpc/mc_lib/YogpstopPacket.java
 @@ -90,18 +90,22 @@
@@ -424,20 +431,6 @@
 +    return d;
    }
  }
---- a/com/yogpc/qp/bc/RefineryRecipeHelper.java
-+++ b/com/yogpc/qp/bc/RefineryRecipeHelper.java
-@@ -40,10 +40,7 @@
-   public static void get(final TileRefinery tr) {
-     if (tr.cached != null)
-       return;
--    final RefineryRecipes.RecipeManager irrm = BuildcraftRecipes.refinery;
--    if (irrm == null)
--      return;
--    for (final RefineryRecipes.Recipe ifr : irrm.getRecipes()) {
-+    for (final RefineryRecipes.Recipe ifr : RefineryRecipes.getRecipes()) {
-       if (!craft(ifr, tr, false) || !RefineryRecipeHelper.check(ifr.result, tr))
-         continue;
-       craft(ifr, tr, true);
 --- a/com/yogpc/qp/BlockBreaker.java
 +++ b/com/yogpc/qp/BlockBreaker.java
 @@ -109,7 +109,7 @@
@@ -565,7 +558,7 @@
          EnchantmentHelper.enchantmentToIS(tile, is);
 --- a/com/yogpc/qp/BlockQuarry.java
 +++ b/com/yogpc/qp/BlockQuarry.java
-@@ -54,7 +54,7 @@
+@@ -55,7 +55,7 @@
        return;
      final int count = quantityDropped(meta, 0, world.rand);
      final int it = idDropped(meta, world.rand, 0);
@@ -718,7 +711,7 @@
    @Mod.EventHandler
 --- a/com/yogpc/qp/TileBasic.java
 +++ b/com/yogpc/qp/TileBasic.java
-@@ -101,8 +101,8 @@
+@@ -95,8 +95,8 @@
  
    protected boolean S_breakBlock(final int x, final int y, final int z) {
      final Collection<ItemStack> dropped = new LinkedList<ItemStack>();
@@ -729,7 +722,7 @@
      if (b == null || b.isAirBlock(this.worldObj, x, y, z))
        return true;
      if (TilePump.isLiquid(b, false, null, 0, 0, 0, 0)) {
-@@ -142,8 +142,7 @@
+@@ -136,8 +136,7 @@
      final int meta = this.worldObj.getBlockMetadata(x, y, z);
      if (b.canSilkHarvest(this.worldObj, null, x, y, z, meta)
          && this.silktouch
@@ -925,7 +918,7 @@
              bz & 0xF);
 --- a/com/yogpc/qp/TileQuarry.java
 +++ b/com/yogpc/qp/TileQuarry.java
-@@ -91,9 +91,9 @@
+@@ -92,9 +92,9 @@
    private boolean S_checkTarget() {
      if (this.targetY > this.yMax)
        this.targetY = this.yMax;
@@ -937,7 +930,7 @@
      final float h =
          b == null ? -1 : b
              .getBlockHardness(this.worldObj, this.targetX, this.targetY, this.targetZ);
-@@ -152,7 +152,7 @@
+@@ -158,7 +158,7 @@
            return S_checkTarget();
          }
          if (b != null
@@ -946,7 +939,7 @@
              && !(b == QuarryPlus.blockFrame && this.worldObj.getBlockMetadata(this.targetX,
                  this.targetY, this.targetZ) == 0)) {
            this.now = NOTNEEDBREAK;
-@@ -275,7 +275,7 @@
+@@ -281,7 +281,7 @@
      this.digged = true;
      if (!PowerManager.useEnergyF(this, this.unbreaking))
        return false;
@@ -955,7 +948,7 @@
      S_setNextTarget();
      return true;
    }
-@@ -429,7 +429,7 @@
+@@ -435,7 +435,7 @@
    }
  
    private void S_setBreakableFrame(final int x, final int y, final int z) {
@@ -964,6 +957,20 @@
        this.worldObj.setBlockMetadataWithNotify(x, y, z, 1, 3);
    }
  
+--- a/com/yogpc/qp/bc/RefineryRecipeHelper.java
++++ b/com/yogpc/qp/bc/RefineryRecipeHelper.java
+@@ -39,10 +39,7 @@
+   public static void get(final TileRefinery tr) {
+     if (tr.cached != null)
+       return;
+-    final RefineryRecipes.RecipeManager irrm = BuildcraftRecipes.refinery;
+-    if (irrm == null)
+-      return;
+-    for (final RefineryRecipes.Recipe ifr : irrm.getRecipes()) {
++    for (final RefineryRecipes.Recipe ifr : RefineryRecipes.getRecipes()) {
+       if (!craft(ifr, tr, false) || !RefineryRecipeHelper.check(ifr.result, tr))
+         continue;
+       craft(ifr, tr, true);
 --- a/com/yogpc/qp/client/RenderRefinery.java
 +++ b/com/yogpc/qp/client/RenderRefinery.java
 @@ -203,8 +203,8 @@

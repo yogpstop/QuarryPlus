@@ -1,5 +1,8 @@
 package com.yogpc.mc_lib;
 
+import java.util.Arrays;
+import java.util.List;
+
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
@@ -36,17 +39,26 @@ public class YogpstopLib implements IGuiHandler {
   public static Block workbench, controller;
   public static Item magicmirror, armor;
   public static final int guiIdWorkbench = 1;
+  public static boolean disableController = false;
+  public static List<String> spawnerBlacklist;
 
   @Mod.EventHandler
   public void preInit(final FMLPreInitializationEvent event) {
     final Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
     try {
       cfg.load();
+      disableController =
+          cfg.get(Configuration.CATEGORY_GENERAL, "DisableSpawnerController", false).getBoolean(
+              false);
+      spawnerBlacklist =
+          Arrays.asList(cfg.get(Configuration.CATEGORY_GENERAL, "SpawnerControllerEntityBlackList",
+              new String[0]).getStringList());
     } finally {
       cfg.save();
     }
     workbench = new BlockWorkbench();
-    controller = new BlockController();
+    if (!disableController)
+      controller = new BlockController();
     magicmirror = new ItemMirror();
     armor = new ItemArmorElectric();
   }
@@ -57,7 +69,8 @@ public class YogpstopLib implements IGuiHandler {
         NetworkRegistry.INSTANCE.newChannel("YogpstopLib", new YogpstopPacketCodec(),
             new PacketHandler());
     GameRegistry.registerBlock(workbench, "WorkbenchPlus");
-    GameRegistry.registerBlock(controller, "yogSC");
+    if (!disableController)
+      GameRegistry.registerBlock(controller, "yogSC");
     GameRegistry.registerItem(magicmirror, "magicmirror");
     GameRegistry.registerItem(armor, "qpArmor");
     GameRegistry.registerTileEntity(TileWorkbench.class, "WorkbenchPlus");
@@ -71,14 +84,14 @@ public class YogpstopLib implements IGuiHandler {
             Items.diamond, 360), new ItemStack(Items.nether_star, 1), new ItemStack(
             Items.ender_eye, 25), new ItemStack(Items.glowstone_dust, 100), new ItemStack(
             Items.dye, 100, 10));
-    WorkbenchRecipe
-        .addRecipe(new ItemStack(controller), 1000000, new ItemStack(Items.nether_star, 50),
-            new ItemStack(Items.rotten_flesh, 1000), new ItemStack(Items.arrow, 1000),
-            new ItemStack(Items.bone, 1000), new ItemStack(Items.gunpowder, 1000), new ItemStack(
-                Items.iron_ingot, 2000), new ItemStack(Items.gold_ingot, 1000), new ItemStack(
-                Items.ghast_tear, 250), new ItemStack(Items.magma_cream, 500), new ItemStack(
-                Items.blaze_rod, 700), new ItemStack(Items.carrot, 50), new ItemStack(Items.potato,
-                50));
+    if (!disableController)
+      WorkbenchRecipe.addRecipe(new ItemStack(controller), 1000000, new ItemStack(
+          Items.nether_star, 50), new ItemStack(Items.rotten_flesh, 1000), new ItemStack(
+          Items.arrow, 1000), new ItemStack(Items.bone, 1000),
+          new ItemStack(Items.gunpowder, 1000), new ItemStack(Items.iron_ingot, 2000),
+          new ItemStack(Items.gold_ingot, 1000), new ItemStack(Items.ghast_tear, 250),
+          new ItemStack(Items.magma_cream, 500), new ItemStack(Items.blaze_rod, 700),
+          new ItemStack(Items.carrot, 50), new ItemStack(Items.potato, 50));
     final WeightedRandomChestContent c =
         new WeightedRandomChestContent(new ItemStack(magicmirror), 1, 1, 9);
     ChestGenHooks.getInfo(ChestGenHooks.DUNGEON_CHEST).addItem(c);
