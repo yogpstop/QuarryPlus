@@ -68,7 +68,7 @@ public class RefineryRecipeHelper implements IFlexibleCrafter {
       if (cr == null || !RefineryRecipeHelper.check(cr.crafted, tr))
         continue;
       ifr.craft(new RefineryRecipeHelper(tr), false);
-      tr.rem_energy = cr.energyCost;
+      tr.rem_energy = (double) cr.energyCost / 10;
       tr.rem_time = cr.craftingTime;
       tr.cached = cr.crafted.copy();
       tr.cached.amount *= tr.getEfficiency() + 1;

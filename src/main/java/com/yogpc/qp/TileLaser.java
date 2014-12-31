@@ -83,8 +83,8 @@ public class TileLaser extends APowerTile implements IEnchantableTile {
         PowerManager.useEnergyL(this, this.unbreaking, this.fortune, this.silktouch,
             this.efficiency);
     for (final Object lt : this.laserTargets)
-      ILaserTargetHelper.receiveLaserEnergy(lt, power / this.laserTargets.size());
-    pushPower(power / this.laserTargets.size());
+      ILaserTargetHelper.receiveLaserEnergy(lt, 10 * power / this.laserTargets.size());
+    pushPower(10 * power / this.laserTargets.size());
     if (this.worldObj.getWorldTime() % 20 == 7)
       PacketHandler.sendPacketToAround(new YogpstopPacket(this),
           this.worldObj.provider.dimensionId, this.xCoord, this.yCoord, this.zCoord);

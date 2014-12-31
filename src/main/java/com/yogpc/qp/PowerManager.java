@@ -266,9 +266,7 @@ public class PowerManager {
     pwc = pp.useEnergy(0, pwc, true);
     if (S)
       pwc = pwc / CS;
-    pwc /= Math.pow(CF, F);
-    pwc *= U * CU + 1;
-    return pwc;
+    return pwc * (U * CU + 1) / Math.pow(CF, F);
   }
 
   static boolean useEnergyB(final APowerTile pp, final float H, final byte SF, final byte U,
