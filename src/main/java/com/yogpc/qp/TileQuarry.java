@@ -600,14 +600,16 @@ public class TileQuarry extends TileBasic {
 
   @Override
   protected void G_renew_powerConfigure() {
-    final TileEntity te =
-        this.worldObj.getTileEntity(this.xCoord + this.pump.offsetX, this.yCoord
-            + this.pump.offsetY, this.zCoord + this.pump.offsetZ);
     byte pmp = 0;
-    if (te instanceof TilePump)
-      pmp = ((TilePump) te).unbreaking;
-    else
-      this.pump = ForgeDirection.UNKNOWN;
+    if (this.worldObj != null && this.pump != ForgeDirection.UNKNOWN) {
+      final TileEntity te =
+          this.worldObj.getTileEntity(this.xCoord + this.pump.offsetX, this.yCoord
+              + this.pump.offsetY, this.zCoord + this.pump.offsetZ);
+      if (te instanceof TilePump)
+        pmp = ((TilePump) te).unbreaking;
+      else
+        this.pump = ForgeDirection.UNKNOWN;
+    }
     if (this.now == NONE)
       PowerManager.configure0(this);
     else if (this.now == MAKEFRAME)

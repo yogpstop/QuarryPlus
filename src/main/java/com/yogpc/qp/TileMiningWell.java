@@ -40,7 +40,7 @@ public class TileMiningWell extends TileBasic {
   @Override
   protected void G_renew_powerConfigure() {
     byte pmp = 0;
-    if (this.worldObj != null) {
+    if (this.worldObj != null && this.pump != ForgeDirection.UNKNOWN) {
       final TileEntity te =
           this.worldObj.getTileEntity(this.xCoord + this.pump.offsetX, this.yCoord
               + this.pump.offsetY, this.zCoord + this.pump.offsetZ);
