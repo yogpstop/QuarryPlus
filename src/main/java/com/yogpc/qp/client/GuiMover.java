@@ -15,6 +15,7 @@ package com.yogpc.qp.client;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
@@ -44,14 +45,9 @@ public class GuiMover extends GuiContainer {
     super.initGui();
     final int i = this.width - this.xSize >> 1;
     final int j = this.height - this.ySize >> 1;
-    this.buttonList.add(new GuiButton(32, i + 27, j + 20, 60, 20, StatCollector
-        .translateToLocal("enchantment.digging") + ">"));
-    this.buttonList.add(new GuiButton(33, i + 27, j + 50, 60, 20, StatCollector
-        .translateToLocal("enchantment.untouching") + ">"));
-    this.buttonList.add(new GuiButton(34, i + 89, j + 20, 60, 20, StatCollector
-        .translateToLocal("enchantment.durability") + ">"));
-    this.buttonList.add(new GuiButton(35, i + 89, j + 50, 60, 20, StatCollector
-        .translateToLocal("enchantment.lootBonusDigger") + ">"));
+    this.buttonList.add(new GuiButton(1, i + 27, j + 18, 122, 18, "↑"));
+    this.buttonList.add(new GuiButton(2, i + 27, j + 36, 122, 18, ""));
+    this.buttonList.add(new GuiButton(3, i + 27, j + 54, 122, 18, "↓"));
   }
 
   @Override
@@ -81,13 +77,8 @@ public class GuiMover extends GuiContainer {
   @Override
   public void updateScreen() {
     super.updateScreen();
-    ((GuiButton) this.buttonList.get(0)).enabled =
-        (((ContainerMover) this.inventorySlots).avail & 1 << 0) != 0;
-    ((GuiButton) this.buttonList.get(1)).enabled =
-        (((ContainerMover) this.inventorySlots).avail & 1 << 1) != 0;
-    ((GuiButton) this.buttonList.get(2)).enabled =
-        (((ContainerMover) this.inventorySlots).avail & 1 << 2) != 0;
-    ((GuiButton) this.buttonList.get(3)).enabled =
-        (((ContainerMover) this.inventorySlots).avail & 1 << 3) != 0;
+    final int eid = ((ContainerMover) this.inventorySlots).avail;
+    ((GuiButton) this.buttonList.get(1)).displayString =
+        eid >= 0 ? StatCollector.translateToLocal(Enchantment.enchantmentsList[eid].getName()) : "";
   }
 }

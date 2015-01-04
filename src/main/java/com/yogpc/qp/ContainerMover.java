@@ -76,12 +76,12 @@ public class ContainerMover extends Container implements IPacketContainer {
         : var1.getDistanceSq(this.posX + 0.5D, this.posY + 0.5D, this.posZ + 0.5D) <= 64.0D;
   }
 
-  public byte avail;
+  public int avail = -1;
 
   @Override
   public void detectAndSendChanges() {
     super.detectAndSendChanges();
-    final byte n = checkInventory();
+    final int n = checkInventory();
     if (this.avail != n) {
       this.avail = n;
       for (int j = 0; j < this.crafters.size(); ++j)
@@ -98,7 +98,7 @@ public class ContainerMover extends Container implements IPacketContainer {
   @Override
   @SideOnly(Side.CLIENT)
   public void updateProgressBar(final int i, final int j) {
-    this.avail = (byte) j;
+    this.avail = j;
   }
 
   @Override
@@ -142,8 +142,8 @@ public class ContainerMover extends Container implements IPacketContainer {
     return src;
   }
 
-  private void moveEnchant(final short eid) {
-    if (!checkTo(eid))
+  private void moveEnchant() {
+    if (!checkTo(this.avail))
       return;
     ItemStack is;
     NBTTagList list;
@@ -151,18 +151,17 @@ public class ContainerMover extends Container implements IPacketContainer {
     list = is.getEnchantmentTagList();
     if (list == null)
       return;
+    boolean done = false;
     for (int i = 0; i < list.tagCount(); i++) {
       short lvl = list.getCompoundTagAt(i).getShort("lvl");
-      if (lvl < 1)
-        continue;
-      if (list.getCompoundTagAt(i).getShort("id") == eid) {
+      if (lvl > 0 && list.getCompoundTagAt(i).getShort("id") == this.avail) {
         if (lvl > 1)
           list.getCompoundTagAt(i).setShort("lvl", --lvl);
         else {
           {
             final NBTTagList nlist = new NBTTagList();
             for (int j = 0; j < list.tagCount(); j++)
-              if (list.getCompoundTagAt(j).getShort("id") != eid)
+              if (list.getCompoundTagAt(j).getShort("id") != this.avail)
                 nlist.appendTag(list.getCompoundTagAt(j));
             list = nlist;
           }
@@ -172,12 +171,15 @@ public class ContainerMover extends Container implements IPacketContainer {
           if (is.getTagCompound().hasNoTags())
             is.setTagCompound(null);
         }
+        done = true;
         break;
       }
     }
+    if (!done)
+      return;
+    done = false;
     is = this.craftMatrix.getStackInSlot(1);
     list = is.getEnchantmentTagList();
-    boolean done = false;
     if (list == null || list.tagCount() == 0) {
       if (!is.hasTagCompound())
         is.setTagCompound(new NBTTagCompound());
@@ -188,9 +190,7 @@ public class ContainerMover extends Container implements IPacketContainer {
       for (int i = 0; i < list.tagCount(); i++) {
         final short id = list.getCompoundTagAt(i).getShort("id");
         short lvl = list.getCompoundTagAt(i).getShort("lvl");
-        if (lvl < 1)
-          continue;
-        if (id == eid) {
+        if (lvl < Enchantment.enchantmentsList[id].getMaxLevel() && id == this.avail) {
           list.getCompoundTagAt(i).setShort("lvl", ++lvl);
           done = true;
           break;
@@ -198,68 +198,78 @@ public class ContainerMover extends Container implements IPacketContainer {
       }
     if (!done) {
       final NBTTagCompound ench = new NBTTagCompound();
-      ench.setShort("id", eid);
+      ench.setShort("id", (short) this.avail);
       ench.setShort("lvl", (short) 1);
       list.appendTag(ench);
     }
   }
 
-  private byte checkInventory() {
-    byte ret = 0;
-    if (this.craftMatrix.getStackInSlot(1) == null)
-      return 0;
+  private int checkInventory() {
     final ItemStack pickaxeIs = this.craftMatrix.getStackInSlot(0);
-    if (pickaxeIs != null) {
-      final NBTTagList pickaxeE = pickaxeIs.getEnchantmentTagList();
-      if (pickaxeE != null)
-        for (int i = 0; i < pickaxeE.tagCount(); i++) {
-          final short id = pickaxeE.getCompoundTagAt(i).getShort("id");
-          final short lvl = pickaxeE.getCompoundTagAt(i).getShort("lvl");
-          if (!checkTo(id))
-            continue;
-          if (lvl < 1)
-            continue;
-          switch (id) {
-            case 32:
-              ret |= 1 << 0;
-              break;
-            case 33:
-              ret |= 1 << 1;
-              break;
-            case 34:
-              ret |= 1 << 2;
-              break;
-            case 35:
-              ret |= 1 << 3;
-              break;
-          }
-
-        }
+    if (this.craftMatrix.getStackInSlot(1) == null || pickaxeIs == null)
+      return -1;
+    final NBTTagList pickaxeE = pickaxeIs.getEnchantmentTagList();
+    if (pickaxeE == null)
+      return -1;
+    for (int i = 0; i < pickaxeE.tagCount(); i++) {
+      final short id = pickaxeE.getCompoundTagAt(i).getShort("id");
+      if (checkTo(id) && pickaxeE.getCompoundTagAt(i).getShort("lvl") > 0
+          && (id == this.avail || this.avail < 0))
+        return id;
     }
-    return ret;
+    return -1;
   }
 
-  private boolean checkTo(final short id) {
-    final ItemStack target = this.craftMatrix.getStackInSlot(1);
-    if (target != null) {
-      if (!(target.getItem() instanceof IEnchantableItem)
-          || !((IEnchantableItem) target.getItem()).canMove(target, id, target.getItemDamage()))
-        return false;
-      final NBTTagList quarryE = target.getEnchantmentTagList();
-      if (quarryE != null)
-        for (int i = 0; i < quarryE.tagCount(); i++)
-          if (id == quarryE.getCompoundTagAt(i).getShort("id")) {
-            if (Enchantment.enchantmentsList[id].getMaxLevel() > quarryE.getCompoundTagAt(i)
-                .getShort("lvl"))
-              return true;
-            return false;
-          }
+  private int next(final int add) {
+    final ItemStack pickaxeIs = this.craftMatrix.getStackInSlot(0);
+    if (this.craftMatrix.getStackInSlot(1) == null || pickaxeIs == null)
+      return -1;
+    final NBTTagList pickaxeE = pickaxeIs.getEnchantmentTagList();
+    if (pickaxeE == null)
+      return -1;
+    int first = -1;
+    boolean next = false;
+    for (int i = add > 0 ? 0 : pickaxeE.tagCount() - 1; 0 <= i && i < pickaxeE.tagCount(); i += add) {
+      final short id = pickaxeE.getCompoundTagAt(i).getShort("id");
+      if (!checkTo(id) || pickaxeE.getCompoundTagAt(i).getShort("lvl") <= 0)
+        continue;
+      if (this.avail < 0 || next)
+        return id;
+      if (first < 0)
+        first = id;
+      if (id == this.avail)
+        next = true;
     }
+    return first;
+  }
+
+  private boolean checkTo(final int id) {
+    final ItemStack target = this.craftMatrix.getStackInSlot(1);
+    if (target == null || !(target.getItem() instanceof IEnchantableItem)
+        || !((IEnchantableItem) target.getItem()).canMove(target, id))
+      return false;
+    final NBTTagList quarryE = target.getEnchantmentTagList();
+    if (quarryE == null)
+      return true;
+    for (int i = 0; i < quarryE.tagCount(); i++)
+      if (id == quarryE.getCompoundTagAt(i).getShort("id")) {
+        if (Enchantment.enchantmentsList[id].getMaxLevel() > quarryE.getCompoundTagAt(i).getShort(
+            "lvl"))
+          return true;
+        return false;
+      }
     return true;
   }
 
   @Override
   public void receivePacket(final byte[] ba) {
-    moveEnchant(ba[0]);
+    if (ba[0] == 2)
+      moveEnchant();
+    else {
+      this.avail = next(ba[0] - 2);
+      for (int j = 0; j < this.crafters.size(); ++j)
+        ((ICrafting) this.crafters.get(j)).sendProgressBarUpdate(this, 0, this.avail);
+    }
+    detectAndSendChanges();
   }
 }

@@ -70,7 +70,7 @@
  }
 --- a/com/yogpc/qp/TileLaser.java
 +++ b/com/yogpc/qp/TileLaser.java
-@@ -83,8 +83,8 @@
+@@ -86,8 +86,8 @@
          PowerManager.useEnergyL(this, this.unbreaking, this.fortune, this.silktouch,
              this.efficiency);
      for (final Object lt : this.laserTargets)
@@ -83,9 +83,10 @@
            this.worldObj.provider.dimensionId, this.xCoord, this.yCoord, this.zCoord);
 --- a/com/yogpc/qp/bc/RefineryRecipeHelper.java
 +++ b/com/yogpc/qp/bc/RefineryRecipeHelper.java
-@@ -1,76 +1,56 @@
+@@ -1,77 +1,57 @@
  package com.yogpc.qp.bc;
  
+ import net.minecraft.enchantment.Enchantment;
 -import net.minecraft.item.ItemStack;
  import net.minecraftforge.fluids.FluidStack;
 -import buildcraft.api.recipes.BuildcraftRecipeRegistry;
@@ -192,6 +193,6 @@
 +      tr.rem_energy = ifr.getEnergyCost();
 +      tr.rem_time = ifr.getTimeRequired();
 +      tr.cached = ifr.getResult().copy();
-       tr.cached.amount *= tr.getEfficiency() + 1;
+       final Byte i = tr.get().get(Integer.valueOf(Enchantment.efficiency.effectId));
+       tr.cached.amount *= i == null ? 0 : i.byteValue() + 1;
        RefineryRecipeHelper.get(tr);
-       return;

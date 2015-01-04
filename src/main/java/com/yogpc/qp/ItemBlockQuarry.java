@@ -14,6 +14,7 @@
 package com.yogpc.qp;
 
 import net.minecraft.block.Block;
+import net.minecraft.enchantment.Enchantment;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 
@@ -24,8 +25,9 @@ public class ItemBlockQuarry extends ItemBlock implements IEnchantableItem {
   }
 
   @Override
-  public boolean canMove(final ItemStack is, final int id, final int meta) {
-    return id == 32 || id == 33 || id == 34 || id == 35 || id == -1;
+  public boolean canMove(final ItemStack is, final int id) {
+    return id == Enchantment.efficiency.effectId || id == Enchantment.silkTouch.effectId
+        || id == Enchantment.unbreaking.effectId || id == Enchantment.fortune.effectId;
   }
 
   @Override

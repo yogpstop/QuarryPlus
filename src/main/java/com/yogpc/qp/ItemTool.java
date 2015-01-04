@@ -18,6 +18,7 @@ import java.util.List;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -71,9 +72,9 @@ public class ItemTool extends Item implements IEnchantableItem {
       if (nbttl != null)
         for (int i = 0; i < nbttl.tagCount(); i++) {
           final short id = nbttl.getCompoundTagAt(i).getShort("id");
-          if (id == 33)
+          if (id == Enchantment.silkTouch.effectId)
             s = true;
-          if (id == 35)
+          if (id == Enchantment.fortune.effectId)
             f = true;
         }
       NBTTagCompound c = is.getTagCompound();
@@ -159,12 +160,12 @@ public class ItemTool extends Item implements IEnchantableItem {
   }
 
   @Override
-  public boolean canMove(final ItemStack is, final int id, final int meta) {
-    if (meta != 1)
+  public boolean canMove(final ItemStack is, final int id) {
+    if (is.getItemDamage() != 1)
       return false;
     final NBTTagList l = is.getEnchantmentTagList();
     if (l != null && l.tagCount() != 0)
       return false;
-    return id == 33 || id == 35 || id == -1;
+    return id == Enchantment.silkTouch.effectId || id == Enchantment.fortune.effectId;
   }
 }

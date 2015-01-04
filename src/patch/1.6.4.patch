@@ -282,7 +282,7 @@
  
 --- a/com/yogpc/mc_lib/YogpstopLib.java
 +++ b/com/yogpc/mc_lib/YogpstopLib.java
-@@ -41,6 +42,8 @@
+@@ -41,6 +41,8 @@
  
  @Mod(modid = "YogpstopLib", name = "Yogpstop Library", version = "{version}",
      dependencies = "after:IC2;after:BuildCraft|Core;after:CoFHCore")
@@ -291,7 +291,7 @@
  public class YogpstopLib implements IGuiHandler {
  
    @SidedProxy(clientSide = "com.yogpc.mc_lib.ProxyClient",
-@@ -58,29 +61,96 @@
+@@ -58,8 +60,13 @@
    @Mod.EventHandler
    public void preInit(final FMLPreInitializationEvent event) {
      final Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
@@ -305,9 +305,7 @@
        disableController =
            cfg.get(Configuration.CATEGORY_GENERAL, "DisableSpawnerController", false).getBoolean(
                false);
-       spawnerBlacklist =
-           Arrays.asList(cfg.get(Configuration.CATEGORY_GENERAL, "SpawnerControllerEntityBlackList",
-               new String[0]).getStringList());
+@@ -69,18 +76,80 @@
      } finally {
        cfg.save();
      }
@@ -611,10 +609,10 @@
          : var1.getDistanceSq(this.posX + 0.5D, this.posY + 0.5D, this.posZ + 0.5D) <= 64.0D;
    }
  
-@@ -163,7 +163,7 @@
+@@ -162,7 +162,7 @@
              final NBTTagList nlist = new NBTTagList();
              for (int j = 0; j < list.tagCount(); j++)
-               if (((NBTTagCompound)list.tagAt(j)).getShort("id") != eid)
+               if (((NBTTagCompound)list.tagAt(j)).getShort("id") != this.avail)
 -                nlist.appendTag(((NBTTagCompound)list.tagAt(j)));
 +                nlist.appendTag((list.tagAt(j)));
              list = nlist;
@@ -633,7 +631,7 @@
  }
 --- a/com/yogpc/qp/ItemTool.java
 +++ b/com/yogpc/qp/ItemTool.java
-@@ -75,7 +75,7 @@
+@@ -76,7 +76,7 @@
              f = true;
          }
        NBTTagCompound c = is.getTagCompound();
@@ -711,7 +709,7 @@
    @Mod.EventHandler
 --- a/com/yogpc/qp/TileBasic.java
 +++ b/com/yogpc/qp/TileBasic.java
-@@ -95,8 +95,8 @@
+@@ -98,8 +98,8 @@
  
    protected boolean S_breakBlock(final int x, final int y, final int z) {
      final Collection<ItemStack> dropped = new LinkedList<ItemStack>();
@@ -722,7 +720,7 @@
      if (b == null || b.isAirBlock(this.worldObj, x, y, z))
        return true;
      if (TilePump.isLiquid(b, false, null, 0, 0, 0, 0)) {
-@@ -136,8 +136,7 @@
+@@ -139,8 +139,7 @@
      final int meta = this.worldObj.getBlockMetadata(x, y, z);
      if (b.canSilkHarvest(this.worldObj, null, x, y, z, meta)
          && this.silktouch
@@ -851,7 +849,7 @@
      }
 --- a/com/yogpc/qp/TilePump.java
 +++ b/com/yogpc/qp/TilePump.java
-@@ -80,7 +80,7 @@
+@@ -83,7 +83,7 @@
      if (nbttc.getTag("mapping0") instanceof NBTTagList)
        for (int i = 0; i < this.mapping.length; i++)
          readStringCollection(
@@ -860,7 +858,7 @@
              this.mapping[i]);
      this.range = nbttc.getByte("range");
      this.quarryRange = nbttc.getBoolean("quarryRange");
-@@ -405,7 +405,7 @@
+@@ -408,7 +408,7 @@
      while (cp != cg) {
        ebs_c = this.ebses[xb[cg] >> 4][zb[cg] >> 4][yb[cg] >> 4];
        if (ebs_c != null) {
@@ -869,7 +867,7 @@
          if (this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] == 0
              && isLiquid(b_c, false, null, 0, 0, 0, 0)) {
            this.blocks[yb[cg] - this.yOffset][xb[cg]][zb[cg]] = 0x3F;
-@@ -466,8 +466,7 @@
+@@ -469,8 +469,7 @@
              for (bz = 0; bz < this.block_side_z; bz++)
                if ((this.blocks[this.py - this.yOffset][bx][bz] & 0x40) != 0) {
                  bb =
@@ -879,7 +877,7 @@
                  if (isLiquid(bb, false, null, 0, 0, 0, 0))
                    count++;
                }
-@@ -475,8 +474,7 @@
+@@ -478,8 +477,7 @@
            for (bz = 0; bz < this.block_side_z; bz++)
              if (this.blocks[this.py - this.yOffset][this.px][bz] != 0) {
                bb =
@@ -889,7 +887,7 @@
                meta =
                    this.ebses[this.px >> 4][bz >> 4][this.py >> 4].getExtBlockMetadata(
                        this.px & 0xF, this.py & 0xF, bz & 0xF);
-@@ -498,11 +496,11 @@
+@@ -501,11 +499,11 @@
          for (bx = 0; bx < this.block_side_x; bx++)
            for (bz = 0; bz < this.block_side_z; bz++)
              if ((this.blocks[this.py - this.yOffset][bx][bz] & 0x40) != 0)
@@ -903,7 +901,7 @@
      S_sendNowPacket();
      return this.py < this.cy;
    }
-@@ -639,10 +637,9 @@
+@@ -642,10 +640,9 @@
      return false;
    }
  
@@ -959,7 +957,7 @@
  
 --- a/com/yogpc/qp/bc/RefineryRecipeHelper.java
 +++ b/com/yogpc/qp/bc/RefineryRecipeHelper.java
-@@ -39,10 +39,7 @@
+@@ -40,10 +40,7 @@
    public static void get(final TileRefinery tr) {
      if (tr.cached != null)
        return;

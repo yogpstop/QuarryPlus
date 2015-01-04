@@ -13,10 +13,12 @@
 
 package com.yogpc.qp;
 
-import net.minecraft.init.Items;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemBow;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagList;
 
 public class SlotMover extends Slot {
   public SlotMover(final IInventory par1iInventory, final int par2, final int par3, final int par4) {
@@ -27,12 +29,15 @@ public class SlotMover extends Slot {
   public boolean isItemValid(final ItemStack is) {
     switch (this.slotNumber) {
       case 0:
-        if (is.getItem() == Items.diamond_pickaxe)
+        final NBTTagList nbttl = is.getEnchantmentTagList();
+        if (nbttl != null
+            && (is.getItem() instanceof net.minecraft.item.ItemTool
+                && ((net.minecraft.item.ItemTool) is.getItem()).getToolMaterialName() == Item.ToolMaterial.EMERALD
+                    .toString() || is.getItem() instanceof ItemBow))
           return true;
         return false;
       case 1:
-        if (is.getItem() instanceof IEnchantableItem
-            && ((IEnchantableItem) is.getItem()).canMove(is, -1, is.getItemDamage()))
+        if (is.getItem() instanceof IEnchantableItem)
           return true;
     }
     return false;

@@ -1,5 +1,6 @@
 package com.yogpc.qp.bc;
 
+import net.minecraft.enchantment.Enchantment;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 import buildcraft.api.recipes.BuildcraftRecipeRegistry;
@@ -71,7 +72,8 @@ public class RefineryRecipeHelper implements IFlexibleCrafter {
       tr.rem_energy = (double) cr.energyCost / 10;
       tr.rem_time = cr.craftingTime;
       tr.cached = cr.crafted.copy();
-      tr.cached.amount *= tr.getEfficiency() + 1;
+      final Byte i = tr.get().get(Integer.valueOf(Enchantment.efficiency.effectId));
+      tr.cached.amount *= i == null ? 0 : i.byteValue() + 1;
       RefineryRecipeHelper.get(tr);
       return;
     }
@@ -81,7 +83,8 @@ public class RefineryRecipeHelper implements IFlexibleCrafter {
   }
 
   private static boolean check(final FluidStack fs, final TileRefinery tr) {
+    final Byte i = tr.get().get(Integer.valueOf(Enchantment.efficiency.effectId));
     return tr.res == null || tr.res.isFluidEqual(fs)
-        && tr.buf - tr.res.amount >= fs.amount * (tr.getEfficiency() + 1);
+        && tr.buf - tr.res.amount >= fs.amount * (i == null ? 0 : i.byteValue() + 1);
   }
 }

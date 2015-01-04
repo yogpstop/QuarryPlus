@@ -13,16 +13,12 @@
 
 package com.yogpc.qp;
 
+import java.util.Map;
+
 public interface IEnchantableTile {
   void G_reinit();
 
-  byte getEfficiency();
+  Map<Integer, Byte> get();
 
-  byte getFortune();
-
-  byte getUnbreaking();
-
-  boolean getSilktouch();
-
-  void set(byte efficiency, byte fortune, byte unbreaking, boolean silktouch);
+  void set(int id, byte val);
 }

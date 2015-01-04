@@ -15,6 +15,7 @@ package com.yogpc.qp;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
 
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.item.ItemStack;
@@ -24,57 +25,32 @@ import net.minecraft.util.IChatComponent;
 
 public final class EnchantmentHelper {
   static final void init(final IEnchantableTile te, final NBTTagList nbttl) {
-    byte efficiency = 0, unbreaking = 0, fortune = 0;
-    boolean silktouch = false;
     if (nbttl != null)
-      for (int i = 0; i < nbttl.tagCount(); i++) {
-        final short id = nbttl.getCompoundTagAt(i).getShort("id");
-        final short lvl = nbttl.getCompoundTagAt(i).getShort("lvl");
-        if (id == 32)
-          efficiency = (byte) lvl;
-        if (id == 33)
-          silktouch = true;
-        if (id == 34)
-          unbreaking = (byte) lvl;
-        if (id == 35)
-          fortune = (byte) lvl;
-      }
-    te.set(efficiency, fortune, unbreaking, silktouch);
+      for (int i = 0; i < nbttl.tagCount(); i++)
+        te.set(nbttl.getCompoundTagAt(i).getShort("id"),
+            (byte) nbttl.getCompoundTagAt(i).getShort("lvl"));
     te.G_reinit();
-  }
-
-  private static IChatComponent getEnchChat(final int id, final int l) {
-    return new ChatComponentTranslation("chat.indent", new ChatComponentTranslation(
-        Enchantment.enchantmentsList[id].getName()), new ChatComponentTranslation(
-        "enchantment.level." + Integer.toString(l)));
   }
 
   public static Collection<IChatComponent> getEnchantmentsChat(final IEnchantableTile te) {
     final ArrayList<IChatComponent> als = new ArrayList<IChatComponent>();
-    if (te.getEfficiency() <= 0 && !te.getSilktouch() && te.getUnbreaking() <= 0
-        && te.getFortune() <= 0)
+    final Map<Integer, Byte> enchs = te.get();
+    if (enchs.size() <= 0)
       als.add(new ChatComponentTranslation("chat.plusenchantno"));
     else
       als.add(new ChatComponentTranslation("chat.plusenchant"));
-    if (te.getEfficiency() > 0)
-      als.add(getEnchChat(32, te.getEfficiency()));
-    if (te.getSilktouch())
-      als.add(getEnchChat(33, 1));
-    if (te.getUnbreaking() > 0)
-      als.add(getEnchChat(34, te.getUnbreaking()));
-    if (te.getFortune() > 0)
-      als.add(getEnchChat(35, te.getFortune()));
+    for (final Map.Entry<Integer, Byte> e : enchs.entrySet())
+      als.add(new ChatComponentTranslation("chat.indent", new ChatComponentTranslation(
+          Enchantment.enchantmentsList[e.getKey().intValue()].getName()),
+          new ChatComponentTranslation("enchantment.level."
+              + Byte.toString(e.getValue().byteValue()))));
     return als;
   }
 
   static void enchantmentToIS(final IEnchantableTile te, final ItemStack is) {
-    if (te.getEfficiency() > 0)
-      is.addEnchantment(Enchantment.enchantmentsList[32], te.getEfficiency());
-    if (te.getSilktouch())
-      is.addEnchantment(Enchantment.enchantmentsList[33], 1);
-    if (te.getUnbreaking() > 0)
-      is.addEnchantment(Enchantment.enchantmentsList[34], te.getUnbreaking());
-    if (te.getFortune() > 0)
-      is.addEnchantment(Enchantment.enchantmentsList[35], te.getFortune());
+    final Map<Integer, Byte> enchs = te.get();
+    for (final Map.Entry<Integer, Byte> e : enchs.entrySet())
+      is.addEnchantment(Enchantment.enchantmentsList[e.getKey().intValue()], e.getValue()
+          .byteValue());
   }
 }

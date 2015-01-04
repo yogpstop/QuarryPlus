@@ -17,9 +17,12 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 
 import net.minecraft.block.Block;
+import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTTagCompound;
@@ -673,30 +676,24 @@ public class TilePump extends APacketTile implements IFluidHandler, IEnchantable
   }
 
   @Override
-  public byte getEfficiency() {
-    return 0;
+  public Map<Integer, Byte> get() {
+    final Map<Integer, Byte> ret = new HashMap<Integer, Byte>();
+    if (this.fortune > 0)
+      ret.put(Integer.valueOf(Enchantment.fortune.effectId), Byte.valueOf(this.fortune));
+    if (this.unbreaking > 0)
+      ret.put(Integer.valueOf(Enchantment.unbreaking.effectId), Byte.valueOf(this.unbreaking));
+    if (this.silktouch)
+      ret.put(Integer.valueOf(Enchantment.silkTouch.effectId), Byte.valueOf((byte) 1));
+    return ret;
   }
 
   @Override
-  public byte getFortune() {
-    return this.fortune;
-  }
-
-  @Override
-  public byte getUnbreaking() {
-    return this.unbreaking;
-  }
-
-  @Override
-  public boolean getSilktouch() {
-    return this.silktouch;
-  }
-
-  @Override
-  public void set(final byte pefficiency, final byte pfortune, final byte punbreaking,
-      final boolean psilktouch) {
-    this.fortune = pfortune;
-    this.unbreaking = punbreaking;
-    this.silktouch = psilktouch;
+  public void set(final int id, final byte val) {
+    if (id == Enchantment.fortune.effectId)
+      this.fortune = val;
+    else if (id == Enchantment.unbreaking.effectId)
+      this.unbreaking = val;
+    else if (id == Enchantment.silkTouch.effectId && val > 0)
+      this.silktouch = true;
   }
 }

@@ -587,9 +587,9 @@
 +  }
 +
 +  @Override
-   public byte getEfficiency() {
-     return this.efficiency;
-   }
+   public Map<Integer, Byte> get() {
+     final Map<Integer, Byte> ret = new HashMap<Integer, Byte>();
+     if (this.efficiency > 0)
 --- a/com/yogpc/qp/client/GuiP_List.java
 +++ b/com/yogpc/qp/client/GuiP_List.java
 @@ -91,9 +91,7 @@
