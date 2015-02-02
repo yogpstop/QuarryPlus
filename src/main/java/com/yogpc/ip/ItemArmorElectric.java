@@ -29,9 +29,13 @@ import com.yogpc.mc_lib.ReflectionHelper;
 import com.yogpc.mc_lib.YogpstopLib;
 
 import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.Optional;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
+@Optional.InterfaceList(value = {
+    @Optional.Interface(iface = "cofh.api.energy.IEnergyContainerItem", modid = "CoFHCore"),
+    @Optional.Interface(iface = "ic2.api.item.IElectricItem", modid = "IC2")})
 public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElectricItem,
     IEnergyContainerItem {
   public ItemArmorElectric() {

@@ -7,8 +7,12 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraftforge.common.util.ForgeDirection;
+import cofh.api.inventory.IInventoryConnection;
+import cpw.mods.fml.common.Optional;
 
-public class TileWorkbench extends APowerTile implements IInventory {
+@Optional.Interface(iface = "cofh.api.inventory.IInventoryConnection", modid = "CoFHCore")
+public class TileWorkbench extends APowerTile implements IInventory, IInventoryConnection {
   private static final ItemStack loadItemStackFromNBT(final NBTTagCompound nbt) {
     final Item i = Item.getItemById(nbt.getShort("id"));
     if (i == null)
@@ -202,4 +206,10 @@ public class TileWorkbench extends APowerTile implements IInventory {
 
   @Override
   public void closeInventory() {}
+
+  @Override
+  @Optional.Method(modid = "CoFHCore")
+  public ConnectionType canConnectInventory(final ForgeDirection arg0) {
+    return ConnectionType.FORCE;
+  }
 }

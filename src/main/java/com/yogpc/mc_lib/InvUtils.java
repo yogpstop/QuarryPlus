@@ -13,6 +13,7 @@ import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 import buildcraft.api.transport.IPipeTile;
+import cpw.mods.fml.common.Loader;
 
 public class InvUtils {
   public static final int addToIInv(final IInventory ii, final ItemStack is1,
@@ -89,7 +90,7 @@ public class InvUtils {
 
   public static void injectToNearTile(final World w, final int x, final int y, final int z,
       final ItemStack is) {
-    final List<IPipeTile> pp = new LinkedList<IPipeTile>();
+    final List<Object> pp = new LinkedList<Object>();
     final List<ForgeDirection> ppd = new LinkedList<ForgeDirection>();
     final List<IInventory> pi = new LinkedList<IInventory>();
     final List<ForgeDirection> pid = new LinkedList<ForgeDirection>();
@@ -99,7 +100,7 @@ public class InvUtils {
         pi.add((IInventory) t);
         pid.add(d.getOpposite());
       }
-      if (t instanceof IPipeTile) {
+      if (Loader.isModLoaded("BuildCraft|Core") && t instanceof IPipeTile) {
         final IPipeTile p = (IPipeTile) t;
         if (p.getPipeType() != IPipeTile.PipeType.ITEM || !p.isPipeConnected(d.getOpposite()))
           continue;
@@ -113,7 +114,7 @@ public class InvUtils {
         return;
     }
     for (int i = 0; i < pp.size(); i++) {
-      is.stackSize -= pp.get(i).injectItem(is, true, ppd.get(i));
+      is.stackSize -= ((IPipeTile) pp.get(i)).injectItem(is, true, ppd.get(i));
       if (is.stackSize <= 0)
         return;
     }

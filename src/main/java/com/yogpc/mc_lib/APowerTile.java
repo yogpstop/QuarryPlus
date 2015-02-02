@@ -8,15 +8,20 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.ForgeDirection;
 import cofh.api.energy.IEnergyHandler;
+import cpw.mods.fml.common.Loader;
+import cpw.mods.fml.common.Optional;
 
+@Optional.InterfaceList(value = {
+    @Optional.Interface(iface = "cofh.api.energy.IEnergyHandler", modid = "CoFHCore"),
+    @Optional.Interface(iface = "ic2.api.energy.tile.IEnergySink", modid = "IC2")})
 public abstract class APowerTile extends APacketTile implements IEnergyHandler, IEnergySink {
   private double all, maxGot, max, got;
-  private boolean ic2ok;
+  private boolean ic2ok = false;
 
   @Override
   public void updateEntity() {
     super.updateEntity();
-    if (!this.ic2ok && !this.worldObj.isRemote) {
+    if (Loader.isModLoaded("IC2") && !this.ic2ok && !this.worldObj.isRemote) {
       MinecraftForge.EVENT_BUS.post(new EnergyTileLoadEvent(this));
       this.ic2ok = true;
     }

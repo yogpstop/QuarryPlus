@@ -23,8 +23,13 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraftforge.common.util.ForgeDirection;
+import cofh.api.inventory.IInventoryConnection;
+import cpw.mods.fml.common.Optional;
 
-public class TileBreaker extends TileEntity implements IEnchantableTile, IInventory {
+@Optional.Interface(iface = "cofh.api.inventory.IInventoryConnection", modid = "CoFHCore")
+public class TileBreaker extends TileEntity implements IEnchantableTile, IInventory,
+    IInventoryConnection {
   boolean silktouch = false;
   byte fortune = 0;
 
@@ -118,5 +123,11 @@ public class TileBreaker extends TileEntity implements IEnchantableTile, IInvent
   @Override
   public boolean isItemValidForSlot(final int p_94041_1_, final ItemStack p_94041_2_) {
     return false;
+  }
+
+  @Override
+  @Optional.Method(modid = "CoFHCore")
+  public ConnectionType canConnectInventory(final ForgeDirection arg0) {
+    return ConnectionType.FORCE;
   }
 }

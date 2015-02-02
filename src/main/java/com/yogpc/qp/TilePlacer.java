@@ -19,8 +19,12 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraftforge.common.util.ForgeDirection;
+import cofh.api.inventory.IInventoryConnection;
+import cpw.mods.fml.common.Optional;
 
-public class TilePlacer extends TileEntity implements IInventory {
+@Optional.Interface(iface = "cofh.api.inventory.IInventoryConnection", modid = "CoFHCore")
+public class TilePlacer extends TileEntity implements IInventory, IInventoryConnection {
   private final ItemStack[] stack = new ItemStack[getSizeInventory()];
 
   @Override
@@ -126,5 +130,11 @@ public class TilePlacer extends TileEntity implements IInventory {
         nbttaglist.appendTag(nbttagcompound1);
       }
     par1NBTTagCompound.setTag("Items", nbttaglist);
+  }
+
+  @Override
+  @Optional.Method(modid = "CoFHCore")
+  public ConnectionType canConnectInventory(final ForgeDirection arg0) {
+    return ConnectionType.FORCE;
   }
 }

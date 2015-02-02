@@ -31,6 +31,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.util.ForgeDirection;
+import cofh.api.inventory.IInventoryConnection;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
@@ -40,9 +41,12 @@ import com.yogpc.mc_lib.PacketHandler;
 import com.yogpc.mc_lib.ReflectionHelper;
 import com.yogpc.qp.QuarryPlus.BlockData;
 
+import cpw.mods.fml.common.Optional;
 import cpw.mods.fml.common.registry.GameData;
 
-public abstract class TileBasic extends APowerTile implements IInventory, IEnchantableTile {
+@Optional.Interface(iface = "cofh.api.inventory.IInventoryConnection", modid = "CoFHCore")
+public abstract class TileBasic extends APowerTile implements IEnchantableTile, IInventory,
+    IInventoryConnection {
   protected ForgeDirection pump = ForgeDirection.UNKNOWN;
 
   public final List<BlockData> fortuneList = new ArrayList<BlockData>();
@@ -302,5 +306,11 @@ public abstract class TileBasic extends APowerTile implements IInventory, IEncha
   @Override
   public boolean isItemValidForSlot(final int p_94041_1_, final ItemStack p_94041_2_) {
     return false;
+  }
+
+  @Override
+  @Optional.Method(modid = "CoFHCore")
+  public ConnectionType canConnectInventory(final ForgeDirection arg0) {
+    return ConnectionType.FORCE;
   }
 }

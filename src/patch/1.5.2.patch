@@ -99,9 +99,9 @@
        if (i.getItemDamage() != 0) {
 --- a/com/yogpc/mc_lib/APowerTile.java
 +++ b/com/yogpc/mc_lib/APowerTile.java
-@@ -12,9 +12,10 @@
- import net.minecraftforge.common.MinecraftForge;
+@@ -13,9 +13,10 @@
  import net.minecraftforge.common.ForgeDirection;
+ import cpw.mods.fml.common.Loader;
  
 -public abstract class APowerTile extends APacketTile implements IEnergyHandler, IEnergySink,
 -    IPowerReceptor {
@@ -111,9 +111,9 @@
 +      PowerFramework.currentFramework != null ? PowerFramework.currentFramework
 +          .createPowerProvider() : null;
    private double all, maxGot, max, got;
-   private boolean ic2ok;
+   private boolean ic2ok = false;
  
-@@ -25,8 +26,10 @@
+@@ -26,8 +27,10 @@
        MinecraftForge.EVENT_BUS.post(new EnergyTileLoadEvent(this));
        this.ic2ok = true;
      }
@@ -124,7 +124,7 @@
      this.all += this.got;
      this.got = 0;
    }
-@@ -52,7 +55,8 @@
+@@ -53,7 +56,8 @@
      this.all = nbttc.getDouble("storedEnergy");
      this.max = nbttc.getDouble("MAX_stored");
      this.maxGot = nbttc.getDouble("MAX_receive");
@@ -134,7 +134,7 @@
    }
  
    @Override
-@@ -97,32 +101,18 @@
+@@ -98,32 +102,18 @@
    public final void configure(final double x, final double maxstored) {
      this.maxGot = x;
      this.max = maxstored;
@@ -171,7 +171,7 @@
    }
  
    @Override
-@@ -131,11 +121,6 @@
+@@ -132,11 +122,6 @@
    }
  
    @Override
@@ -183,7 +183,7 @@
    public final boolean isAddedToEnergyNet() {
      return true;
    }
-@@ -154,8 +139,13 @@
+@@ -155,8 +140,13 @@
    public final void doWork() {}
  
    @Override
@@ -217,23 +217,14 @@
    @Override
 --- a/com/yogpc/mc_lib/InvUtils.java
 +++ b/com/yogpc/mc_lib/InvUtils.java
-@@ -90,7 +90,7 @@
- 
-   public static void injectToNearTile(final World w, final int x, final int y, final int z,
-       final ItemStack is) {
--    final List<IPipeTile> pp = new LinkedList<IPipeTile>();
-+    final List<TileEntity> pp = new LinkedList<TileEntity>();
-     final List<ForgeDirection> ppd = new LinkedList<ForgeDirection>();
-     final List<IInventory> pi = new LinkedList<IInventory>();
-     final List<ForgeDirection> pid = new LinkedList<ForgeDirection>();
-@@ -100,11 +100,10 @@
+@@ -101,11 +101,10 @@
          pi.add((IInventory) t);
          pid.add(d.getOpposite());
        }
--      if (t instanceof IPipeTile) {
+-      if (Loader.isModLoaded("BuildCraft|Core") && t instanceof IPipeTile) {
 -        final IPipeTile p = (IPipeTile) t;
 -        if (p.getPipeType() != IPipeTile.PipeType.ITEM || !p.isPipeConnected(d.getOpposite()))
-+      if (t instanceof IPipeEntry && ((IPipeEntry) t).acceptItems()) {
++      if (Loader.isModLoaded("BuildCraft|Core") && t instanceof IPipeEntry && ((IPipeEntry)t).acceptItems()) {
 +        if (t instanceof IPipeConnection && !((IPipeConnection) t).isPipeConnected(d.getOpposite()))
            continue;
 -        pp.add(p);
@@ -241,12 +232,12 @@
          ppd.add(d.getOpposite());
        }
      }
-@@ -113,10 +112,11 @@
+@@ -114,10 +113,11 @@
        if (is.stackSize <= 0)
          return;
      }
 -    for (int i = 0; i < pp.size(); i++) {
--      is.stackSize -= pp.get(i).injectItem(is, true, ppd.get(i));
+-      is.stackSize -= ((IPipeTile) pp.get(i)).injectItem(is, true, ppd.get(i));
 -      if (is.stackSize <= 0)
 -        return;
 +    if (pp.size() > 0) {
@@ -259,16 +250,16 @@
  }
 --- a/com/yogpc/mc_lib/YogpstopLib.java
 +++ b/com/yogpc/mc_lib/YogpstopLib.java
-@@ -52,7 +52,7 @@
-   public static Item magicmirror, armor;
-   public static final int guiIdWorkbench = 1;
+@@ -57,7 +57,7 @@
+   public static boolean disableController = false;
+   public static List<String> spawnerBlacklist;
  
 -  @Mod.EventHandler
 +  @Mod.PreInit
    public void preInit(final FMLPreInitializationEvent event) {
      final Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
      final int[] id = new int[4];
-@@ -71,7 +71,7 @@
+@@ -83,7 +83,7 @@
      armor = new ItemArmorElectric(id[3]);
    }
  
@@ -277,7 +268,7 @@
    private static final Pattern format = Pattern.compile("%(\\d+\\$)?[\\d\\.]*[df]");
  
    public static Properties parseLangFile(final InputStream is, final boolean cl) {
-@@ -136,7 +136,7 @@
+@@ -148,7 +148,7 @@
      }
    }
  
@@ -285,7 +276,7 @@
 +  @Mod.Init
    public void init(final FMLInitializationEvent event) {
      GameRegistry.registerBlock(workbench, "WorkbenchPlus");
-     GameRegistry.registerBlock(controller, "yogSC");
+     if (!disableController)
 --- a/com/yogpc/nei/QuarryPlusUsageHandler.java
 +++ b/com/yogpc/nei/QuarryPlusUsageHandler.java
 @@ -32,7 +32,7 @@
@@ -299,7 +290,7 @@
    @Override
 --- a/com/yogpc/nei/WBPRecipeHandler.java
 +++ b/com/yogpc/nei/WBPRecipeHandler.java
-@@ -59,7 +59,7 @@
+@@ -62,7 +62,7 @@
  
    @Override
    public String getGuiTexture() {
@@ -308,7 +299,7 @@
    }
  
    @Override
-@@ -73,10 +73,10 @@
+@@ -76,10 +76,10 @@
    }
  
    @Override
@@ -324,9 +315,9 @@
    @Override
 --- a/com/yogpc/qp/bc/RefineryRecipeHelper.java
 +++ b/com/yogpc/qp/bc/RefineryRecipeHelper.java
-@@ -39,7 +39,7 @@
+@@ -42,7 +42,7 @@
    public static void get(final TileRefinery tr) {
-     if (tr.cached != null)
+     if (!Loader.isModLoaded("BuildCraft|Core") || tr.cached != null)
        return;
 -    for (final RefineryRecipe ifr : RefineryRecipe.getRecipes()) {
 +    for (final RefineryRecipe ifr : (java.util.Collection<RefineryRecipe>)RefineryRecipe.getRecipes()) {
@@ -421,7 +412,7 @@
      GameRegistry.registerBlock(blockQuarry, ItemBlockQuarry.class, "QuarryPlus");
 --- a/com/yogpc/qp/TilePump.java
 +++ b/com/yogpc/qp/TilePump.java
-@@ -138,7 +138,7 @@
+@@ -141,7 +141,7 @@
                this.zCoord + fd.offsetZ);
        if (te instanceof ITankContainer)
          for (final String s : this.mapping[fd.ordinal()]) {
@@ -430,7 +421,7 @@
            if (pZ == -1)
              continue;
            fs = this.liquids.get(pZ);
-@@ -522,8 +522,8 @@
+@@ -525,8 +525,8 @@
        for (int i = 0; i < this.liquids.size(); i++) {
          final LiquidStack s = this.liquids.get(i);
          ret[i + 1] =
@@ -441,7 +432,7 @@
        }
      } else
        ret[0] = StatCollector.translateToLocal("chat.pumpcontainno");
-@@ -536,6 +536,10 @@
+@@ -539,6 +539,10 @@
    }
  
    @Override
@@ -452,7 +443,7 @@
    public LiquidStack drain(final ForgeDirection fd, final LiquidStack resource, final boolean doDrain) {
      if (resource == null)
        return null;
-@@ -557,13 +561,8 @@
+@@ -560,13 +564,8 @@
    }
  
    @Override
@@ -468,7 +459,7 @@
    }
  
    @Override
-@@ -573,8 +572,8 @@
+@@ -576,8 +575,8 @@
      final LinkedList<LiquidTank> ret = new LinkedList<LiquidTank>();
      if (this.mapping[fd.ordinal()].size() <= 0) {
        if (this.liquids.size() <= 0)
@@ -479,7 +470,7 @@
        else
          for (final LiquidStack fs : this.liquids)
            ret.add(new LiquidTank(fs, Integer.MAX_VALUE));
-@@ -582,7 +581,7 @@
+@@ -585,7 +584,7 @@
        int index;
        LiquidStack fs;
        for (final String s : this.mapping[fd.ordinal()]) {
@@ -488,7 +479,7 @@
          if (fs == null)
            continue;
          index = this.liquids.indexOf(fs);
-@@ -596,6 +595,16 @@
+@@ -599,6 +598,16 @@
    }
  
    @Override
@@ -505,7 +496,7 @@
    public LiquidStack drain(final ForgeDirection fd, final int maxDrain, final boolean doDrain) {
      if (fd.ordinal() < 0 || fd.ordinal() >= this.mapping.length)
        return drain(ForgeDirection.UP, maxDrain, doDrain);
-@@ -607,7 +616,7 @@
+@@ -610,7 +619,7 @@
      int index;
      LiquidStack fs;
      for (final String s : this.mapping[fd.ordinal()]) {
@@ -514,7 +505,7 @@
        if (fs == null)
          continue;
        index = this.liquids.indexOf(fs);
-@@ -630,7 +639,7 @@
+@@ -633,7 +642,7 @@
    static final boolean isLiquid(final Block b, final boolean s, final World w, final int x,
        final int y, final int z, final int m) {
      if (b instanceof ILiquid)
@@ -523,7 +514,7 @@
      if (b == Block.waterStill || b == Block.waterMoving || b == Block.lavaStill
          || b == Block.lavaMoving)
        return !s || m == 0;
-@@ -646,15 +655,12 @@
+@@ -649,15 +658,12 @@
      if (isLiquid(b, false, null, 0, 0, 0, 0)) {
        LiquidStack fs = null;
        if (b instanceof ILiquid
@@ -545,7 +536,7 @@
          if (index != -1)
 --- a/com/yogpc/qp/TileRefinery.java
 +++ b/com/yogpc/qp/TileRefinery.java
-@@ -234,7 +234,6 @@
+@@ -237,7 +237,6 @@
      return 0;
    }
  
@@ -553,7 +544,7 @@
    public LiquidStack drain(final ForgeDirection from, final LiquidStack resource,
        final boolean doDrain) {
      if (resource == null)
-@@ -273,13 +272,13 @@
+@@ -276,13 +275,13 @@
    }
  
    @Override
@@ -571,7 +562,7 @@
    }
  
    @Override
-@@ -292,6 +291,18 @@
+@@ -295,6 +294,18 @@
    }
  
    @Override
@@ -674,7 +665,7 @@
      for (int iBase = 0; iBase < iSize; ++iBase)
 --- a/com/yogpc/qp/client/RenderRefinery.java
 +++ b/com/yogpc/qp/client/RenderRefinery.java
-@@ -112,7 +111,7 @@
+@@ -111,7 +111,7 @@
  
      GL11.glRotatef(angle, 0, 1, 0);
  
@@ -683,7 +674,7 @@
  
      GL11.glPushMatrix();
      GL11.glTranslatef(-0.5F, -0.5F, -0.5F);
-@@ -179,8 +178,9 @@
+@@ -178,8 +178,9 @@
            GL11.glPushMatrix();
            GL11.glTranslatef(tx, ty, tz);
          }
@@ -695,7 +686,7 @@
          GL11.glCallList(list[(int) (liquid.amount / buf * 99)]);
          if (tx != 0 || ty != 0 || tz != 0)
            GL11.glPopMatrix();
-@@ -188,25 +188,22 @@
+@@ -187,25 +188,22 @@
      }
    }
  
@@ -728,7 +719,7 @@
      }
      GL11.glDisable(GL11.GL_LIGHTING);
      GL11.glDisable(GL11.GL_BLEND);
-@@ -236,7 +233,7 @@
+@@ -235,7 +233,7 @@
      GL11.glEnable(GL11.GL_CULL_FACE);
      GL11.glEnable(GL11.GL_BLEND);
      GL11.glEnable(GL11.GL_LIGHTING);
