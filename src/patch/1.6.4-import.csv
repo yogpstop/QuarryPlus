@@ -2,7 +2,7 @@ F,net.minecraft.util.ChatComponentText,net.minecraft.util.ChatComponentTranslati
 F,net.minecraft.network.NetHandlerPlayServer,net.minecraft.network.INetHandler
 F,cpw.mods.fml.common.network.FMLEmbeddedChannel,cpw.mods.fml.common.network.FMLOutboundHandler,cpw.mods.fml.common.network.FMLOutboundHandler.,cpw.mods.fml.common.network.internal.FMLProxyPacket
 F,cpw.mods.fml.common.gameevent.
-F,cofh.api.inventory.,cpw.mods.fml.common.Optional
+F,cofh.api.inventory.,cpw.mods.fml.common.Optional,cpw.mods.fml.common.ModAPIManager
 F,io.netty.
 F,buildcraft.api.recipes.BuildcraftRecipes,buildcraft.api.recipes.IRefineryRecipeManager.IRefineryRecipe,buildcraft.api.recipes.IRefineryRecipeManager
 F,net.minecraft.init.
