@@ -32,6 +32,7 @@ item.listEditor.name=一覧編集用具
 item.liquidSelector.name=液体選択用具
 item.statusChecker.name=状態確認用具
 item.electric_armor.name=改良型電動防具
+item.overworldmirror.name=地上の鏡
 item.dimensionmirror.name=世界の鏡
 item.magicmirror.name=魔法の鏡
 chat.markerarea=この改良型マーカーの指定範囲は下記のとおりです：

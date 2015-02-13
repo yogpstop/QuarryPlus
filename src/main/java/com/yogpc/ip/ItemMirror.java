@@ -24,11 +24,14 @@ public class ItemMirror extends Item {
   @Override
   public ItemStack onEaten(final ItemStack i, final World w, final EntityPlayer p) {
     if (p instanceof EntityPlayerMP) {
-      if (i.getItemDamage() != 0) {
+      if (i.getItemDamage() == 2) {
         if (p.dimension != 0)
           p.travelToDimension(0);
       } else if (!p.worldObj.provider.canRespawnHere())
-        p.travelToDimension(p.worldObj.provider.getRespawnDimension((EntityPlayerMP) p));
+        if (i.getItemDamage() == 1)
+          p.travelToDimension(p.worldObj.provider.getRespawnDimension((EntityPlayerMP) p));
+        else
+          return i;
       ChunkCoordinates c = p.getBedLocation(p.dimension);
       if (c != null)
         c = EntityPlayer.verifyRespawnCoordinates(p.worldObj, c, p.isSpawnForced(p.dimension));
@@ -58,6 +61,8 @@ public class ItemMirror extends Item {
   @Override
   public String getUnlocalizedName(final ItemStack is) {
     switch (is.getItemDamage()) {
+      case 2:
+        return "item.overworldmirror";
       case 1:
         return "item.dimensionmirror";
     }
@@ -69,5 +74,6 @@ public class ItemMirror extends Item {
   public void getSubItems(final Item i, final CreativeTabs par2CreativeTabs, final List par3List) {
     par3List.add(new ItemStack(i, 1, 0));
     par3List.add(new ItemStack(i, 1, 1));
+    par3List.add(new ItemStack(i, 1, 2));
   }
 }

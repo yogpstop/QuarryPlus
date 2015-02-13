@@ -44,7 +44,7 @@ import com.yogpc.mc_lib.YogpstopPacket;
 
 import cpw.mods.fml.common.Optional;
 
-@Optional.Interface(iface = "buildcraft.api.core.IAreaProvider", modid = "BuildCraft|Core")
+@Optional.Interface(iface = "buildcraft.api.core.IAreaProvider", modid = "BuildCraftAPI|core")
 public class TileMarker extends APacketTile implements IAreaProvider {
   static final ArrayList<Link> linkList = new ArrayList<Link>();
   static final ArrayList<Laser> laserList = new ArrayList<Laser>();

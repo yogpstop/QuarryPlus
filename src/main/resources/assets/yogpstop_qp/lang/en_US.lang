@@ -32,6 +32,7 @@ item.listEditor.name=ListEditor
 item.liquidSelector.name=LiquidSelector
 item.statusChecker.name=StatusChecker
 item.electric_armor.name=ElectricArmorPlus
+item.overworldmirror.name=OverworldMirror
 item.dimensionmirror.name=DimensionalMirror
 item.magicmirror.name=MagicMirror
 chat.markerarea=This markar's Area is:

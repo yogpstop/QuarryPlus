@@ -12,8 +12,8 @@ import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.Optional;
 
 @Optional.InterfaceList(value = {
-    @Optional.Interface(iface = "cofh.api.energy.IEnergyHandler", modid = "CoFHCore"),
-    @Optional.Interface(iface = "ic2.api.energy.tile.IEnergySink", modid = "IC2")})
+    @Optional.Interface(iface = "cofh.api.energy.IEnergyHandler", modid = "CoFHAPI|energy"),
+    @Optional.Interface(iface = "ic2.api.energy.tile.IEnergySink", modid = "IC2API")})
 public abstract class APowerTile extends APacketTile implements IEnergyHandler, IEnergySink {
   private double all, maxGot, max, got;
   private boolean ic2ok = false;

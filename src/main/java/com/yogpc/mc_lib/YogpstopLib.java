@@ -79,6 +79,9 @@ public class YogpstopLib implements IGuiHandler {
         Character.valueOf('I'), Blocks.iron_block, Character.valueOf('G'), Blocks.gold_block});
     WorkbenchRecipe.addRecipe(new ItemStack(magicmirror, 1, 1), 32000, new ItemStack(
         Items.ender_eye, 400), new ItemStack(magicmirror, 50));
+    WorkbenchRecipe.addRecipe(new ItemStack(magicmirror, 1, 2), 32000, new ItemStack(
+        Items.ender_eye, 400), new ItemStack(magicmirror, 50), new ItemStack(Blocks.obsidian, 100),
+        new ItemStack(Blocks.dirt, 200), new ItemStack(Blocks.planks, 200));
     WorkbenchRecipe.addRecipe(new ItemStack(armor), 128000, new ItemStack(Items.iron_ingot, 1600),
         new ItemStack(Items.coal, 3200), new ItemStack(Items.gold_ingot, 400), new ItemStack(
             Items.diamond, 360), new ItemStack(Items.nether_star, 1), new ItemStack(

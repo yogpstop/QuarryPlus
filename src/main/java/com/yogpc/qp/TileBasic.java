@@ -44,7 +44,7 @@ import com.yogpc.qp.QuarryPlus.BlockData;
 import cpw.mods.fml.common.Optional;
 import cpw.mods.fml.common.registry.GameData;
 
-@Optional.Interface(iface = "cofh.api.inventory.IInventoryConnection", modid = "CoFHCore")
+@Optional.Interface(iface = "cofh.api.inventory.IInventoryConnection", modid = "CoFHAPI|inventory")
 public abstract class TileBasic extends APowerTile implements IEnchantableTile, IInventory,
     IInventoryConnection {
   protected ForgeDirection pump = ForgeDirection.UNKNOWN;
@@ -309,7 +309,7 @@ public abstract class TileBasic extends APowerTile implements IEnchantableTile, 
   }
 
   @Override
-  @Optional.Method(modid = "CoFHCore")
+  @Optional.Method(modid = "CoFHAPI|inventory")
   public ConnectionType canConnectInventory(final ForgeDirection arg0) {
     return ConnectionType.FORCE;
   }

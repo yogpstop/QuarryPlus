@@ -11,7 +11,7 @@ import net.minecraftforge.common.util.ForgeDirection;
 import cofh.api.inventory.IInventoryConnection;
 import cpw.mods.fml.common.Optional;
 
-@Optional.Interface(iface = "cofh.api.inventory.IInventoryConnection", modid = "CoFHCore")
+@Optional.Interface(iface = "cofh.api.inventory.IInventoryConnection", modid = "CoFHAPI|inventory")
 public class TileWorkbench extends APowerTile implements IInventory, IInventoryConnection {
   private static final ItemStack loadItemStackFromNBT(final NBTTagCompound nbt) {
     final Item i = Item.getItemById(nbt.getShort("id"));
@@ -208,7 +208,7 @@ public class TileWorkbench extends APowerTile implements IInventory, IInventoryC
   public void closeInventory() {}
 
   @Override
-  @Optional.Method(modid = "CoFHCore")
+  @Optional.Method(modid = "CoFHAPI|inventory")
   public ConnectionType canConnectInventory(final ForgeDirection arg0) {
     return ConnectionType.FORCE;
   }

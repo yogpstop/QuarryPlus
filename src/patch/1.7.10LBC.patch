@@ -19,9 +19,9 @@
 @@ -13,8 +18,11 @@
  
  @Optional.InterfaceList(value = {
-     @Optional.Interface(iface = "cofh.api.energy.IEnergyHandler", modid = "CoFHCore"),
-+    @Optional.Interface(iface = "buildcraft.api.power.IPowerReceptor", modid = "BuildCraft|Core"),
-     @Optional.Interface(iface = "ic2.api.energy.tile.IEnergySink", modid = "IC2")})
+     @Optional.Interface(iface = "cofh.api.energy.IEnergyHandler", modid = "CoFHAPI|energy"),
++    @Optional.Interface(iface = "buildcraft.api.power.IPowerReceptor", modid = "BuildCraftAPI|power"),
+     @Optional.Interface(iface = "ic2.api.energy.tile.IEnergySink", modid = "IC2API")})
 -public abstract class APowerTile extends APacketTile implements IEnergyHandler, IEnergySink {
 +public abstract class APowerTile extends APacketTile implements IEnergyHandler, IEnergySink,
 +    IPowerReceptor {
@@ -88,7 +88,7 @@
            this.worldObj.provider.dimensionId, this.xCoord, this.yCoord, this.zCoord);
 --- a/com/yogpc/qp/bc/RefineryRecipeHelper.java
 +++ b/com/yogpc/qp/bc/RefineryRecipeHelper.java
-@@ -1,81 +1,59 @@
+@@ -1,86 +1,59 @@
  package com.yogpc.qp.bc;
  
  import net.minecraft.enchantment.Enchantment;
@@ -107,7 +107,7 @@
  import cpw.mods.fml.common.Loader;
 -import cpw.mods.fml.common.Optional;
 -
--@Optional.Interface(iface = "buildcraft.api.recipes.IFlexibleCrafter", modid = "BuildCraft|Core")
+-@Optional.Interface(iface = "buildcraft.api.recipes.IFlexibleCrafter", modid = "BuildCraftAPI|recipes")
 -public class RefineryRecipeHelper implements IFlexibleCrafter {
 -  private final TileRefinery tile;
 -
@@ -125,7 +125,12 @@
 -    return null;
 -  }
 -
--  @Override
+-  // BC 6.2.X or later
+-  public ItemStack decrCraftingItemStack(final int slotid, final int val) {
+-    return null;
+-  }
+ 
+-  // BC 6.1.X
 -  public ItemStack decrCraftingItemgStack(final int slotid, final int val) {
 -    return null;
 -  }

@@ -14,7 +14,7 @@ import com.yogpc.qp.TileRefinery;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.Optional;
 
-@Optional.Interface(iface = "buildcraft.api.recipes.IFlexibleCrafter", modid = "BuildCraft|Core")
+@Optional.Interface(iface = "buildcraft.api.recipes.IFlexibleCrafter", modid = "BuildCraftAPI|recipes")
 public class RefineryRecipeHelper implements IFlexibleCrafter {
   private final TileRefinery tile;
 
@@ -32,8 +32,13 @@ public class RefineryRecipeHelper implements IFlexibleCrafter {
     return null;
   }
 
-  @Override
+  // BC 6.2.X or later
   public ItemStack decrCraftingItemStack(final int slotid, final int val) {
+    return null;
+  }
+
+  // BC 6.1.X
+  public ItemStack decrCraftingItemgStack(final int slotid, final int val) {
     return null;
   }
 

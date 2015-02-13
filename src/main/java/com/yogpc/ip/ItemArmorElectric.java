@@ -34,8 +34,8 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 @Optional.InterfaceList(value = {
-    @Optional.Interface(iface = "cofh.api.energy.IEnergyContainerItem", modid = "CoFHCore"),
-    @Optional.Interface(iface = "ic2.api.item.IElectricItem", modid = "IC2")})
+    @Optional.Interface(iface = "cofh.api.energy.IEnergyContainerItem", modid = "CoFHAPI|energy"),
+    @Optional.Interface(iface = "ic2.api.item.IElectricItem", modid = "IC2API")})
 public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElectricItem,
     IEnergyContainerItem {
   public ItemArmorElectric() {
