@@ -16,7 +16,6 @@ package com.yogpc.qp;
 import java.util.ArrayList;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -31,10 +30,11 @@ import net.minecraftforge.fluids.FluidContainerRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.IFluidHandler;
 
+import com.yogpc.mc_lib.ADismCBlock;
 import com.yogpc.mc_lib.InvUtils;
 import com.yogpc.qp.bc.BuildCraftHelper;
 
-public class BlockRefinery extends BlockContainer {
+public class BlockRefinery extends ADismCBlock {
 
   public BlockRefinery() {
     super(Material.iron);

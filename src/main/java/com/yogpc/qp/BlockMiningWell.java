@@ -16,7 +16,6 @@ package com.yogpc.qp;
 import java.util.ArrayList;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.EntityLivingBase;
@@ -30,12 +29,13 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
+import com.yogpc.mc_lib.ADismCBlock;
 import com.yogpc.qp.bc.BuildCraftHelper;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-public class BlockMiningWell extends BlockContainer {
+public class BlockMiningWell extends ADismCBlock {
   IIcon textureFront, textureBack, textureTop, texW;
 
   public BlockMiningWell() {

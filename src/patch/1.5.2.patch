@@ -1,6 +1,11 @@
 --- a/com/yogpc/ip/BlockController.java
 +++ b/com/yogpc/ip/BlockController.java
-@@ -37,11 +37,16 @@
+@@ -35,15 +35,20 @@
+ 
+ import cpw.mods.fml.common.FMLCommonHandler;
+ 
+-public class BlockController extends Block implements IDismantleable {
++public class BlockController extends Block {
    public BlockController(final int id) {
      super(id, Material.circuits);
      setUnlocalizedName("spawnercontroller");
@@ -18,6 +23,35 @@
    private static final MobSpawnerBaseLogic getSpawner(final World w, final int x, final int y,
        final int z) {
      for (final ForgeDirection d : ForgeDirection.VALID_DIRECTIONS) {
+@@ -138,28 +143,4 @@
+     } else if (!r && m == 1)
+       w.setBlockMetadataWithNotify(x, y, z, 0, 4);
+   }
+-
+-  @Override
+-  public boolean canDismantle(final EntityPlayer arg0, final World arg1, final int arg2,
+-      final int arg3, final int arg4) {
+-    return true;
+-  }
+-
+-  @Override
+-  public ItemStack dismantleBlock(final EntityPlayer e, final World w, final int x,
+-      final int y, final int z, final boolean toinv) {
+-    int m = w.getBlockMetadata(x, y, z);
+-    final ItemStack ret = new ItemStack(idDropped(m, w.rand, 0), quantityDropped(m, 0, w.rand), damageDropped(m));
+-    w.setBlockToAir(x, y, z);
+-    if (!toinv) {
+-        final float f = 0.7F;
+-        final double d0 = w.rand.nextFloat() * f + (1.0F - f) * 0.5D;
+-        final double d1 = w.rand.nextFloat() * f + (1.0F - f) * 0.5D;
+-        final double d2 = w.rand.nextFloat() * f + (1.0F - f) * 0.5D;
+-        final EntityItem entityitem = new EntityItem(w, x + d0, y + d1, z + d2, ret);
+-        entityitem.delayBeforeCanPickup = 10;
+-        w.spawnEntityInWorld(entityitem);
+-      }
+-    return ret;
+-  }
+ }
 --- a/com/yogpc/ip/ItemArmorElectric.java
 +++ b/com/yogpc/ip/ItemArmorElectric.java
 @@ -27,21 +27,25 @@
@@ -96,12 +130,12 @@
 +  @Override
    public ItemStack onEaten(final ItemStack i, final World w, final EntityPlayer p) {
      if (p instanceof EntityPlayerMP) {
-       if (i.getItemDamage() != 0) {
+       if (i.getItemDamage() == 2) {
 --- a/com/yogpc/mc_lib/APowerTile.java
 +++ b/com/yogpc/mc_lib/APowerTile.java
-@@ -13,9 +13,10 @@
+@@ -12,9 +12,10 @@
+ import net.minecraftforge.common.MinecraftForge;
  import net.minecraftforge.common.ForgeDirection;
- import cpw.mods.fml.common.Loader;
  
 -public abstract class APowerTile extends APacketTile implements IEnergyHandler, IEnergySink,
 -    IPowerReceptor {
@@ -113,7 +147,7 @@
    private double all, maxGot, max, got;
    private boolean ic2ok = false;
  
-@@ -26,8 +27,10 @@
+@@ -25,8 +26,10 @@
        MinecraftForge.EVENT_BUS.post(new EnergyTileLoadEvent(this));
        this.ic2ok = true;
      }
@@ -124,7 +158,7 @@
      this.all += this.got;
      this.got = 0;
    }
-@@ -53,7 +56,8 @@
+@@ -52,7 +55,8 @@
      this.all = nbttc.getDouble("storedEnergy");
      this.max = nbttc.getDouble("MAX_stored");
      this.maxGot = nbttc.getDouble("MAX_receive");
@@ -134,7 +168,7 @@
    }
  
    @Override
-@@ -98,32 +102,18 @@
+@@ -97,32 +101,18 @@
    public final void configure(final double x, final double maxstored) {
      this.maxGot = x;
      this.max = maxstored;
@@ -171,7 +205,7 @@
    }
  
    @Override
-@@ -132,11 +122,6 @@
+@@ -131,11 +121,6 @@
    }
  
    @Override
@@ -183,7 +217,7 @@
    public final boolean isAddedToEnergyNet() {
      return true;
    }
-@@ -155,8 +140,13 @@
+@@ -154,8 +139,13 @@
    public final void doWork() {}
  
    @Override
@@ -217,14 +251,14 @@
    @Override
 --- a/com/yogpc/mc_lib/InvUtils.java
 +++ b/com/yogpc/mc_lib/InvUtils.java
-@@ -101,11 +101,10 @@
+@@ -100,11 +100,10 @@
          pi.add((IInventory) t);
          pid.add(d.getOpposite());
        }
--      if (Loader.isModLoaded("BuildCraft|Core") && t instanceof IPipeTile) {
+-      if (t instanceof IPipeTile) {
 -        final IPipeTile p = (IPipeTile) t;
 -        if (p.getPipeType() != IPipeTile.PipeType.ITEM || !p.isPipeConnected(d.getOpposite()))
-+      if (Loader.isModLoaded("BuildCraft|Core") && t instanceof IPipeEntry && ((IPipeEntry)t).acceptItems()) {
++      if (t instanceof IPipeEntry && ((IPipeEntry)t).acceptItems()) {
 +        if (t instanceof IPipeConnection && !((IPipeConnection) t).isPipeConnected(d.getOpposite()))
            continue;
 -        pp.add(p);
@@ -232,7 +266,7 @@
          ppd.add(d.getOpposite());
        }
      }
-@@ -114,10 +113,11 @@
+@@ -113,10 +112,11 @@
        if (is.stackSize <= 0)
          return;
      }
@@ -315,9 +349,9 @@
    @Override
 --- a/com/yogpc/qp/bc/RefineryRecipeHelper.java
 +++ b/com/yogpc/qp/bc/RefineryRecipeHelper.java
-@@ -42,7 +42,7 @@
+@@ -41,7 +41,7 @@
    public static void get(final TileRefinery tr) {
-     if (!Loader.isModLoaded("BuildCraft|Core") || tr.cached != null)
+     if (tr.cached != null)
        return;
 -    for (final RefineryRecipe ifr : RefineryRecipe.getRecipes()) {
 +    for (final RefineryRecipe ifr : (java.util.Collection<RefineryRecipe>)RefineryRecipe.getRecipes()) {
@@ -340,6 +374,46 @@
    }
  
    @Override
+--- a/com/yogpc/qp/BlockMover.java
++++ b/com/yogpc/qp/BlockMover.java
+@@ -26,7 +26,7 @@
+ import cpw.mods.fml.relauncher.Side;
+ import cpw.mods.fml.relauncher.SideOnly;
+ 
+-public class BlockMover extends Block implements IDismantleable {
++public class BlockMover extends Block {
+   Icon textureTop, textureBottom;
+ 
+   public BlockMover(final int id) {
+@@ -65,28 +65,4 @@
+       e.openGui(QuarryPlus.instance, QuarryPlus.guiIdMover, w, x, y, z);
+     return true;
+   }
+-
+-  @Override
+-  public boolean canDismantle(final EntityPlayer arg0, final World arg1, final int arg2,
+-      final int arg3, final int arg4) {
+-    return true;
+-  }
+-
+-  @Override
+-  public ItemStack dismantleBlock(final EntityPlayer e, final World w, final int x,
+-      final int y, final int z, final boolean toinv) {
+-    int m = w.getBlockMetadata(x, y, z);
+-    final ItemStack ret = new ItemStack(idDropped(m, w.rand, 0), quantityDropped(m, 0, w.rand), damageDropped(m));
+-    w.setBlockToAir(x, y, z);
+-    if (!toinv) {
+-        final float f = 0.7F;
+-        final double d0 = w.rand.nextFloat() * f + (1.0F - f) * 0.5D;
+-        final double d1 = w.rand.nextFloat() * f + (1.0F - f) * 0.5D;
+-        final double d2 = w.rand.nextFloat() * f + (1.0F - f) * 0.5D;
+-        final EntityItem entityitem = new EntityItem(w, x + d0, y + d1, z + d2, ret);
+-        entityitem.delayBeforeCanPickup = 10;
+-        w.spawnEntityInWorld(entityitem);
+-      }
+-    return ret;
+-  }
+ }
 --- a/com/yogpc/qp/BlockPlainPipe.java
 +++ b/com/yogpc/qp/BlockPlainPipe.java
 @@ -18,7 +18,12 @@

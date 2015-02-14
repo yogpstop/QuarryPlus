@@ -2,10 +2,12 @@ F,buildcraft.api.power.PowerHandler.Type
 F,buildcraft.api.power.PowerHandler.PowerReceiver
 F,buildcraft.api.power.IPowerEmitter
 F,net.minecraft.util.ResourceLocation
+F,com.yogpc.mc_lib.ADismCBlock
 F,cofh.
 F,net.minecraftforge.fluids.Fluid
 F,codechicken.core.gui.GuiDraw
 A,com/yogpc/nei/WBPRecipeHandler,com/yogpc/nei/QuarryPlusUsageHandler,codechicken.nei.forge.GuiContainerManager
+A,net.minecraft.block.BlockContainer,com/yogpc/qp/BlockBreaker,com/yogpc/qp/BlockLaser,com/yogpc/qp/BlockMiningWell,com/yogpc/qp/BlockPlacer,com/yogpc/qp/BlockPump,com/yogpc/qp/BlockQuarry,com/yogpc/qp/BlockRefinery,com/yogpc/mc_lib/BlockWorkbench
 A,com/yogpc/mc_lib/APowerTile,ic2.api.Direction,buildcraft.api.power.PowerFramework
 A,com/yogpc/ip/ItemArmorElectric,com/yogpc/ip/ItemMirror,com/yogpc/qp/BlockFrame,net.minecraft.client.renderer.texture.IconRegister
 A,com/yogpc/ip/BlockController,com/yogpc/mc_lib/BlockWorkbench,com/yogpc/qp/BlockPlainPipe,com/yogpc/qp/BlockRefinery,cpw.mods.fml.relauncher.Side,cpw.mods.fml.relauncher.SideOnly,net.minecraft.client.renderer.texture.IconRegister

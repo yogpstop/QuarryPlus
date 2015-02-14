@@ -16,7 +16,6 @@ package com.yogpc.qp;
 import java.util.Random;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockContainer;
 import net.minecraft.block.BlockPistonBase;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
@@ -34,12 +33,13 @@ import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.util.FakePlayerFactory;
 import net.minecraftforge.common.util.ForgeDirection;
 
+import com.yogpc.mc_lib.ADismCBlock;
 import com.yogpc.qp.bc.BuildCraftHelper;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-public class BlockPlacer extends BlockContainer {
+public class BlockPlacer extends ADismCBlock {
   private final Random random = new Random();
   @SideOnly(Side.CLIENT)
   protected IIcon furnaceTopIcon;

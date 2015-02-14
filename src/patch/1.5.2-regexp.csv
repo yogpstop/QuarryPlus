@@ -1,3 +1,4 @@
+SIMPLE,"ADismCBlock","BlockContainer"
 SIMPLE,"RefineryRecipes","RefineryRecipe"
 SIMPLE,"RefineryRecipe\\.Recipe","RefineryRecipe"
 SIMPLE,"isFluidEqual","isLiquidEqual"

@@ -3,7 +3,6 @@ package com.yogpc.mc_lib;
 import java.util.Random;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.item.EntityItem;
@@ -13,7 +12,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
-public class BlockWorkbench extends BlockContainer {
+public class BlockWorkbench extends ADismCBlock {
   private final Random random = new Random();
 
   protected BlockWorkbench() {

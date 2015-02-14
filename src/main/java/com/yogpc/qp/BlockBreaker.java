@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.Random;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockContainer;
 import net.minecraft.block.BlockPistonBase;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
@@ -35,6 +34,7 @@ import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.util.FakePlayerFactory;
 import net.minecraftforge.common.util.ForgeDirection;
 
+import com.yogpc.mc_lib.ADismCBlock;
 import com.yogpc.mc_lib.InvUtils;
 import com.yogpc.mc_lib.ReflectionHelper;
 import com.yogpc.qp.bc.BuildCraftHelper;
@@ -42,7 +42,7 @@ import com.yogpc.qp.bc.BuildCraftHelper;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-public class BlockBreaker extends BlockContainer {
+public class BlockBreaker extends ADismCBlock {
   @SideOnly(Side.CLIENT)
   protected IIcon furnaceTopIcon;
   @SideOnly(Side.CLIENT)

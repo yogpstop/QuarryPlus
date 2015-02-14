@@ -13,7 +13,7 @@ import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 import buildcraft.api.transport.IPipeTile;
-import cpw.mods.fml.common.Loader;
+import cpw.mods.fml.common.ModAPIManager;
 
 public class InvUtils {
   public static final int addToIInv(final IInventory ii, final ItemStack is1,
@@ -100,7 +100,7 @@ public class InvUtils {
         pi.add((IInventory) t);
         pid.add(d.getOpposite());
       }
-      if (Loader.isModLoaded("BuildCraft|Core") && t instanceof IPipeTile) {
+      if (ModAPIManager.INSTANCE.hasAPI("BuildCraftAPI|transport") && t instanceof IPipeTile) {
         final IPipeTile p = (IPipeTile) t;
         if (p.getPipeType() != IPipeTile.PipeType.ITEM || !p.isPipeConnected(d.getOpposite()))
           continue;

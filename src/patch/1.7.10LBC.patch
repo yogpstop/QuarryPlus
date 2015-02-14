@@ -88,7 +88,7 @@
            this.worldObj.provider.dimensionId, this.xCoord, this.yCoord, this.zCoord);
 --- a/com/yogpc/qp/bc/RefineryRecipeHelper.java
 +++ b/com/yogpc/qp/bc/RefineryRecipeHelper.java
-@@ -1,86 +1,59 @@
+@@ -1,87 +1,59 @@
  package com.yogpc.qp.bc;
  
  import net.minecraft.enchantment.Enchantment;
@@ -104,10 +104,11 @@
  
  import com.yogpc.qp.TileRefinery;
  
- import cpw.mods.fml.common.Loader;
+ import cpw.mods.fml.common.ModAPIManager;
 -import cpw.mods.fml.common.Optional;
 -
--@Optional.Interface(iface = "buildcraft.api.recipes.IFlexibleCrafter", modid = "BuildCraftAPI|recipes")
+-@Optional.Interface(iface = "buildcraft.api.recipes.IFlexibleCrafter",
+-    modid = "BuildCraftAPI|recipes")
 -public class RefineryRecipeHelper implements IFlexibleCrafter {
 -  private final TileRefinery tile;
 -
@@ -187,7 +188,7 @@
    }
  
    public static void get(final TileRefinery tr) {
-     if (!Loader.isModLoaded("BuildCraft|Core") || tr.cached != null)
+     if (!ModAPIManager.INSTANCE.hasAPI("BuildCraftAPI|recipes") || tr.cached != null)
        return;
 -    final IRefineryRecipeManager irrm = BuildcraftRecipeRegistry.refinery;
 +    final IRefineryRecipeManager irrm = BuildcraftRecipes.refinery;

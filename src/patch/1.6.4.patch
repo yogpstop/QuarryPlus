@@ -1,16 +1,31 @@
+--- a/com/yogpc/ip/BlockController.java
++++ b/com/yogpc/ip/BlockController.java
+@@ -144,17 +144,17 @@
+   }
+ 
+   @Override
+-  public ArrayList<ItemStack> dismantleBlock(final EntityPlayer e, final World w, final int x,
++  public ItemStack dismantleBlock(final EntityPlayer e, final World w, final int x,
+       final int y, final int z, final boolean toinv) {
+-    final ArrayList<ItemStack> ret = getBlockDropped(w, x, y, z, w.getBlockMetadata(x, y, z), 0);
++    int m = w.getBlockMetadata(x, y, z);
++    final ItemStack ret = new ItemStack(idDropped(m, w.rand, 0), quantityDropped(m, 0, w.rand), damageDropped(m));
+     w.setBlockToAir(x, y, z);
+-    if (!toinv)
+-      for (final ItemStack is : ret) {
++    if (!toinv) {
+         final float f = 0.7F;
+         final double d0 = w.rand.nextFloat() * f + (1.0F - f) * 0.5D;
+         final double d1 = w.rand.nextFloat() * f + (1.0F - f) * 0.5D;
+         final double d2 = w.rand.nextFloat() * f + (1.0F - f) * 0.5D;
+-        final EntityItem entityitem = new EntityItem(w, x + d0, y + d1, z + d2, is);
++        final EntityItem entityitem = new EntityItem(w, x + d0, y + d1, z + d2, ret);
+         entityitem.delayBeforeCanPickup = 10;
+         w.spawnEntityInWorld(entityitem);
+       }
 --- a/com/yogpc/ip/ItemArmorElectric.java
 +++ b/com/yogpc/ip/ItemArmorElectric.java
-@@ -27,9 +27,6 @@
- import cpw.mods.fml.relauncher.Side;
- import cpw.mods.fml.relauncher.SideOnly;
- 
--@Optional.InterfaceList(value = {
--    @Optional.Interface(iface = "cofh.api.energy.IEnergyContainerItem", modid = "CoFHAPI|energy"),
--    @Optional.Interface(iface = "ic2.api.item.IElectricItem", modid = "IC2API")})
- public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElectricItem,
-     IEnergyContainerItem {
-   public ItemArmorElectric(final int id) {
-@@ -47,9 +44,6 @@
+@@ -47,9 +47,6 @@
      return "yogpstop_qp:textures/models/armor/elecArmor_layer_1.png";
    }
  
@@ -20,7 +35,7 @@
    private static final double maxFallSpeedOnHover = 0.35;
  
    private void useJetpack(final EntityPlayer p, final ItemStack jetpack, final boolean hover) {
-@@ -87,11 +81,7 @@
+@@ -87,11 +84,7 @@
          p.fallDistance = 0.0f;
          p.distanceWalkedModified = 0.0f;
          if (p instanceof EntityPlayerMP)
@@ -33,6 +48,42 @@
        }
        p.inventoryContainer.detectAndSendChanges();
      }
+--- a/com/yogpc/mc_lib/ADismCBlock.java
++++ b/com/yogpc/mc_lib/ADismCBlock.java
+@@ -11,8 +11,8 @@
+ import cofh.api.block.IDismantleable;
+ 
+ public abstract class ADismCBlock extends BlockContainer implements IDismantleable {
+-  protected ADismCBlock(final Material m) {
+-    super(m);
++  protected ADismCBlock(final int id, final Material m) {
++    super(id, m);
+   }
+ 
+   @Override
+@@ -22,17 +22,17 @@
+   }
+ 
+   @Override
+-  public ArrayList<ItemStack> dismantleBlock(final EntityPlayer e, final World w, final int x,
++  public ItemStack dismantleBlock(final EntityPlayer e, final World w, final int x,
+       final int y, final int z, final boolean toinv) {
+-    final ArrayList<ItemStack> ret = getBlockDropped(w, x, y, z, w.getBlockMetadata(x, y, z), 0);
++    int m = w.getBlockMetadata(x, y, z);
++    final ItemStack ret = new ItemStack(idDropped(m, w.rand, 0), quantityDropped(m, 0, w.rand), damageDropped(m));
+     w.setBlockToAir(x, y, z);
+-    if (!toinv)
+-      for (final ItemStack is : ret) {
++    if (!toinv) {
+         final float f = 0.7F;
+         final double d0 = w.rand.nextFloat() * f + (1.0F - f) * 0.5D;
+         final double d1 = w.rand.nextFloat() * f + (1.0F - f) * 0.5D;
+         final double d2 = w.rand.nextFloat() * f + (1.0F - f) * 0.5D;
+-        final EntityItem entityitem = new EntityItem(w, x + d0, y + d1, z + d2, is);
++        final EntityItem entityitem = new EntityItem(w, x + d0, y + d1, z + d2, ret);
+         entityitem.delayBeforeCanPickup = 10;
+         w.spawnEntityInWorld(entityitem);
+       }
 --- a/com/yogpc/mc_lib/APacketTile.java
 +++ b/com/yogpc/mc_lib/APacketTile.java
 @@ -23,9 +23,6 @@
@@ -48,18 +99,7 @@
  }
 --- a/com/yogpc/mc_lib/APowerTile.java
 +++ b/com/yogpc/mc_lib/APowerTile.java
-@@ -15,10 +15,6 @@
- import cofh.api.energy.IEnergyHandler;
- import cpw.mods.fml.common.ModAPIManager;
- 
--@Optional.InterfaceList(value = {
--    @Optional.Interface(iface = "cofh.api.energy.IEnergyHandler", modid = "CoFHAPI|energy"),
--    @Optional.Interface(iface = "buildcraft.api.power.IPowerReceptor", modid = "BuildCraftAPI|power"),
--    @Optional.Interface(iface = "ic2.api.energy.tile.IEnergySink", modid = "IC2API")})
- public abstract class APowerTile extends APacketTile implements IEnergyHandler, IEnergySink,
-     IPowerReceptor {
-   private final PowerHandler pp = new PowerHandler(this, Type.MACHINE);
-@@ -28,26 +24,16 @@
+@@ -27,24 +27,16 @@
    @Override
    public void updateEntity() {
      super.updateEntity();
@@ -76,20 +116,18 @@
      this.got = 0;
    }
  
--  @Optional.Method(modid = "IC2API")
--  private void ic2load() {
+-    private void ic2load() {
 -    MinecraftForge.EVENT_BUS.post(new EnergyTileLoadEvent(this));
 -  }
 -
--  @Optional.Method(modid = "IC2API")
--  private void ic2unload() {
+-    private void ic2unload() {
 -    MinecraftForge.EVENT_BUS.post(new EnergyTileUnloadEvent(this));
 -  }
 -
    @Override
    public void invalidate() {
      super.invalidate();
-@@ -58,7 +44,7 @@
+@@ -55,7 +47,7 @@
    public void onChunkUnload() {
      super.onChunkUnload();
      if (this.ic2ok && !this.worldObj.isRemote) {
@@ -98,7 +136,7 @@
        this.ic2ok = false;
      }
    }
-@@ -69,7 +55,7 @@
+@@ -66,7 +58,7 @@
      this.all = nbttc.getDouble("storedEnergy");
      this.max = nbttc.getDouble("MAX_stored");
      this.maxGot = nbttc.getDouble("MAX_receive");
@@ -107,7 +145,7 @@
    }
  
    @Override
-@@ -114,7 +100,7 @@
+@@ -111,7 +103,7 @@
    public final void configure(final double x, final double maxstored) {
      this.maxGot = x;
      this.max = maxstored;
@@ -136,6 +174,17 @@
      bb.writeInt(is.stackSize);
      bb.writeShort((short) is.getItemDamage());
      NBTTagCompound nbttagcompound = null;
+--- a/com/yogpc/mc_lib/InvUtils.java
++++ b/com/yogpc/mc_lib/InvUtils.java
+@@ -99,7 +99,7 @@
+         pi.add((IInventory) t);
+         pid.add(d.getOpposite());
+       }
+-      if (ModAPIManager.INSTANCE.hasAPI("BuildCraftAPI|transport") && t instanceof IPipeTile) {
++      if (t instanceof IPipeTile) {
+         final IPipeTile p = (IPipeTile) t;
+         if (p.getPipeType() != IPipeTile.PipeType.ITEM || !p.isPipeConnected(d.getOpposite()))
+           continue;
 --- a/com/yogpc/mc_lib/PacketHandler.java
 +++ b/com/yogpc/mc_lib/PacketHandler.java
 @@ -39,8 +39,7 @@
@@ -311,11 +360,10 @@
    }
 --- a/com/yogpc/mc_lib/TileWorkbench.java
 +++ b/com/yogpc/mc_lib/TileWorkbench.java
-@@ -8,12 +8,9 @@
+@@ -8,11 +8,9 @@
  import net.minecraft.nbt.NBTTagList;
  import net.minecraftforge.common.ForgeDirection;
  
--@Optional.Interface(iface = "cofh.api.inventory.IInventoryConnection", modid = "CoFHAPI|inventory")
 -public class TileWorkbench extends APowerTile implements IInventory, IInventoryConnection {
 +public class TileWorkbench extends APowerTile implements IInventory {
    private static final ItemStack loadItemStackFromNBT(final NBTTagCompound nbt) {
@@ -326,7 +374,7 @@
      final int a = nbt.getInteger("Count");
      int d = nbt.getShort("Damage");
      if (d < 0)
-@@ -25,7 +22,7 @@
+@@ -24,7 +22,7 @@
    }
  
    private static final void writeItemStackToNBT(final ItemStack is, final NBTTagCompound nbt) {
@@ -335,14 +383,13 @@
      nbt.setInteger("Count", is.stackSize);
      nbt.setShort("Damage", (short) is.getItemDamage());
  
-@@ -203,10 +200,4 @@
+@@ -202,9 +200,4 @@
  
    @Override
    public void closeChest() {}
 -
 -  @Override
--  @Optional.Method(modid = "CoFHAPI|inventory")
--  public ConnectionType canConnectInventory(final ForgeDirection arg0) {
+-    public ConnectionType canConnectInventory(final ForgeDirection arg0) {
 -    return ConnectionType.FORCE;
 -  }
  }
@@ -559,7 +606,7 @@
    @Override
 --- a/com/yogpc/qp/BlockLaser.java
 +++ b/com/yogpc/qp/BlockLaser.java
-@@ -105,7 +105,7 @@
+@@ -107,7 +107,7 @@
      ItemStack is;
      for (int i = 0; i < count; i++) {
        final int it = idDropped(meta, world.rand, 0);
@@ -579,6 +626,31 @@
        for (int i = 0; i < count; i++) {
          final ItemStack is = new ItemStack(it, 1, damageDropped(meta));
          EnchantmentHelper.enchantmentToIS(tile, is);
+--- a/com/yogpc/qp/BlockMover.java
++++ b/com/yogpc/qp/BlockMover.java
+@@ -74,17 +74,17 @@
+   }
+ 
+   @Override
+-  public ArrayList<ItemStack> dismantleBlock(final EntityPlayer e, final World w, final int x,
++  public ItemStack dismantleBlock(final EntityPlayer e, final World w, final int x,
+       final int y, final int z, final boolean toinv) {
+-    final ArrayList<ItemStack> ret = getBlockDropped(w, x, y, z, w.getBlockMetadata(x, y, z), 0);
++    int m = w.getBlockMetadata(x, y, z);
++    final ItemStack ret = new ItemStack(idDropped(m, w.rand, 0), quantityDropped(m, 0, w.rand), damageDropped(m));
+     w.setBlockToAir(x, y, z);
+-    if (!toinv)
+-      for (final ItemStack is : ret) {
++    if (!toinv) {
+         final float f = 0.7F;
+         final double d0 = w.rand.nextFloat() * f + (1.0F - f) * 0.5D;
+         final double d1 = w.rand.nextFloat() * f + (1.0F - f) * 0.5D;
+         final double d2 = w.rand.nextFloat() * f + (1.0F - f) * 0.5D;
+-        final EntityItem entityitem = new EntityItem(w, x + d0, y + d1, z + d2, is);
++        final EntityItem entityitem = new EntityItem(w, x + d0, y + d1, z + d2, ret);
+         entityitem.delayBeforeCanPickup = 10;
+         w.spawnEntityInWorld(entityitem);
+       }
 --- a/com/yogpc/qp/BlockPlacer.java
 +++ b/com/yogpc/qp/BlockPlacer.java
 @@ -93,7 +93,7 @@
@@ -775,18 +847,17 @@
    @Mod.EventHandler
 --- a/com/yogpc/qp/TileBasic.java
 +++ b/com/yogpc/qp/TileBasic.java
-@@ -39,9 +39,7 @@
+@@ -39,8 +39,7 @@
  import com.yogpc.mc_lib.ReflectionHelper;
  import com.yogpc.qp.QuarryPlus.BlockData;
  
--@Optional.Interface(iface = "cofh.api.inventory.IInventoryConnection", modid = "CoFHAPI|inventory")
 -public abstract class TileBasic extends APowerTile implements IEnchantableTile, IInventory,
 -    IInventoryConnection {
 +public abstract class TileBasic extends APowerTile implements IEnchantableTile, IInventory {
    protected ForgeDirection pump = ForgeDirection.UNKNOWN;
  
    public final List<BlockData> fortuneList = new ArrayList<BlockData>();
-@@ -100,8 +98,8 @@
+@@ -99,8 +98,8 @@
  
    protected boolean S_breakBlock(final int x, final int y, final int z) {
      final Collection<ItemStack> dropped = new LinkedList<ItemStack>();
@@ -797,7 +868,7 @@
      if (b == null || b.isAirBlock(this.worldObj, x, y, z))
        return true;
      if (TilePump.isLiquid(b, false, null, 0, 0, 0, 0)) {
-@@ -141,8 +139,7 @@
+@@ -140,8 +139,7 @@
      final int meta = this.worldObj.getBlockMetadata(x, y, z);
      if (b.canSilkHarvest(this.worldObj, null, x, y, z, meta)
          && this.silktouch
@@ -807,52 +878,41 @@
        list.add((ItemStack) ReflectionHelper.invoke(createStackedBlock, b, new Integer(meta)));
        return -1;
      }
-@@ -302,10 +299,4 @@
+@@ -301,9 +299,4 @@
    public boolean isItemValidForSlot(final int p_94041_1_, final ItemStack p_94041_2_) {
      return false;
    }
 -
 -  @Override
--  @Optional.Method(modid = "CoFHAPI|inventory")
--  public ConnectionType canConnectInventory(final ForgeDirection arg0) {
+-    public ConnectionType canConnectInventory(final ForgeDirection arg0) {
 -    return ConnectionType.FORCE;
 -  }
  }
 --- a/com/yogpc/qp/TileBreaker.java
 +++ b/com/yogpc/qp/TileBreaker.java
-@@ -25,9 +25,7 @@
+@@ -25,8 +25,7 @@
  import net.minecraft.tileentity.TileEntity;
  import net.minecraftforge.common.ForgeDirection;
  
--@Optional.Interface(iface = "cofh.api.inventory.IInventoryConnection", modid = "CoFHAPI|inventory")
 -public class TileBreaker extends TileEntity implements IEnchantableTile, IInventory,
 -    IInventoryConnection {
 +public class TileBreaker extends TileEntity implements IEnchantableTile, IInventory {
    boolean silktouch = false;
    byte fortune = 0;
  
-@@ -122,10 +120,4 @@
+@@ -121,9 +120,4 @@
    public boolean isItemValidForSlot(final int p_94041_1_, final ItemStack p_94041_2_) {
      return false;
    }
 -
 -  @Override
--  @Optional.Method(modid = "CoFHAPI|inventory")
--  public ConnectionType canConnectInventory(final ForgeDirection arg0) {
+-    public ConnectionType canConnectInventory(final ForgeDirection arg0) {
 -    return ConnectionType.FORCE;
 -  }
  }
 --- a/com/yogpc/qp/TileMarker.java
 +++ b/com/yogpc/qp/TileMarker.java
-@@ -42,7 +42,6 @@
- import com.yogpc.mc_lib.YogpstopLib;
- import com.yogpc.mc_lib.YogpstopPacket;
- 
--@Optional.Interface(iface = "buildcraft.api.core.IAreaProvider", modid = "BuildCraftAPI|core")
- public class TileMarker extends APacketTile implements IAreaProvider {
-   static final ArrayList<Link> linkList = new ArrayList<Link>();
-   static final ArrayList<Laser> laserList = new ArrayList<Laser>();
-@@ -198,7 +197,7 @@
+@@ -197,7 +197,7 @@
          final boolean bb) {
        final ArrayList<ItemStack> ret = new ArrayList<ItemStack>();
        final TileEntity te = this.w.getBlockTileEntity(x, y, z);
@@ -861,7 +921,7 @@
        if (b instanceof BlockMarker) {
          if (te instanceof TileMarker)
            ((TileMarker) te).link = null;
-@@ -414,16 +413,16 @@
+@@ -413,16 +413,16 @@
    private static void S_renewConnection(final Link l, final World w, final int x, final int y,
        final int z) {
      int tx = 0, ty = 0, tz = 0;
@@ -883,7 +943,7 @@
            tx = -tx;
            l.xn = x + tx;
            break;
-@@ -434,13 +433,13 @@
+@@ -433,13 +433,13 @@
      }
      if (l.yx == l.yn) {
        for (ty = 1; ty <= MAX_SIZE; ty++) {
@@ -901,7 +961,7 @@
            ty = -ty;
            l.yn = y + ty;
            break;
-@@ -451,13 +450,13 @@
+@@ -450,13 +450,13 @@
      }
      if (l.zx == l.zn) {
        for (tz = 1; tz <= MAX_SIZE; tz++) {
@@ -919,7 +979,7 @@
            tz = -tz;
            l.zn = z + tz;
            break;
-@@ -628,7 +627,7 @@
+@@ -627,7 +627,7 @@
    @Override
    public void invalidate() {
      super.invalidate();
@@ -969,24 +1029,22 @@
      }
 --- a/com/yogpc/qp/TilePlacer.java
 +++ b/com/yogpc/qp/TilePlacer.java
-@@ -21,8 +21,7 @@
+@@ -21,7 +21,7 @@
  import net.minecraft.tileentity.TileEntity;
  import net.minecraftforge.common.ForgeDirection;
  
--@Optional.Interface(iface = "cofh.api.inventory.IInventoryConnection", modid = "CoFHAPI|inventory")
 -public class TilePlacer extends TileEntity implements IInventory, IInventoryConnection {
 +public class TilePlacer extends TileEntity implements IInventory {
    private final ItemStack[] stack = new ItemStack[getSizeInventory()];
  
    @Override
-@@ -129,10 +128,4 @@
+@@ -128,9 +128,4 @@
        }
      par1NBTTagCompound.setTag("Items", nbttaglist);
    }
 -
 -  @Override
--  @Optional.Method(modid = "CoFHAPI|inventory")
--  public ConnectionType canConnectInventory(final ForgeDirection arg0) {
+-    public ConnectionType canConnectInventory(final ForgeDirection arg0) {
 -    return ConnectionType.FORCE;
 -  }
  }
@@ -1059,7 +1117,7 @@
              bz & 0xF);
 --- a/com/yogpc/qp/TileQuarry.java
 +++ b/com/yogpc/qp/TileQuarry.java
-@@ -94,9 +94,9 @@
+@@ -92,9 +92,9 @@
    private boolean S_checkTarget() {
      if (this.targetY > this.yMax)
        this.targetY = this.yMax;
@@ -1071,7 +1129,7 @@
      final float h =
          b == null ? -1 : b
              .getBlockHardness(this.worldObj, this.targetX, this.targetY, this.targetZ);
-@@ -160,7 +160,7 @@
+@@ -158,7 +158,7 @@
            return S_checkTarget();
          }
          if (b != null
@@ -1080,7 +1138,7 @@
              && !(b == QuarryPlus.blockFrame && this.worldObj.getBlockMetadata(this.targetX,
                  this.targetY, this.targetZ) == 0)) {
            this.now = NOTNEEDBREAK;
-@@ -283,7 +283,7 @@
+@@ -281,7 +281,7 @@
      this.digged = true;
      if (!PowerManager.useEnergyF(this, this.unbreaking))
        return false;
@@ -1089,7 +1147,16 @@
      S_setNextTarget();
      return true;
    }
-@@ -437,7 +437,7 @@
+@@ -356,7 +356,7 @@
+ 
+   private boolean S_checkIAreaProvider(final int x, final int y, final int z) {
+     final TileEntity te = this.worldObj.getBlockTileEntity(x, y, z);
+-    if (ModAPIManager.INSTANCE.hasAPI("BuildCraftAPI|core") && te instanceof IAreaProvider) {
++    if (te instanceof IAreaProvider) {
+       this.iap = (IAreaProvider) te;
+       this.xMin = this.iap.xMin();
+       this.xMax = this.iap.xMax();
+@@ -435,7 +435,7 @@
    }
  
    private void S_setBreakableFrame(final int x, final int y, final int z) {
@@ -1098,15 +1165,29 @@
        this.worldObj.setBlockMetadataWithNotify(x, y, z, 1, 3);
    }
  
+--- a/com/yogpc/qp/bc/BuildCraftHelper.java
++++ b/com/yogpc/qp/bc/BuildCraftHelper.java
+@@ -7,7 +7,7 @@
+ public class BuildCraftHelper {
+   public static final boolean isWrench(final Item equipped, final EntityPlayer ep, final int x,
+       final int y, final int z) {
+-    if (ModAPIManager.INSTANCE.hasAPI("BuildCraftAPI|tools") && equipped instanceof IToolWrench
++    if (equipped instanceof IToolWrench
+         && ((IToolWrench) equipped).canWrench(ep, x, y, z)) {
+       ((IToolWrench) equipped).wrenchUsed(ep, x, y, z);
+       return true;
 --- a/com/yogpc/qp/bc/RefineryRecipeHelper.java
 +++ b/com/yogpc/qp/bc/RefineryRecipeHelper.java
-@@ -43,10 +43,7 @@
+@@ -39,12 +39,9 @@
+   }
+ 
    public static void get(final TileRefinery tr) {
-     if (!Loader.isModLoaded("BuildCraft|Core") || tr.cached != null)
-       return;
+-    if (!ModAPIManager.INSTANCE.hasAPI("BuildCraftAPI|recipes") || tr.cached != null)
+-      return;
 -    final RefineryRecipes.RecipeManager irrm = BuildcraftRecipes.refinery;
 -    if (irrm == null)
--      return;
++    if (tr.cached != null)
+       return;
 -    for (final RefineryRecipes.Recipe ifr : irrm.getRecipes()) {
 +    for (final RefineryRecipes.Recipe ifr : RefineryRecipes.getRecipes()) {
        if (!craft(ifr, tr, false) || !RefineryRecipeHelper.check(ifr.result, tr))

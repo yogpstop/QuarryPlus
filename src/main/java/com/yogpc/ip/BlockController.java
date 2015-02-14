@@ -13,7 +13,9 @@ import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityList;
+import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.MobSpawnerBaseLogic;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityMobSpawner;
@@ -22,6 +24,7 @@ import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.common.util.FakePlayerFactory;
 import net.minecraftforge.common.util.ForgeDirection;
+import cofh.api.block.IDismantleable;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
@@ -30,8 +33,10 @@ import com.yogpc.mc_lib.YogpstopLib;
 import com.yogpc.mc_lib.YogpstopPacket;
 
 import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.Optional;
 
-public class BlockController extends Block {
+@Optional.Interface(iface = "cofh.api.block.IDismantleable", modid = "CoFHAPI|block")
+public class BlockController extends Block implements IDismantleable {
   public BlockController() {
     super(Material.circuits);
     setBlockName("spawnercontroller");
@@ -136,4 +141,27 @@ public class BlockController extends Block {
       w.setBlockMetadataWithNotify(x, y, z, 0, 4);
   }
 
+  @Override
+  public boolean canDismantle(final EntityPlayer arg0, final World arg1, final int arg2,
+      final int arg3, final int arg4) {
+    return true;
+  }
+
+  @Override
+  public ArrayList<ItemStack> dismantleBlock(final EntityPlayer e, final World w, final int x,
+      final int y, final int z, final boolean toinv) {
+    final ArrayList<ItemStack> ret = getDrops(w, x, y, z, w.getBlockMetadata(x, y, z), 0);
+    w.setBlockToAir(x, y, z);
+    if (!toinv)
+      for (final ItemStack is : ret) {
+        final float f = 0.7F;
+        final double d0 = w.rand.nextFloat() * f + (1.0F - f) * 0.5D;
+        final double d1 = w.rand.nextFloat() * f + (1.0F - f) * 0.5D;
+        final double d2 = w.rand.nextFloat() * f + (1.0F - f) * 0.5D;
+        final EntityItem entityitem = new EntityItem(w, x + d0, y + d1, z + d2, is);
+        entityitem.delayBeforeCanPickup = 10;
+        w.spawnEntityInWorld(entityitem);
+      }
+    return ret;
+  }
 }

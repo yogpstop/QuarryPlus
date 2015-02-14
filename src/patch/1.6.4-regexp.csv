@@ -1,3 +1,4 @@
+SIMPLE,"@\\s*Optional\\s*\\.\\s*[A-Za-z]+\\s*\\((\\([^\\(\\)]+\\)|[^\\(\\)])+\\)\\n?",""
 SIMPLE,"net\\.minecraftforge\\.common\\.util","net.minecraftforge.common"
 SIMPLE,"net\\.minecraftforge\\.common\\.config","net.minecraftforge.common"
 SIMPLE,"net\\.minecraft\\.network\\.Packet","net.minecraft.network.packet.Packet"

@@ -11,10 +11,11 @@ import buildcraft.api.recipes.IRefineryRecipeManager;
 
 import com.yogpc.qp.TileRefinery;
 
-import cpw.mods.fml.common.Loader;
+import cpw.mods.fml.common.ModAPIManager;
 import cpw.mods.fml.common.Optional;
 
-@Optional.Interface(iface = "buildcraft.api.recipes.IFlexibleCrafter", modid = "BuildCraftAPI|recipes")
+@Optional.Interface(iface = "buildcraft.api.recipes.IFlexibleCrafter",
+    modid = "BuildCraftAPI|recipes")
 public class RefineryRecipeHelper implements IFlexibleCrafter {
   private final TileRefinery tile;
 
@@ -68,7 +69,7 @@ public class RefineryRecipeHelper implements IFlexibleCrafter {
   }
 
   public static void get(final TileRefinery tr) {
-    if (!Loader.isModLoaded("BuildCraft|Core") || tr.cached != null)
+    if (!ModAPIManager.INSTANCE.hasAPI("BuildCraftAPI|recipes") || tr.cached != null)
       return;
     final IRefineryRecipeManager irrm = BuildcraftRecipeRegistry.refinery;
     if (irrm == null)

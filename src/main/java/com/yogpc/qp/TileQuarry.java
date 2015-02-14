@@ -40,7 +40,7 @@ import com.yogpc.mc_lib.PacketHandler;
 import com.yogpc.mc_lib.YogpstopLib;
 import com.yogpc.mc_lib.YogpstopPacket;
 
-import cpw.mods.fml.common.Loader;
+import cpw.mods.fml.common.ModAPIManager;
 
 public class TileQuarry extends TileBasic {
   private int targetX, targetY, targetZ;
@@ -358,7 +358,7 @@ public class TileQuarry extends TileBasic {
 
   private boolean S_checkIAreaProvider(final int x, final int y, final int z) {
     final TileEntity te = this.worldObj.getTileEntity(x, y, z);
-    if (Loader.isModLoaded("BuildCraft|Core") && te instanceof IAreaProvider) {
+    if (ModAPIManager.INSTANCE.hasAPI("BuildCraftAPI|core") && te instanceof IAreaProvider) {
       this.iap = (IAreaProvider) te;
       this.xMin = this.iap.xMin();
       this.xMax = this.iap.xMax();
