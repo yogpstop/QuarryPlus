@@ -8,6 +8,16 @@ Advanced machines for minecraft.
 **These are nightly builds. These versions will be cleaned up at fixed intervals.**  
 http://sourceforge.net/projects/yogpstopmcmods/files/Alpha/jar/QuarryPlus/
 
+Supported API
+-------------
+
+**All of unofficial build are unsupported**
+
+* BuildCraft ([MC1.7.10]6.1.0 and 6.1.1 are excluded)
+* IC2\_experimental ([MC1.7.2]build 398-465 are excluded)
+* CoFHCore
+
+
 Translation rules
 -----------------
 
