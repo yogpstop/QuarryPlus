@@ -11,7 +11,7 @@ public class CreativeTabQuarryPlus extends CreativeTabs {
 
   @Override
   public Item getTabIconItem() {
-    return Item.getItemFromBlock(QuarryPlus.blockQuarry);
+    return Item.getItemFromBlock(QuarryPlusI.blockQuarry);
   }
 
 }

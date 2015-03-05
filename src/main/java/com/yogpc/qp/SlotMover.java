@@ -20,6 +20,8 @@ import net.minecraft.item.ItemBow;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagList;
 
+import com.yogpc.qp.item.IEnchantableItem;
+
 public class SlotMover extends Slot {
   public SlotMover(final IInventory par1iInventory, final int par2, final int par3, final int par4) {
     super(par1iInventory, par2, par3, par4);

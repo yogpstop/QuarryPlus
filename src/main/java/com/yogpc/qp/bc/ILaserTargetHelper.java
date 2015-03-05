@@ -2,7 +2,7 @@ package com.yogpc.qp.bc;
 
 import java.lang.reflect.Method;
 
-import com.yogpc.mc_lib.ReflectionHelper;
+import com.yogpc.qp.ReflectionHelper;
 
 public class ILaserTargetHelper {
   private static final Class<?> cls = ReflectionHelper.getClass(

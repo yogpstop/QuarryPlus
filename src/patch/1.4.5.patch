@@ -1,24 +1,49 @@
---- a/com/yogpc/ip/ItemArmorElectric.java
-+++ b/com/yogpc/ip/ItemArmorElectric.java
-@@ -31,7 +31,7 @@
+--- a/com/yogpc/qp/bc/RefineryRecipeHelper.java
++++ b/com/yogpc/qp/bc/RefineryRecipeHelper.java
+@@ -41,9 +41,8 @@
+   public static void get(final TileRefinery tr) {
+     if (tr.cached != null)
+       return;
+-    for (final RefineryRecipe ifr : (java.util.Collection<RefineryRecipe>)RefineryRecipe.getRecipes()) {
+-      if (!craft(ifr, tr, false) || !RefineryRecipeHelper.check(ifr.result, tr))
+-        continue;
++    final RefineryRecipe ifr = RefineryRecipe.findRefineryRecipe(tr.src[0], tr.src[1]);
++    if (ifr != null && craft(ifr, tr, false) && RefineryRecipeHelper.check(ifr.result, tr)) {
+       craft(ifr, tr, true);
+       tr.rem_energy = ifr.energy;
+       tr.rem_time = ifr.delay;
+--- a/com/yogpc/qp/container/ContainerWorkbench.java
++++ b/com/yogpc/qp/container/ContainerWorkbench.java
+@@ -44,7 +44,7 @@
+       bb.writeShort((short) -1);
+       return;
+     }
+-    bb.writeShort((short) is.shiftedIndex);
++    bb.writeShort((short) is.itemID);
+     bb.writeInt(is.stackSize);
+     bb.writeShort((short) is.getItemDamage());
+     NBTTagCompound nbttagcompound = null;
+--- a/com/yogpc/qp/item/ItemArmorElectric.java
++++ b/com/yogpc/qp/item/ItemArmorElectric.java
+@@ -32,7 +32,7 @@
+ import cpw.mods.fml.common.Side;
  import cpw.mods.fml.common.asm.SideOnly;
  
- public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElectricItem,
--    IArmorTextureProvider {
-+    IArmorTextureProvider, ITickHandler {
+-public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElectricItem, IArmorTextureProvider {
++public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElectricItem, IArmorTextureProvider, ITickHandler {
    public ItemArmorElectric(final int id) {
-     super(id, EnumHelper.addArmorMaterial("ELECTRIC", 33, new int[] {3, 8, 6, 3}, 0), YogpstopLib.proxy
+     super(id, EnumHelper.addArmorMaterial("ELECTRIC", 33, new int[] {3, 8, 6, 3}, 0), QuarryPlus.proxy
          .addNewArmourRendererPrefix("electric"), 1);
-@@ -40,6 +40,8 @@
-     setMaxDamage(100);
+@@ -42,6 +42,8 @@
      setMaxStackSize(1);
+     setCreativeTab(QuarryPlusI.ct);
      this.iconIndex = 83;
 +    TickRegistry.registerTickHandler(this, Side.CLIENT);
 +    TickRegistry.registerTickHandler(this, Side.SERVER);
    }
  
    @Override
-@@ -122,16 +124,31 @@
+@@ -124,16 +126,31 @@
    }
  
    @Override
@@ -52,8 +77,30 @@
    @SideOnly(Side.CLIENT)
    public EnumRarity getRarity(final ItemStack stack) {
      return EnumRarity.uncommon;
---- a/com/yogpc/mc_lib/APowerTile.java
-+++ b/com/yogpc/mc_lib/APowerTile.java
+--- a/com/yogpc/qp/render/RenderRefinery.java
++++ b/com/yogpc/qp/render/RenderRefinery.java
+@@ -177,7 +177,7 @@
+           GL11.glPushMatrix();
+           GL11.glTranslatef(tx, ty, tz);
+         }
+-        bindTextureByName(Block.blocksList[liquid.shiftedIndex].getTextureFile());
++        bindTextureByName(Block.blocksList[liquid.itemID].getTextureFile());
+         final ItemStack stack = liquid.asItemStack();
+         setColor(stack.getItem().getColorFromItemStack(stack, 0));
+         GL11.glCallList(list[(int) (liquid.amount / buf * 99)]);
+@@ -196,8 +196,8 @@
+       return diplayLists;
+     diplayLists = new int[100];
+     Block baseBlock;
+-    if (fluidStack.shiftedIndex > -1) {
+-      baseBlock = Block.blocksList[fluidStack.shiftedIndex];
++    if (fluidStack.itemID > -1) {
++      baseBlock = Block.blocksList[fluidStack.itemID];
+     } else {
+       baseBlock = Block.waterStill;
+     }
+--- a/com/yogpc/qp/tile/APowerTile.java
++++ b/com/yogpc/qp/tile/APowerTile.java
 @@ -106,7 +106,7 @@
  
    @Override
@@ -75,20 +122,9 @@
    public final boolean isAddedToEnergyNet() {
      return true;
    }
---- a/com/yogpc/mc_lib/ContainerWorkbench.java
-+++ b/com/yogpc/mc_lib/ContainerWorkbench.java
-@@ -39,7 +39,7 @@
-       bb.writeShort((short) -1);
-       return;
-     }
--    bb.writeShort((short) is.shiftedIndex);
-+    bb.writeShort((short) is.itemID);
-     bb.writeInt(is.stackSize);
-     bb.writeShort((short) is.getItemDamage());
-     NBTTagCompound nbttagcompound = null;
---- a/com/yogpc/mc_lib/TileWorkbench.java
-+++ b/com/yogpc/mc_lib/TileWorkbench.java
-@@ -21,7 +21,7 @@
+--- a/com/yogpc/qp/tile/TileWorkbench.java
++++ b/com/yogpc/qp/tile/TileWorkbench.java
+@@ -25,7 +25,7 @@
    }
  
    private static final void writeItemStackToNBT(final ItemStack is, final NBTTagCompound nbt) {
@@ -97,39 +133,3 @@
      nbt.setInteger("Count", is.stackSize);
      nbt.setShort("Damage", (short) is.getItemDamage());
  
---- a/com/yogpc/qp/bc/RefineryRecipeHelper.java
-+++ b/com/yogpc/qp/bc/RefineryRecipeHelper.java
-@@ -39,9 +39,8 @@
-   public static void get(final TileRefinery tr) {
-     if (tr.cached != null)
-       return;
--    for (final RefineryRecipe ifr : (java.util.Collection<RefineryRecipe>)RefineryRecipe.getRecipes()) {
--      if (!craft(ifr, tr, false) || !RefineryRecipeHelper.check(ifr.result, tr))
--        continue;
-+    final RefineryRecipe ifr = RefineryRecipe.findRefineryRecipe(tr.src[0], tr.src[1]);
-+    if (ifr != null && craft(ifr, tr, false) && RefineryRecipeHelper.check(ifr.result, tr)) {
-       craft(ifr, tr, true);
-       tr.rem_energy = ifr.energy;
-       tr.rem_time = ifr.delay;
---- a/com/yogpc/qp/client/RenderRefinery.java
-+++ b/com/yogpc/qp/client/RenderRefinery.java
-@@ -177,7 +177,7 @@
-           GL11.glPushMatrix();
-           GL11.glTranslatef(tx, ty, tz);
-         }
--        bindTextureByName(Block.blocksList[liquid.shiftedIndex].getTextureFile());
-+        bindTextureByName(Block.blocksList[liquid.itemID].getTextureFile());
-         final ItemStack stack = liquid.asItemStack();
-         setColor(stack.getItem().getColorFromItemStack(stack, 0));
-         GL11.glCallList(list[(int) (liquid.amount / buf * 99)]);
-@@ -196,8 +196,8 @@
-       return diplayLists;
-     diplayLists = new int[100];
-     Block baseBlock;
--    if (fluidStack.shiftedIndex > -1) {
--      baseBlock = Block.blocksList[fluidStack.shiftedIndex];
-+    if (fluidStack.itemID > -1) {
-+      baseBlock = Block.blocksList[fluidStack.itemID];
-     } else {
-       baseBlock = Block.waterStill;
-     }

@@ -1,9 +1,59 @@
---- a/com/yogpc/ip/BlockController.java
-+++ b/com/yogpc/ip/BlockController.java
-@@ -37,12 +37,13 @@
+--- a/com/yogpc/qp/block/BlockBreaker.java
++++ b/com/yogpc/qp/block/BlockBreaker.java
+@@ -56,6 +56,10 @@
+     setHardness(3.5F);
+     setStepSound(soundStoneFootstep);
+     setBlockName("BreakerPlus");
++    this.blockIndexInTexture = 96;
++    this.furnaceTopIcon = 97;
++    this.horizontal = 100;
++    this.vectrial = 101;
+   }
+ 
+   @Override
+@@ -81,11 +85,8 @@
+ 
+   @Override
+   @SideOnly(Side.CLIENT)
+-  public void registerIcons(final IconRegister par1IconRegister) {
+-    this.blockIndexInTexture = par1IconRegister.registerIcon("yogpstop_qp:plusstone_side");
+-    this.furnaceTopIcon = par1IconRegister.registerIcon("yogpstop_qp:plusstone_top");
+-    this.horizontal = par1IconRegister.registerIcon("yogpstop_qp:breaker_front_horizontal");
+-    this.vectrial = par1IconRegister.registerIcon("yogpstop_qp:breaker_front_vertical");
++  public String getTextureFile() {
++    return "/mods/yogpstop_qp/textures/textures.png";
+   }
+ 
+   @Override
+@@ -115,7 +116,7 @@
+     final Block b = Block.blocksList[w.getBlockId(tx, ty, tz)];
+     if (b == null || b.isAirBlock(w, x, y, z))
+       return;
+-    final EntityPlayer player = ProxyCommon.getPlayer(w);
++    final EntityPlayer player = ProxyCommon.getPlayer(w, x, y, z);
+     b.onBlockHarvested(w, tx, ty, tz, meta, player);
+     if (b.removeBlockByPlayer(w, player, tx, ty, tz))
+       b.onBlockDestroyedByPlayer(w, tx, ty, tz, meta);
+@@ -146,10 +147,10 @@
+ 
+   @Override
+   public void onBlockPlacedBy(final World world, final int x, final int y, final int z, final EntityLiving ent) {
+-    EnchantmentHelper.init((IEnchantableTile) world.getBlockTileEntity(x, y, z),
+-        is.getEnchantmentTagList());
++    EnchantmentHelper.init((IEnchantableTile) world.getBlockTileEntity(x, y, z), ent.getHeldItem()
++        .getEnchantmentTagList());
+     world.setBlockMetadataWithNotify(x, y, z,
+-        BlockPistonBase.determineOrientation(world, x, y, z, ent), 2);
++        BlockPistonBase.determineOrientation(world, x, y, z, (EntityPlayer) ent));
+   }
+ 
+   static void setDispenserDefaultDirection(final World w, final int x, final int y, final int z) {
+--- a/com/yogpc/qp/block/BlockController.java
++++ b/com/yogpc/qp/block/BlockController.java
+@@ -39,12 +39,13 @@
      setBlockName("spawnercontroller");
      setHardness(1.0f);
-     setCreativeTab(CreativeTabs.tabRedstone);
+     setCreativeTab(QuarryPlusI.ct);
 +    this.blockIndexInTexture = 85;
    }
  
@@ -16,7 +66,7 @@
    }
  
    private static final TileEntityMobSpawner getSpawner(final World w, final int x, final int y,
-@@ -51,10 +52,7 @@
+@@ -53,10 +54,7 @@
        final TileEntity t = w.getBlockTileEntity(x + d.offsetX, y + d.offsetY, z + d.offsetZ);
        if (!(t instanceof TileEntityMobSpawner))
          continue;
@@ -28,86 +78,384 @@
      }
      return null;
    }
-@@ -124,12 +122,10 @@
+@@ -129,12 +127,10 @@
      if (r && m == 0) {
        final TileEntityMobSpawner l = getSpawner(w, x, y, z);
        if (l != null) {
 -        l.spawnDelay = 0;
--        final EntityPlayer p = CommonProxy.getPlayer(w);
+-        final EntityPlayer p = ProxyCommon.getPlayer(w);
 -        p.setWorld(l.worldObj);
 -        p.setPosition(l.xCoord, l.yCoord, l.zCoord);
 +        l.delay = 0;
-+        final EntityPlayer p = CommonProxy.getPlayer(w,x,y,z);
++        final EntityPlayer p = ProxyCommon.getPlayer(w,x,y,z);
          l.worldObj.playerEntities.add(p);
 -        l.updateSpawner();
 +        l.updateEntity();
          l.worldObj.playerEntities.remove(p);
        }
        w.setBlockMetadataWithNotify(x, y, z, 1);
---- a/com/yogpc/ip/ItemArmorElectric.java
-+++ b/com/yogpc/ip/ItemArmorElectric.java
-@@ -27,20 +27,22 @@
- import cpw.mods.fml.relauncher.Side;
- import cpw.mods.fml.relauncher.SideOnly;
- 
--public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElectricItem {
-+public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElectricItem,
-+    IArmorTextureProvider {
-   public ItemArmorElectric(final int id) {
-     super(id, EnumHelper.addArmorMaterial("ELECTRIC", 33, new int[] {3, 8, 6, 3}, 0), YogpstopLib.proxy
-         .addNewArmourRendererPrefix("electric"), 1);
--    setBlockName("electric_armor");
-+    setItemName("electric_armor");
-     setCreativeTab(CreativeTabs.tabCombat);
-     setMaxDamage(100);
-     setMaxStackSize(1);
-+    this.iconIndex = 83;
+--- a/com/yogpc/qp/block/BlockFrame.java
++++ b/com/yogpc/qp/block/BlockFrame.java
+@@ -26,12 +26,13 @@
+     setHardness(0.5F);
+     setTickRandomly(true);
+     setBlockName("qpFrame");
++    this.blockIndexInTexture = 35;
    }
  
    @Override
    @SideOnly(Side.CLIENT)
 -  public void registerIcons(final IconRegister ir) {
--    this.iconIndex = ir.registerIcon("yogpstop_qp:elecArmor");
+-    this.blockIndexInTexture = ir.registerIcon("yogpstop_qp:blockFrame");
 +  public String getTextureFile() {
 +    return "/mods/yogpstop_qp/textures/textures.png";
    }
  
    @Override
-@@ -118,7 +120,7 @@
+--- a/com/yogpc/qp/block/BlockLaser.java
++++ b/com/yogpc/qp/block/BlockLaser.java
+@@ -36,13 +36,16 @@
+ public class BlockLaser extends BlockContainer {
+ 
+   @SideOnly(Side.CLIENT)
+-  private int textureTop, textureBottom;
++  private final int textureTop, textureBottom;
+ 
+   public BlockLaser(final int id) {
+     super(id, Material.iron);
+     setHardness(10F);
+     setCreativeTab(QuarryPlusI.ct);
+     setBlockName("LaserPlus");
++    this.blockIndexInTexture = 112;
++    this.textureBottom = 113;
++    this.textureTop = 114;
+   }
  
    @Override
-   public void onArmorTickUpdate(final World world, final EntityPlayer player, final ItemStack is) {
--    if (ElectricItem != null)
-+    if (Loader.isModLoaded("IC2"))
-       ElectricItemManager.charge(is, ElectricItem.discharge(is, Integer.MAX_VALUE,
-           Integer.MAX_VALUE, true, false), getMaxCharge());
-     if (player.inventory.armorInventory[2] != is)
---- a/com/yogpc/ip/ItemMirror.java
-+++ b/com/yogpc/ip/ItemMirror.java
-@@ -16,14 +16,15 @@
- public class ItemMirror extends Item {
-   public ItemMirror(final int id) {
-     super(id);
--    setBlockName("magicmirror");
-+    setItemName("magicmirror");
-     setCreativeTab(CreativeTabs.tabTools);
-+    this.iconIndex = 84;
+@@ -87,16 +90,14 @@
+ 
+   @Override
+   @SideOnly(Side.CLIENT)
+-  public void registerIcons(final IconRegister par1IconRegister) {
+-    this.textureTop = par1IconRegister.registerIcon("yogpstop_qp:laser_top");
+-    this.textureBottom = par1IconRegister.registerIcon("yogpstop_qp:laser_bottom");
+-    this.blockIndexInTexture = par1IconRegister.registerIcon("yogpstop_qp:laser_side");
++  public String getTextureFile() {
++    return "/mods/yogpstop_qp/textures/textures.png";
+   }
+ 
+   @Override
+   public void onBlockPlacedBy(final World world, final int x, final int y, final int z, final EntityLiving ent) {
+     EnchantmentHelper.init((IEnchantableTile) world.getBlockTileEntity(x, y, z),
+-        is.getEnchantmentTagList());
++        ent.getHeldItem().getEnchantmentTagList());
+   }
+ 
+   private final ArrayList<ItemStack> drop = new ArrayList<ItemStack>();
+--- a/com/yogpc/qp/block/BlockMarker.java
++++ b/com/yogpc/qp/block/BlockMarker.java
+@@ -37,6 +37,7 @@
+     setLightValue(0.5F);
+     setCreativeTab(QuarryPlusI.ct);
+     setBlockName("MarkerPlus");
++    this.blockIndexInTexture = 16;
+   }
+ 
+   @Override
+@@ -158,7 +159,7 @@
+ 
+   @Override
+   @SideOnly(Side.CLIENT)
+-  public void registerIcons(final IconRegister par1IconRegister) {
+-    this.blockIndexInTexture = par1IconRegister.registerIcon("yogpstop_qp:marker");
++  public String getTextureFile() {
++    return "/mods/yogpstop_qp/textures/textures.png";
+   }
+ }
+--- a/com/yogpc/qp/block/BlockMiningWell.java
++++ b/com/yogpc/qp/block/BlockMiningWell.java
+@@ -46,6 +46,11 @@
+     setCreativeTab(QuarryPlusI.ct);
+     setStepSound(soundStoneFootstep);
+     setBlockName("MiningWellPlus");
++    this.blockIndexInTexture = 48;
++    this.textureFront = 49;
++    this.textureBack = 50;
++    this.textureTop = 51;
++    this.texW = 52;
+   }
+ 
+   @Override
+@@ -55,12 +60,8 @@
+ 
+   @Override
+   @SideOnly(Side.CLIENT)
+-  public void registerIcons(final IconRegister par1IconRegister) {
+-    this.textureFront = par1IconRegister.registerIcon("yogpstop_qp:miningwell_front");
+-    this.blockIndexInTexture = par1IconRegister.registerIcon("yogpstop_qp:miningwell");
+-    this.textureBack = par1IconRegister.registerIcon("yogpstop_qp:miningwell_back");
+-    this.textureTop = par1IconRegister.registerIcon("yogpstop_qp:miningwell_top");
+-    this.texW = par1IconRegister.registerIcon("yogpstop_qp:miningwell_top_w");
++  public String getTextureFile() {
++    return "/mods/yogpstop_qp/textures/textures.png";
+   }
+ 
+   @Override
+@@ -93,8 +94,8 @@
+   public void onBlockPlacedBy(final World w, final int x, final int y, final int z, final EntityLiving el) {
+     super.onBlockPlacedBy(w, x, y, z, el);
+     final ForgeDirection orientation = get2dOrientation(el.posX, el.posZ, x, z);
+-    w.setBlockMetadataWithNotify(x, y, z, orientation.getOpposite().ordinal(), 1);
+-    EnchantmentHelper.init((IEnchantableTile) w.getBlockTileEntity(x, y, z), is.getEnchantmentTagList());
++    w.setBlockMetadataWithNotify(x, y, z, orientation.getOpposite().ordinal());
++    EnchantmentHelper.init((IEnchantableTile) w.getBlockTileEntity(x, y, z), el.getHeldItem().getEnchantmentTagList());
+   }
+ 
+   private static ForgeDirection get2dOrientation(final double x1, final double z1, final double x2,
+--- a/com/yogpc/qp/block/BlockMover.java
++++ b/com/yogpc/qp/block/BlockMover.java
+@@ -35,6 +35,9 @@
+     setHardness(1.2F);
+     setCreativeTab(QuarryPlusI.ct);
+     setBlockName("EnchantMover");
++    this.blockIndexInTexture = 32;
++    this.textureBottom = 33;
++    this.textureTop = 34;
+   }
+ 
+   @Override
+@@ -53,10 +56,8 @@
+ 
+   @SideOnly(Side.CLIENT)
+   @Override
+-  public void registerIcons(final IconRegister par1IconRegister) {
+-    this.blockIndexInTexture = par1IconRegister.registerIcon("yogpstop_qp:mover");
+-    this.textureTop = par1IconRegister.registerIcon("yogpstop_qp:mover_top");
+-    this.textureBottom = par1IconRegister.registerIcon("yogpstop_qp:mover_bottom");
++  public String getTextureFile() {
++    return "/mods/yogpstop_qp/textures/textures.png";
+   }
+ 
+   @Override
+--- a/com/yogpc/qp/block/BlockPlacer.java
++++ b/com/yogpc/qp/block/BlockPlacer.java
+@@ -52,6 +52,10 @@
+     setHardness(3.5F);
+     setStepSound(soundStoneFootstep);
+     setBlockName("PlacerPlus");
++    this.blockIndexInTexture = 96;
++    this.furnaceTopIcon = 97;
++    this.horizontal = 98;
++    this.vectrial = 99;
+   }
+ 
+   @Override
+@@ -77,11 +81,8 @@
+ 
+   @Override
+   @SideOnly(Side.CLIENT)
+-  public void registerIcons(final IconRegister par1IconRegister) {
+-    this.blockIndexInTexture = par1IconRegister.registerIcon("yogpstop_qp:plusstone_side");
+-    this.furnaceTopIcon = par1IconRegister.registerIcon("yogpstop_qp:plusstone_top");
+-    this.horizontal = par1IconRegister.registerIcon("yogpstop_qp:placer_front_horizontal");
+-    this.vectrial = par1IconRegister.registerIcon("yogpstop_qp:placer_front_vertical");
++  public String getTextureFile() {
++    return "/mods/yogpstop_qp/textures/textures.png";
+   }
+ 
+   @Override
+@@ -133,7 +134,7 @@
+       ty = y + fd2.offsetY;
+       tz = z + fd2.offsetZ;
+ 
+-      final EntityPlayer player = ProxyCommon.getPlayer(world);
++      final EntityPlayer player = ProxyCommon.getPlayer(world, x, y, z);
+       ItemStack is = null;
+       int i = 0;
+       for (; i < tile.getSizeInventory(); i++) {
+@@ -194,7 +195,7 @@
+   @Override
+   public void onBlockPlacedBy(final World par1World, final int par2, final int par3, final int par4, final EntityLiving par5EntityLiving) {
+     final int l =
+-        BlockPistonBase.determineOrientation(par1World, par2, par3, par4, par5EntityLiving);
++        BlockPistonBase.determineOrientation(par1World, par2, par3, par4, (EntityPlayer) par5EntityLiving);
+     par1World.setBlockMetadataWithNotify(par2, par3, par4, l);
+   }
+ 
+@@ -235,7 +236,6 @@
+         }
+       }
+ 
+-      world.func_96440_m(x, y, z, b);
+     }
+ 
+     super.breakBlock(world, x, y, z, b, meta);
+--- a/com/yogpc/qp/block/BlockPlainPipe.java
++++ b/com/yogpc/qp/block/BlockPlainPipe.java
+@@ -17,12 +17,13 @@
+     this.maxY = 1.0;
+     this.maxZ = 0.75;
+     setBlockName("qpPlainPipe");
++    this.blockIndexInTexture = 36;
    }
  
    @Override
    @SideOnly(Side.CLIENT)
 -  public void registerIcons(final IconRegister ir) {
--    this.iconIndex = ir.registerIcon("yogpstop_qp:mm");
+-    this.blockIndexInTexture = ir.registerIcon("yogpstop_qp:blockPlainPipe");
 +  public String getTextureFile() {
 +    return "/mods/yogpstop_qp/textures/textures.png";
    }
  
    @Override
---- a/com/yogpc/mc_lib/BlockWorkbench.java
-+++ b/com/yogpc/mc_lib/BlockWorkbench.java
-@@ -21,12 +21,13 @@
+--- a/com/yogpc/qp/block/BlockPump.java
++++ b/com/yogpc/qp/block/BlockPump.java
+@@ -36,13 +36,18 @@
+ 
+ public class BlockPump extends BlockContainer {
+ 
+-  private int textureTop, textureBottom, textureSide, texW, texC;
++  private final int textureTop, textureBottom, textureSide, texW, texC;
+ 
+   public BlockPump(final int id) {
+     super(id, Material.iron);
+     setHardness(5F);
+     setCreativeTab(QuarryPlusI.ct);
+     setBlockName("PumpPlus");
++    this.textureSide = 64;
++    this.textureBottom = 65;
++    this.textureTop = 66;
++    this.texC = 67;
++    this.texW = 68;
+   }
+ 
+   @Override
+@@ -78,12 +83,8 @@
+ 
+   @Override
+   @SideOnly(Side.CLIENT)
+-  public void registerIcons(final IconRegister par1IconRegister) {
+-    this.textureTop = par1IconRegister.registerIcon("yogpstop_qp:pump_top");
+-    this.textureBottom = par1IconRegister.registerIcon("yogpstop_qp:pump_bottom");
+-    this.textureSide = par1IconRegister.registerIcon("yogpstop_qp:pump_side");
+-    this.texW = par1IconRegister.registerIcon("yogpstop_qp:pump_top_w");
+-    this.texC = par1IconRegister.registerIcon("yogpstop_qp:pump_top_c");
++  public String getTextureFile() {
++    return "/mods/yogpstop_qp/textures/textures.png";
+   }
+ 
+   private final ArrayList<ItemStack> drop = new ArrayList<ItemStack>();
+@@ -114,7 +115,7 @@
+   @Override
+   public void onBlockPlacedBy(final World w, final int x, final int y, final int z, final EntityLiving el) {
+     super.onBlockPlacedBy(w, x, y, z, el);
+-    EnchantmentHelper.init((IEnchantableTile) w.getBlockTileEntity(x, y, z), is.getEnchantmentTagList());
++    EnchantmentHelper.init((IEnchantableTile) w.getBlockTileEntity(x, y, z), el.getHeldItem().getEnchantmentTagList());
+   }
+ 
+   @Override
+--- a/com/yogpc/qp/block/BlockQuarry.java
++++ b/com/yogpc/qp/block/BlockQuarry.java
+@@ -47,6 +47,12 @@
+     setStepSound(soundStoneFootstep);
+     setCreativeTab(QuarryPlusI.ct);
+     setBlockName("QuarryPlus");
++    this.blockIndexInTexture = 0;
++    this.textureFront = 1;
++    this.textureTop = 2;
++    this.texNNB = 3;
++    this.texMF = 4;
++    this.texBB = 5;
+   }
+ 
+   private final ArrayList<ItemStack> drop = new ArrayList<ItemStack>();
+@@ -111,13 +117,8 @@
+ 
+   @Override
+   @SideOnly(Side.CLIENT)
+-  public void registerIcons(final IconRegister par1IconRegister) {
+-    this.blockIndexInTexture = par1IconRegister.registerIcon("yogpstop_qp:quarry");
+-    this.textureTop = par1IconRegister.registerIcon("yogpstop_qp:quarry_top");
+-    this.textureFront = par1IconRegister.registerIcon("yogpstop_qp:quarry_front");
+-    this.texBB = par1IconRegister.registerIcon("yogpstop_qp:quarry_top_bb");
+-    this.texNNB = par1IconRegister.registerIcon("yogpstop_qp:quarry_top_nnb");
+-    this.texMF = par1IconRegister.registerIcon("yogpstop_qp:quarry_top_mf");
++  public String getTextureFile() {
++    return "/mods/yogpstop_qp/textures/textures.png";
+   }
+ 
+   @Override
+@@ -129,9 +130,9 @@
+   public void onBlockPlacedBy(final World w, final int x, final int y, final int z, final EntityLiving el) {
+     super.onBlockPlacedBy(w, x, y, z, el);
+     final ForgeDirection orientation = get2dOrientation(el.posX, el.posZ, x, z);
+-    w.setBlockMetadataWithNotify(x, y, z, orientation.getOpposite().ordinal(), 1);
++    w.setBlockMetadataWithNotify(x, y, z, orientation.getOpposite().ordinal());
+     ((TileQuarry) w.getBlockTileEntity(x, y, z)).requestTicket();
+-    EnchantmentHelper.init((IEnchantableTile) w.getBlockTileEntity(x, y, z), is.getEnchantmentTagList());
++    EnchantmentHelper.init((IEnchantableTile) w.getBlockTileEntity(x, y, z), el.getHeldItem().getEnchantmentTagList());
+   }
+ 
+   private static ForgeDirection get2dOrientation(final double x1, final double z1, final double x2,
+--- a/com/yogpc/qp/block/BlockRefinery.java
++++ b/com/yogpc/qp/block/BlockRefinery.java
+@@ -45,12 +45,13 @@
+     setHardness(5F);
+     setCreativeTab(QuarryPlusI.ct);
+     setBlockName("RefineryPlus");
++    this.blockIndexInTexture = 17;
+   }
+ 
+   @Override
+   @SideOnly(Side.CLIENT)
+-  public void registerIcons(final IconRegister ir) {
+-    this.blockIndexInTexture = ir.registerIcon("yogpstop_qp:refineryDummy");
++  public String getTextureFile() {
++    return "/mods/yogpstop_qp/textures/textures.png";
+   }
+ 
+   @Override
+@@ -86,11 +87,11 @@
+   @Override
+   public void onBlockPlacedBy(final World w, final int x, final int y, final int z, final EntityLiving el) {
+     super.onBlockPlacedBy(w, x, y, z, el);
+-    EnchantmentHelper.init((IEnchantableTile) w.getBlockTileEntity(x, y, z), is.getEnchantmentTagList());
++    EnchantmentHelper.init((IEnchantableTile) w.getBlockTileEntity(x, y, z), el.getHeldItem().getEnchantmentTagList());
+     final ForgeDirection[] da =
+         {ForgeDirection.NORTH, ForgeDirection.EAST, ForgeDirection.SOUTH, ForgeDirection.WEST};
+     final int di = MathHelper.floor_double((el.rotationYaw + 45.0) / 90.0) & 3;
+-    w.setBlockMetadataWithNotify(x, y, z, da[di].ordinal(), 1);
++    w.setBlockMetadataWithNotify(x, y, z, da[di].ordinal());
+   }
+ 
+   private static void consumeItem(final EntityPlayer ep, final ItemStack stack) {
+@@ -135,17 +136,17 @@
+       final int meta = world.getBlockMetadata(x, y, z);
+       switch (ForgeDirection.values()[meta]) {
+         case WEST:
+-          world.setBlockMetadataWithNotify(x, y, z, ForgeDirection.SOUTH.ordinal(), 3);
++          world.setBlockMetadataWithNotify(x, y, z, ForgeDirection.SOUTH.ordinal());
+           break;
+         case EAST:
+-          world.setBlockMetadataWithNotify(x, y, z, ForgeDirection.NORTH.ordinal(), 3);
++          world.setBlockMetadataWithNotify(x, y, z, ForgeDirection.NORTH.ordinal());
+           break;
+         case NORTH:
+-          world.setBlockMetadataWithNotify(x, y, z, ForgeDirection.WEST.ordinal(), 3);
++          world.setBlockMetadataWithNotify(x, y, z, ForgeDirection.WEST.ordinal());
+           break;
+         case SOUTH:
+         default:
+-          world.setBlockMetadataWithNotify(x, y, z, ForgeDirection.EAST.ordinal(), 3);
++          world.setBlockMetadataWithNotify(x, y, z, ForgeDirection.EAST.ordinal());
+           break;
+       }
+       return true;
+--- a/com/yogpc/qp/block/BlockWorkbench.java
++++ b/com/yogpc/qp/block/BlockWorkbench.java
+@@ -24,12 +24,13 @@
      setHardness(3F);
-     setCreativeTab(CreativeTabs.tabRedstone);
+     setCreativeTab(QuarryPlusI.ct);
      setBlockName("WorkbenchPlus");
 +    this.blockIndexInTexture = 37;
    }
@@ -121,7 +469,7 @@
    }
  
    @Override
-@@ -57,7 +58,6 @@
+@@ -60,7 +61,6 @@
            }
          }
        }
@@ -129,9 +477,9 @@
      }
      super.breakBlock(w, x, y, z, b, m);
    }
---- a/com/yogpc/mc_lib/ContainerWorkbench.java
-+++ b/com/yogpc/mc_lib/ContainerWorkbench.java
-@@ -184,19 +184,6 @@
+--- a/com/yogpc/qp/container/ContainerWorkbench.java
++++ b/com/yogpc/qp/container/ContainerWorkbench.java
+@@ -189,19 +189,6 @@
      return;
    }
  
@@ -151,7 +499,7 @@
    public static boolean canDrag(final Slot slot, final ItemStack is, final boolean always_true) {
      boolean can = slot == null || !slot.getHasStack();
      if (slot != null && slot.getHasStack() && is != null && is.isItemEqual(slot.getStack())
-@@ -226,60 +213,7 @@
+@@ -231,60 +218,7 @@
      }
      ItemStack ret = null;
      final InventoryPlayer player_inv = ep.inventory;
@@ -213,7 +561,7 @@
        if (i == -999) {
          if (player_inv.getItemStack() != null && i == -999) {
            if (param == 0) {
-@@ -414,31 +348,6 @@
+@@ -419,31 +353,6 @@
          slot.onPickupFromSlot(ep, drop_stack);
          ep.dropPlayerItemWithRandomChoice(drop_stack, true);
        }
@@ -245,572 +593,8 @@
      }
      return ret;
    }
---- a/com/yogpc/mc_lib/GuiWorkbench.java
-+++ b/com/yogpc/mc_lib/GuiWorkbench.java
-@@ -60,7 +60,7 @@
- 
-     @Override
-     public void renderItemOverlayIntoGUI(final FontRenderer a, final RenderEngine b, final ItemStack c, final int d, final int e) {
--      super.renderItemOverlayIntoGUI(myfont.setParent(a), b, c, d, e, f);
-+      super.renderItemOverlayIntoGUI(myfont.setParent(a), b, c, d, e);
-     }
-   }
- 
-@@ -79,7 +79,7 @@
-   @Override
-   protected void drawGuiContainerForegroundLayer(final int p_146979_1_, final int p_146979_2_) {
-     this.fontRenderer.drawString(
--        this.tile.isInvNameLocalized() ? this.tile.getInvName() : StatCollector
-+        StatCollector
-             .translateToLocal(this.tile.getInvName()), 8, 6, 0x404040);
-     this.fontRenderer.drawString(StatCollector.translateToLocal("container.inventory"), 8,
-         this.ySize - 96 + 2, 0x404040);
-@@ -89,7 +89,7 @@
-   protected void drawGuiContainerBackgroundLayer(final float p_146976_1_, final int p_146976_2_,
-       final int p_146976_3_) {
-     GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
--    this.mc.renderEngine.bindTexture(gui);
-+    this.mc.renderEngine.bindTexture(this.mc.renderEngine.getTexture(gui));
-     final int xf = this.width - this.xSize >> 1;
-     final int yf = this.height - this.ySize >> 1;
-     drawTexturedModalRect(xf, yf, 0, 0, this.xSize, this.ySize);
---- a/com/yogpc/mc_lib/InvUtils.java
-+++ b/com/yogpc/mc_lib/InvUtils.java
-@@ -37,9 +37,12 @@
-         iii = ii;
-     } else
-       iii = ii;
--    if (iii instanceof ISidedInventory)
--      a = ((ISidedInventory) iii).getAccessibleSlotsFromSide(fd.ordinal());
--    else {
-+    if (iii instanceof ISidedInventory) {
-+      a = new int[((ISidedInventory) iii).getSizeInventorySide(fd)];
-+      final int from = ((ISidedInventory) iii).getStartInventorySide(fd);
-+      for (int i = 0; i < a.length; i++)
-+        a[i] = from + i;
-+    } else {
-       a = new int[iii.getSizeInventory()];
-       for (int i = 0; i < a.length; i++)
-         a[i] = i;
-@@ -47,11 +50,6 @@
-     int buf, rem = is1.stackSize;
-     final List<Integer> e = new ArrayList<Integer>();
-     for (final int i : a) {
--      if (iii instanceof ISidedInventory) {
--        if (!((ISidedInventory) iii).canInsertItem(i, is1, fd.ordinal()))
--          continue;
--      } else if (!iii.isStackValidForSlot(i, is1))
--        continue;
-       final ItemStack is2 = iii.getStackInSlot(i);
-       if (is2 == null) {
-         e.add(new Integer(i));
---- a/com/yogpc/mc_lib/ProxyClient.java
-+++ b/com/yogpc/mc_lib/ProxyClient.java
-@@ -64,16 +64,16 @@
-     if (currentScreen == null || currentScreen.allowUserInput)
-       for (final Key k : Key.values())
-         if (k.binding instanceof KeyBinding) {
--          if (GameSettings.isKeyDown((KeyBinding) k.binding))
-+          if (((KeyBinding) k.binding).pressed)
-             this.key |= 1 << k.ordinal();
-         } else
-           switch (k) {
-             case forward:
--              if (GameSettings.isKeyDown(Minecraft.getMinecraft().gameSettings.keyBindForward))
-+              if (Minecraft.getMinecraft().gameSettings.keyBindForward.pressed)
-                 this.key |= 1 << k.ordinal();
-               break;
-             case jump:
--              if (GameSettings.isKeyDown(Minecraft.getMinecraft().gameSettings.keyBindJump))
-+              if (Minecraft.getMinecraft().gameSettings.keyBindJump.pressed)
-                 this.key |= 1 << k.ordinal();
-               break;
-             default:
---- a/com/yogpc/mc_lib/TileWorkbench.java
-+++ b/com/yogpc/mc_lib/TileWorkbench.java
-@@ -169,21 +169,11 @@
-   }
- 
-   @Override
--  public boolean isStackValidForSlot(final int p_94041_1_, final ItemStack p_94041_2_) {
--    return true;
--  }
--
--  @Override
-   public String getInvName() {
-     return "tile.WorkbenchPlus.name";
-   }
- 
-   @Override
--  public boolean isInvNameLocalized() {
--    return false;
--  }
--
--  @Override
-   public int getInventoryStackLimit() {
-     return Integer.MAX_VALUE;
-   }
---- a/com/yogpc/nei/WBPRecipeHandler.java
-+++ b/com/yogpc/nei/WBPRecipeHandler.java
-@@ -75,7 +75,7 @@
-   @Override
-   public void drawBackground(final GuiContainerManager gui, final int recipe) {
-     GL11.glColor4f(1, 1, 1, 1);
--    gui.bindTexture(getGuiTexture());
-+    gui.bindTextureByName(getGuiTexture());
-     gui.drawTexturedModalRect(0, 0, 5, 11, 166, 121);
-   }
- 
---- a/com/yogpc/qp/BlockBreaker.java
-+++ b/com/yogpc/qp/BlockBreaker.java
-@@ -50,6 +50,10 @@
-     setHardness(3.5F);
-     setStepSound(soundStoneFootstep);
-     setBlockName("BreakerPlus");
-+    this.blockIndexInTexture = 96;
-+    this.furnaceTopIcon = 97;
-+    this.horizontal = 100;
-+    this.vectrial = 101;
-   }
- 
-   @Override
-@@ -75,11 +79,8 @@
- 
-   @Override
-   @SideOnly(Side.CLIENT)
--  public void registerIcons(final IconRegister par1IconRegister) {
--    this.blockIndexInTexture = par1IconRegister.registerIcon("yogpstop_qp:plusstone_side");
--    this.furnaceTopIcon = par1IconRegister.registerIcon("yogpstop_qp:plusstone_top");
--    this.horizontal = par1IconRegister.registerIcon("yogpstop_qp:breaker_front_horizontal");
--    this.vectrial = par1IconRegister.registerIcon("yogpstop_qp:breaker_front_vertical");
-+  public String getTextureFile() {
-+    return "/mods/yogpstop_qp/textures/textures.png";
-   }
- 
-   @Override
-@@ -109,7 +110,7 @@
-     final Block b = Block.blocksList[w.getBlockId(tx, ty, tz)];
-     if (b == null || b.isAirBlock(w, x, y, z))
-       return;
--    final EntityPlayer player = CommonProxy.getPlayer(w);
-+    final EntityPlayer player = CommonProxy.getPlayer(w, x, y, z);
-     b.onBlockHarvested(w, tx, ty, tz, meta, player);
-     if (b.removeBlockByPlayer(w, player, tx, ty, tz))
-       b.onBlockDestroyedByPlayer(w, tx, ty, tz, meta);
-@@ -140,10 +141,10 @@
- 
-   @Override
-   public void onBlockPlacedBy(final World world, final int x, final int y, final int z, final EntityLiving ent) {
--    EnchantmentHelper.init((IEnchantableTile) world.getBlockTileEntity(x, y, z),
--        is.getEnchantmentTagList());
-+    EnchantmentHelper.init((IEnchantableTile) world.getBlockTileEntity(x, y, z), ent.getHeldItem()
-+        .getEnchantmentTagList());
-     world.setBlockMetadataWithNotify(x, y, z,
--        BlockPistonBase.determineOrientation(world, x, y, z, ent), 2);
-+        BlockPistonBase.determineOrientation(world, x, y, z, (EntityPlayer) ent));
-   }
- 
-   static void setDispenserDefaultDirection(final World w, final int x, final int y, final int z) {
---- a/com/yogpc/qp/BlockFrame.java
-+++ b/com/yogpc/qp/BlockFrame.java
-@@ -23,12 +23,13 @@
-     setHardness(0.5F);
-     setTickRandomly(true);
-     setBlockName("qpFrame");
-+    this.blockIndexInTexture = 35;
-   }
- 
-   @Override
-   @SideOnly(Side.CLIENT)
--  public void registerIcons(final IconRegister ir) {
--    this.blockIndexInTexture = ir.registerIcon("yogpstop_qp:blockFrame");
-+  public String getTextureFile() {
-+    return "/mods/yogpstop_qp/textures/textures.png";
-   }
- 
-   @Override
---- a/com/yogpc/qp/BlockLaser.java
-+++ b/com/yogpc/qp/BlockLaser.java
-@@ -29,13 +29,16 @@
- public class BlockLaser extends BlockContainer {
- 
-   @SideOnly(Side.CLIENT)
--  private int textureTop, textureBottom;
-+  private final int textureTop, textureBottom;
- 
-   public BlockLaser(final int id) {
-     super(id, Material.iron);
-     setHardness(10F);
-     setCreativeTab(QuarryPlus.ct);
-     setBlockName("LaserPlus");
-+    this.blockIndexInTexture = 112;
-+    this.textureBottom = 113;
-+    this.textureTop = 114;
-   }
- 
-   @Override
-@@ -80,16 +83,14 @@
- 
-   @Override
-   @SideOnly(Side.CLIENT)
--  public void registerIcons(final IconRegister par1IconRegister) {
--    this.textureTop = par1IconRegister.registerIcon("yogpstop_qp:laser_top");
--    this.textureBottom = par1IconRegister.registerIcon("yogpstop_qp:laser_bottom");
--    this.blockIndexInTexture = par1IconRegister.registerIcon("yogpstop_qp:laser_side");
-+  public String getTextureFile() {
-+    return "/mods/yogpstop_qp/textures/textures.png";
-   }
- 
-   @Override
-   public void onBlockPlacedBy(final World world, final int x, final int y, final int z, final EntityLiving ent) {
-     EnchantmentHelper.init((IEnchantableTile) world.getBlockTileEntity(x, y, z),
--        is.getEnchantmentTagList());
-+        ent.getHeldItem().getEnchantmentTagList());
-   }
- 
-   private final ArrayList<ItemStack> drop = new ArrayList<ItemStack>();
---- a/com/yogpc/qp/BlockMarker.java
-+++ b/com/yogpc/qp/BlockMarker.java
-@@ -32,6 +32,7 @@
-     setLightValue(0.5F);
-     setCreativeTab(QuarryPlus.ct);
-     setBlockName("MarkerPlus");
-+    this.blockIndexInTexture = 16;
-   }
- 
-   @Override
-@@ -153,7 +154,7 @@
- 
-   @Override
-   @SideOnly(Side.CLIENT)
--  public void registerIcons(final IconRegister par1IconRegister) {
--    this.blockIndexInTexture = par1IconRegister.registerIcon("yogpstop_qp:marker");
-+  public String getTextureFile() {
-+    return "/mods/yogpstop_qp/textures/textures.png";
-   }
- }
---- a/com/yogpc/qp/BlockMiningWell.java
-+++ b/com/yogpc/qp/BlockMiningWell.java
-@@ -40,6 +40,11 @@
-     setCreativeTab(QuarryPlus.ct);
-     setStepSound(soundStoneFootstep);
-     setBlockName("MiningWellPlus");
-+    this.blockIndexInTexture = 48;
-+    this.textureFront = 49;
-+    this.textureBack = 50;
-+    this.textureTop = 51;
-+    this.texW = 52;
-   }
- 
-   @Override
-@@ -49,12 +54,8 @@
- 
-   @Override
-   @SideOnly(Side.CLIENT)
--  public void registerIcons(final IconRegister par1IconRegister) {
--    this.textureFront = par1IconRegister.registerIcon("yogpstop_qp:miningwell_front");
--    this.blockIndexInTexture = par1IconRegister.registerIcon("yogpstop_qp:miningwell");
--    this.textureBack = par1IconRegister.registerIcon("yogpstop_qp:miningwell_back");
--    this.textureTop = par1IconRegister.registerIcon("yogpstop_qp:miningwell_top");
--    this.texW = par1IconRegister.registerIcon("yogpstop_qp:miningwell_top_w");
-+  public String getTextureFile() {
-+    return "/mods/yogpstop_qp/textures/textures.png";
-   }
- 
-   @Override
-@@ -87,8 +88,8 @@
-   public void onBlockPlacedBy(final World w, final int x, final int y, final int z, final EntityLiving el) {
-     super.onBlockPlacedBy(w, x, y, z, el);
-     final ForgeDirection orientation = get2dOrientation(el.posX, el.posZ, x, z);
--    w.setBlockMetadataWithNotify(x, y, z, orientation.getOpposite().ordinal(), 1);
--    EnchantmentHelper.init((IEnchantableTile) w.getBlockTileEntity(x, y, z), is.getEnchantmentTagList());
-+    w.setBlockMetadataWithNotify(x, y, z, orientation.getOpposite().ordinal());
-+    EnchantmentHelper.init((IEnchantableTile) w.getBlockTileEntity(x, y, z), el.getHeldItem().getEnchantmentTagList());
-   }
- 
-   private static ForgeDirection get2dOrientation(final double x1, final double z1, final double x2,
---- a/com/yogpc/qp/BlockMover.java
-+++ b/com/yogpc/qp/BlockMover.java
-@@ -28,6 +28,9 @@
-     setHardness(1.2F);
-     setCreativeTab(QuarryPlus.ct);
-     setBlockName("EnchantMover");
-+    this.blockIndexInTexture = 32;
-+    this.textureBottom = 33;
-+    this.textureTop = 34;
-   }
- 
-   @Override
-@@ -46,10 +49,8 @@
- 
-   @SideOnly(Side.CLIENT)
-   @Override
--  public void registerIcons(final IconRegister par1IconRegister) {
--    this.blockIndexInTexture = par1IconRegister.registerIcon("yogpstop_qp:mover");
--    this.textureTop = par1IconRegister.registerIcon("yogpstop_qp:mover_top");
--    this.textureBottom = par1IconRegister.registerIcon("yogpstop_qp:mover_bottom");
-+  public String getTextureFile() {
-+    return "/mods/yogpstop_qp/textures/textures.png";
-   }
- 
-   @Override
---- a/com/yogpc/qp/BlockPlacer.java
-+++ b/com/yogpc/qp/BlockPlacer.java
-@@ -49,6 +49,10 @@
-     setHardness(3.5F);
-     setStepSound(soundStoneFootstep);
-     setBlockName("PlacerPlus");
-+    this.blockIndexInTexture = 96;
-+    this.furnaceTopIcon = 97;
-+    this.horizontal = 98;
-+    this.vectrial = 99;
-   }
- 
-   @Override
-@@ -74,11 +78,8 @@
- 
-   @Override
-   @SideOnly(Side.CLIENT)
--  public void registerIcons(final IconRegister par1IconRegister) {
--    this.blockIndexInTexture = par1IconRegister.registerIcon("yogpstop_qp:plusstone_side");
--    this.furnaceTopIcon = par1IconRegister.registerIcon("yogpstop_qp:plusstone_top");
--    this.horizontal = par1IconRegister.registerIcon("yogpstop_qp:placer_front_horizontal");
--    this.vectrial = par1IconRegister.registerIcon("yogpstop_qp:placer_front_vertical");
-+  public String getTextureFile() {
-+    return "/mods/yogpstop_qp/textures/textures.png";
-   }
- 
-   @Override
-@@ -130,7 +131,7 @@
-       ty = y + fd2.offsetY;
-       tz = z + fd2.offsetZ;
- 
--      final EntityPlayer player = CommonProxy.getPlayer(world);
-+      final EntityPlayer player = CommonProxy.getPlayer(world, x, y, z);
-       ItemStack is = null;
-       int i = 0;
-       for (; i < tile.getSizeInventory(); i++) {
-@@ -191,7 +192,7 @@
-   @Override
-   public void onBlockPlacedBy(final World par1World, final int par2, final int par3, final int par4, final EntityLiving par5EntityLiving) {
-     final int l =
--        BlockPistonBase.determineOrientation(par1World, par2, par3, par4, par5EntityLiving);
-+        BlockPistonBase.determineOrientation(par1World, par2, par3, par4, (EntityPlayer) par5EntityLiving);
-     par1World.setBlockMetadataWithNotify(par2, par3, par4, l);
-   }
- 
-@@ -232,7 +233,6 @@
-         }
-       }
- 
--      world.func_96440_m(x, y, z, b);
-     }
- 
-     super.breakBlock(world, x, y, z, b, meta);
---- a/com/yogpc/qp/BlockPlainPipe.java
-+++ b/com/yogpc/qp/BlockPlainPipe.java
-@@ -17,12 +17,13 @@
-     this.maxY = 1.0;
-     this.maxZ = 0.75;
-     setBlockName("qpPlainPipe");
-+    this.blockIndexInTexture = 36;
-   }
- 
-   @Override
-   @SideOnly(Side.CLIENT)
--  public void registerIcons(final IconRegister ir) {
--    this.blockIndexInTexture = ir.registerIcon("yogpstop_qp:blockPlainPipe");
-+  public String getTextureFile() {
-+    return "/mods/yogpstop_qp/textures/textures.png";
-   }
- 
-   @Override
---- a/com/yogpc/qp/BlockPump.java
-+++ b/com/yogpc/qp/BlockPump.java
-@@ -31,13 +31,18 @@
- 
- public class BlockPump extends BlockContainer {
- 
--  private int textureTop, textureBottom, textureSide, texW, texC;
-+  private final int textureTop, textureBottom, textureSide, texW, texC;
- 
-   public BlockPump(final int id) {
-     super(id, Material.iron);
-     setHardness(5F);
-     setCreativeTab(QuarryPlus.ct);
-     setBlockName("PumpPlus");
-+    this.textureSide = 64;
-+    this.textureBottom = 65;
-+    this.textureTop = 66;
-+    this.texC = 67;
-+    this.texW = 68;
-   }
- 
-   @Override
-@@ -73,12 +78,8 @@
- 
-   @Override
-   @SideOnly(Side.CLIENT)
--  public void registerIcons(final IconRegister par1IconRegister) {
--    this.textureTop = par1IconRegister.registerIcon("yogpstop_qp:pump_top");
--    this.textureBottom = par1IconRegister.registerIcon("yogpstop_qp:pump_bottom");
--    this.textureSide = par1IconRegister.registerIcon("yogpstop_qp:pump_side");
--    this.texW = par1IconRegister.registerIcon("yogpstop_qp:pump_top_w");
--    this.texC = par1IconRegister.registerIcon("yogpstop_qp:pump_top_c");
-+  public String getTextureFile() {
-+    return "/mods/yogpstop_qp/textures/textures.png";
-   }
- 
-   private final ArrayList<ItemStack> drop = new ArrayList<ItemStack>();
-@@ -109,7 +110,7 @@
-   @Override
-   public void onBlockPlacedBy(final World w, final int x, final int y, final int z, final EntityLiving el) {
-     super.onBlockPlacedBy(w, x, y, z, el);
--    EnchantmentHelper.init((IEnchantableTile) w.getBlockTileEntity(x, y, z), is.getEnchantmentTagList());
-+    EnchantmentHelper.init((IEnchantableTile) w.getBlockTileEntity(x, y, z), el.getHeldItem().getEnchantmentTagList());
-   }
- 
-   @Override
---- a/com/yogpc/qp/BlockQuarry.java
-+++ b/com/yogpc/qp/BlockQuarry.java
-@@ -41,6 +41,12 @@
-     setStepSound(soundStoneFootstep);
-     setCreativeTab(QuarryPlus.ct);
-     setBlockName("QuarryPlus");
-+    this.blockIndexInTexture = 0;
-+    this.textureFront = 1;
-+    this.textureTop = 2;
-+    this.texNNB = 3;
-+    this.texMF = 4;
-+    this.texBB = 5;
-   }
- 
-   private final ArrayList<ItemStack> drop = new ArrayList<ItemStack>();
-@@ -105,13 +111,8 @@
- 
-   @Override
-   @SideOnly(Side.CLIENT)
--  public void registerIcons(final IconRegister par1IconRegister) {
--    this.blockIndexInTexture = par1IconRegister.registerIcon("yogpstop_qp:quarry");
--    this.textureTop = par1IconRegister.registerIcon("yogpstop_qp:quarry_top");
--    this.textureFront = par1IconRegister.registerIcon("yogpstop_qp:quarry_front");
--    this.texBB = par1IconRegister.registerIcon("yogpstop_qp:quarry_top_bb");
--    this.texNNB = par1IconRegister.registerIcon("yogpstop_qp:quarry_top_nnb");
--    this.texMF = par1IconRegister.registerIcon("yogpstop_qp:quarry_top_mf");
-+  public String getTextureFile() {
-+    return "/mods/yogpstop_qp/textures/textures.png";
-   }
- 
-   @Override
-@@ -123,9 +124,9 @@
-   public void onBlockPlacedBy(final World w, final int x, final int y, final int z, final EntityLiving el) {
-     super.onBlockPlacedBy(w, x, y, z, el);
-     final ForgeDirection orientation = get2dOrientation(el.posX, el.posZ, x, z);
--    w.setBlockMetadataWithNotify(x, y, z, orientation.getOpposite().ordinal(), 1);
-+    w.setBlockMetadataWithNotify(x, y, z, orientation.getOpposite().ordinal());
-     ((TileQuarry) w.getBlockTileEntity(x, y, z)).requestTicket();
--    EnchantmentHelper.init((IEnchantableTile) w.getBlockTileEntity(x, y, z), is.getEnchantmentTagList());
-+    EnchantmentHelper.init((IEnchantableTile) w.getBlockTileEntity(x, y, z), el.getHeldItem().getEnchantmentTagList());
-   }
- 
-   private static ForgeDirection get2dOrientation(final double x1, final double z1, final double x2,
---- a/com/yogpc/qp/BlockRefinery.java
-+++ b/com/yogpc/qp/BlockRefinery.java
-@@ -40,12 +40,13 @@
-     setHardness(5F);
-     setCreativeTab(QuarryPlus.ct);
-     setBlockName("RefineryPlus");
-+    this.blockIndexInTexture = 17;
-   }
- 
-   @Override
-   @SideOnly(Side.CLIENT)
--  public void registerIcons(final IconRegister ir) {
--    this.blockIndexInTexture = ir.registerIcon("yogpstop_qp:refineryDummy");
-+  public String getTextureFile() {
-+    return "/mods/yogpstop_qp/textures/textures.png";
-   }
- 
-   @Override
-@@ -81,11 +82,11 @@
-   @Override
-   public void onBlockPlacedBy(final World w, final int x, final int y, final int z, final EntityLiving el) {
-     super.onBlockPlacedBy(w, x, y, z, el);
--    EnchantmentHelper.init((IEnchantableTile) w.getBlockTileEntity(x, y, z), is.getEnchantmentTagList());
-+    EnchantmentHelper.init((IEnchantableTile) w.getBlockTileEntity(x, y, z), el.getHeldItem().getEnchantmentTagList());
-     final ForgeDirection[] da =
-         {ForgeDirection.NORTH, ForgeDirection.EAST, ForgeDirection.SOUTH, ForgeDirection.WEST};
-     final int di = MathHelper.floor_double((el.rotationYaw + 45.0) / 90.0) & 3;
--    w.setBlockMetadataWithNotify(x, y, z, da[di].ordinal(), 1);
-+    w.setBlockMetadataWithNotify(x, y, z, da[di].ordinal());
-   }
- 
-   private static void consumeItem(final EntityPlayer ep, final ItemStack stack) {
-@@ -130,17 +131,17 @@
-       final int meta = world.getBlockMetadata(x, y, z);
-       switch (ForgeDirection.values()[meta]) {
-         case WEST:
--          world.setBlockMetadataWithNotify(x, y, z, ForgeDirection.SOUTH.ordinal(), 3);
-+          world.setBlockMetadataWithNotify(x, y, z, ForgeDirection.SOUTH.ordinal());
-           break;
-         case EAST:
--          world.setBlockMetadataWithNotify(x, y, z, ForgeDirection.NORTH.ordinal(), 3);
-+          world.setBlockMetadataWithNotify(x, y, z, ForgeDirection.NORTH.ordinal());
-           break;
-         case NORTH:
--          world.setBlockMetadataWithNotify(x, y, z, ForgeDirection.WEST.ordinal(), 3);
-+          world.setBlockMetadataWithNotify(x, y, z, ForgeDirection.WEST.ordinal());
-           break;
-         case SOUTH:
-         default:
--          world.setBlockMetadataWithNotify(x, y, z, ForgeDirection.EAST.ordinal(), 3);
-+          world.setBlockMetadataWithNotify(x, y, z, ForgeDirection.EAST.ordinal());
-           break;
-       }
-       return true;
---- a/com/yogpc/qp/CommonProxy.java
-+++ b/com/yogpc/qp/CommonProxy.java
-@@ -17,5 +17,38 @@
- import net.minecraft.entity.player.EntityPlayer;
- 
- public class CommonProxy {
-+  private static EntityPlayer player;
-+
-   public void registerTextures() {}
-+
-+  private static EntityPlayer createNewPlayer(final World w) {
-+    final EntityPlayer p = new EntityPlayer(w) {
-+      @Override
-+      public void sendChatToPlayer(final String var1) {}
-+
-+      @Override
-+      public boolean canCommandSenderUseCommand(final int var1, final String var2) {
-+        return false;
-+      }
-+
-+      @Override
-+      public ChunkCoordinates getPlayerCoordinates() {
-+        return null;
-+      }
-+
-+    };
-+    p.username = "[QuarryPlus]";
-+    return p;
-+  }
-+
-+  public static EntityPlayer getPlayer(final World w, final int x, final int y, final int z) {
-+    if (player == null)
-+      player = createNewPlayer(w);
-+    else
-+      player.worldObj = w;
-+    player.posX = x;
-+    player.posY = y;
-+    player.posZ = z;
-+    return player;
-+  }
- }
---- a/com/yogpc/qp/EntityLaser.java
-+++ b/com/yogpc/qp/EntityLaser.java
+--- a/com/yogpc/qp/entity/EntityLaser.java
++++ b/com/yogpc/qp/entity/EntityLaser.java
 @@ -5,10 +5,10 @@
  import net.minecraft.world.World;
  
@@ -826,239 +610,8 @@
  
    public double iSize, jSize, kSize;
    public final int texture;
---- a/com/yogpc/qp/ItemTool.java
-+++ b/com/yogpc/qp/ItemTool.java
-@@ -37,6 +37,9 @@
-     setHasSubtypes(true);
-     setMaxDamage(0);
-     setCreativeTab(QuarryPlus.ct);
-+    this.iconIndex = 80;
-+    this.ile = 81;
-+    this.ils = 82;
-   }
- 
-   @Override
-@@ -147,10 +150,8 @@
- 
-   @Override
-   @SideOnly(Side.CLIENT)
--  public void registerIcons(final IconRegister ir) {
--    this.iconIndex = ir.registerIcon("yogpstop_qp:statusChecker");
--    this.ile = ir.registerIcon("yogpstop_qp:listEditor");
--    this.ils = ir.registerIcon("yogpstop_qp:liquidSelector");
-+  public String getTextureFile() {
-+    return "/mods/yogpstop_qp/textures/textures.png";
-   }
- 
-   @Override
---- a/com/yogpc/qp/PowerManager.java
-+++ b/com/yogpc/qp/PowerManager.java
-@@ -34,7 +34,7 @@
-     if (c.containsKey(name)) {
-       Property prop = c.get(name);
-       if (prop.getType() == null) {
--        prop = new Property(prop.getName(), prop.getString(), Property.Type.DOUBLE);
-+        prop = new Property(prop.getName(), prop.value, Property.Type.DOUBLE);
-         c.put(name, prop);
-       }
-       return prop.getDouble(def);
---- a/com/yogpc/qp/QuarryPlus.java
-+++ b/com/yogpc/qp/QuarryPlus.java
-@@ -76,23 +76,6 @@
-         l.destructor();
-   }
- 
--  @ForgeSubscribe
--  @SideOnly(Side.CLIENT)
--  public void loadTextures(final TextureStitchEvent.Pre evt) {
--    if (evt.map.textureType == 0) {
--      final TextureMap map = evt.map;
--      RenderEntityLaser.icons = new int[4];
--      RenderEntityLaser.icons[EntityLaser.DRILL] =
--          map.registerIcon("yogpstop_qp:blockDrillTexture");
--      RenderEntityLaser.icons[EntityLaser.DRILL_HEAD] =
--          map.registerIcon("yogpstop_qp:blockDrillHeadTexture");
--      RenderEntityLaser.icons[EntityLaser.RED_LASER] =
--          map.registerIcon("yogpstop_qp:blockRedLaser");
--      RenderEntityLaser.icons[EntityLaser.BLUE_LASER] =
--          map.registerIcon("yogpstop_qp:blockBlueLaser");
--    }
--  }
--
-   @Mod.PreInit
-   public void preInit(final FMLPreInitializationEvent event) {
-     final Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
-@@ -209,6 +192,8 @@
-     proxy.registerTextures();
-     PacketHandler.registerStaticHandler(TileMarker.class);
-   }
-+  
-+  public static final int WILDCARD_VALUE = 32767;
- 
-   public static class BlockData {
-     public final String name;
---- a/com/yogpc/qp/TileBasic.java
-+++ b/com/yogpc/qp/TileBasic.java
-@@ -272,11 +272,6 @@
-   }
- 
-   @Override
--  public boolean isInvNameLocalized() {
--    return false;
--  }
--
--  @Override
-   public int getInventoryStackLimit() {
-     return 0;
-   }
-@@ -294,9 +289,4 @@
- 
-   @Override
-   public void closeChest() {}
--
--  @Override
--  public boolean isStackValidForSlot(final int p_94041_1_, final ItemStack p_94041_2_) {
--    return false;
--  }
- }
---- a/com/yogpc/qp/TileBreaker.java
-+++ b/com/yogpc/qp/TileBreaker.java
-@@ -97,11 +97,6 @@
-   }
- 
-   @Override
--  public boolean isInvNameLocalized() {
--    return false;
--  }
--
--  @Override
-   public int getInventoryStackLimit() {
-     return 0;
-   }
-@@ -119,9 +114,4 @@
- 
-   @Override
-   public void closeChest() {}
--
--  @Override
--  public boolean isStackValidForSlot(final int p_94041_1_, final ItemStack p_94041_2_) {
--    return false;
--  }
- }
---- a/com/yogpc/qp/TilePlacer.java
-+++ b/com/yogpc/qp/TilePlacer.java
-@@ -76,11 +76,6 @@
-   }
- 
-   @Override
--  public boolean isInvNameLocalized() {
--    return false;
--  }
--
--  @Override
-   public int getInventoryStackLimit() {
-     return 64;
-   }
-@@ -98,11 +93,6 @@
-   public void closeChest() {}
- 
-   @Override
--  public boolean isStackValidForSlot(final int i, final ItemStack itemstack) {
--    return true;
--  }
--
--  @Override
-   public void readFromNBT(final NBTTagCompound par1NBTTagCompound) {
-     super.readFromNBT(par1NBTTagCompound);
-     final NBTTagList nbttaglist = par1NBTTagCompound.getTagList("Items");
---- a/com/yogpc/qp/TilePump.java
-+++ b/com/yogpc/qp/TilePump.java
-@@ -139,7 +139,7 @@
-               this.zCoord + fd.offsetZ);
-       if (te instanceof ITankContainer)
-         for (final String s : this.mapping[fd.ordinal()]) {
--          pZ = this.liquids.indexOf(LiquidDictionary.getCanonicalLiquid(s));
-+          pZ = indexOf(LiquidDictionary.getLiquid(s, 0));
-           if (pZ == -1)
-             continue;
-           fs = this.liquids.get(pZ);
-@@ -523,7 +523,7 @@
-       for (int i = 0; i < this.liquids.size(); i++) {
-         final LiquidStack s = this.liquids.get(i);
-         ret[i + 1] =
--            StatCollector.translateToLocalFormatted("yog.pump.liquid", LiquidDictionary.findLiquidName(s)
-+            StatCollector.translateToLocalFormatted("yog.pump.liquid", findLiquidName(s)
-                 , Integer.toString(s.amount));
-       }
-     } else
-@@ -544,7 +544,7 @@
-   public LiquidStack drain(final ForgeDirection fd, final LiquidStack resource, final boolean doDrain) {
-     if (resource == null)
-       return null;
--    final int index = this.liquids.indexOf(resource);
-+    final int index = indexOf(resource);
-     if (index == -1)
-       return null;
-     final LiquidStack fs = this.liquids.get(index);
-@@ -582,10 +582,10 @@
-       int index;
-       LiquidStack fs;
-       for (final String s : this.mapping[fd.ordinal()]) {
--        fs = LiquidDictionary.getCanonicalLiquid(s);
-+        fs = LiquidDictionary.getLiquid(s, 0);
-         if (fs == null)
-           continue;
--        index = this.liquids.indexOf(fs);
-+        index = indexOf(fs);
-         if (index != -1)
-           ret.add(new LiquidTank(this.liquids.get(index), Integer.MAX_VALUE));
-         else
-@@ -620,7 +620,7 @@
-       fs = LiquidDictionary.getLiquid(s, maxDrain);
-       if (fs == null)
-         continue;
--      index = this.liquids.indexOf(fs);
-+      index = indexOf(fs);
-       if (index == -1)
-         continue;
-       return drain(fd, this.liquids.get(index), doDrain);
-@@ -663,7 +663,7 @@
-       else if ((b == Block.lavaStill || b == Block.lavaMoving) && meta == 0)
-         fs = new LiquidStack(Block.lavaStill, LiquidContainerRegistry.BUCKET_VOLUME);
-       if (fs != null) {
--        final int index = this.liquids.indexOf(fs);
-+        final int index = indexOf(fs);
-         if (index != -1)
-           this.liquids.get(index).amount += fs.amount;
-         else
-@@ -701,4 +701,16 @@
-     this.unbreaking = punbreaking;
-     this.silktouch = psilktouch;
-   }
-+
-+  private static String findLiquidName(final LiquidStack fs) {
-+    for (final Map.Entry<String, LiquidStack> entry : LiquidDictionary.getLiquids().entrySet())
-+      if (fs.isLiquidEqual(entry.getValue())) return entry.getKey();
-+    return null;
-+  }
-+
-+  private int indexOf(final LiquidStack key) {
-+    for (int i = 0; i < this.liquids.size(); i++)
-+      if (this.liquids.get(i).isLiquidEqual(key)) return i;
-+    return -1;
-+  }
- }
---- a/com/yogpc/qp/client/ClientProxy.java
-+++ b/com/yogpc/qp/client/ClientProxy.java
-@@ -37,5 +37,6 @@
-     RenderingRegistry.registerBlockHandler(RenderLaserBlock.INSTANCE);
-     RenderingRegistry.registerBlockHandler(RenderMarker.INSTANCE);
-     RenderingRegistry.registerBlockHandler(RenderFrame.INSTANCE);
-+    MinecraftForgeClient.preloadTexture("/mods/yogpstop_qp/textures/textures.png");
-   }
- }
---- a/com/yogpc/qp/client/GuiError.java
-+++ b/com/yogpc/qp/client/GuiError.java
+--- a/com/yogpc/qp/gui/GuiError.java
++++ b/com/yogpc/qp/gui/GuiError.java
 @@ -20,28 +20,30 @@
  import cpw.mods.fml.relauncher.SideOnly;
  
@@ -1101,9 +654,9 @@
 +    super.drawScreen(par1, par2, par3);
    }
  }
---- a/com/yogpc/qp/client/GuiMover.java
-+++ b/com/yogpc/qp/client/GuiMover.java
-@@ -63,7 +63,7 @@
+--- a/com/yogpc/qp/gui/GuiMover.java
++++ b/com/yogpc/qp/gui/GuiMover.java
+@@ -59,7 +59,7 @@
    @Override
    protected void drawGuiContainerBackgroundLayer(final float f, final int i, final int j) {
      GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
@@ -1112,8 +665,8 @@
      drawTexturedModalRect(this.width - this.xSize >> 1, this.height - this.ySize >> 1, 0, 0,
          this.xSize, this.ySize);
    }
---- a/com/yogpc/qp/client/GuiPlacer.java
-+++ b/com/yogpc/qp/client/GuiPlacer.java
+--- a/com/yogpc/qp/gui/GuiPlacer.java
++++ b/com/yogpc/qp/gui/GuiPlacer.java
 @@ -39,7 +39,7 @@
    @Override
    protected void drawGuiContainerForegroundLayer(final int par1, final int par2) {
@@ -1132,8 +685,292 @@
      final int k = (this.width - this.xSize) / 2;
      final int l = (this.height - this.ySize) / 2;
      drawTexturedModalRect(k, l, 0, 0, this.xSize, this.ySize);
---- a/com/yogpc/qp/client/RenderEntityLaser.java
-+++ b/com/yogpc/qp/client/RenderEntityLaser.java
+--- a/com/yogpc/qp/gui/GuiWorkbench.java
++++ b/com/yogpc/qp/gui/GuiWorkbench.java
+@@ -64,7 +64,7 @@
+ 
+     @Override
+     public void renderItemOverlayIntoGUI(final FontRenderer a, final RenderEngine b, final ItemStack c, final int d, final int e) {
+-      super.renderItemOverlayIntoGUI(myfont.setParent(a), b, c, d, e, f);
++      super.renderItemOverlayIntoGUI(myfont.setParent(a), b, c, d, e);
+     }
+   }
+ 
+@@ -83,7 +83,7 @@
+   @Override
+   protected void drawGuiContainerForegroundLayer(final int p_146979_1_, final int p_146979_2_) {
+     this.fontRenderer.drawString(
+-        this.tile.isInvNameLocalized() ? this.tile.getInvName() : StatCollector
++        StatCollector
+             .translateToLocal(this.tile.getInvName()), 8, 6, 0x404040);
+     this.fontRenderer.drawString(StatCollector.translateToLocal("container.inventory"), 8,
+         this.ySize - 96 + 2, 0x404040);
+@@ -93,7 +93,7 @@
+   protected void drawGuiContainerBackgroundLayer(final float p_146976_1_, final int p_146976_2_,
+       final int p_146976_3_) {
+     GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+-    this.mc.renderEngine.bindTexture(gui);
++    this.mc.renderEngine.bindTexture(this.mc.renderEngine.getTexture(gui));
+     final int xf = this.width - this.xSize >> 1;
+     final int yf = this.height - this.ySize >> 1;
+     drawTexturedModalRect(xf, yf, 0, 0, this.xSize, this.ySize);
+--- a/com/yogpc/qp/InvUtils.java
++++ b/com/yogpc/qp/InvUtils.java
+@@ -37,9 +37,12 @@
+         iii = ii;
+     } else
+       iii = ii;
+-    if (iii instanceof ISidedInventory)
+-      a = ((ISidedInventory) iii).getAccessibleSlotsFromSide(fd.ordinal());
+-    else {
++    if (iii instanceof ISidedInventory) {
++      a = new int[((ISidedInventory) iii).getSizeInventorySide(fd)];
++      final int from = ((ISidedInventory) iii).getStartInventorySide(fd);
++      for (int i = 0; i < a.length; i++)
++        a[i] = from + i;
++    } else {
+       a = new int[iii.getSizeInventory()];
+       for (int i = 0; i < a.length; i++)
+         a[i] = i;
+@@ -47,11 +50,6 @@
+     int buf, rem = is1.stackSize;
+     final List<Integer> e = new ArrayList<Integer>();
+     for (final int i : a) {
+-      if (iii instanceof ISidedInventory) {
+-        if (!((ISidedInventory) iii).canInsertItem(i, is1, fd.ordinal()))
+-          continue;
+-      } else if (!iii.isStackValidForSlot(i, is1))
+-        continue;
+       final ItemStack is2 = iii.getStackInSlot(i);
+       if (is2 == null) {
+         e.add(new Integer(i));
+--- a/com/yogpc/qp/item/ItemArmorElectric.java
++++ b/com/yogpc/qp/item/ItemArmorElectric.java
+@@ -29,21 +29,22 @@
+ import cpw.mods.fml.relauncher.Side;
+ import cpw.mods.fml.relauncher.SideOnly;
+ 
+-public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElectricItem {
++public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElectricItem, IArmorTextureProvider {
+   public ItemArmorElectric(final int id) {
+     super(id, EnumHelper.addArmorMaterial("ELECTRIC", 33, new int[] {3, 8, 6, 3}, 0), QuarryPlus.proxy
+         .addNewArmourRendererPrefix("electric"), 1);
+-    setBlockName("electric_armor");
++    setItemName("electric_armor");
+     setCreativeTab(CreativeTabs.tabCombat);
+     setMaxDamage(100);
+     setMaxStackSize(1);
+     setCreativeTab(QuarryPlusI.ct);
++    this.iconIndex = 83;
+   }
+ 
+   @Override
+   @SideOnly(Side.CLIENT)
+-  public void registerIcons(final IconRegister ir) {
+-    this.iconIndex = ir.registerIcon("yogpstop_qp:elecArmor");
++  public String getTextureFile() {
++    return "/mods/yogpstop_qp/textures/textures.png";
+   }
+ 
+   @Override
+@@ -121,7 +122,7 @@
+ 
+   @Override
+   public void onArmorTickUpdate(final World world, final EntityPlayer player, final ItemStack is) {
+-    if (ElectricItem != null)
++    if (Loader.isModLoaded("IC2"))
+       ElectricItemManager.charge(is, ElectricItem.discharge(is, Integer.MAX_VALUE,
+           Integer.MAX_VALUE, true, false), getMaxCharge());
+     if (player.inventory.armorInventory[2] != is)
+--- a/com/yogpc/qp/item/ItemMirror.java
++++ b/com/yogpc/qp/item/ItemMirror.java
+@@ -19,14 +19,15 @@
+ public class ItemMirror extends Item {
+   public ItemMirror(final int id) {
+     super(id);
+-    setBlockName("magicmirror");
++    setItemName("magicmirror");
+     setCreativeTab(QuarryPlusI.ct);
++    this.iconIndex = 84;
+   }
+ 
+   @Override
+   @SideOnly(Side.CLIENT)
+-  public void registerIcons(final IconRegister ir) {
+-    this.iconIndex = ir.registerIcon("yogpstop_qp:mm");
++  public String getTextureFile() {
++    return "/mods/yogpstop_qp/textures/textures.png";
+   }
+ 
+   @Override
+--- a/com/yogpc/qp/item/ItemTool.java
++++ b/com/yogpc/qp/item/ItemTool.java
+@@ -33,7 +33,7 @@
+ import cpw.mods.fml.relauncher.SideOnly;
+ 
+ public class ItemTool extends Item implements IEnchantableItem {
+-  int ile, ils;
++  final int ile, ils;
+ 
+   public ItemTool(final int id) {
+     super(id);
+@@ -41,6 +41,9 @@
+     setHasSubtypes(true);
+     setMaxDamage(0);
+     setCreativeTab(QuarryPlusI.ct);
++    this.iconIndex = 80;
++    this.ile = 81;
++    this.ils = 82;
+   }
+ 
+   @Override
+@@ -150,10 +153,8 @@
+ 
+   @Override
+   @SideOnly(Side.CLIENT)
+-  public void registerIcons(final IconRegister ir) {
+-    this.iconIndex = ir.registerIcon("yogpstop_qp:statusChecker");
+-    this.ile = ir.registerIcon("yogpstop_qp:listEditor");
+-    this.ils = ir.registerIcon("yogpstop_qp:liquidSelector");
++  public String getTextureFile() {
++    return "/mods/yogpstop_qp/textures/textures.png";
+   }
+ 
+   @Override
+--- a/com/yogpc/qp/nei/WBPRecipeHandler.java
++++ b/com/yogpc/qp/nei/WBPRecipeHandler.java
+@@ -78,7 +78,7 @@
+   @Override
+   public void drawBackground(final GuiContainerManager gui, final int recipe) {
+     GL11.glColor4f(1, 1, 1, 1);
+-    gui.bindTexture(getGuiTexture());
++    gui.bindTextureByName(getGuiTexture());
+     gui.drawTexturedModalRect(0, 0, 5, 11, 166, 121);
+   }
+ 
+--- a/com/yogpc/qp/PowerManager.java
++++ b/com/yogpc/qp/PowerManager.java
+@@ -36,7 +36,7 @@
+     if (c.containsKey(name)) {
+       Property prop = c.get(name);
+       if (prop.getType() == null) {
+-        prop = new Property(prop.getName(), prop.getString(), Property.Type.DOUBLE);
++        prop = new Property(prop.getName(), prop.value, Property.Type.DOUBLE);
+         c.put(name, prop);
+       }
+       return prop.getDouble(def);
+--- a/com/yogpc/qp/ProxyClient.java
++++ b/com/yogpc/qp/ProxyClient.java
+@@ -78,16 +78,16 @@
+     if (currentScreen == null || currentScreen.allowUserInput)
+       for (final Key k : Key.values())
+         if (k.binding instanceof KeyBinding) {
+-          if (GameSettings.isKeyDown((KeyBinding) k.binding))
++          if (((KeyBinding) k.binding).pressed)
+             this.key |= 1 << k.ordinal();
+         } else
+           switch (k) {
+             case forward:
+-              if (GameSettings.isKeyDown(Minecraft.getMinecraft().gameSettings.keyBindForward))
++              if (Minecraft.getMinecraft().gameSettings.keyBindForward.pressed)
+                 this.key |= 1 << k.ordinal();
+               break;
+             case jump:
+-              if (GameSettings.isKeyDown(Minecraft.getMinecraft().gameSettings.keyBindJump))
++              if (Minecraft.getMinecraft().gameSettings.keyBindJump.pressed)
+                 this.key |= 1 << k.ordinal();
+               break;
+             default:
+@@ -132,5 +132,6 @@
+     RenderingRegistry.registerBlockHandler(RenderLaserBlock.INSTANCE);
+     RenderingRegistry.registerBlockHandler(RenderMarker.INSTANCE);
+     RenderingRegistry.registerBlockHandler(RenderFrame.INSTANCE);
++    MinecraftForgeClient.preloadTexture("/mods/yogpstop_qp/textures/textures.png");
+   }
+ }
+--- a/com/yogpc/qp/ProxyCommon.java
++++ b/com/yogpc/qp/ProxyCommon.java
+@@ -10,6 +10,7 @@
+ import net.minecraft.entity.Entity;
+ 
+ public class ProxyCommon {
++  private static EntityPlayer player;
+   private final Map<EntityPlayer, Integer> keys = new WeakHashMap<EntityPlayer, Integer>();
+ 
+   public boolean getKey(final EntityPlayer p, final Key k) {
+@@ -60,4 +61,35 @@
+   }
+ 
+   public void registerTextures() {}
++  
++  private static EntityPlayer createNewPlayer(final World w) {
++    final EntityPlayer p = new EntityPlayer(w) {
++      @Override
++      public void sendChatToPlayer(final String var1) {}
++
++      @Override
++      public boolean canCommandSenderUseCommand(final int var1, final String var2) {
++        return false;
++      }
++
++      @Override
++      public ChunkCoordinates getPlayerCoordinates() {
++        return null;
++      }
++
++    };
++    p.username = "[QuarryPlus]";
++    return p;
++  }
++
++  public static EntityPlayer getPlayer(final World w, final int x, final int y, final int z) {
++    if (player == null)
++      player = createNewPlayer(w);
++    else
++      player.worldObj = w;
++    player.posX = x;
++    player.posY = y;
++    player.posZ = z;
++    return player;
++  }
+ }
+--- a/com/yogpc/qp/QuarryPlusI.java
++++ b/com/yogpc/qp/QuarryPlusI.java
+@@ -114,23 +114,6 @@
+         l.destructor();
+   }
+ 
+-  @ForgeSubscribe
+-  @SideOnly(Side.CLIENT)
+-  public void loadTextures(final TextureStitchEvent.Pre evt) {
+-    if (evt.map.textureType == 0) {
+-      final TextureMap map = evt.map;
+-      RenderEntityLaser.icons = new int[4];
+-      RenderEntityLaser.icons[EntityLaser.DRILL] =
+-          map.registerIcon("yogpstop_qp:blockDrillTexture");
+-      RenderEntityLaser.icons[EntityLaser.DRILL_HEAD] =
+-          map.registerIcon("yogpstop_qp:blockDrillHeadTexture");
+-      RenderEntityLaser.icons[EntityLaser.RED_LASER] =
+-          map.registerIcon("yogpstop_qp:blockRedLaser");
+-      RenderEntityLaser.icons[EntityLaser.BLUE_LASER] =
+-          map.registerIcon("yogpstop_qp:blockBlueLaser");
+-    }
+-  }
+-
+   private static final Pattern lang = Pattern.compile("mods/(.*)/lang/(.*)\\.lang");
+   private static final Pattern format = Pattern.compile("%(\\d+\\$)?[\\d\\.]*[df]");
+ 
+@@ -363,6 +346,8 @@
+     PacketHandler.registerStaticHandler(TileMarker.class);
+   }
+ 
++  public static final int WILDCARD_VALUE = 32767;
++
+   public static class BlockData {
+     public final String name;
+     public final int meta;
+--- a/com/yogpc/qp/render/RenderEntityLaser.java
++++ b/com/yogpc/qp/render/RenderEntityLaser.java
 @@ -16,7 +16,6 @@
  
  @SideOnly(Side.CLIENT)
@@ -1165,8 +1002,8 @@
            t.startDrawingQuads();
            rb.setRenderBounds(0, 0, 0, remainX > 1.0 ? 1.0 : remainX, remainY > 1.0 ? 1.0 : remainY,
                remainZ > 1.0 ? 1.0 : remainZ);
---- a/com/yogpc/qp/client/RenderLaser.java
-+++ b/com/yogpc/qp/client/RenderLaser.java
+--- a/com/yogpc/qp/render/RenderLaser.java
++++ b/com/yogpc/qp/render/RenderLaser.java
 @@ -39,7 +39,7 @@
      GL11.glRotatef((float) (360 - (Math.atan2(dz, dx) * 180.0 / Math.PI + 180.0)), 0, 1, 0);
      GL11.glRotatef((float) (-Math.atan2(dy, Math.sqrt(total * total - dy * dy)) * 180.0 / Math.PI),
@@ -1176,8 +1013,8 @@
      int i = 0;
      while (i <= total - 1) {
        box[b].render(1F / 16);
---- a/com/yogpc/qp/client/RenderMarker.java
-+++ b/com/yogpc/qp/client/RenderMarker.java
+--- a/com/yogpc/qp/render/RenderMarker.java
++++ b/com/yogpc/qp/render/RenderMarker.java
 @@ -146,10 +146,10 @@
      x += 0.5D;
      z += 0.5D;
@@ -1208,8 +1045,8 @@
  
      if (m == 5 || m == 4 || m == 3 || m == 0) {
        tessellator.addVertexWithUV(x + frontX[m][0][0], y + frontX[m][1][0], z + frontX[m][2][0],
---- a/com/yogpc/qp/client/RenderRefinery.java
-+++ b/com/yogpc/qp/client/RenderRefinery.java
+--- a/com/yogpc/qp/render/RenderRefinery.java
++++ b/com/yogpc/qp/render/RenderRefinery.java
 @@ -177,7 +177,7 @@
            GL11.glPushMatrix();
            GL11.glTranslatef(tx, ty, tz);
@@ -1257,3 +1094,178 @@
        tessellator.draw();
        GL11.glEndList();
      }
+--- a/com/yogpc/qp/tile/TileBasic.java
++++ b/com/yogpc/qp/tile/TileBasic.java
+@@ -272,11 +272,6 @@
+   }
+ 
+   @Override
+-  public boolean isInvNameLocalized() {
+-    return false;
+-  }
+-
+-  @Override
+   public int getInventoryStackLimit() {
+     return 0;
+   }
+@@ -294,9 +289,4 @@
+ 
+   @Override
+   public void closeChest() {}
+-
+-  @Override
+-  public boolean isStackValidForSlot(final int p_94041_1_, final ItemStack p_94041_2_) {
+-    return false;
+-  }
+ }
+--- a/com/yogpc/qp/tile/TileBreaker.java
++++ b/com/yogpc/qp/tile/TileBreaker.java
+@@ -93,11 +93,6 @@
+   }
+ 
+   @Override
+-  public boolean isInvNameLocalized() {
+-    return false;
+-  }
+-
+-  @Override
+   public int getInventoryStackLimit() {
+     return 0;
+   }
+@@ -115,9 +110,4 @@
+ 
+   @Override
+   public void closeChest() {}
+-
+-  @Override
+-  public boolean isStackValidForSlot(final int p_94041_1_, final ItemStack p_94041_2_) {
+-    return false;
+-  }
+ }
+--- a/com/yogpc/qp/tile/TilePlacer.java
++++ b/com/yogpc/qp/tile/TilePlacer.java
+@@ -77,11 +77,6 @@
+   }
+ 
+   @Override
+-  public boolean isInvNameLocalized() {
+-    return false;
+-  }
+-
+-  @Override
+   public int getInventoryStackLimit() {
+     return 64;
+   }
+@@ -99,11 +94,6 @@
+   public void closeChest() {}
+ 
+   @Override
+-  public boolean isStackValidForSlot(final int i, final ItemStack itemstack) {
+-    return true;
+-  }
+-
+-  @Override
+   public void readFromNBT(final NBTTagCompound par1NBTTagCompound) {
+     super.readFromNBT(par1NBTTagCompound);
+     final NBTTagList nbttaglist = par1NBTTagCompound.getTagList("Items");
+--- a/com/yogpc/qp/tile/TilePump.java
++++ b/com/yogpc/qp/tile/TilePump.java
+@@ -142,7 +142,7 @@
+               this.zCoord + fd.offsetZ);
+       if (te instanceof ITankContainer)
+         for (final String s : this.mapping[fd.ordinal()]) {
+-          pZ = this.liquids.indexOf(LiquidDictionary.getCanonicalLiquid(s));
++          pZ = indexOf(LiquidDictionary.getLiquid(s, 0));
+           if (pZ == -1)
+             continue;
+           fs = this.liquids.get(pZ);
+@@ -526,7 +526,7 @@
+       for (int i = 0; i < this.liquids.size(); i++) {
+         final LiquidStack s = this.liquids.get(i);
+         ret[i + 1] =
+-            StatCollector.translateToLocalFormatted("yog.pump.liquid", LiquidDictionary.findLiquidName(s)
++            StatCollector.translateToLocalFormatted("yog.pump.liquid", findLiquidName(s)
+                 , Integer.toString(s.amount));
+       }
+     } else
+@@ -547,7 +547,7 @@
+   public LiquidStack drain(final ForgeDirection fd, final LiquidStack resource, final boolean doDrain) {
+     if (resource == null)
+       return null;
+-    final int index = this.liquids.indexOf(resource);
++    final int index = indexOf(resource);
+     if (index == -1)
+       return null;
+     final LiquidStack fs = this.liquids.get(index);
+@@ -585,10 +585,10 @@
+       int index;
+       LiquidStack fs;
+       for (final String s : this.mapping[fd.ordinal()]) {
+-        fs = LiquidDictionary.getCanonicalLiquid(s);
++        fs = LiquidDictionary.getLiquid(s, 0);
+         if (fs == null)
+           continue;
+-        index = this.liquids.indexOf(fs);
++        index = indexOf(fs);
+         if (index != -1)
+           ret.add(new LiquidTank(this.liquids.get(index), Integer.MAX_VALUE));
+         else
+@@ -623,7 +623,7 @@
+       fs = LiquidDictionary.getLiquid(s, maxDrain);
+       if (fs == null)
+         continue;
+-      index = this.liquids.indexOf(fs);
++      index = indexOf(fs);
+       if (index == -1)
+         continue;
+       return drain(fd, this.liquids.get(index), doDrain);
+@@ -666,7 +666,7 @@
+       else if ((b == Block.lavaStill || b == Block.lavaMoving) && meta == 0)
+         fs = new LiquidStack(Block.lavaStill, LiquidContainerRegistry.BUCKET_VOLUME);
+       if (fs != null) {
+-        final int index = this.liquids.indexOf(fs);
++        final int index = indexOf(fs);
+         if (index != -1)
+           this.liquids.get(index).amount += fs.amount;
+         else
+@@ -698,4 +698,16 @@
+     else if (id == Enchantment.silkTouch.effectId && val > 0)
+       this.silktouch = true;
+   }
++
++  private static String findLiquidName(final LiquidStack fs) {
++    for (final Map.Entry<String, LiquidStack> entry : LiquidDictionary.getLiquids().entrySet())
++      if (fs.isLiquidEqual(entry.getValue())) return entry.getKey();
++    return null;
++  }
++
++  private int indexOf(final LiquidStack key) {
++    for (int i = 0; i < this.liquids.size(); i++)
++      if (this.liquids.get(i).isLiquidEqual(key)) return i;
++    return -1;
++  }
+ }
+--- a/com/yogpc/qp/tile/TileWorkbench.java
++++ b/com/yogpc/qp/tile/TileWorkbench.java
+@@ -173,21 +173,11 @@
+   }
+ 
+   @Override
+-  public boolean isStackValidForSlot(final int p_94041_1_, final ItemStack p_94041_2_) {
+-    return true;
+-  }
+-
+-  @Override
+   public String getInvName() {
+     return "tile.WorkbenchPlus.name";
+   }
+ 
+   @Override
+-  public boolean isInvNameLocalized() {
+-    return false;
+-  }
+-
+-  @Override
+   public int getInventoryStackLimit() {
+     return Integer.MAX_VALUE;
+   }

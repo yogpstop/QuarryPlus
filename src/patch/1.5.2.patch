@@ -1,5 +1,16 @@
---- a/com/yogpc/ip/BlockController.java
-+++ b/com/yogpc/ip/BlockController.java
+--- a/com/yogpc/qp/bc/RefineryRecipeHelper.java
++++ b/com/yogpc/qp/bc/RefineryRecipeHelper.java
+@@ -41,7 +41,7 @@
+   public static void get(final TileRefinery tr) {
+     if (tr.cached != null)
+       return;
+-    for (final RefineryRecipe ifr : RefineryRecipe.getRecipes()) {
++    for (final RefineryRecipe ifr : (java.util.Collection<RefineryRecipe>)RefineryRecipe.getRecipes()) {
+       if (!craft(ifr, tr, false) || !RefineryRecipeHelper.check(ifr.result, tr))
+         continue;
+       craft(ifr, tr, true);
+--- a/com/yogpc/qp/block/BlockController.java
++++ b/com/yogpc/qp/block/BlockController.java
 @@ -35,15 +35,20 @@
  
  import cpw.mods.fml.common.FMLCommonHandler;
@@ -11,7 +22,7 @@
      setUnlocalizedName("spawnercontroller");
 -    setTextureName("yogpstop_qp:spawnctl");
      setHardness(1.0f);
-     setCreativeTab(CreativeTabs.tabRedstone);
+     setCreativeTab(QuarryPlusI.ct);
    }
  
 +  @Override
@@ -52,9 +63,214 @@
 -    return ret;
 -  }
  }
---- a/com/yogpc/ip/ItemArmorElectric.java
-+++ b/com/yogpc/ip/ItemArmorElectric.java
-@@ -27,21 +27,25 @@
+--- a/com/yogpc/qp/block/BlockFrame.java
++++ b/com/yogpc/qp/block/BlockFrame.java
+@@ -27,7 +27,12 @@
+     setHardness(0.5F);
+     setTickRandomly(true);
+     setUnlocalizedName("qpFrame");
+-    setTextureName("yogpstop_qp:blockFrame");
++  }
++
++  @Override
++  @SideOnly(Side.CLIENT)
++  public void registerIcons(final IconRegister ir) {
++    this.blockIcon = ir.registerIcon("yogpstop_qp:blockFrame");
+   }
+ 
+   @Override
+--- a/com/yogpc/qp/block/BlockMover.java
++++ b/com/yogpc/qp/block/BlockMover.java
+@@ -29,7 +29,7 @@
+ import cpw.mods.fml.relauncher.Side;
+ import cpw.mods.fml.relauncher.SideOnly;
+ 
+-public class BlockMover extends Block implements IDismantleable {
++public class BlockMover extends Block {
+   Icon textureTop, textureBottom;
+ 
+   public BlockMover(final int id) {
+@@ -68,28 +68,4 @@
+       e.openGui(QuarryPlus.I, QuarryPlusI.guiIdMover, w, x, y, z);
+     return true;
+   }
+-
+-  @Override
+-  public boolean canDismantle(final EntityPlayer arg0, final World arg1, final int arg2,
+-      final int arg3, final int arg4) {
+-    return true;
+-  }
+-
+-  @Override
+-  public ItemStack dismantleBlock(final EntityPlayer e, final World w, final int x,
+-      final int y, final int z, final boolean toinv) {
+-    int m = w.getBlockMetadata(x, y, z);
+-    final ItemStack ret = new ItemStack(idDropped(m, w.rand, 0), quantityDropped(m, 0, w.rand), damageDropped(m));
+-    w.setBlockToAir(x, y, z);
+-    if (!toinv) {
+-        final float f = 0.7F;
+-        final double d0 = w.rand.nextFloat() * f + (1.0F - f) * 0.5D;
+-        final double d1 = w.rand.nextFloat() * f + (1.0F - f) * 0.5D;
+-        final double d2 = w.rand.nextFloat() * f + (1.0F - f) * 0.5D;
+-        final EntityItem entityitem = new EntityItem(w, x + d0, y + d1, z + d2, ret);
+-        entityitem.delayBeforeCanPickup = 10;
+-        w.spawnEntityInWorld(entityitem);
+-      }
+-    return ret;
+-  }
+ }
+--- a/com/yogpc/qp/block/BlockPlainPipe.java
++++ b/com/yogpc/qp/block/BlockPlainPipe.java
+@@ -18,7 +18,12 @@
+     this.maxY = 1.0;
+     this.maxZ = 0.75;
+     setUnlocalizedName("qpPlainPipe");
+-    setTextureName("yogpstop_qp:blockPlainPipe");
++  }
++
++  @Override
++  @SideOnly(Side.CLIENT)
++  public void registerIcons(final IconRegister ir) {
++    this.blockIcon = ir.registerIcon("yogpstop_qp:blockPlainPipe");
+   }
+ 
+   @Override
+--- a/com/yogpc/qp/block/BlockRefinery.java
++++ b/com/yogpc/qp/block/BlockRefinery.java
+@@ -46,7 +46,12 @@
+     setHardness(5F);
+     setCreativeTab(QuarryPlusI.ct);
+     setUnlocalizedName("RefineryPlus");
+-    setTextureName("yogpstop_qp:refineryDummy");
++  }
++
++  @Override
++  @SideOnly(Side.CLIENT)
++  public void registerIcons(final IconRegister ir) {
++    this.blockIcon = ir.registerIcon("yogpstop_qp:refineryDummy");
+   }
+ 
+   @Override
+@@ -107,7 +112,7 @@
+   private static boolean fill(final ITankContainer tank, final ForgeDirection side,
+       final EntityPlayer player) {
+     final ItemStack current = player.getCurrentEquippedItem();
+-    final LiquidStack liquid = LiquidContainerRegistry.getFluidForFilledItem(current);
++    final LiquidStack liquid = LiquidContainerRegistry.getLiquidForFilledItem(current);
+     if (liquid != null) {
+       final int used = tank.fill(side, liquid, true);
+       if (used > 0) {
+--- a/com/yogpc/qp/block/BlockWorkbench.java
++++ b/com/yogpc/qp/block/BlockWorkbench.java
+@@ -25,7 +25,12 @@
+     setHardness(3F);
+     setCreativeTab(QuarryPlusI.ct);
+     setUnlocalizedName("WorkbenchPlus");
+-    setTextureName("yogpstop_qp:workbench");
++  }
++
++  @Override
++  @SideOnly(Side.CLIENT)
++  public void registerIcons(final IconRegister ir) {
++    this.blockIcon = ir.registerIcon("yogpstop_qp:workbench");
+   }
+ 
+   @Override
+--- a/com/yogpc/qp/gui/GuiP_List.java
++++ b/com/yogpc/qp/gui/GuiP_List.java
+@@ -91,9 +91,7 @@
+         this.mc.displayGuiScreen(new GuiP_SelectSide(this.tile, this, par1.id == -5));
+         break;
+       case PacketHandler.CtS_REMOVE_MAPPING:
+-        String name = this.tile.mapping[this.dir].get(this.oreslot.currentore);
+-        if (LiquidDictionary.isFluidRegistered(name))
+-          name = LiquidDictionary.getFluid(name).getLocalizedName();
++        final String name = this.tile.mapping[this.dir].get(this.oreslot.currentore);
+         this.mc.displayGuiScreen(new GuiYesNo(this, StatCollector
+             .translateToLocal("tof.deletefluidsure"), name, par1.id));
+         break;
+--- a/com/yogpc/qp/gui/GuiP_Manual.java
++++ b/com/yogpc/qp/gui/GuiP_Manual.java
+@@ -51,18 +51,14 @@
+   public void actionPerformed(final GuiButton par1) {
+     switch (par1.id) {
+       case -1:
+-        String name = this.blockid.getText();
++        final String name = this.blockid.getText();
+         if (name.length() == 0)
+           return;
+         if (this.tile.mapping[this.targetid].contains(name)) {
+-          if (LiquidDictionary.isFluidRegistered(name))
+-            name = LiquidDictionary.getFluid(name).getLocalizedName();
+           this.mc.displayGuiScreen(new GuiError(this, StatCollector
+               .translateToLocal("tof.alreadyerror"), name));
+           return;
+         }
+-        if (LiquidDictionary.isFluidRegistered(name))
+-          name = LiquidDictionary.getFluid(name).getLocalizedName();
+         this.mc.displayGuiScreen(new GuiYesNo(this, StatCollector
+             .translateToLocal("tof.addfluidsure"), name, -1));
+         break;
+--- a/com/yogpc/qp/gui/GuiP_SlotBlockList.java
++++ b/com/yogpc/qp/gui/GuiP_SlotBlockList.java
+@@ -73,7 +73,7 @@
+ 
+   @Override
+   protected void drawSlot(final int i, final int v2, final int v3, final int v4, final Tessellator t) {
+-    final String name = LiquidDictionary.getFluid(this.blocklist.get(i)).getLocalizedName();
++    final String name = this.blocklist.get(i);
+     Minecraft.getMinecraft().fontRenderer.drawStringWithShadow(name,
+         (this.parent.width - Minecraft.getMinecraft().fontRenderer.getStringWidth(name)) / 2,
+         v3 + 2, 0xFFFFFF);
+--- a/com/yogpc/qp/gui/GuiP_SlotList.java
++++ b/com/yogpc/qp/gui/GuiP_SlotList.java
+@@ -57,9 +57,7 @@
+ 
+   @Override
+   protected void drawSlot(final int i, final int v2, final int v3, final int v4, final Tessellator t) {
+-    String name = this.target.get(i);
+-    if (LiquidDictionary.isFluidRegistered(name))
+-      name = LiquidDictionary.getFluid(name).getLocalizedName();
++    final String name = this.target.get(i);
+     Minecraft.getMinecraft().fontRenderer
+         .drawStringWithShadow(
+             name,
+--- a/com/yogpc/qp/InvUtils.java
++++ b/com/yogpc/qp/InvUtils.java
+@@ -100,11 +100,10 @@
+         pi.add((IInventory) t);
+         pid.add(d.getOpposite());
+       }
+-      if (t instanceof IPipeTile) {
+-        final IPipeTile p = (IPipeTile) t;
+-        if (p.getPipeType() != IPipeTile.PipeType.ITEM || !p.isPipeConnected(d.getOpposite()))
++      if (t instanceof IPipeEntry && ((IPipeEntry)t).acceptItems()) {
++        if (t instanceof IPipeConnection && !((IPipeConnection) t).isPipeConnected(d.getOpposite()))
+           continue;
+-        pp.add(p);
++        pp.add(t);
+         ppd.add(d.getOpposite());
+       }
+     }
+@@ -113,10 +112,11 @@
+       if (is.stackSize <= 0)
+         return;
+     }
+-    for (int i = 0; i < pp.size(); i++) {
+-      is.stackSize -= ((IPipeTile) pp.get(i)).injectItem(is, true, ppd.get(i));
+-      if (is.stackSize <= 0)
+-        return;
++    if (pp.size() > 0) {
++      final int i = w.rand.nextInt(pp.size());
++      ((IPipeEntry) pp.get(i)).entityEntering(is.copy(), ppd.get(i));
++      is.stackSize = 0;
++      return;
+     }
+   }
+ }
+--- a/com/yogpc/qp/item/ItemArmorElectric.java
++++ b/com/yogpc/qp/item/ItemArmorElectric.java
+@@ -29,22 +29,26 @@
  import cpw.mods.fml.relauncher.Side;
  import cpw.mods.fml.relauncher.SideOnly;
  
@@ -62,13 +278,14 @@
 -    IEnergyContainerItem {
 +public class ItemArmorElectric extends ItemArmor implements ISpecialArmor, IElectricItem {
    public ItemArmorElectric(final int id) {
-     super(id, EnumHelper.addArmorMaterial("ELECTRIC", 33, new int[] {3, 8, 6, 3}, 0), YogpstopLib.proxy
+     super(id, EnumHelper.addArmorMaterial("ELECTRIC", 33, new int[] {3, 8, 6, 3}, 0), QuarryPlus.proxy
          .addNewArmourRendererPrefix("electric"), 1);
      setUnlocalizedName("electric_armor");
      setCreativeTab(CreativeTabs.tabCombat);
 -    setTextureName("yogpstop_qp:elecArmor");
      setMaxDamage(100);
      setMaxStackSize(1);
+     setCreativeTab(QuarryPlusI.ct);
    }
  
    @Override
@@ -85,7 +302,7 @@
    }
  
    private static final double maxFallSpeedOnHover = 0.35;
-@@ -189,25 +193,4 @@
+@@ -192,25 +196,4 @@
    public int getTransferLimit(final ItemStack itemStack) {
      return 2500;
    }
@@ -111,14 +328,14 @@
 -        getMaxCharge(is)) * 4);
 -  }
  }
---- a/com/yogpc/ip/ItemMirror.java
-+++ b/com/yogpc/ip/ItemMirror.java
-@@ -18,11 +18,16 @@
+--- a/com/yogpc/qp/item/ItemMirror.java
++++ b/com/yogpc/qp/item/ItemMirror.java
+@@ -21,11 +21,16 @@
    public ItemMirror(final int id) {
      super(id);
      setUnlocalizedName("magicmirror");
 -    setTextureName("yogpstop_qp:mm");
-     setCreativeTab(CreativeTabs.tabTools);
+     setCreativeTab(QuarryPlusI.ct);
    }
  
    @Override
@@ -131,8 +348,169 @@
    public ItemStack onEaten(final ItemStack i, final World w, final EntityPlayer p) {
      if (p instanceof EntityPlayerMP) {
        if (i.getItemDamage() == 2) {
---- a/com/yogpc/mc_lib/APowerTile.java
-+++ b/com/yogpc/mc_lib/APowerTile.java
+--- a/com/yogpc/qp/nei/QuarryPlusUsageHandler.java
++++ b/com/yogpc/qp/nei/QuarryPlusUsageHandler.java
+@@ -32,7 +32,7 @@
+ 
+   @Override
+   public String getGuiTexture() {
+-    return "nei:textures/gui/recipebg.png";
++    return "/codechicken/nei/recipebg.png";
+   }
+ 
+   @Override
+--- a/com/yogpc/qp/nei/WBPRecipeHandler.java
++++ b/com/yogpc/qp/nei/WBPRecipeHandler.java
+@@ -62,7 +62,7 @@
+ 
+   @Override
+   public String getGuiTexture() {
+-    return "yogpstop_qp:textures/gui/workbench.png";
++    return "/mods/yogpstop_qp/textures/gui/workbench.png";
+   }
+ 
+   @Override
+@@ -76,10 +76,10 @@
+   }
+ 
+   @Override
+-  public void drawBackground(final int recipe) {
++  public void drawBackground(final GuiContainerManager gui, final int recipe) {
+     GL11.glColor4f(1, 1, 1, 1);
+-    GuiDraw.changeTexture(getGuiTexture());
+-    GuiDraw.drawTexturedModalRect(0, 0, 5, 11, 166, 121);
++    gui.bindTexture(getGuiTexture());
++    gui.drawTexturedModalRect(0, 0, 5, 11, 166, 121);
+   }
+ 
+   @Override
+--- a/com/yogpc/qp/QuarryPlus.java
++++ b/com/yogpc/qp/QuarryPlus.java
+@@ -33,12 +33,12 @@
+   @Mod.Instance("QuarryPlus")
+   public static QuarryPlus I;
+ 
+-  @Mod.EventHandler
++  @Mod.PreInit
+   public void preInit(final FMLPreInitializationEvent event) {
+     QuarryPlusI.preInit(event);
+   }
+ 
+-  @Mod.EventHandler
++  @Mod.Init
+   public void init(final FMLInitializationEvent event) {
+     QuarryPlusI.init();
+   }
+--- a/com/yogpc/qp/QuarryPlusI.java
++++ b/com/yogpc/qp/QuarryPlusI.java
+@@ -120,7 +120,7 @@
+   @ForgeSubscribe
+   @SideOnly(Side.CLIENT)
+   public void loadTextures(final TextureStitchEvent.Pre evt) {
+-    if (evt.map.getTextureType() == 0) {
++    if (evt.map.textureType == 0) {
+       final TextureMap map = evt.map;
+       RenderEntityLaser.icons = new Icon[4];
+       RenderEntityLaser.icons[EntityLaser.DRILL] =
+@@ -134,7 +134,7 @@
+     }
+   }
+ 
+-  private static final Pattern lang = Pattern.compile("assets/(.*)/lang/(.*)\\.lang");
++  private static final Pattern lang = Pattern.compile("mods/(.*)/lang/(.*)\\.lang");
+   private static final Pattern format = Pattern.compile("%(\\d+\\$)?[\\d\\.]*[df]");
+ 
+   public static Properties parseLangFile(final InputStream is, final boolean cl) {
+--- a/com/yogpc/qp/render/RenderEntityLaser.java
++++ b/com/yogpc/qp/render/RenderEntityLaser.java
+@@ -23,11 +23,6 @@
+   private RenderEntityLaser() {}
+ 
+   @Override
+-  protected String getEntityTexture(final Entity entity) {
+-    return TextureMap.locationBlocksTexture;
+-  }
+-
+-  @Override
+   public void doRender(final Entity e, final double i, final double j, final double k,
+       final float f, final float f1) {
+     if (e.isDead)
+@@ -56,7 +51,7 @@
+       final double k, final double iSize, final double jSize, final double kSize, final int tex) {
+     GL11.glPushMatrix();
+     GL11.glTranslated(i, j, k);
+-    tm.bindTexture(TextureMap.locationBlocksTexture);
++    tm.bindTexture("/terrain.png");
+     final Tessellator t = Tessellator.instance;
+     final RenderBlocks rb = new RenderBlocks();
+     for (int iBase = 0; iBase < iSize; ++iBase)
+--- a/com/yogpc/qp/render/RenderRefinery.java
++++ b/com/yogpc/qp/render/RenderRefinery.java
+@@ -111,7 +111,7 @@
+ 
+     GL11.glRotatef(angle, 0, 1, 0);
+ 
+-    bindTexture(TEXTURE);
++    bindTextureByName(TEXTURE);
+ 
+     GL11.glPushMatrix();
+     GL11.glTranslatef(-0.5F, -0.5F, -0.5F);
+@@ -178,8 +178,9 @@
+           GL11.glPushMatrix();
+           GL11.glTranslatef(tx, ty, tz);
+         }
+-        bindTexture(TextureMap.locationBlocksTexture);
+-        setColor(liquid.getFluid().getColor(liquid));
++        bindTextureByName(liquid.getTextureSheet());
++        final ItemStack stack = liquid.asItemStack();
++        setColor(stack.getItem().getColorFromItemStack(stack, 0));
+         GL11.glCallList(list[(int) (liquid.amount / buf * 99)]);
+         if (tx != 0 || ty != 0 || tz != 0)
+           GL11.glPopMatrix();
+@@ -187,25 +188,22 @@
+     }
+   }
+ 
+-  private static final Map<Fluid, int[]> stillRenderCache = new HashMap<Fluid, int[]>();
++  private static final Map<LiquidStack, int[]> stillRenderCache = new HashMap<LiquidStack, int[]>();
+ 
+   private static int[] getLiquidDisplayLists(final LiquidStack fluidStack) {
+-    final Fluid fluid = fluidStack.getFluid();
+-    if (fluid == null)
+-      return null;
+-    final Map<Fluid, int[]> cache = stillRenderCache;
+-    int[] diplayLists = cache.get(fluid);
++    final Map<LiquidStack, int[]> cache = stillRenderCache;
++    int[] diplayLists = cache.get(fluidStack);
+     if (diplayLists != null)
+       return diplayLists;
+     diplayLists = new int[100];
+     Block baseBlock;
+     Icon texture;
+-    if (fluid.getBlockID() > -1) {
+-      baseBlock = Block.blocksList[fluid.getBlockID()];
+-      texture = fluid.getStillIcon();
++    if (fluidStack.itemID > -1) {
++      baseBlock = Block.blocksList[fluidStack.itemID];
++      texture = fluidStack.getRenderingIcon();
+     } else {
+       baseBlock = Block.waterStill;
+-      texture = fluid.getStillIcon();
++      texture = fluidStack.getRenderingIcon();
+     }
+     GL11.glDisable(GL11.GL_LIGHTING);
+     GL11.glDisable(GL11.GL_BLEND);
+@@ -235,7 +233,7 @@
+     GL11.glEnable(GL11.GL_CULL_FACE);
+     GL11.glEnable(GL11.GL_BLEND);
+     GL11.glEnable(GL11.GL_LIGHTING);
+-    cache.put(fluid, diplayLists);
++    cache.put(fluidStack, diplayLists);
+     return diplayLists;
+   }
+ 
+--- a/com/yogpc/qp/tile/APowerTile.java
++++ b/com/yogpc/qp/tile/APowerTile.java
 @@ -12,9 +12,10 @@
  import net.minecraftforge.common.MinecraftForge;
  import net.minecraftforge.common.ForgeDirection;
@@ -233,260 +611,9 @@
    }
  
  }
---- a/com/yogpc/mc_lib/BlockWorkbench.java
-+++ b/com/yogpc/mc_lib/BlockWorkbench.java
-@@ -22,7 +22,12 @@
-     setHardness(3F);
-     setCreativeTab(CreativeTabs.tabRedstone);
-     setUnlocalizedName("WorkbenchPlus");
--    setTextureName("yogpstop_qp:workbench");
-+  }
-+
-+  @Override
-+  @SideOnly(Side.CLIENT)
-+  public void registerIcons(final IconRegister ir) {
-+    this.blockIcon = ir.registerIcon("yogpstop_qp:workbench");
-   }
- 
-   @Override
---- a/com/yogpc/mc_lib/InvUtils.java
-+++ b/com/yogpc/mc_lib/InvUtils.java
-@@ -100,11 +100,10 @@
-         pi.add((IInventory) t);
-         pid.add(d.getOpposite());
-       }
--      if (t instanceof IPipeTile) {
--        final IPipeTile p = (IPipeTile) t;
--        if (p.getPipeType() != IPipeTile.PipeType.ITEM || !p.isPipeConnected(d.getOpposite()))
-+      if (t instanceof IPipeEntry && ((IPipeEntry)t).acceptItems()) {
-+        if (t instanceof IPipeConnection && !((IPipeConnection) t).isPipeConnected(d.getOpposite()))
-           continue;
--        pp.add(p);
-+        pp.add(t);
-         ppd.add(d.getOpposite());
-       }
-     }
-@@ -113,10 +112,11 @@
-       if (is.stackSize <= 0)
-         return;
-     }
--    for (int i = 0; i < pp.size(); i++) {
--      is.stackSize -= ((IPipeTile) pp.get(i)).injectItem(is, true, ppd.get(i));
--      if (is.stackSize <= 0)
--        return;
-+    if (pp.size() > 0) {
-+      final int i = w.rand.nextInt(pp.size());
-+      ((IPipeEntry) pp.get(i)).entityEntering(is.copy(), ppd.get(i));
-+      is.stackSize = 0;
-+      return;
-     }
-   }
- }
---- a/com/yogpc/mc_lib/YogpstopLib.java
-+++ b/com/yogpc/mc_lib/YogpstopLib.java
-@@ -57,7 +57,7 @@
-   public static boolean disableController = false;
-   public static List<String> spawnerBlacklist;
- 
--  @Mod.EventHandler
-+  @Mod.PreInit
-   public void preInit(final FMLPreInitializationEvent event) {
-     final Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
-     final int[] id = new int[4];
-@@ -83,7 +83,7 @@
-     armor = new ItemArmorElectric(id[3]);
-   }
- 
--  private static final Pattern lang = Pattern.compile("assets/(.*)/lang/(.*)\\.lang");
-+  private static final Pattern lang = Pattern.compile("mods/(.*)/lang/(.*)\\.lang");
-   private static final Pattern format = Pattern.compile("%(\\d+\\$)?[\\d\\.]*[df]");
- 
-   public static Properties parseLangFile(final InputStream is, final boolean cl) {
-@@ -148,7 +148,7 @@
-     }
-   }
- 
--  @Mod.EventHandler
-+  @Mod.Init
-   public void init(final FMLInitializationEvent event) {
-     GameRegistry.registerBlock(workbench, "WorkbenchPlus");
-     if (!disableController)
---- a/com/yogpc/nei/QuarryPlusUsageHandler.java
-+++ b/com/yogpc/nei/QuarryPlusUsageHandler.java
-@@ -32,7 +32,7 @@
- 
-   @Override
-   public String getGuiTexture() {
--    return "nei:textures/gui/recipebg.png";
-+    return "/codechicken/nei/recipebg.png";
-   }
- 
-   @Override
---- a/com/yogpc/nei/WBPRecipeHandler.java
-+++ b/com/yogpc/nei/WBPRecipeHandler.java
-@@ -62,7 +62,7 @@
- 
-   @Override
-   public String getGuiTexture() {
--    return "yogpstop_qp:textures/gui/workbench.png";
-+    return "/mods/yogpstop_qp/textures/gui/workbench.png";
-   }
- 
-   @Override
-@@ -76,10 +76,10 @@
-   }
- 
-   @Override
--  public void drawBackground(final int recipe) {
-+  public void drawBackground(final GuiContainerManager gui, final int recipe) {
-     GL11.glColor4f(1, 1, 1, 1);
--    GuiDraw.changeTexture(getGuiTexture());
--    GuiDraw.drawTexturedModalRect(0, 0, 5, 11, 166, 121);
-+    gui.bindTexture(getGuiTexture());
-+    gui.drawTexturedModalRect(0, 0, 5, 11, 166, 121);
-   }
- 
-   @Override
---- a/com/yogpc/qp/bc/RefineryRecipeHelper.java
-+++ b/com/yogpc/qp/bc/RefineryRecipeHelper.java
-@@ -41,7 +41,7 @@
-   public static void get(final TileRefinery tr) {
-     if (tr.cached != null)
-       return;
--    for (final RefineryRecipe ifr : RefineryRecipe.getRecipes()) {
-+    for (final RefineryRecipe ifr : (java.util.Collection<RefineryRecipe>)RefineryRecipe.getRecipes()) {
-       if (!craft(ifr, tr, false) || !RefineryRecipeHelper.check(ifr.result, tr))
-         continue;
-       craft(ifr, tr, true);
---- a/com/yogpc/qp/BlockFrame.java
-+++ b/com/yogpc/qp/BlockFrame.java
-@@ -24,7 +24,12 @@
-     setHardness(0.5F);
-     setTickRandomly(true);
-     setUnlocalizedName("qpFrame");
--    setTextureName("yogpstop_qp:blockFrame");
-+  }
-+
-+  @Override
-+  @SideOnly(Side.CLIENT)
-+  public void registerIcons(final IconRegister ir) {
-+    this.blockIcon = ir.registerIcon("yogpstop_qp:blockFrame");
-   }
- 
-   @Override
---- a/com/yogpc/qp/BlockMover.java
-+++ b/com/yogpc/qp/BlockMover.java
-@@ -26,7 +26,7 @@
- import cpw.mods.fml.relauncher.Side;
- import cpw.mods.fml.relauncher.SideOnly;
- 
--public class BlockMover extends Block implements IDismantleable {
-+public class BlockMover extends Block {
-   Icon textureTop, textureBottom;
- 
-   public BlockMover(final int id) {
-@@ -65,28 +65,4 @@
-       e.openGui(QuarryPlus.instance, QuarryPlus.guiIdMover, w, x, y, z);
-     return true;
-   }
--
--  @Override
--  public boolean canDismantle(final EntityPlayer arg0, final World arg1, final int arg2,
--      final int arg3, final int arg4) {
--    return true;
--  }
--
--  @Override
--  public ItemStack dismantleBlock(final EntityPlayer e, final World w, final int x,
--      final int y, final int z, final boolean toinv) {
--    int m = w.getBlockMetadata(x, y, z);
--    final ItemStack ret = new ItemStack(idDropped(m, w.rand, 0), quantityDropped(m, 0, w.rand), damageDropped(m));
--    w.setBlockToAir(x, y, z);
--    if (!toinv) {
--        final float f = 0.7F;
--        final double d0 = w.rand.nextFloat() * f + (1.0F - f) * 0.5D;
--        final double d1 = w.rand.nextFloat() * f + (1.0F - f) * 0.5D;
--        final double d2 = w.rand.nextFloat() * f + (1.0F - f) * 0.5D;
--        final EntityItem entityitem = new EntityItem(w, x + d0, y + d1, z + d2, ret);
--        entityitem.delayBeforeCanPickup = 10;
--        w.spawnEntityInWorld(entityitem);
--      }
--    return ret;
--  }
- }
---- a/com/yogpc/qp/BlockPlainPipe.java
-+++ b/com/yogpc/qp/BlockPlainPipe.java
-@@ -18,7 +18,12 @@
-     this.maxY = 1.0;
-     this.maxZ = 0.75;
-     setUnlocalizedName("qpPlainPipe");
--    setTextureName("yogpstop_qp:blockPlainPipe");
-+  }
-+
-+  @Override
-+  @SideOnly(Side.CLIENT)
-+  public void registerIcons(final IconRegister ir) {
-+    this.blockIcon = ir.registerIcon("yogpstop_qp:blockPlainPipe");
-   }
- 
-   @Override
---- a/com/yogpc/qp/BlockRefinery.java
-+++ b/com/yogpc/qp/BlockRefinery.java
-@@ -41,7 +41,12 @@
-     setHardness(5F);
-     setCreativeTab(QuarryPlus.ct);
-     setUnlocalizedName("RefineryPlus");
--    setTextureName("yogpstop_qp:refineryDummy");
-+  }
-+
-+  @Override
-+  @SideOnly(Side.CLIENT)
-+  public void registerIcons(final IconRegister ir) {
-+    this.blockIcon = ir.registerIcon("yogpstop_qp:refineryDummy");
-   }
- 
-   @Override
-@@ -102,7 +107,7 @@
-   private static boolean fill(final ITankContainer tank, final ForgeDirection side,
-       final EntityPlayer player) {
-     final ItemStack current = player.getCurrentEquippedItem();
--    final LiquidStack liquid = LiquidContainerRegistry.getFluidForFilledItem(current);
-+    final LiquidStack liquid = LiquidContainerRegistry.getLiquidForFilledItem(current);
-     if (liquid != null) {
-       final int used = tank.fill(side, liquid, true);
-       if (used > 0) {
---- a/com/yogpc/qp/QuarryPlus.java
-+++ b/com/yogpc/qp/QuarryPlus.java
-@@ -84,7 +84,7 @@
-   @ForgeSubscribe
-   @SideOnly(Side.CLIENT)
-   public void loadTextures(final TextureStitchEvent.Pre evt) {
--    if (evt.map.getTextureType() == 0) {
-+    if (evt.map.textureType == 0) {
-       final TextureMap map = evt.map;
-       RenderEntityLaser.icons = new Icon[4];
-       RenderEntityLaser.icons[EntityLaser.DRILL] =
-@@ -98,7 +98,7 @@
-     }
-   }
- 
--  @Mod.EventHandler
-+  @Mod.PreInit
-   public void preInit(final FMLPreInitializationEvent event) {
-     final Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
-     final int[] id = new int[13];
-@@ -141,7 +141,7 @@
-     YogpstopLib.loadLangs(event.getSourceFile());
-   }
- 
--  @Mod.EventHandler
-+  @Mod.Init
-   public void init(final FMLInitializationEvent event) {
-     GameRegistry.registerItem(itemTool, "qpTool");
-     GameRegistry.registerBlock(blockQuarry, ItemBlockQuarry.class, "QuarryPlus");
---- a/com/yogpc/qp/TilePump.java
-+++ b/com/yogpc/qp/TilePump.java
-@@ -141,7 +141,7 @@
+--- a/com/yogpc/qp/tile/TilePump.java
++++ b/com/yogpc/qp/tile/TilePump.java
+@@ -142,7 +142,7 @@
                this.zCoord + fd.offsetZ);
        if (te instanceof ITankContainer)
          for (final String s : this.mapping[fd.ordinal()]) {
@@ -495,7 +622,7 @@
            if (pZ == -1)
              continue;
            fs = this.liquids.get(pZ);
-@@ -525,8 +525,8 @@
+@@ -526,8 +526,8 @@
        for (int i = 0; i < this.liquids.size(); i++) {
          final LiquidStack s = this.liquids.get(i);
          ret[i + 1] =
@@ -506,7 +633,7 @@
        }
      } else
        ret[0] = StatCollector.translateToLocal("chat.pumpcontainno");
-@@ -539,6 +539,10 @@
+@@ -540,6 +540,10 @@
    }
  
    @Override
@@ -517,7 +644,7 @@
    public LiquidStack drain(final ForgeDirection fd, final LiquidStack resource, final boolean doDrain) {
      if (resource == null)
        return null;
-@@ -560,13 +564,8 @@
+@@ -561,13 +565,8 @@
    }
  
    @Override
@@ -533,7 +660,7 @@
    }
  
    @Override
-@@ -576,8 +575,8 @@
+@@ -577,8 +576,8 @@
      final LinkedList<LiquidTank> ret = new LinkedList<LiquidTank>();
      if (this.mapping[fd.ordinal()].size() <= 0) {
        if (this.liquids.size() <= 0)
@@ -544,7 +671,7 @@
        else
          for (final LiquidStack fs : this.liquids)
            ret.add(new LiquidTank(fs, Integer.MAX_VALUE));
-@@ -585,7 +584,7 @@
+@@ -586,7 +585,7 @@
        int index;
        LiquidStack fs;
        for (final String s : this.mapping[fd.ordinal()]) {
@@ -553,7 +680,7 @@
          if (fs == null)
            continue;
          index = this.liquids.indexOf(fs);
-@@ -599,6 +598,16 @@
+@@ -600,6 +599,16 @@
    }
  
    @Override
@@ -570,7 +697,7 @@
    public LiquidStack drain(final ForgeDirection fd, final int maxDrain, final boolean doDrain) {
      if (fd.ordinal() < 0 || fd.ordinal() >= this.mapping.length)
        return drain(ForgeDirection.UP, maxDrain, doDrain);
-@@ -610,7 +619,7 @@
+@@ -611,7 +620,7 @@
      int index;
      LiquidStack fs;
      for (final String s : this.mapping[fd.ordinal()]) {
@@ -579,7 +706,7 @@
        if (fs == null)
          continue;
        index = this.liquids.indexOf(fs);
-@@ -633,7 +642,7 @@
+@@ -634,7 +643,7 @@
    static final boolean isLiquid(final Block b, final boolean s, final World w, final int x,
        final int y, final int z, final int m) {
      if (b instanceof ILiquid)
@@ -588,7 +715,7 @@
      if (b == Block.waterStill || b == Block.waterMoving || b == Block.lavaStill
          || b == Block.lavaMoving)
        return !s || m == 0;
-@@ -649,15 +658,12 @@
+@@ -650,15 +659,12 @@
      if (isLiquid(b, false, null, 0, 0, 0, 0)) {
        LiquidStack fs = null;
        if (b instanceof ILiquid
@@ -608,8 +735,8 @@
        if (fs != null) {
          final int index = this.liquids.indexOf(fs);
          if (index != -1)
---- a/com/yogpc/qp/TileRefinery.java
-+++ b/com/yogpc/qp/TileRefinery.java
+--- a/com/yogpc/qp/tile/TileRefinery.java
++++ b/com/yogpc/qp/tile/TileRefinery.java
 @@ -237,7 +237,6 @@
      return 0;
    }
@@ -655,150 +782,3 @@
    public Map<Integer, Byte> get() {
      final Map<Integer, Byte> ret = new HashMap<Integer, Byte>();
      if (this.efficiency > 0)
---- a/com/yogpc/qp/client/GuiP_List.java
-+++ b/com/yogpc/qp/client/GuiP_List.java
-@@ -91,9 +91,7 @@
-         this.mc.displayGuiScreen(new GuiP_SelectSide(this.tile, this, par1.id == -5));
-         break;
-       case PacketHandler.CtS_REMOVE_MAPPING:
--        String name = this.tile.mapping[this.dir].get(this.oreslot.currentore);
--        if (LiquidDictionary.isFluidRegistered(name))
--          name = LiquidDictionary.getFluid(name).getLocalizedName();
-+        final String name = this.tile.mapping[this.dir].get(this.oreslot.currentore);
-         this.mc.displayGuiScreen(new GuiYesNo(this, StatCollector
-             .translateToLocal("tof.deletefluidsure"), name, par1.id));
-         break;
---- a/com/yogpc/qp/client/GuiP_Manual.java
-+++ b/com/yogpc/qp/client/GuiP_Manual.java
-@@ -51,18 +51,14 @@
-   public void actionPerformed(final GuiButton par1) {
-     switch (par1.id) {
-       case -1:
--        String name = this.blockid.getText();
-+        final String name = this.blockid.getText();
-         if (name.length() == 0)
-           return;
-         if (this.tile.mapping[this.targetid].contains(name)) {
--          if (LiquidDictionary.isFluidRegistered(name))
--            name = LiquidDictionary.getFluid(name).getLocalizedName();
-           this.mc.displayGuiScreen(new GuiError(this, StatCollector
-               .translateToLocal("tof.alreadyerror"), name));
-           return;
-         }
--        if (LiquidDictionary.isFluidRegistered(name))
--          name = LiquidDictionary.getFluid(name).getLocalizedName();
-         this.mc.displayGuiScreen(new GuiYesNo(this, StatCollector
-             .translateToLocal("tof.addfluidsure"), name, -1));
-         break;
---- a/com/yogpc/qp/client/GuiP_SlotBlockList.java
-+++ b/com/yogpc/qp/client/GuiP_SlotBlockList.java
-@@ -73,7 +73,7 @@
- 
-   @Override
-   protected void drawSlot(final int i, final int v2, final int v3, final int v4, final Tessellator t) {
--    final String name = LiquidDictionary.getFluid(this.blocklist.get(i)).getLocalizedName();
-+    final String name = this.blocklist.get(i);
-     Minecraft.getMinecraft().fontRenderer.drawStringWithShadow(name,
-         (this.parent.width - Minecraft.getMinecraft().fontRenderer.getStringWidth(name)) / 2,
-         v3 + 2, 0xFFFFFF);
---- a/com/yogpc/qp/client/GuiP_SlotList.java
-+++ b/com/yogpc/qp/client/GuiP_SlotList.java
-@@ -57,9 +57,7 @@
- 
-   @Override
-   protected void drawSlot(final int i, final int v2, final int v3, final int v4, final Tessellator t) {
--    String name = this.target.get(i);
--    if (LiquidDictionary.isFluidRegistered(name))
--      name = LiquidDictionary.getFluid(name).getLocalizedName();
-+    final String name = this.target.get(i);
-     Minecraft.getMinecraft().fontRenderer
-         .drawStringWithShadow(
-             name,
---- a/com/yogpc/qp/client/RenderEntityLaser.java
-+++ b/com/yogpc/qp/client/RenderEntityLaser.java
-@@ -23,11 +23,6 @@
-   private RenderEntityLaser() {}
- 
-   @Override
--  protected String getEntityTexture(final Entity entity) {
--    return TextureMap.locationBlocksTexture;
--  }
--
--  @Override
-   public void doRender(final Entity e, final double i, final double j, final double k,
-       final float f, final float f1) {
-     if (e.isDead)
-@@ -56,7 +51,7 @@
-       final double k, final double iSize, final double jSize, final double kSize, final int tex) {
-     GL11.glPushMatrix();
-     GL11.glTranslated(i, j, k);
--    tm.bindTexture(TextureMap.locationBlocksTexture);
-+    tm.bindTexture("/terrain.png");
-     final Tessellator t = Tessellator.instance;
-     final RenderBlocks rb = new RenderBlocks();
-     for (int iBase = 0; iBase < iSize; ++iBase)
---- a/com/yogpc/qp/client/RenderRefinery.java
-+++ b/com/yogpc/qp/client/RenderRefinery.java
-@@ -111,7 +111,7 @@
- 
-     GL11.glRotatef(angle, 0, 1, 0);
- 
--    bindTexture(TEXTURE);
-+    bindTextureByName(TEXTURE);
- 
-     GL11.glPushMatrix();
-     GL11.glTranslatef(-0.5F, -0.5F, -0.5F);
-@@ -178,8 +178,9 @@
-           GL11.glPushMatrix();
-           GL11.glTranslatef(tx, ty, tz);
-         }
--        bindTexture(TextureMap.locationBlocksTexture);
--        setColor(liquid.getFluid().getColor(liquid));
-+        bindTextureByName(liquid.getTextureSheet());
-+        final ItemStack stack = liquid.asItemStack();
-+        setColor(stack.getItem().getColorFromItemStack(stack, 0));
-         GL11.glCallList(list[(int) (liquid.amount / buf * 99)]);
-         if (tx != 0 || ty != 0 || tz != 0)
-           GL11.glPopMatrix();
-@@ -187,25 +188,22 @@
-     }
-   }
- 
--  private static final Map<Fluid, int[]> stillRenderCache = new HashMap<Fluid, int[]>();
-+  private static final Map<LiquidStack, int[]> stillRenderCache = new HashMap<LiquidStack, int[]>();
- 
-   private static int[] getLiquidDisplayLists(final LiquidStack fluidStack) {
--    final Fluid fluid = fluidStack.getFluid();
--    if (fluid == null)
--      return null;
--    final Map<Fluid, int[]> cache = stillRenderCache;
--    int[] diplayLists = cache.get(fluid);
-+    final Map<LiquidStack, int[]> cache = stillRenderCache;
-+    int[] diplayLists = cache.get(fluidStack);
-     if (diplayLists != null)
-       return diplayLists;
-     diplayLists = new int[100];
-     Block baseBlock;
-     Icon texture;
--    if (fluid.getBlockID() > -1) {
--      baseBlock = Block.blocksList[fluid.getBlockID()];
--      texture = fluid.getStillIcon();
-+    if (fluidStack.itemID > -1) {
-+      baseBlock = Block.blocksList[fluidStack.itemID];
-+      texture = fluidStack.getRenderingIcon();
-     } else {
-       baseBlock = Block.waterStill;
--      texture = fluid.getStillIcon();
-+      texture = fluidStack.getRenderingIcon();
-     }
-     GL11.glDisable(GL11.GL_LIGHTING);
-     GL11.glDisable(GL11.GL_BLEND);
-@@ -235,7 +233,7 @@
-     GL11.glEnable(GL11.GL_CULL_FACE);
-     GL11.glEnable(GL11.GL_BLEND);
-     GL11.glEnable(GL11.GL_LIGHTING);
--    cache.put(fluid, diplayLists);
-+    cache.put(fluidStack, diplayLists);
-     return diplayLists;
-   }
- 

@@ -1,5 +1,5 @@
---- a/com/yogpc/ip/ItemArmorElectric.java
-+++ b/com/yogpc/ip/ItemArmorElectric.java
+--- a/com/yogpc/qp/item/ItemArmorElectric.java
++++ b/com/yogpc/qp/item/ItemArmorElectric.java
 @@ -127,8 +127,8 @@
    @Override
    public void onArmorTick(final World world, final EntityPlayer player, final ItemStack is) {
@@ -20,8 +20,8 @@
    }
  
    @Override
---- a/com/yogpc/qp/TilePump.java
-+++ b/com/yogpc/qp/TilePump.java
+--- a/com/yogpc/qp/tile/TilePump.java
++++ b/com/yogpc/qp/tile/TilePump.java
 @@ -531,7 +531,7 @@
          final FluidStack s = this.liquids.get(i);
          ret[i + 1] =
@@ -31,8 +31,8 @@
        }
      } else
        ret[0] = new ChatComponentTranslation("chat.pumpcontainno");
---- a/com/yogpc/qp/client/GuiP_List.java
-+++ b/com/yogpc/qp/client/GuiP_List.java
+--- a/com/yogpc/qp/gui/GuiP_List.java
++++ b/com/yogpc/qp/gui/GuiP_List.java
 @@ -94,8 +94,7 @@
        case PacketHandler.CtS_REMOVE_MAPPING:
          String name = this.tile.mapping[this.dir].get(this.oreslot.currentore);
@@ -43,8 +43,8 @@
          this.mc.displayGuiScreen(new GuiYesNo(this, StatCollector
              .translateToLocal("tof.deletefluidsure"), name, par1.id));
          break;
---- a/com/yogpc/qp/client/GuiP_Manual.java
-+++ b/com/yogpc/qp/client/GuiP_Manual.java
+--- a/com/yogpc/qp/gui/GuiP_Manual.java
++++ b/com/yogpc/qp/gui/GuiP_Manual.java
 @@ -57,15 +57,13 @@
            return;
          if (this.tile.mapping[this.targetid].contains(name)) {
@@ -63,8 +63,8 @@
          this.mc.displayGuiScreen(new GuiYesNo(this, StatCollector
              .translateToLocal("tof.addfluidsure"), name, -1));
          break;
---- a/com/yogpc/qp/client/GuiP_SlotBlockList.java
-+++ b/com/yogpc/qp/client/GuiP_SlotBlockList.java
+--- a/com/yogpc/qp/gui/GuiP_SlotBlockList.java
++++ b/com/yogpc/qp/gui/GuiP_SlotBlockList.java
 @@ -74,9 +74,7 @@
    @Override
    protected void drawSlot(final int i, final int v2, final int v3, final int v4,
@@ -76,8 +76,8 @@
      Minecraft.getMinecraft().fontRenderer.drawStringWithShadow(name,
          (this.parent.width - Minecraft.getMinecraft().fontRenderer.getStringWidth(name)) / 2,
          v3 + 2, 0xFFFFFF);
---- a/com/yogpc/qp/client/GuiP_SlotList.java
-+++ b/com/yogpc/qp/client/GuiP_SlotList.java
+--- a/com/yogpc/qp/gui/GuiP_SlotList.java
++++ b/com/yogpc/qp/gui/GuiP_SlotList.java
 @@ -61,7 +61,7 @@
        final Tessellator t, final int v6, final int v7) {
      String name = this.target.get(i);

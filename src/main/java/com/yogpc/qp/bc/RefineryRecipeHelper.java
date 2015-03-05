@@ -9,7 +9,7 @@ import buildcraft.api.recipes.IFlexibleCrafter;
 import buildcraft.api.recipes.IFlexibleRecipe;
 import buildcraft.api.recipes.IRefineryRecipeManager;
 
-import com.yogpc.qp.TileRefinery;
+import com.yogpc.qp.tile.TileRefinery;
 
 import cpw.mods.fml.common.ModAPIManager;
 import cpw.mods.fml.common.Optional;

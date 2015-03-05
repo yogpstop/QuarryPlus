@@ -1,2 +1,2 @@
-A,com/yogpc/ip/ItemArmorElectric,java.util.EnumSet,cpw.mods.fml.common.ITickHandler,cpw.mods.fml.common.TickType,cpw.mods.fml.common.registry.TickRegistry
-R,com/yogpc/ip/ItemArmorElectric,net.minecraft.world.World,cpw.mods.fml.common.registry.GameRegistry
+A,com/yogpc/qp/item/ItemArmorElectric,java.util.EnumSet,cpw.mods.fml.common.ITickHandler,cpw.mods.fml.common.TickType,cpw.mods.fml.common.registry.TickRegistry
+R,com/yogpc/qp/item/ItemArmorElectric,net.minecraft.world.World,cpw.mods.fml.common.registry.GameRegistry

@@ -22,6 +22,8 @@ import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.ForgeChunkManager.Ticket;
 
 import com.google.common.collect.Lists;
+import com.yogpc.qp.tile.TileMarker;
+import com.yogpc.qp.tile.TileQuarry;
 
 public class ChunkLoadingHandler implements ForgeChunkManager.OrderedLoadingCallback {
   @Override
@@ -48,7 +50,7 @@ public class ChunkLoadingHandler implements ForgeChunkManager.OrderedLoadingCall
       final int quarryZ = ticket.getModData().getInteger("quarryZ");
 
       final Block b = world.getBlock(quarryX, quarryY, quarryZ);
-      if (b == QuarryPlus.blockQuarry || b == QuarryPlus.blockMarker)
+      if (b == QuarryPlusI.blockQuarry || b == QuarryPlusI.blockMarker)
         validTickets.add(ticket);
     }
     return validTickets;

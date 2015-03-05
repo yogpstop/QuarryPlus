@@ -23,8 +23,10 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
+import com.yogpc.qp.tile.IEnchantableTile;
+
 public final class EnchantmentHelper {
-  static final void init(final IEnchantableTile te, final NBTTagList nbttl) {
+  public static final void init(final IEnchantableTile te, final NBTTagList nbttl) {
     if (nbttl != null)
       for (int i = 0; i < nbttl.tagCount(); i++)
         te.set(nbttl.getCompoundTagAt(i).getShort("id"),
@@ -47,7 +49,7 @@ public final class EnchantmentHelper {
     return als;
   }
 
-  static void enchantmentToIS(final IEnchantableTile te, final ItemStack is) {
+  public static void enchantmentToIS(final IEnchantableTile te, final ItemStack is) {
     final Map<Integer, Byte> enchs = te.get();
     for (final Map.Entry<Integer, Byte> e : enchs.entrySet())
       is.addEnchantment(Enchantment.enchantmentsList[e.getKey().intValue()], e.getValue()

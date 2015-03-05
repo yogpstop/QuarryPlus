@@ -1,5 +1,5 @@
---- a/com/yogpc/mc_lib/APowerTile.java
-+++ b/com/yogpc/mc_lib/APowerTile.java
+--- a/com/yogpc/qp/tile/APowerTile.java
++++ b/com/yogpc/qp/tile/APowerTile.java
 @@ -1,10 +1,15 @@
  package com.yogpc.mc_lib;
  
@@ -30,7 +30,7 @@
    private boolean ic2ok = false;
  
 @@ -25,6 +33,8 @@
-       MinecraftForge.EVENT_BUS.post(new EnergyTileLoadEvent(this));
+       ic2load();
        this.ic2ok = true;
      }
 +    final double rem = Math.min(this.maxGot - this.got, this.max - this.all - this.got);
@@ -38,7 +38,7 @@
      this.all += this.got;
      this.got = 0;
    }
-@@ -50,6 +60,7 @@
+@@ -60,6 +70,7 @@
      this.all = nbttc.getDouble("storedEnergy");
      this.max = nbttc.getDouble("MAX_stored");
      this.maxGot = nbttc.getDouble("MAX_receive");
@@ -46,7 +46,7 @@
    }
  
    @Override
-@@ -94,6 +105,7 @@
+@@ -104,6 +115,7 @@
    public final void configure(final double x, final double maxstored) {
      this.maxGot = x;
      this.max = maxstored;
@@ -54,7 +54,7 @@
    }
  
    @Override
-@@ -140,4 +152,18 @@
+@@ -150,4 +162,18 @@
    public final boolean acceptsEnergyFrom(final TileEntity te, final ForgeDirection d) {
      return true;
    }
@@ -73,8 +73,19 @@
 +  }
 +
  }
---- a/com/yogpc/qp/TileLaser.java
-+++ b/com/yogpc/qp/TileLaser.java
+--- a/com/yogpc/qp/QuarryPlus.java
++++ b/com/yogpc/qp/QuarryPlus.java
+@@ -37,7 +37,7 @@
+     modid = "QuarryPlus",
+     name = "QuarryPlus",
+     version = "{version}",
+-    dependencies = "after:BuildCraftAPI|core;after:BuildCraftAPI|recipes;after:BuildCraftAPI|tools;after:BuildCraftAPI|transport;after:CoFHAPI|block;after:CoFHAPI|energy;after:CoFHAPI|inventory;after:IC2API")
++    dependencies = "after:BuildCraftAPI|core;after:BuildCraftAPI|power;after:BuildCraftAPI|recipes;after:BuildCraftAPI|tools;after:BuildCraftAPI|transport;after:CoFHAPI|block;after:CoFHAPI|energy;after:CoFHAPI|inventory;after:IC2API")
+ public class QuarryPlus {
+ 
+   @SidedProxy(clientSide = "com.yogpc.qp.ProxyClient",
+--- a/com/yogpc/qp/tile/TileLaser.java
++++ b/com/yogpc/qp/tile/TileLaser.java
 @@ -86,8 +86,8 @@
          PowerManager.useEnergyL(this, this.unbreaking, this.fortune, this.silktouch,
              this.efficiency);
@@ -88,7 +99,7 @@
            this.worldObj.provider.dimensionId, this.xCoord, this.yCoord, this.zCoord);
 --- a/com/yogpc/qp/bc/RefineryRecipeHelper.java
 +++ b/com/yogpc/qp/bc/RefineryRecipeHelper.java
-@@ -1,87 +1,59 @@
+@@ -1,87 +1,60 @@
  package com.yogpc.qp.bc;
  
  import net.minecraft.enchantment.Enchantment;
@@ -102,16 +113,16 @@
  import buildcraft.api.recipes.IRefineryRecipeManager;
 +import buildcraft.api.recipes.IRefineryRecipeManager.IRefineryRecipe;
  
- import com.yogpc.qp.TileRefinery;
+ import com.yogpc.qp.tile.TileRefinery;
  
  import cpw.mods.fml.common.ModAPIManager;
 -import cpw.mods.fml.common.Optional;
--
+ 
 -@Optional.Interface(iface = "buildcraft.api.recipes.IFlexibleCrafter",
 -    modid = "BuildCraftAPI|recipes")
 -public class RefineryRecipeHelper implements IFlexibleCrafter {
 -  private final TileRefinery tile;
--
+ 
 -  private RefineryRecipeHelper(final TileRefinery tr) {
 -    this.tile = tr;
 -  }
@@ -130,12 +141,12 @@
 -  public ItemStack decrCraftingItemStack(final int slotid, final int val) {
 -    return null;
 -  }
- 
+-
 -  // BC 6.1.X
 -  public ItemStack decrCraftingItemgStack(final int slotid, final int val) {
 -    return null;
 -  }
- 
+-
 -  @Override
 -  public FluidStack getCraftingFluidStack(final int id) {
 -    return this.tile.src[id];

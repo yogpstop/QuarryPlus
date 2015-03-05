@@ -17,7 +17,9 @@ import net.minecraftforge.common.config.ConfigCategory;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
 
-import com.yogpc.mc_lib.APowerTile;
+import com.yogpc.qp.tile.APowerTile;
+import com.yogpc.qp.tile.TileBasic;
+import com.yogpc.qp.tile.TileMiningWell;
 
 public class PowerManager {
   static double B_CF, B_CS, W_CF, W_CS;
@@ -187,7 +189,7 @@ public class PowerManager {
       throw new RuntimeException(sb.toString());
   }
 
-  static void configure0(final APowerTile pp) {
+  public static void configure0(final APowerTile pp) {
     pp.configure(0, pp.getMaxStored());
   }
 
@@ -203,23 +205,23 @@ public class PowerManager {
         + (pump > 0 ? 65536 * PL_BP / (pump * PL_CU + 1) + 1020 * PF_BP / (pump * PF_CU + 1) : 0));
   }
 
-  static void configureB(final APowerTile pp, final byte E, final byte U, final byte pump) {
+  public static void configureB(final APowerTile pp, final byte E, final byte U, final byte pump) {
     configure15(pp, B_CE, E, U, B_CU, B_XR, B_MS, pump);
   }
 
-  static void configureW(final APowerTile pp, final byte E, final byte U, final byte pump) {
+  public static void configureW(final APowerTile pp, final byte E, final byte U, final byte pump) {
     configure15(pp, W_CE, E, U, W_CU, W_XR, W_MS, pump);
   }
 
-  static void configureL(final APowerTile pp, final byte E, final byte U) {
+  public static void configureL(final APowerTile pp, final byte E, final byte U) {
     configure(pp, L_CE, E, U, L_CU, L_XR, L_MS, (byte) 0);
   }
 
-  static void configureF(final APowerTile pp, final byte E, final byte U, final byte pump) {
+  public static void configureF(final APowerTile pp, final byte E, final byte U, final byte pump) {
     configure(pp, F_CE, E, U, F_CU, F_XR, F_MS, pump);
   }
 
-  static void configureR(final APowerTile pp, final byte E, final byte U) {
+  public static void configureR(final APowerTile pp, final byte E, final byte U) {
     configure(pp, R_CE, E, U, R_CU, R_XR, R_MS, (byte) 0);
   }
 
@@ -269,7 +271,7 @@ public class PowerManager {
     return pwc * (U * CU + 1) / Math.pow(CF, F);
   }
 
-  static boolean useEnergyB(final APowerTile pp, final float H, final byte SF, final byte U,
+  public static boolean useEnergyB(final APowerTile pp, final float H, final byte SF, final byte U,
       final TileBasic t) {
     double BP, CU, CSP;
     if (t instanceof TileMiningWell) {
@@ -290,25 +292,27 @@ public class PowerManager {
     return useEnergy(pp, BP, H, CSP, U, CU);
   }
 
-  static boolean useEnergyF(final APowerTile pp, final byte U) {
+  public static boolean useEnergyF(final APowerTile pp, final byte U) {
     return useEnergy(pp, F_BP, U, F_CU);
   }
 
-  static double useEnergyR(final APowerTile pp, final double energy, final byte U, final byte E) {
+  public static double useEnergyR(final APowerTile pp, final double energy, final byte U,
+      final byte E) {
     double pw = E * energy / (U * R_CU + 1);
     pw = pp.useEnergy(pw, pw, true);
     return pw * (U * R_CU + 1) / E;
   }
 
-  static boolean useEnergyP(final APowerTile pp, final byte U, final long liquids, final long frames) {
+  public static boolean useEnergyP(final APowerTile pp, final byte U, final long liquids,
+      final long frames) {
     return useEnergy(pp, PL_BP, liquids, PF_BP, frames, U, PL_CU, PF_CU);
   }
 
-  static double useEnergyH(final APowerTile pp, final double distance, final byte U) {
+  public static double useEnergyH(final APowerTile pp, final double distance, final byte U) {
     return useEnergy(pp, distance, H_BP, U, H_CU);
   }
 
-  static double useEnergyL(final APowerTile pp, final byte U, final byte F, final boolean S,
+  public static double useEnergyL(final APowerTile pp, final byte U, final byte F, final boolean S,
       final byte E) {
     return useEnergy(pp, L_BP, U, L_CU, F, L_CF, S, L_CS, E, L_CE);
   }
