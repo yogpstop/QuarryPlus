@@ -24,8 +24,7 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
     version = "{version}",
     dependencies = "after:BuildCraftAPI|core;after:BuildCraftAPI|recipes;after:BuildCraftAPI|tools;after:BuildCraftAPI|transport;after:CoFHAPI|block;after:CoFHAPI|energy;after:CoFHAPI|inventory;after:IC2API")
 public class QuarryPlus {
-  @SidedProxy(clientSide = "com.yogpc.qp.ProxyClient",
-      serverSide = "com.yogpc.qp.ProxyCommon")
+  @SidedProxy(clientSide = "com.yogpc.qp.ProxyClient", serverSide = "com.yogpc.qp.ProxyCommon")
   public static ProxyCommon proxy;
   @Mod.Instance("QuarryPlus")
   public static QuarryPlus I;

@@ -35,7 +35,7 @@ import net.minecraftforge.common.util.ForgeDirection;
 
 import com.yogpc.qp.QuarryPlus;
 import com.yogpc.qp.QuarryPlusI;
-import com.yogpc.qp.bc.BuildCraftHelper;
+import com.yogpc.qp.compat.BuildCraftHelper;
 import com.yogpc.qp.tile.TilePlacer;
 
 import cpw.mods.fml.relauncher.Side;

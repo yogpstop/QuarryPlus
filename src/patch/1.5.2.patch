@@ -1,5 +1,5 @@
---- a/com/yogpc/qp/bc/RefineryRecipeHelper.java
-+++ b/com/yogpc/qp/bc/RefineryRecipeHelper.java
+--- a/com/yogpc/qp/compat/RefineryRecipeHelper.java
++++ b/com/yogpc/qp/compat/RefineryRecipeHelper.java
 @@ -41,7 +41,7 @@
    public static void get(final TileRefinery tr) {
      if (tr.cached != null)

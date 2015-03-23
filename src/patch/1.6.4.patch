@@ -1,31 +1,3 @@
---- a/com/yogpc/qp/bc/BuildCraftHelper.java
-+++ b/com/yogpc/qp/bc/BuildCraftHelper.java
-@@ -7,7 +7,7 @@
- public class BuildCraftHelper {
-   public static final boolean isWrench(final Item equipped, final EntityPlayer ep, final int x,
-       final int y, final int z) {
--    if (ModAPIManager.INSTANCE.hasAPI("BuildCraftAPI|tools") && equipped instanceof IToolWrench
-+    if (equipped instanceof IToolWrench
-         && ((IToolWrench) equipped).canWrench(ep, x, y, z)) {
-       ((IToolWrench) equipped).wrenchUsed(ep, x, y, z);
-       return true;
---- a/com/yogpc/qp/bc/RefineryRecipeHelper.java
-+++ b/com/yogpc/qp/bc/RefineryRecipeHelper.java
-@@ -39,12 +39,9 @@
-   }
- 
-   public static void get(final TileRefinery tr) {
--    if (!ModAPIManager.INSTANCE.hasAPI("BuildCraftAPI|recipes") || tr.cached != null)
--      return;
--    final RefineryRecipes.RecipeManager irrm = BuildcraftRecipes.refinery;
--    if (irrm == null)
-+    if (tr.cached != null)
-       return;
--    for (final RefineryRecipes.Recipe ifr : irrm.getRecipes()) {
-+    for (final RefineryRecipes.Recipe ifr : RefineryRecipes.getRecipes()) {
-       if (!craft(ifr, tr, false) || !RefineryRecipeHelper.check(ifr.result, tr))
-         continue;
-       craft(ifr, tr, true);
 --- a/com/yogpc/qp/block/ADismCBlock.java
 +++ b/com/yogpc/qp/block/ADismCBlock.java
 @@ -11,8 +11,8 @@
@@ -281,6 +253,34 @@
          validTickets.add(ticket);
      }
      return validTickets;
+--- a/com/yogpc/qp/compat/BuildCraftHelper.java
++++ b/com/yogpc/qp/compat/BuildCraftHelper.java
+@@ -7,7 +7,7 @@
+ public class BuildCraftHelper {
+   public static final boolean isWrench(final Item equipped, final EntityPlayer ep, final int x,
+       final int y, final int z) {
+-    if (ModAPIManager.INSTANCE.hasAPI("BuildCraftAPI|tools") && equipped instanceof IToolWrench
++    if (equipped instanceof IToolWrench
+         && ((IToolWrench) equipped).canWrench(ep, x, y, z)) {
+       ((IToolWrench) equipped).wrenchUsed(ep, x, y, z);
+       return true;
+--- a/com/yogpc/qp/compat/RefineryRecipeHelper.java
++++ b/com/yogpc/qp/compat/RefineryRecipeHelper.java
+@@ -39,12 +39,9 @@
+   }
+ 
+   public static void get(final TileRefinery tr) {
+-    if (!ModAPIManager.INSTANCE.hasAPI("BuildCraftAPI|recipes") || tr.cached != null)
+-      return;
+-    final RefineryRecipes.RecipeManager irrm = BuildcraftRecipes.refinery;
+-    if (irrm == null)
++    if (tr.cached != null)
+       return;
+-    for (final RefineryRecipes.Recipe ifr : irrm.getRecipes()) {
++    for (final RefineryRecipes.Recipe ifr : RefineryRecipes.getRecipes()) {
+       if (!craft(ifr, tr, false) || !RefineryRecipeHelper.check(ifr.result, tr))
+         continue;
+       craft(ifr, tr, true);
 --- a/com/yogpc/qp/container/ContainerMover.java
 +++ b/com/yogpc/qp/container/ContainerMover.java
 @@ -74,7 +74,7 @@
@@ -470,7 +470,7 @@
    private static void setNBTFromPacket(final YogpstopPacket p) {
 --- a/com/yogpc/qp/ProxyClient.java
 +++ b/com/yogpc/qp/ProxyClient.java
-@@ -31,25 +31,44 @@
+@@ -33,25 +33,44 @@
  import cpw.mods.fml.relauncher.SideOnly;
  
  @SideOnly(Side.CLIENT)
@@ -523,7 +523,7 @@
      final int prev = this.key;
      this.key = 0;
      final GuiScreen currentScreen = Minecraft.getMinecraft().currentScreen;
-@@ -78,13 +97,6 @@
+@@ -80,13 +99,6 @@
    }
  
    @Override
@@ -561,8 +561,8 @@
 +@NetworkMod(clientSideRequired = true, serverSideRequired = false, channels = {"QuarryPlus"},
 +    packetHandler = PacketHandler.class)
  public class QuarryPlus {
-   @SidedProxy(clientSide = "com.yogpc.qp.ProxyClient",
-       serverSide = "com.yogpc.qp.ProxyCommon")
+   @SidedProxy(clientSide = "com.yogpc.qp.ProxyClient", serverSide = "com.yogpc.qp.ProxyCommon")
+   public static ProxyCommon proxy;
 --- a/com/yogpc/qp/QuarryPlusI.java
 +++ b/com/yogpc/qp/QuarryPlusI.java
 @@ -134,10 +134,92 @@
@@ -722,7 +722,7 @@
        baseBlock = Block.waterStill;
 --- a/com/yogpc/qp/tile/APacketTile.java
 +++ b/com/yogpc/qp/tile/APacketTile.java
-@@ -25,9 +25,6 @@
+@@ -26,9 +26,6 @@
  
    @Override
    public final Packet getDescriptionPacket() {
@@ -735,12 +735,15 @@
  }
 --- a/com/yogpc/qp/tile/APowerTile.java
 +++ b/com/yogpc/qp/tile/APowerTile.java
-@@ -23,24 +23,16 @@
+@@ -23,15 +26,12 @@
    @Override
    public void updateEntity() {
      super.updateEntity();
 -    if (ModAPIManager.INSTANCE.hasAPI("IC2API") && !this.ic2ok && !this.worldObj.isRemote) {
--      ic2load();
+-      try {
+-        IC2Helper.ic2load(this);
+-      } catch (final Exception e) {
+-      }
 +    if (!this.ic2ok && !this.worldObj.isRemote) {
 +      MinecraftForge.EVENT_BUS.post(new EnergyTileLoadEvent(this));
        this.ic2ok = true;
@@ -751,28 +754,19 @@
      this.all += this.got;
      this.got = 0;
    }
- 
--    private void ic2load() {
--    MinecraftForge.EVENT_BUS.post(new EnergyTileLoadEvent(this));
--  }
--
--    private void ic2unload() {
--    MinecraftForge.EVENT_BUS.post(new EnergyTileUnloadEvent(this));
--  }
--
-   @Override
-   public void invalidate() {
-     super.invalidate();
-@@ -51,7 +43,7 @@
+@@ -46,10 +46,7 @@
    public void onChunkUnload() {
      super.onChunkUnload();
      if (this.ic2ok && !this.worldObj.isRemote) {
--      ic2unload();
+-      try {
+-        IC2Helper.ic2unload(this);
+-      } catch (final Exception e) {
+-      }
 +      MinecraftForge.EVENT_BUS.post(new EnergyTileUnloadEvent(this));
        this.ic2ok = false;
      }
    }
-@@ -62,7 +54,7 @@
+@@ -60,7 +57,7 @@
      this.all = nbttc.getDouble("storedEnergy");
      this.max = nbttc.getDouble("MAX_stored");
      this.maxGot = nbttc.getDouble("MAX_receive");
@@ -781,7 +775,7 @@
    }
  
    @Override
-@@ -107,7 +99,7 @@
+@@ -105,7 +102,7 @@
    public final void configure(final double x, final double maxstored) {
      this.maxGot = x;
      this.max = maxstored;

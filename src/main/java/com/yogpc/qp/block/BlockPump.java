@@ -30,7 +30,7 @@ import net.minecraft.world.World;
 
 import com.yogpc.qp.EnchantmentHelper;
 import com.yogpc.qp.QuarryPlusI;
-import com.yogpc.qp.bc.BuildCraftHelper;
+import com.yogpc.qp.compat.BuildCraftHelper;
 import com.yogpc.qp.item.ItemTool;
 import com.yogpc.qp.tile.IEnchantableTile;
 import com.yogpc.qp.tile.TilePump;

@@ -1,4 +1,4 @@
-package com.yogpc.qp.bc;
+package com.yogpc.qp.compat;
 
 import java.lang.reflect.Method;
 

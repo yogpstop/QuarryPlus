@@ -1,11 +1,10 @@
 package com.yogpc.qp.tile;
 
-import ic2.api.energy.event.EnergyTileLoadEvent;
-import ic2.api.energy.event.EnergyTileUnloadEvent;
+import com.yogpc.qp.compat.IC2Helper;
+
 import ic2.api.energy.tile.IEnergySink;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.ForgeDirection;
 import cofh.api.energy.IEnergyHandler;
 import cpw.mods.fml.common.ModAPIManager;
@@ -22,21 +21,14 @@ public abstract class APowerTile extends APacketTile implements IEnergyHandler, 
   public void updateEntity() {
     super.updateEntity();
     if (ModAPIManager.INSTANCE.hasAPI("IC2API") && !this.ic2ok && !this.worldObj.isRemote) {
-      ic2load();
+      try {
+        IC2Helper.ic2load(this);
+      } catch (final Exception e) {
+      }
       this.ic2ok = true;
     }
     this.all += this.got;
     this.got = 0;
-  }
-
-  @Optional.Method(modid = "IC2API")
-  private void ic2load() {
-    MinecraftForge.EVENT_BUS.post(new EnergyTileLoadEvent(this));
-  }
-
-  @Optional.Method(modid = "IC2API")
-  private void ic2unload() {
-    MinecraftForge.EVENT_BUS.post(new EnergyTileUnloadEvent(this));
   }
 
   @Override
@@ -49,7 +41,10 @@ public abstract class APowerTile extends APacketTile implements IEnergyHandler, 
   public void onChunkUnload() {
     super.onChunkUnload();
     if (this.ic2ok && !this.worldObj.isRemote) {
-      ic2unload();
+      try {
+        IC2Helper.ic2unload(this);
+      } catch (final Exception e) {
+      }
       this.ic2ok = false;
     }
   }

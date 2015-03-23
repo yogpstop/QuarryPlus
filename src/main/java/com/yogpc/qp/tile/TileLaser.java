@@ -29,7 +29,7 @@ import net.minecraftforge.common.util.ForgeDirection;
 import com.yogpc.qp.PacketHandler;
 import com.yogpc.qp.PowerManager;
 import com.yogpc.qp.YogpstopPacket;
-import com.yogpc.qp.bc.ILaserTargetHelper;
+import com.yogpc.qp.compat.ILaserTargetHelper;
 
 public class TileLaser extends APowerTile implements IEnchantableTile {
   public static class Position {

@@ -11,7 +11,7 @@ A,com/yogpc/qp/ProxyClient,java.util.ArrayList,java.util.EnumSet,java.util.List,
 R,com/yogpc/qp/ProxyClient,net.minecraft.entity.player.EntityPlayer,cpw.mods.fml.common.FMLCommonHandler,net.minecraftforge.event.ForgeSubscribe
 R,com/yogpc/qp/PacketHandler,cpw.mods.fml.common.network.NetworkRegistry,cpw.mods.fml.relauncher.Side,java.util.EnumMap
 A,com/yogpc/qp/PacketHandler,net.minecraft.network.INetworkManager,net.minecraft.network.packet.Packet250CustomPayload,cpw.mods.fml.common.network.IPacketHandler,cpw.mods.fml.common.network.PacketDispatcher,cpw.mods.fml.common.network.Player
-A,com/yogpc/qp/bc/RefineryRecipeHelper,buildcraft.api.recipes.RefineryRecipes
+A,com/yogpc/qp/compat/RefineryRecipeHelper,buildcraft.api.recipes.RefineryRecipes
 R,com/yogpc/qp/YogpstopPacket,cpw.mods.fml.common.network.NetworkRegistry
 A,com/yogpc/qp/YogpstopPacket,cpw.mods.fml.common.network.Player
 A,com/yogpc/qp/EnchantmentHelper,net.minecraft.nbt.NBTTagCompound
@@ -29,3 +29,5 @@ R,com/yogpc/qp/item/ItemArmorElectric,com/yogpc/qp/tile/TileWorkbench,com/yogpc/
 R,com/yogpc/qp/ProxyClient,cpw.mods.fml.common.eventhandler.SubscribeEvent
 R,com/yogpc/qp/tile/TileWorkbench,com/yogpc/qp/tile/TileBreaker,com/yogpc/qp/tile/TilePlacer,net.minecraftforge.common.ForgeDirection
 A,com/yogpc/qp/tile/APacketTile,com.yogpc.qp.PacketHandler
+R,com/yogpc/qp/tile/APowerTile,com.yogpc.qp.compat.IC2Helper
+A,com/yogpc/qp/tile/APowerTile,ic2.api.energy.event.EnergyTileLoadEvent,ic2.api.energy.event.EnergyTileUnloadEvent,net.minecraftforge.common.MinecraftForge

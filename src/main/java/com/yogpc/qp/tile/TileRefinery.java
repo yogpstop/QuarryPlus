@@ -35,7 +35,7 @@ import com.google.common.io.ByteStreams;
 import com.yogpc.qp.PacketHandler;
 import com.yogpc.qp.PowerManager;
 import com.yogpc.qp.YogpstopPacket;
-import com.yogpc.qp.bc.RefineryRecipeHelper;
+import com.yogpc.qp.compat.RefineryRecipeHelper;
 
 public class TileRefinery extends APowerTile implements IFluidHandler, IEnchantableTile {
   public FluidStack res;
