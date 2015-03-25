@@ -735,16 +735,15 @@
  }
 --- a/com/yogpc/qp/tile/APowerTile.java
 +++ b/com/yogpc/qp/tile/APowerTile.java
-@@ -23,15 +26,12 @@
-   @Override
+@@ -22,15 +22,11 @@
    public void updateEntity() {
      super.updateEntity();
--    if (ModAPIManager.INSTANCE.hasAPI("IC2API") && !this.ic2ok && !this.worldObj.isRemote) {
--      try {
--        IC2Helper.ic2load(this);
--      } catch (final Exception e) {
--      }
-+    if (!this.ic2ok && !this.worldObj.isRemote) {
+     if (!this.ic2ok && !this.worldObj.isRemote) {
+-      if (ModAPIManager.INSTANCE.hasAPI("IC2API"))
+-        try {
+-          IC2Helper.ic2load(this);
+-        } catch (final Exception e) {
+-        }
 +      MinecraftForge.EVENT_BUS.post(new EnergyTileLoadEvent(this));
        this.ic2ok = true;
      }
@@ -754,7 +753,7 @@
      this.all += this.got;
      this.got = 0;
    }
-@@ -46,10 +46,7 @@
+@@ -45,10 +41,7 @@
    public void onChunkUnload() {
      super.onChunkUnload();
      if (this.ic2ok && !this.worldObj.isRemote) {
@@ -766,7 +765,7 @@
        this.ic2ok = false;
      }
    }
-@@ -60,7 +57,7 @@
+@@ -59,7 +52,7 @@
      this.all = nbttc.getDouble("storedEnergy");
      this.max = nbttc.getDouble("MAX_stored");
      this.maxGot = nbttc.getDouble("MAX_receive");
@@ -775,7 +774,7 @@
    }
  
    @Override
-@@ -105,7 +102,7 @@
+@@ -104,7 +97,7 @@
    public final void configure(final double x, final double maxstored) {
      this.maxGot = x;
      this.max = maxstored;

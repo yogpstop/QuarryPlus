@@ -18,11 +18,10 @@ import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
 
 import com.yogpc.qp.tile.APowerTile;
-import com.yogpc.qp.tile.TileBasic;
 import com.yogpc.qp.tile.TileMiningWell;
 
 public class PowerManager {
-  static double B_CF, B_CS, W_CF, W_CS;
+  private static double B_CF, B_CS, W_CF, W_CS;
   private static double B_BP, B_CE, B_CU, B_XR, B_MS;// Quarry:BreakBlock
   private static double F_BP, F_CE, F_CU, F_XR, F_MS;// Quarry:MakeFrame
   private static double W_BP, W_CE, W_CU, W_XR, W_MS;// MiningWell
@@ -225,56 +224,9 @@ public class PowerManager {
     configure(pp, R_CE, E, U, R_CU, R_XR, R_MS, (byte) 0);
   }
 
-  private static boolean useEnergy(final APowerTile pp, final double BP, final float H,
-      final double CSP, final byte U, final double CU) {
-    final double pw = BP * H * CSP / (U * CU + 1);
-    if (pp.useEnergy(pw, pw, false) != pw)
-      return false;
-    pp.useEnergy(pw, pw, true);
-    return true;
-  }
-
-  private static boolean useEnergy(final APowerTile pp, final double BP, final byte U,
-      final double CU) {
-    final double pw = BP / (U * CU + 1);
-    if (pp.useEnergy(pw, pw, false) != pw)
-      return false;
-    pp.useEnergy(pw, pw, true);
-    return true;
-  }
-
-  private static boolean useEnergy(final APowerTile pp, final double BP1, final long amount1,
-      final double BP2, final long amount2, final byte U, final double CU1, final double CU2) {
-    final double pw = BP1 * amount1 / (U * CU1 + 1) + BP2 * amount2 / (U * CU2 + 1);
-    if (pp.useEnergy(pw, pw, false) != pw)
-      return false;
-    pp.useEnergy(pw, pw, true);
-    return true;
-  }
-
-  private static double useEnergy(final APowerTile pp, final double D, final double BP,
-      final byte U, final double CU) {
-    double pw = Math.min(2 + pp.getStoredEnergy() / 500, (D - 0.1) * BP / (U * CU + 1));
-    pw = pp.useEnergy(pw, pw, true);
-    return pw * (U * CU + 1) / BP + 0.1;
-  }
-
-  private static double useEnergy(final APowerTile pp, final double BP, final byte U,
-      final double CU, final byte F, final double CF, final boolean S, final double CS,
-      final byte E, final double CE) {
-    double pwc = BP * Math.pow(CF, F) * Math.pow(CE, E) / (U * CU + 1);
-    if (S)
-      pwc *= CS;
-    pwc = pp.useEnergy(0, pwc, true);
-    if (S)
-      pwc = pwc / CS;
-    return pwc * (U * CU + 1) / Math.pow(CF, F);
-  }
-
-  public static boolean useEnergyB(final APowerTile pp, final float H, final byte SF, final byte U,
-      final TileBasic t) {
+  public static boolean useEnergyB(final APowerTile pp, final float H, final byte SF, final byte U) {
     double BP, CU, CSP;
-    if (t instanceof TileMiningWell) {
+    if (pp instanceof TileMiningWell) {
       BP = W_BP;
       CU = W_CU;
       if (SF < 0)
@@ -289,32 +241,53 @@ public class PowerManager {
       else
         CSP = Math.pow(B_CF, SF);
     }
-    return useEnergy(pp, BP, H, CSP, U, CU);
-  }
-
-  public static boolean useEnergyF(final APowerTile pp, final byte U) {
-    return useEnergy(pp, F_BP, U, F_CU);
-  }
-
-  public static double useEnergyR(final APowerTile pp, final double energy, final byte U,
-      final byte E) {
-    double pw = E * energy / (U * R_CU + 1);
-    pw = pp.useEnergy(pw, pw, true);
-    return pw * (U * R_CU + 1) / E;
+    final double pw = BP * H * CSP / (U * CU + 1);
+    if (pp.useEnergy(pw, pw, false) != pw)
+      return false;
+    pp.useEnergy(pw, pw, true);
+    return true;
   }
 
   public static boolean useEnergyP(final APowerTile pp, final byte U, final long liquids,
       final long frames) {
-    return useEnergy(pp, PL_BP, liquids, PF_BP, frames, U, PL_CU, PF_CU);
+    final double pw = PL_BP * liquids / (U * PL_CU + 1) + PF_BP * frames / (U * PF_CU + 1);
+    if (pp.useEnergy(pw, pw, false) != pw)
+      return false;
+    pp.useEnergy(pw, pw, true);
+    return true;
   }
 
-  public static double useEnergyH(final APowerTile pp, final double distance, final byte U) {
-    return useEnergy(pp, distance, H_BP, U, H_CU);
+  private static boolean useEnergy(final APowerTile pp, final double BP, final byte U,
+      final double CU, final byte E, final double CE) {
+    final double pw = BP / Math.pow(CE, E) / (U * CU + 1);
+    if (pp.useEnergy(pw, pw, false) != pw)
+      return false;
+    pp.useEnergy(pw, pw, true);
+    return true;
+  }
+
+  public static boolean useEnergyF(final APowerTile pp, final byte U) {
+    return useEnergy(pp, F_BP, U, F_CU, (byte) 0, 1);
+  }
+
+  public static boolean useEnergyR(final APowerTile pp, final double BP, final byte U, final byte E) {
+    return useEnergy(pp, BP, U, R_CU, E, R_CE);
+  }
+
+  public static double useEnergyH(final APowerTile pp, final double dist, final byte U) {
+    double pw = Math.min(2 + pp.getStoredEnergy() / 500, (dist - 0.1) * H_BP / (U * H_CU + 1));
+    pw = pp.useEnergy(0, pw, true);
+    return pw * (U * H_CU + 1) / H_BP + 0.1;
   }
 
   public static double useEnergyL(final APowerTile pp, final byte U, final byte F, final boolean S,
       final byte E) {
-    return useEnergy(pp, L_BP, U, L_CU, F, L_CF, S, L_CS, E, L_CE);
+    double pw = L_BP * Math.pow(L_CF, F) * Math.pow(L_CE, E) / (U * L_CU + 1);
+    if (S)
+      pw *= L_CS;
+    pw = pp.useEnergy(0, pw, true);
+    if (S)
+      pw = pw / L_CS;
+    return pw * (U * L_CU + 1) / Math.pow(L_CF, F);
   }
-
 }

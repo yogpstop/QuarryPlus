@@ -124,12 +124,14 @@ public class TileRefinery extends APowerTile implements IFluidHandler, IEnchanta
       decreaseAnimation();
       return;
     }
-    this.rem_time--;
-    this.rem_energy -=
-        PowerManager.useEnergyR(this, this.rem_energy, this.unbreaking, this.efficiency);
-    increaseAnimation();
-    if (this.rem_time > 0 || this.rem_energy > 0.01)
+    if (this.rem_time > 0)
+      this.rem_time--;
+    if (this.rem_time > 0
+        || !PowerManager.useEnergyR(this, this.rem_energy, this.unbreaking, this.efficiency)) {
+      decreaseAnimation();
       return;
+    }
+    increaseAnimation();
     if (this.res == null)
       this.res = this.cached.copy();
     else

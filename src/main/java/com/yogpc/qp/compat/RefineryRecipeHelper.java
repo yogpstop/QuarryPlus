@@ -76,15 +76,13 @@ public class RefineryRecipeHelper implements IFlexibleCrafter {
       return;
     for (final IFlexibleRecipe<FluidStack> ifr : irrm.getRecipes()) {
       final CraftingResult<FluidStack> cr = ifr.craft(new RefineryRecipeHelper(tr), true);
-      if (cr == null || !RefineryRecipeHelper.check(cr.crafted, tr))
+      if (cr == null || !check(cr.crafted, tr))
         continue;
       ifr.craft(new RefineryRecipeHelper(tr), false);
       tr.rem_energy = (double) cr.energyCost / 10;
       tr.rem_time = cr.craftingTime;
       tr.cached = cr.crafted.copy();
-      final Byte i = tr.get().get(Integer.valueOf(Enchantment.efficiency.effectId));
-      tr.cached.amount *= i == null ? 0 : i.byteValue() + 1;
-      RefineryRecipeHelper.get(tr);
+      get(tr);
       return;
     }
     tr.rem_energy = 0;

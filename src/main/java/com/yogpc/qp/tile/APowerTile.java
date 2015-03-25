@@ -1,12 +1,13 @@
 package com.yogpc.qp.tile;
 
-import com.yogpc.qp.compat.IC2Helper;
-
 import ic2.api.energy.tile.IEnergySink;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.util.ForgeDirection;
 import cofh.api.energy.IEnergyHandler;
+
+import com.yogpc.qp.compat.IC2Helper;
+
 import cpw.mods.fml.common.ModAPIManager;
 import cpw.mods.fml.common.Optional;
 
@@ -20,11 +21,12 @@ public abstract class APowerTile extends APacketTile implements IEnergyHandler, 
   @Override
   public void updateEntity() {
     super.updateEntity();
-    if (ModAPIManager.INSTANCE.hasAPI("IC2API") && !this.ic2ok && !this.worldObj.isRemote) {
-      try {
-        IC2Helper.ic2load(this);
-      } catch (final Exception e) {
-      }
+    if (!this.ic2ok && !this.worldObj.isRemote) {
+      if (ModAPIManager.INSTANCE.hasAPI("IC2API"))
+        try {
+          IC2Helper.ic2load(this);
+        } catch (final Exception e) {
+        }
       this.ic2ok = true;
     }
     this.all += this.got;

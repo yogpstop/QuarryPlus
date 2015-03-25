@@ -8,10 +8,10 @@ SIMPLE,"FluidUtils","LiquidUtils"
 SIMPLE,"IFluidBlock","ILiquid"
 SIMPLE,"FluidContainerRegistry","LiquidContainerRegistry"
 SIMPLE,"IFluidHandler","ITankContainer"
-SIMPLE,"PowerHandler","IPowerProvider"
-SIMPLE,"\\. *getPowerReceiver *\\( *\\) *",""
+SIMPLE,"\\.\\s*getPowerReceiver *\\( *\\) *",""
 SIMPLE,"FluidTankInfo","LiquidTank"
 SIMPLE,"(PowerHandler\\.|)PowerReceiver","IPowerProvider"
+SIMPLE,"PowerHandler","IPowerProvider"
 SIMPLE,"getIPowerProvider","getPowerProvider"
 METHOD,IPowerProvider,IPowerProvider,getPowerProvider,getPowerProvider,ForgeDirection,@SKIP@
 METHOD,void,void,doWork,doWork,IPowerProvider,@SKIP@

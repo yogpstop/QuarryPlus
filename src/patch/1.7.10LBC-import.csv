@@ -1,0 +1,3 @@
+A,com/yogpc/qp/tile/APowerTile,buildcraft.api.power.IPowerReceptor,buildcraft.api.power.PowerHandler,net.minecraft.world.World
+R,com/yogpc/qp/compat/RefineryRecipeHelper,net.minecraft.item.ItemStack,buildcraft.api.recipes.BuildcraftRecipeRegistry,buildcraft.api.recipes.CraftingResult,buildcraft.api.recipes.IFlexibleCrafter,buildcraft.api.recipes.IFlexibleRecipe,cpw.mods.fml.common.Optional
+A,com/yogpc/qp/compat/RefineryRecipeHelper,buildcraft.api.recipes.BuildcraftRecipes

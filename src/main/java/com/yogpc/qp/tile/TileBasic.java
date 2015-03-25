@@ -121,7 +121,7 @@ public abstract class TileBasic extends APowerTile implements IEnchantableTile, 
       return ((TilePump) te).S_removeLiquids(this, x, y, z);
     }
     if (!PowerManager.useEnergyB(this, b.getBlockHardness(this.worldObj, x, y, z),
-        S_addDroppedItems(dropped, b, x, y, z), this.unbreaking, this))
+        S_addDroppedItems(dropped, b, x, y, z), this.unbreaking))
       return false;
     this.cacheItems.addAll(dropped);
     this.worldObj.playAuxSFXAtEntity(null, 2001, x, y, z,

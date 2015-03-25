@@ -1,129 +1,14 @@
---- a/com/yogpc/qp/tile/APowerTile.java
-+++ b/com/yogpc/qp/tile/APowerTile.java
-@@ -1,10 +1,16 @@
- package com.yogpc.qp.tile;
- 
-+import buildcraft.api.power.IPowerReceptor;
-+import buildcraft.api.power.PowerHandler;
-+import buildcraft.api.power.PowerHandler.PowerReceiver;
-+import buildcraft.api.power.PowerHandler.Type;
-+
- import com.yogpc.qp.compat.IC2Helper;
- 
- import ic2.api.energy.tile.IEnergySink;
- import net.minecraft.nbt.NBTTagCompound;
- import net.minecraft.tileentity.TileEntity;
-+import net.minecraft.world.World;
- import net.minecraftforge.common.util.ForgeDirection;
- import cofh.api.energy.IEnergyHandler;
- import cpw.mods.fml.common.ModAPIManager;
-@@ -12,8 +18,11 @@
- 
- @Optional.InterfaceList(value = {
-     @Optional.Interface(iface = "cofh.api.energy.IEnergyHandler", modid = "CoFHAPI|energy"),
-+    @Optional.Interface(iface = "buildcraft.api.power.IPowerReceptor", modid = "BuildCraftAPI|power"),
-     @Optional.Interface(iface = "ic2.api.energy.tile.IEnergySink", modid = "IC2API")})
--public abstract class APowerTile extends APacketTile implements IEnergyHandler, IEnergySink {
-+public abstract class APowerTile extends APacketTile implements IEnergyHandler, IEnergySink,
-+    IPowerReceptor {
-+  private final PowerHandler pp = new PowerHandler(this, Type.MACHINE);
-   private double all, maxGot, max, got;
-   private boolean ic2ok = false;
- 
-@@ -27,6 +36,8 @@
-       }
-       this.ic2ok = true;
-     }
-+    final double rem = Math.min(this.maxGot - this.got, this.max - this.all - this.got);
-+    this.got += this.pp.useEnergy(0, rem, true);
-     this.all += this.got;
-     this.got = 0;
-   }
-@@ -55,6 +66,7 @@
-     this.all = nbttc.getDouble("storedEnergy");
-     this.max = nbttc.getDouble("MAX_stored");
-     this.maxGot = nbttc.getDouble("MAX_receive");
-+    this.pp.configure(0, this.maxGot, 0, this.max);
-   }
- 
-   @Override
-@@ -99,6 +111,7 @@
-   public final void configure(final double x, final double maxstored) {
-     this.maxGot = x;
-     this.max = maxstored;
-+    this.pp.configure(0, this.maxGot, 0, this.max);
-   }
- 
-   @Override
-@@ -145,4 +158,18 @@
-   public final boolean acceptsEnergyFrom(final TileEntity te, final ForgeDirection d) {
-     return true;
-   }
-+
-+  @Override
-+  public final PowerReceiver getPowerReceiver(final ForgeDirection side) {
-+    return this.pp.getPowerReceiver();
-+  }
-+
-+  @Override
-+  public final void doWork(final PowerHandler workProvider) {}
-+
-+  @Override
-+  public final World getWorld() {
-+    return this.worldObj;
-+  }
-+
- }
---- a/com/yogpc/qp/QuarryPlus.java
-+++ b/com/yogpc/qp/QuarryPlus.java
-@@ -22,7 +22,7 @@
-     modid = "QuarryPlus",
-     name = "QuarryPlus",
-     version = "{version}",
--    dependencies = "after:BuildCraftAPI|core;after:BuildCraftAPI|recipes;after:BuildCraftAPI|tools;after:BuildCraftAPI|transport;after:CoFHAPI|block;after:CoFHAPI|energy;after:CoFHAPI|inventory;after:IC2API")
-+    dependencies = "after:BuildCraftAPI|core;after:BuildCraftAPI|power;after:BuildCraftAPI|recipes;after:BuildCraftAPI|tools;after:BuildCraftAPI|transport;after:CoFHAPI|block;after:CoFHAPI|energy;after:CoFHAPI|inventory;after:IC2API")
- public class QuarryPlus {
-   @SidedProxy(clientSide = "com.yogpc.qp.ProxyClient", serverSide = "com.yogpc.qp.ProxyCommon")
-   public static ProxyCommon proxy;
---- a/com/yogpc/qp/tile/TileLaser.java
-+++ b/com/yogpc/qp/tile/TileLaser.java
-@@ -86,8 +86,8 @@
-         PowerManager.useEnergyL(this, this.unbreaking, this.fortune, this.silktouch,
-             this.efficiency);
-     for (final Object lt : this.laserTargets)
--      ILaserTargetHelper.receiveLaserEnergy(lt, 10 * power / this.laserTargets.size());
--    pushPower(10 * power / this.laserTargets.size());
-+      ILaserTargetHelper.receiveLaserEnergy(lt, power / this.laserTargets.size());
-+    pushPower(power / this.laserTargets.size());
-     if (this.worldObj.getWorldTime() % 20 == 7)
-       PacketHandler.sendPacketToAround(new YogpstopPacket(this),
-           this.worldObj.provider.dimensionId, this.xCoord, this.yCoord, this.zCoord);
 --- a/com/yogpc/qp/compat/RefineryRecipeHelper.java
 +++ b/com/yogpc/qp/compat/RefineryRecipeHelper.java
-@@ -1,87 +1,60 @@
- package com.yogpc.qp.compat;
- 
- import net.minecraft.enchantment.Enchantment;
--import net.minecraft.item.ItemStack;
- import net.minecraftforge.fluids.FluidStack;
--import buildcraft.api.recipes.BuildcraftRecipeRegistry;
--import buildcraft.api.recipes.CraftingResult;
--import buildcraft.api.recipes.IFlexibleCrafter;
--import buildcraft.api.recipes.IFlexibleRecipe;
-+import buildcraft.api.recipes.BuildcraftRecipes;
- import buildcraft.api.recipes.IRefineryRecipeManager;
-+import buildcraft.api.recipes.IRefineryRecipeManager.IRefineryRecipe;
- 
- import com.yogpc.qp.tile.TileRefinery;
- 
+@@ -14,74 +14,50 @@
  import cpw.mods.fml.common.ModAPIManager;
--import cpw.mods.fml.common.Optional;
+ import cpw.mods.fml.common.Optional;
  
 -@Optional.Interface(iface = "buildcraft.api.recipes.IFlexibleCrafter",
 -    modid = "BuildCraftAPI|recipes")
 -public class RefineryRecipeHelper implements IFlexibleCrafter {
 -  private final TileRefinery tile;
- 
+-
 -  private RefineryRecipeHelper(final TileRefinery tr) {
 -    this.tile = tr;
 -  }
@@ -188,7 +73,7 @@
 -  @Override
 -  public int getCraftingFluidStackSize() {
 -    return this.tile.src.length;
-+  private static boolean craft(final IRefineryRecipe r, final TileRefinery t, final boolean real) {
++  private static boolean craft(final IRefineryRecipeManager.IRefineryRecipe r, final TileRefinery t, final boolean real) {
 +    FluidStack f1 = r.getIngredient1(), f2 = r.getIngredient2();
 +    if (f1 != null)
 +      f1 = f1.copy();
@@ -208,8 +93,8 @@
        return;
 -    for (final IFlexibleRecipe<FluidStack> ifr : irrm.getRecipes()) {
 -      final CraftingResult<FluidStack> cr = ifr.craft(new RefineryRecipeHelper(tr), true);
--      if (cr == null || !RefineryRecipeHelper.check(cr.crafted, tr))
-+    for (final IRefineryRecipe ifr : irrm.getRecipes()) {
+-      if (cr == null || !check(cr.crafted, tr))
++    for (final IRefineryRecipeManager.IRefineryRecipe ifr : irrm.getRecipes()) {
 +      if (!craft(ifr, tr, false) || !RefineryRecipeHelper.check(ifr.getResult(), tr))
          continue;
 -      ifr.craft(new RefineryRecipeHelper(tr), false);
@@ -220,6 +105,89 @@
 +      tr.rem_energy = ifr.getEnergyCost();
 +      tr.rem_time = ifr.getTimeRequired();
 +      tr.cached = ifr.getResult().copy();
-       final Byte i = tr.get().get(Integer.valueOf(Enchantment.efficiency.effectId));
-       tr.cached.amount *= i == null ? 0 : i.byteValue() + 1;
-       RefineryRecipeHelper.get(tr);
+       get(tr);
+       return;
+     }
+--- a/com/yogpc/qp/QuarryPlus.java
++++ b/com/yogpc/qp/QuarryPlus.java
+@@ -22,7 +22,7 @@
+     modid = "QuarryPlus",
+     name = "QuarryPlus",
+     version = "{version}",
+-    dependencies = "after:BuildCraftAPI|core;after:BuildCraftAPI|recipes;after:BuildCraftAPI|tools;after:BuildCraftAPI|transport;after:CoFHAPI|block;after:CoFHAPI|energy;after:CoFHAPI|inventory;after:IC2API")
++    dependencies = "after:BuildCraftAPI|core;after:BuildCraftAPI|power;after:BuildCraftAPI|recipes;after:BuildCraftAPI|tools;after:BuildCraftAPI|transport;after:CoFHAPI|block;after:CoFHAPI|energy;after:CoFHAPI|inventory;after:IC2API")
+ public class QuarryPlus {
+   @SidedProxy(clientSide = "com.yogpc.qp.ProxyClient", serverSide = "com.yogpc.qp.ProxyCommon")
+   public static ProxyCommon proxy;
+--- a/com/yogpc/qp/tile/APowerTile.java
++++ b/com/yogpc/qp/tile/APowerTile.java
+@@ -13,8 +13,11 @@
+ 
+ @Optional.InterfaceList(value = {
+     @Optional.Interface(iface = "cofh.api.energy.IEnergyHandler", modid = "CoFHAPI|energy"),
++    @Optional.Interface(iface = "buildcraft.api.power.IPowerReceptor", modid = "BuildCraftAPI|power"),
+     @Optional.Interface(iface = "ic2.api.energy.tile.IEnergySink", modid = "IC2API")})
+-public abstract class APowerTile extends APacketTile implements IEnergyHandler, IEnergySink {
++public abstract class APowerTile extends APacketTile implements IEnergyHandler, IEnergySink,
++    IPowerReceptor {
++  private final PowerHandler pp = new PowerHandler(this, PowerHandler.Type.MACHINE);
+   private double all, maxGot, max, got;
+   private boolean ic2ok = false;
+ 
+@@ -29,6 +32,8 @@
+         }
+       this.ic2ok = true;
+     }
++    final double rem = Math.min(this.maxGot - this.got, this.max - this.all - this.got);
++    this.got += this.pp.useEnergy(0, rem, true);
+     this.all += this.got;
+     this.got = 0;
+   }
+@@ -57,6 +62,7 @@
+     this.all = nbttc.getDouble("storedEnergy");
+     this.max = nbttc.getDouble("MAX_stored");
+     this.maxGot = nbttc.getDouble("MAX_receive");
++    this.pp.configure(0, this.maxGot, 0, this.max);
+   }
+ 
+   @Override
+@@ -101,6 +107,7 @@
+   public final void configure(final double x, final double maxstored) {
+     this.maxGot = x;
+     this.max = maxstored;
++    this.pp.configure(0, this.maxGot, 0, this.max);
+   }
+ 
+   @Override
+@@ -147,4 +154,18 @@
+   public final boolean acceptsEnergyFrom(final TileEntity te, final ForgeDirection d) {
+     return true;
+   }
++
++  @Override
++  public final PowerHandler.PowerReceiver getPowerReceiver(final ForgeDirection side) {
++    return this.pp.getPowerReceiver();
++  }
++
++  @Override
++  public final void doWork(final PowerHandler workProvider) {}
++
++  @Override
++  public final World getWorld() {
++    return this.worldObj;
++  }
++
+ }
+--- a/com/yogpc/qp/tile/TileLaser.java
++++ b/com/yogpc/qp/tile/TileLaser.java
+@@ -86,8 +86,8 @@
+         PowerManager.useEnergyL(this, this.unbreaking, this.fortune, this.silktouch,
+             this.efficiency);
+     for (final Object lt : this.laserTargets)
+-      ILaserTargetHelper.receiveLaserEnergy(lt, 10 * power / this.laserTargets.size());
+-    pushPower(10 * power / this.laserTargets.size());
++      ILaserTargetHelper.receiveLaserEnergy(lt, power / this.laserTargets.size());
++    pushPower(power / this.laserTargets.size());
+     if (this.worldObj.getWorldTime() % 20 == 7)
+       PacketHandler.sendPacketToAround(new YogpstopPacket(this),
+           this.worldObj.provider.dimensionId, this.xCoord, this.yCoord, this.zCoord);

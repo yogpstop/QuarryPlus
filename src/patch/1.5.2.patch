@@ -1,14 +1,3 @@
---- a/com/yogpc/qp/compat/RefineryRecipeHelper.java
-+++ b/com/yogpc/qp/compat/RefineryRecipeHelper.java
-@@ -41,7 +41,7 @@
-   public static void get(final TileRefinery tr) {
-     if (tr.cached != null)
-       return;
--    for (final RefineryRecipe ifr : RefineryRecipe.getRecipes()) {
-+    for (final RefineryRecipe ifr : (java.util.Collection<RefineryRecipe>)RefineryRecipe.getRecipes()) {
-       if (!craft(ifr, tr, false) || !RefineryRecipeHelper.check(ifr.result, tr))
-         continue;
-       craft(ifr, tr, true);
 --- a/com/yogpc/qp/block/BlockController.java
 +++ b/com/yogpc/qp/block/BlockController.java
 @@ -35,15 +35,20 @@
@@ -176,6 +165,17 @@
    }
  
    @Override
+--- a/com/yogpc/qp/compat/RefineryRecipeHelper.java
++++ b/com/yogpc/qp/compat/RefineryRecipeHelper.java
+@@ -40,7 +40,7 @@
+   public static void get(final TileRefinery tr) {
+     if (tr.cached != null)
+       return;
+-    for (final RefineryRecipe ifr : RefineryRecipe.getRecipes()) {
++    for (final RefineryRecipe ifr : (java.util.Collection<RefineryRecipe>)RefineryRecipe.getRecipes()) {
+       if (!craft(ifr, tr, false) || !RefineryRecipeHelper.check(ifr.result, tr))
+         continue;
+       craft(ifr, tr, true);
 --- a/com/yogpc/qp/gui/GuiP_List.java
 +++ b/com/yogpc/qp/gui/GuiP_List.java
 @@ -91,9 +91,7 @@
@@ -386,7 +386,7 @@
    @Override
 --- a/com/yogpc/qp/QuarryPlus.java
 +++ b/com/yogpc/qp/QuarryPlus.java
-@@ -33,12 +33,12 @@
+@@ -32,12 +32,12 @@
    @Mod.Instance("QuarryPlus")
    public static QuarryPlus I;
  
@@ -511,21 +511,21 @@
  
 --- a/com/yogpc/qp/tile/APowerTile.java
 +++ b/com/yogpc/qp/tile/APowerTile.java
-@@ -12,9 +12,10 @@
- import net.minecraftforge.common.MinecraftForge;
+@@ -12,9 +12,11 @@
+ import net.minecraft.tileentity.TileEntity;
  import net.minecraftforge.common.ForgeDirection;
  
 -public abstract class APowerTile extends APacketTile implements IEnergyHandler, IEnergySink,
--    IPowerReceptor {
--  private final IPowerProvider pp = new IPowerProvider(this, Type.MACHINE);
-+public abstract class APowerTile extends APacketTile implements IEnergySink, IPowerReceptor {
++public abstract class APowerTile extends APacketTile implements IEnergySink,
+     IPowerReceptor {
+-  private final IPowerProvider pp = new IPowerProvider(this, IPowerProvider.Type.MACHINE);
 +  private final IPowerProvider pp =
 +      PowerFramework.currentFramework != null ? PowerFramework.currentFramework
 +          .createPowerProvider() : null;
    private double all, maxGot, max, got;
    private boolean ic2ok = false;
  
-@@ -25,8 +26,10 @@
+@@ -25,8 +27,10 @@
        MinecraftForge.EVENT_BUS.post(new EnergyTileLoadEvent(this));
        this.ic2ok = true;
      }
@@ -536,7 +536,7 @@
      this.all += this.got;
      this.got = 0;
    }
-@@ -52,7 +55,8 @@
+@@ -52,7 +56,8 @@
      this.all = nbttc.getDouble("storedEnergy");
      this.max = nbttc.getDouble("MAX_stored");
      this.maxGot = nbttc.getDouble("MAX_receive");
@@ -546,7 +546,7 @@
    }
  
    @Override
-@@ -97,32 +101,18 @@
+@@ -97,32 +102,18 @@
    public final void configure(final double x, final double maxstored) {
      this.maxGot = x;
      this.max = maxstored;
@@ -583,7 +583,7 @@
    }
  
    @Override
-@@ -131,11 +121,6 @@
+@@ -131,11 +122,6 @@
    }
  
    @Override
@@ -595,7 +595,7 @@
    public final boolean isAddedToEnergyNet() {
      return true;
    }
-@@ -154,8 +139,13 @@
+@@ -154,8 +140,13 @@
    public final void doWork() {}
  
    @Override
@@ -737,7 +737,7 @@
          if (index != -1)
 --- a/com/yogpc/qp/tile/TileRefinery.java
 +++ b/com/yogpc/qp/tile/TileRefinery.java
-@@ -237,7 +237,6 @@
+@@ -239,7 +239,6 @@
      return 0;
    }
  
@@ -745,7 +745,7 @@
    public LiquidStack drain(final ForgeDirection from, final LiquidStack resource,
        final boolean doDrain) {
      if (resource == null)
-@@ -276,13 +275,13 @@
+@@ -278,13 +277,13 @@
    }
  
    @Override
@@ -763,7 +763,7 @@
    }
  
    @Override
-@@ -295,6 +294,18 @@
+@@ -297,6 +296,18 @@
    }
  
    @Override
