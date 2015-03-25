@@ -23,6 +23,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.util.ForgeDirection;
 
@@ -30,6 +31,9 @@ import com.yogpc.qp.PacketHandler;
 import com.yogpc.qp.PowerManager;
 import com.yogpc.qp.YogpstopPacket;
 import com.yogpc.qp.compat.ILaserTargetHelper;
+
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 public class TileLaser extends APowerTile implements IEnchantableTile {
   public static class Position {
@@ -93,9 +97,7 @@ public class TileLaser extends APowerTile implements IEnchantableTile {
           this.worldObj.provider.dimensionId, this.xCoord, this.yCoord, this.zCoord);
   }
 
-  protected boolean isValidLaser() {
-    if (this.lasers == null)
-      return false;
+  private boolean isValidLaser() {
     for (final Position laser : this.lasers)
       if (laser == null)
         return false;
@@ -292,4 +294,34 @@ public class TileLaser extends APowerTile implements IEnchantableTile {
 
   @Override
   public void C_recievePacket(final byte id, final byte[] data, final EntityPlayer ep) {}
+
+  @Override
+  @SideOnly(Side.CLIENT)
+  public AxisAlignedBB getRenderBoundingBox() {
+    final AxisAlignedBB aabb =
+        AxisAlignedBB.getBoundingBox(this.xCoord, this.yCoord, this.zCoord, this.xCoord + 1,
+            this.yCoord + 1, this.zCoord + 1);
+    if (this.lasers != null)
+      for (final Position p : this.lasers) {
+        if (p == null)
+          continue;
+        final double xn = p.x - 0.0625;
+        final double xx = xn + 0.125;
+        final double zn = p.z - 0.0625;
+        final double zx = zn + 0.125;
+        if (xn < aabb.minX)
+          aabb.minX = xn;
+        if (xx > aabb.maxX)
+          aabb.maxX = xx;
+        if (p.y < aabb.minY)
+          aabb.minY = p.y;
+        if (p.y > aabb.maxY)
+          aabb.maxY = p.y;
+        if (zn < aabb.minZ)
+          aabb.minZ = zn;
+        if (zx > aabb.maxZ)
+          aabb.maxZ = zx;
+      }
+    return aabb;
+  }
 }

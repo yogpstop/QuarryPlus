@@ -266,7 +266,7 @@
        return true;
 --- a/com/yogpc/qp/compat/RefineryRecipeHelper.java
 +++ b/com/yogpc/qp/compat/RefineryRecipeHelper.java
-@@ -39,12 +39,9 @@
+@@ -38,12 +38,9 @@
    }
  
    public static void get(final TileRefinery tr) {
@@ -741,7 +741,7 @@
      if (!this.ic2ok && !this.worldObj.isRemote) {
 -      if (ModAPIManager.INSTANCE.hasAPI("IC2API"))
 -        try {
--          IC2Helper.ic2load(this);
+-          ic2load(this);
 -        } catch (final Exception e) {
 -        }
 +      MinecraftForge.EVENT_BUS.post(new EnergyTileLoadEvent(this));
@@ -753,19 +753,30 @@
      this.all += this.got;
      this.got = 0;
    }
-@@ -45,10 +41,7 @@
+@@ -45,29 +41,18 @@
    public void onChunkUnload() {
      super.onChunkUnload();
      if (this.ic2ok && !this.worldObj.isRemote) {
 -      try {
--        IC2Helper.ic2unload(this);
+-        ic2unload(this);
 -      } catch (final Exception e) {
 -      }
 +      MinecraftForge.EVENT_BUS.post(new EnergyTileUnloadEvent(this));
        this.ic2ok = false;
      }
    }
-@@ -59,7 +52,7 @@
+ 
+-    public static final void ic2load(final IEnergySink i) {
+-    MinecraftForge.EVENT_BUS.post(new EnergyTileLoadEvent(i));
+-  }
+-
+-    public static final void ic2unload(final IEnergySink i) {
+-    MinecraftForge.EVENT_BUS.post(new EnergyTileUnloadEvent(i));
+-  }
+-
+   @Override
+   public void readFromNBT(final NBTTagCompound nbttc) {
+     super.readFromNBT(nbttc);
      this.all = nbttc.getDouble("storedEnergy");
      this.max = nbttc.getDouble("MAX_stored");
      this.maxGot = nbttc.getDouble("MAX_receive");
@@ -774,7 +785,7 @@
    }
  
    @Override
-@@ -104,7 +97,7 @@
+@@ -112,7 +97,7 @@
    public final void configure(final double x, final double maxstored) {
      this.maxGot = x;
      this.max = maxstored;
@@ -1055,7 +1066,7 @@
              bz & 0xF);
 --- a/com/yogpc/qp/tile/TileQuarry.java
 +++ b/com/yogpc/qp/tile/TileQuarry.java
-@@ -94,9 +94,9 @@
+@@ -96,9 +96,9 @@
    private boolean S_checkTarget() {
      if (this.targetY > this.yMax)
        this.targetY = this.yMax;
@@ -1067,7 +1078,7 @@
      final float h =
          b == null ? -1 : b
              .getBlockHardness(this.worldObj, this.targetX, this.targetY, this.targetZ);
-@@ -160,7 +160,7 @@
+@@ -162,7 +162,7 @@
            return S_checkTarget();
          }
          if (b != null
@@ -1076,7 +1087,7 @@
              && !(b == QuarryPlusI.blockFrame && this.worldObj.getBlockMetadata(this.targetX,
                  this.targetY, this.targetZ) == 0)) {
            this.now = NOTNEEDBREAK;
-@@ -283,7 +283,7 @@
+@@ -285,7 +285,7 @@
      this.digged = true;
      if (!PowerManager.useEnergyF(this, this.unbreaking))
        return false;
@@ -1085,7 +1096,7 @@
      S_setNextTarget();
      return true;
    }
-@@ -358,7 +358,7 @@
+@@ -360,7 +360,7 @@
  
    private boolean S_checkIAreaProvider(final int x, final int y, final int z) {
      final TileEntity te = this.worldObj.getBlockTileEntity(x, y, z);
@@ -1094,7 +1105,7 @@
        this.iap = (IAreaProvider) te;
        this.xMin = this.iap.xMin();
        this.xMax = this.iap.xMax();
-@@ -437,7 +437,7 @@
+@@ -439,7 +439,7 @@
    }
  
    private void S_setBreakableFrame(final int x, final int y, final int z) {

@@ -1,6 +1,6 @@
 --- a/com/yogpc/qp/block/BlockBreaker.java
 +++ b/com/yogpc/qp/block/BlockBreaker.java
-@@ -56,6 +56,10 @@
+@@ -57,6 +57,10 @@
      setHardness(3.5F);
      setStepSound(soundStoneFootstep);
      setBlockName("BreakerPlus");
@@ -11,7 +11,7 @@
    }
  
    @Override
-@@ -81,11 +85,8 @@
+@@ -82,11 +86,8 @@
  
    @Override
    @SideOnly(Side.CLIENT)
@@ -25,7 +25,7 @@
    }
  
    @Override
-@@ -115,7 +116,7 @@
+@@ -116,7 +117,7 @@
      final Block b = Block.blocksList[w.getBlockId(tx, ty, tz)];
      if (b == null || b.isAirBlock(w, x, y, z))
        return;
@@ -34,7 +34,7 @@
      b.onBlockHarvested(w, tx, ty, tz, meta, player);
      if (b.removeBlockByPlayer(w, player, tx, ty, tz))
        b.onBlockDestroyedByPlayer(w, tx, ty, tz, meta);
-@@ -146,10 +147,10 @@
+@@ -147,10 +148,10 @@
  
    @Override
    public void onBlockPlacedBy(final World world, final int x, final int y, final int z, final EntityLiving ent) {
@@ -239,7 +239,7 @@
    @Override
 --- a/com/yogpc/qp/block/BlockPlacer.java
 +++ b/com/yogpc/qp/block/BlockPlacer.java
-@@ -52,6 +52,10 @@
+@@ -53,6 +53,10 @@
      setHardness(3.5F);
      setStepSound(soundStoneFootstep);
      setBlockName("PlacerPlus");
@@ -250,7 +250,7 @@
    }
  
    @Override
-@@ -77,11 +81,8 @@
+@@ -78,11 +82,8 @@
  
    @Override
    @SideOnly(Side.CLIENT)
@@ -264,7 +264,7 @@
    }
  
    @Override
-@@ -133,7 +134,7 @@
+@@ -134,7 +135,7 @@
        ty = y + fd2.offsetY;
        tz = z + fd2.offsetZ;
  
@@ -273,7 +273,7 @@
        ItemStack is = null;
        int i = 0;
        for (; i < tile.getSizeInventory(); i++) {
-@@ -194,7 +195,7 @@
+@@ -195,7 +196,7 @@
    @Override
    public void onBlockPlacedBy(final World par1World, final int par2, final int par3, final int par4, final EntityLiving par5EntityLiving) {
      final int l =
@@ -282,7 +282,7 @@
      par1World.setBlockMetadataWithNotify(par2, par3, par4, l);
    }
  
-@@ -235,7 +236,6 @@
+@@ -236,7 +237,6 @@
          }
        }
  
@@ -850,7 +850,7 @@
  
 --- a/com/yogpc/qp/PowerManager.java
 +++ b/com/yogpc/qp/PowerManager.java
-@@ -36,7 +36,7 @@
+@@ -35,7 +35,7 @@
      if (c.containsKey(name)) {
        Property prop = c.get(name);
        if (prop.getType() == null) {
@@ -1142,6 +1142,16 @@
 -    return false;
 -  }
  }
+--- a/com/yogpc/qp/tile/TileLaser.java
++++ b/com/yogpc/qp/tile/TileLaser.java
+@@ -294,7 +294,6 @@
+   @Override
+   public void C_recievePacket(final byte id, final byte[] data, final EntityPlayer ep) {}
+ 
+-  @Override
+   @SideOnly(Side.CLIENT)
+   public AxisAlignedBB getRenderBoundingBox() {
+     final AxisAlignedBB aabb =
 --- a/com/yogpc/qp/tile/TilePlacer.java
 +++ b/com/yogpc/qp/tile/TilePlacer.java
 @@ -77,11 +77,6 @@
@@ -1245,6 +1255,16 @@
 +    return -1;
 +  }
  }
+--- a/com/yogpc/qp/tile/TileQuarry.java
++++ b/com/yogpc/qp/tile/TileQuarry.java
+@@ -621,7 +621,6 @@
+       PowerManager.configureB(this, this.efficiency, this.unbreaking, pmp);
+   }
+ 
+-  @Override
+   @SideOnly(Side.CLIENT)
+   public AxisAlignedBB getRenderBoundingBox() {
+     final AxisAlignedBB aabb =
 --- a/com/yogpc/qp/tile/TileWorkbench.java
 +++ b/com/yogpc/qp/tile/TileWorkbench.java
 @@ -173,21 +173,11 @@

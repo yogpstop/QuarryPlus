@@ -1,13 +1,13 @@
 package com.yogpc.qp.tile;
 
+import ic2.api.energy.event.EnergyTileLoadEvent;
+import ic2.api.energy.event.EnergyTileUnloadEvent;
 import ic2.api.energy.tile.IEnergySink;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.ForgeDirection;
 import cofh.api.energy.IEnergyHandler;
-
-import com.yogpc.qp.compat.IC2Helper;
-
 import cpw.mods.fml.common.ModAPIManager;
 import cpw.mods.fml.common.Optional;
 
@@ -24,7 +24,7 @@ public abstract class APowerTile extends APacketTile implements IEnergyHandler, 
     if (!this.ic2ok && !this.worldObj.isRemote) {
       if (ModAPIManager.INSTANCE.hasAPI("IC2API"))
         try {
-          IC2Helper.ic2load(this);
+          ic2load(this);
         } catch (final Exception e) {
         }
       this.ic2ok = true;
@@ -44,11 +44,21 @@ public abstract class APowerTile extends APacketTile implements IEnergyHandler, 
     super.onChunkUnload();
     if (this.ic2ok && !this.worldObj.isRemote) {
       try {
-        IC2Helper.ic2unload(this);
+        ic2unload(this);
       } catch (final Exception e) {
       }
       this.ic2ok = false;
     }
+  }
+
+  @Optional.Method(modid = "IC2API")
+  public static final void ic2load(final IEnergySink i) {
+    MinecraftForge.EVENT_BUS.post(new EnergyTileLoadEvent(i));
+  }
+
+  @Optional.Method(modid = "IC2API")
+  public static final void ic2unload(final IEnergySink i) {
+    MinecraftForge.EVENT_BUS.post(new EnergyTileUnloadEvent(i));
   }
 
   @Override

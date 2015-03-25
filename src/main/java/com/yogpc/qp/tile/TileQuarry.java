@@ -43,6 +43,8 @@ import com.yogpc.qp.QuarryPlusI;
 import com.yogpc.qp.YogpstopPacket;
 
 import cpw.mods.fml.common.ModAPIManager;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 public class TileQuarry extends TileBasic {
   private int targetX, targetY, targetZ;
@@ -619,5 +621,31 @@ public class TileQuarry extends TileBasic {
       PowerManager.configureF(this, this.efficiency, this.unbreaking, pmp);
     else
       PowerManager.configureB(this, this.efficiency, this.unbreaking, pmp);
+  }
+
+  @Override
+  @SideOnly(Side.CLIENT)
+  public AxisAlignedBB getRenderBoundingBox() {
+    final AxisAlignedBB aabb =
+        AxisAlignedBB.getBoundingBox(this.xCoord, Double.NEGATIVE_INFINITY, this.zCoord,
+            this.xCoord + 1, this.yCoord + 1, this.zCoord + 1);
+    if (this.yMax == Integer.MIN_VALUE)
+      return aabb;
+    final double xn = this.xMin + 0.46875;
+    final double xx = this.xMax + 0.53125;
+    final double yx = this.yMax + 0.75;
+    final double zn = this.zMin + 0.46875;
+    final double zx = this.zMax + 0.53125;
+    if (xn < aabb.minX)
+      aabb.minX = xn;
+    if (xx > aabb.maxX)
+      aabb.maxX = xx;
+    if (aabb.maxY < yx)
+      aabb.maxY = yx;
+    if (zn < aabb.minZ)
+      aabb.minZ = zn;
+    if (zx > aabb.maxZ)
+      aabb.maxZ = zx;
+    return aabb;
   }
 }
