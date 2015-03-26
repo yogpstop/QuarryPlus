@@ -1061,7 +1061,7 @@
      diplayLists = new int[100];
      Block baseBlock;
 -    int texture;
-     if (fluidStack.itemID > -1) {
+     if (fluidStack.itemID < Block.blocksList.length && Block.blocksList[fluidStack.itemID] != null) {
        baseBlock = Block.blocksList[fluidStack.itemID];
 -      texture = fluidStack.getRenderingIcon();
      } else {

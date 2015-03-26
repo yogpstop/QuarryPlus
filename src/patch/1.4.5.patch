@@ -1,6 +1,6 @@
 --- a/com/yogpc/qp/compat/RefineryRecipeHelper.java
 +++ b/com/yogpc/qp/compat/RefineryRecipeHelper.java
-@@ -41,9 +41,8 @@
+@@ -40,9 +40,8 @@
    public static void get(final TileRefinery tr) {
      if (tr.cached != null)
        return;
@@ -92,16 +92,16 @@
        return diplayLists;
      diplayLists = new int[100];
      Block baseBlock;
--    if (fluidStack.shiftedIndex > -1) {
+-    if (fluidStack.shiftedIndex < Block.blocksList.length && Block.blocksList[fluidStack.shiftedIndex] != null) {
 -      baseBlock = Block.blocksList[fluidStack.shiftedIndex];
-+    if (fluidStack.itemID > -1) {
++    if (fluidStack.itemID < Block.blocksList.length && Block.blocksList[fluidStack.itemID] != null) {
 +      baseBlock = Block.blocksList[fluidStack.itemID];
      } else {
        baseBlock = Block.waterStill;
      }
 --- a/com/yogpc/qp/tile/APowerTile.java
 +++ b/com/yogpc/qp/tile/APowerTile.java
-@@ -106,7 +106,7 @@
+@@ -107,7 +107,7 @@
  
    @Override
    public final boolean demandsEnergy() {
@@ -110,7 +110,7 @@
    }
  
    @Override
-@@ -115,11 +115,6 @@
+@@ -116,11 +116,6 @@
    }
  
    @Override

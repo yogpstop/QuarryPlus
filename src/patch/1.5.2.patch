@@ -490,7 +490,7 @@
 -    if (fluid.getBlockID() > -1) {
 -      baseBlock = Block.blocksList[fluid.getBlockID()];
 -      texture = fluid.getStillIcon();
-+    if (fluidStack.itemID > -1) {
++    if (fluidStack.itemID < Block.blocksList.length && Block.blocksList[fluidStack.itemID] != null) {
 +      baseBlock = Block.blocksList[fluidStack.itemID];
 +      texture = fluidStack.getRenderingIcon();
      } else {
@@ -512,7 +512,7 @@
 --- a/com/yogpc/qp/tile/APowerTile.java
 +++ b/com/yogpc/qp/tile/APowerTile.java
 @@ -12,9 +12,11 @@
- import net.minecraft.tileentity.TileEntity;
+ import net.minecraftforge.common.MinecraftForge;
  import net.minecraftforge.common.ForgeDirection;
  
 -public abstract class APowerTile extends APacketTile implements IEnergyHandler, IEnergySink,
