@@ -8,7 +8,6 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.ForgeDirection;
 import cofh.api.energy.IEnergyHandler;
-import cpw.mods.fml.common.ModAPIManager;
 import cpw.mods.fml.common.Optional;
 
 @Optional.InterfaceList(value = {
@@ -22,11 +21,10 @@ public abstract class APowerTile extends APacketTile implements IEnergyHandler, 
   public void updateEntity() {
     super.updateEntity();
     if (!this.ic2ok && !this.worldObj.isRemote) {
-      if (ModAPIManager.INSTANCE.hasAPI("IC2API"))
-        try {
-          ic2load(this);
-        } catch (final Exception e) {
-        }
+      try {
+        ic2load();
+      } catch (final Throwable e) {
+      }
       this.ic2ok = true;
     }
     this.all += this.got;
@@ -44,21 +42,21 @@ public abstract class APowerTile extends APacketTile implements IEnergyHandler, 
     super.onChunkUnload();
     if (this.ic2ok && !this.worldObj.isRemote) {
       try {
-        ic2unload(this);
-      } catch (final Exception e) {
+        ic2unload();
+      } catch (final Throwable e) {
       }
       this.ic2ok = false;
     }
   }
 
   @Optional.Method(modid = "IC2API")
-  public static final void ic2load(final IEnergySink i) {
-    MinecraftForge.EVENT_BUS.post(new EnergyTileLoadEvent(i));
+  public final void ic2load() {
+    MinecraftForge.EVENT_BUS.post(new EnergyTileLoadEvent(this));
   }
 
   @Optional.Method(modid = "IC2API")
-  public static final void ic2unload(final IEnergySink i) {
-    MinecraftForge.EVENT_BUS.post(new EnergyTileUnloadEvent(i));
+  public final void ic2unload() {
+    MinecraftForge.EVENT_BUS.post(new EnergyTileUnloadEvent(this));
   }
 
   @Override

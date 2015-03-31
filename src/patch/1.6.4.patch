@@ -735,15 +735,14 @@
  }
 --- a/com/yogpc/qp/tile/APowerTile.java
 +++ b/com/yogpc/qp/tile/APowerTile.java
-@@ -22,15 +22,11 @@
+@@ -22,14 +22,11 @@
    public void updateEntity() {
      super.updateEntity();
      if (!this.ic2ok && !this.worldObj.isRemote) {
--      if (ModAPIManager.INSTANCE.hasAPI("IC2API"))
--        try {
--          ic2load(this);
--        } catch (final Exception e) {
--        }
+-      try {
+-        ic2load();
+-      } catch (final Throwable e) {
+-      }
 +      MinecraftForge.EVENT_BUS.post(new EnergyTileLoadEvent(this));
        this.ic2ok = true;
      }
@@ -758,20 +757,20 @@
      super.onChunkUnload();
      if (this.ic2ok && !this.worldObj.isRemote) {
 -      try {
--        ic2unload(this);
--      } catch (final Exception e) {
+-        ic2unload();
+-      } catch (final Throwable e) {
 -      }
 +      MinecraftForge.EVENT_BUS.post(new EnergyTileUnloadEvent(this));
        this.ic2ok = false;
      }
    }
  
--    public static final void ic2load(final IEnergySink i) {
--    MinecraftForge.EVENT_BUS.post(new EnergyTileLoadEvent(i));
+-    public final void ic2load() {
+-    MinecraftForge.EVENT_BUS.post(new EnergyTileLoadEvent(this));
 -  }
 -
--    public static final void ic2unload(final IEnergySink i) {
--    MinecraftForge.EVENT_BUS.post(new EnergyTileUnloadEvent(i));
+-    public final void ic2unload() {
+-    MinecraftForge.EVENT_BUS.post(new EnergyTileUnloadEvent(this));
 -  }
 -
    @Override
