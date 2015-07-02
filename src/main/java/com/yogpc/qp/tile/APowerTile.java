@@ -12,7 +12,7 @@ import cpw.mods.fml.common.Optional;
 
 @Optional.InterfaceList(value = {
     @Optional.Interface(iface = "cofh.api.energy.IEnergyHandler", modid = "CoFHAPI|energy"),
-    @Optional.Interface(iface = "ic2.api.energy.tile.IEnergySink", modid = "IC2API")})
+    @Optional.Interface(iface = "ic2.api.energy.tile.IEnergySink", modid = "IC2")})
 public abstract class APowerTile extends APacketTile implements IEnergyHandler, IEnergySink {
   private double all, maxGot, max, got;
   private boolean ic2ok = false;
@@ -49,12 +49,12 @@ public abstract class APowerTile extends APacketTile implements IEnergyHandler, 
     }
   }
 
-  @Optional.Method(modid = "IC2API")
+  @Optional.Method(modid = "IC2")
   public final void ic2load() {
     MinecraftForge.EVENT_BUS.post(new EnergyTileLoadEvent(this));
   }
 
-  @Optional.Method(modid = "IC2API")
+  @Optional.Method(modid = "IC2")
   public final void ic2unload() {
     MinecraftForge.EVENT_BUS.post(new EnergyTileUnloadEvent(this));
   }

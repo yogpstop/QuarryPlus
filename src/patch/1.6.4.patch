@@ -557,7 +557,7 @@
 @@ -24,6 +24,8 @@
      name = "QuarryPlus",
      version = "{version}",
-     dependencies = "after:BuildCraftAPI|core;after:BuildCraftAPI|power;after:BuildCraftAPI|recipes;after:BuildCraftAPI|tools;after:BuildCraftAPI|transport;after:CoFHAPI|block;after:CoFHAPI|energy;after:CoFHAPI|inventory;after:IC2API")
+     dependencies = "after:BuildCraftAPI|core;after:BuildCraftAPI|power;after:BuildCraftAPI|recipes;after:BuildCraftAPI|tools;after:BuildCraftAPI|transport;after:CoFHAPI|block;after:CoFHAPI|energy;after:CoFHAPI|inventory;after:IC2")
 +@NetworkMod(clientSideRequired = true, serverSideRequired = false, channels = {"QuarryPlus"},
 +    packetHandler = PacketHandler.class)
  public class QuarryPlus {

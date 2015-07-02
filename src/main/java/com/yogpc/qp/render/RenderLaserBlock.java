@@ -30,7 +30,7 @@ public class RenderLaserBlock implements ISimpleBlockRenderingHandler {
   @Override
   public boolean renderWorldBlock(final IBlockAccess iblockaccess, final int x, final int y,
       final int z, final Block block, final int l, final RenderBlocks renderblocks) {
-    switch (ForgeDirection.values()[iblockaccess.getBlockMetadata(x, y, z)]) {
+    switch (ForgeDirection.getOrientation(iblockaccess.getBlockMetadata(x, y, z))) {
       case EAST:
         renderblocks.uvRotateEast = 2;
         renderblocks.uvRotateWest = 1;
